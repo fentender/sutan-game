@@ -38,6 +38,8 @@ class UserConfig:
     mod_order: list[str] = field(default_factory=list)
     # 启用的 mod 集合
     enabled_mods: list[str] = field(default_factory=list)
+    # 每个 mod 的覆盖模式：mod_id -> "replace" | "merge_as_array"
+    merge_modes: dict[str, str] = field(default_factory=dict)
 
     @property
     def game_config_path(self) -> Path:

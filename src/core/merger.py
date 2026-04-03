@@ -172,7 +172,7 @@ def _extract_action_keys(action: dict) -> set[str]:
 
 # ==================== 通用数组合并 ====================
 
-def _merge_settlement_array(base_arr: list, mod_arr: list) -> list:
+def _merge_settlement_array(base_arr: list, mod_arr: list, merge_mode: str = "merge_as_array") -> list:
     """
     智能合并 settlement 类数组。
     自动识别 rite 风格和 event 风格，使用对应的匹配策略。
@@ -192,7 +192,7 @@ def _merge_settlement_array(base_arr: list, mod_arr: list) -> list:
             continue
         idx = find_fn(result, mod_item, matched)
         if idx is not None:
-            result[idx] = deep_merge(result[idx], mod_item)
+            result[idx] = deep_merge(result[idx], mod_item, merge_mode)
             matched.add(idx)
         else:
             result.append(copy.deepcopy(mod_item))
@@ -200,12 +200,36 @@ def _merge_settlement_array(base_arr: list, mod_arr: list) -> list:
     return result
 
 
-def deep_merge(base: object, override: object) -> object:
+def _coerce_and_merge_array(base_val, override_val):
+    """
+    类型不匹配时的数组合并策略。
+    将标量一侧包裹为单元素列表，然后合并（去重追加）。
+    """
+    if isinstance(base_val, list) and not isinstance(override_val, list):
+        # base 是数组，override 是标量：标量已在数组中则保留数组，否则追加
+        if override_val in base_val:
+            return copy.deepcopy(base_val)
+        result = copy.deepcopy(base_val)
+        result.append(copy.deepcopy(override_val))
+        return result
+    elif not isinstance(base_val, list) and isinstance(override_val, list):
+        # base 是标量，override 是数组：标量已在数组中则保留数组，否则插入首位
+        if base_val in override_val:
+            return copy.deepcopy(override_val)
+        result = copy.deepcopy(override_val)
+        result.insert(0, copy.deepcopy(base_val))
+        return result
+    else:
+        # 两边都非 list（如 int vs str），仍然替换
+        return copy.deepcopy(override_val)
+
+
+def deep_merge(base: object, override: object, merge_mode: str = "merge_as_array") -> object:
     """
     递归深度合并。
     - dict + dict: 递归合并
     - list + list: 根据字段名判断是否智能合并
-    - 其他: override 直接替换
+    - 其他: 根据 merge_mode 决定替换或数组合并
     """
     if not isinstance(base, dict) or not isinstance(override, dict):
         return copy.deepcopy(override)
@@ -214,10 +238,14 @@ def deep_merge(base: object, override: object) -> object:
     for key, value in override.items():
         if key in result:
             if isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = deep_merge(result[key], value)
+                result[key] = deep_merge(result[key], value, merge_mode)
             elif (isinstance(result[key], list) and isinstance(value, list)
                   and key in SMART_MERGE_ARRAY_KEYS):
-                result[key] = _merge_settlement_array(result[key], value)
+                result[key] = _merge_settlement_array(result[key], value, merge_mode)
+            elif merge_mode == "merge_as_array" and (
+                isinstance(result[key], list) != isinstance(value, list)
+            ):
+                result[key] = _coerce_and_merge_array(result[key], value)
             else:
                 result[key] = copy.deepcopy(value)
         else:
@@ -249,7 +277,8 @@ def classify_json(data: dict) -> str:
 def merge_file(
     base_data: dict,
     mod_data_list: list[tuple[str, str, dict]],
-    rel_path: str = ""
+    rel_path: str = "",
+    merge_modes: dict[str, str] | None = None
 ) -> MergeResult:
     """
     合并单个文件。
@@ -279,18 +308,19 @@ def merge_file(
     current: dict = copy.deepcopy(base_data)
     file_type = classify_json(base_data)
 
-    for _, mod_name, mod_data in mod_data_list:
+    for mod_id, mod_name, mod_data in mod_data_list:
+        mode = (merge_modes or {}).get(mod_id, "merge_as_array")
         if file_type == "dictionary":
             # 字典型：按 key 合并
             for key, value in mod_data.items():
                 if key in current:
-                    current[key] = deep_merge(current[key], value)
+                    current[key] = deep_merge(current[key], value, mode)
                 else:
                     current[key] = copy.deepcopy(value)
                     result.new_entries.append(("", mod_name, f"新增 key: {key}"))
         else:
             # 实体型和配置型：整体深度合并
-            current = deep_merge(current, mod_data)  # type: ignore[assignment]
+            current = deep_merge(current, mod_data, mode)  # type: ignore[assignment]
 
     result.merged_data = current
     return result
@@ -303,7 +333,8 @@ merge_warnings: list[str] = []
 def merge_all_files(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
-    output_path: Path
+    output_path: Path,
+    merge_modes: dict[str, str] | None = None
 ) -> dict[str, MergeResult]:
     """
     合并所有文件。
@@ -349,7 +380,7 @@ def merge_all_files(
             _validate_tag_names(base_data, mod_data_list)
 
         # 合并
-        merge_result = merge_file(base_data, mod_data_list, rel_path)
+        merge_result = merge_file(base_data, mod_data_list, rel_path, merge_modes=merge_modes)
         results[rel_path] = merge_result
 
         # 输出

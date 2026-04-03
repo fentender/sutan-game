@@ -3,7 +3,7 @@ Mod 列表面板 - 左侧面板，显示所有 mod 并支持排序和启用/禁�
 """
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QListWidget, QListWidgetItem, QCheckBox, QLabel
+    QListWidget, QListWidgetItem, QCheckBox, QLabel, QComboBox
 )
 from PySide6.QtCore import Signal
 
@@ -15,8 +15,9 @@ class ModListItem(QWidget):
     toggled = Signal(str, bool)  # mod_id, enabled
     move_up = Signal(str)
     move_down = Signal(str)
+    merge_mode_changed = Signal(str, str)  # mod_id, mode
 
-    def __init__(self, mod: ModInfo, enabled: bool = True, parent=None):
+    def __init__(self, mod: ModInfo, enabled: bool = True, merge_mode: str = "merge_as_array", parent=None):
         super().__init__(parent)
         self.mod = mod
 
@@ -32,6 +33,13 @@ class ModListItem(QWidget):
         self.label.setToolTip(f"ID: {mod.mod_id}\n版本: {mod.version}\n文件数: {len(mod.config_files)}")
         layout.addWidget(self.label, 1)
 
+        self.merge_combo = QComboBox()
+        self.merge_combo.addItems(["替换", "合并"])
+        self.merge_combo.setFixedWidth(50)
+        self.merge_combo.setCurrentIndex(0 if merge_mode == "replace" else 1)
+        self.merge_combo.currentIndexChanged.connect(self._on_merge_mode_changed)
+        layout.addWidget(self.merge_combo)
+
         btn_up = QPushButton("▲")
         btn_up.setFixedWidth(28)
         btn_up.clicked.connect(lambda: self.move_up.emit(self.mod.mod_id))
@@ -41,6 +49,10 @@ class ModListItem(QWidget):
         btn_down.setFixedWidth(28)
         btn_down.clicked.connect(lambda: self.move_down.emit(self.mod.mod_id))
         layout.addWidget(btn_down)
+
+    def _on_merge_mode_changed(self, index: int):
+        mode = "replace" if index == 0 else "merge_as_array"
+        self.merge_mode_changed.emit(self.mod.mod_id, mode)
 
 
 class ModListPanel(QWidget):
@@ -52,6 +64,7 @@ class ModListPanel(QWidget):
         super().__init__(parent)
         self._mods: list[ModInfo] = []
         self._enabled: dict[str, bool] = {}
+        self._merge_modes: dict[str, str] = {}
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -75,7 +88,8 @@ class ModListPanel(QWidget):
 
         layout.addLayout(btn_layout)
 
-    def set_mods(self, mods: list[ModInfo], order: list[str] | None = None, enabled: list[str] | None = None):
+    def set_mods(self, mods: list[ModInfo], order: list[str] | None = None,
+                 enabled: list[str] | None = None, merge_modes: dict[str, str] | None = None):
         """设置 mod 列表"""
         self._mods = list(mods)
 
@@ -90,6 +104,8 @@ class ModListPanel(QWidget):
         else:
             self._enabled = {m.mod_id: True for m in self._mods}
 
+        self._merge_modes = merge_modes or {}
+
         self._refresh_list()
 
     def _refresh_list(self):
@@ -99,10 +115,12 @@ class ModListPanel(QWidget):
 
         for mod in self._mods:
             item = QListWidgetItem()
-            widget = ModListItem(mod, self._enabled.get(mod.mod_id, True))
+            mode = self._merge_modes.get(mod.mod_id, "merge_as_array")
+            widget = ModListItem(mod, self._enabled.get(mod.mod_id, True), merge_mode=mode)
             widget.toggled.connect(self._on_toggle)
             widget.move_up.connect(self._on_move_up)
             widget.move_down.connect(self._on_move_down)
+            widget.merge_mode_changed.connect(self._on_merge_mode_changed)
             item.setSizeHint(widget.sizeHint())
             self.list_widget.addItem(item)
             self.list_widget.setItemWidget(item, widget)
@@ -112,6 +130,10 @@ class ModListPanel(QWidget):
 
     def _on_toggle(self, mod_id: str, enabled: bool):
         self._enabled[mod_id] = enabled
+
+    def _on_merge_mode_changed(self, mod_id: str, mode: str):
+        self._merge_modes[mod_id] = mode
+        self.order_changed.emit()
 
     def _on_move_up(self, mod_id: str):
         idx = next((i for i, m in enumerate(self._mods) if m.mod_id == mod_id), -1)
@@ -152,3 +174,7 @@ class ModListPanel(QWidget):
     def get_enabled_ids(self) -> list[str]:
         """获取启用的 mod ID 列表"""
         return [mid for mid, en in self._enabled.items() if en]
+
+    def get_merge_modes(self) -> dict[str, str]:
+        """获取所有非默认的覆盖模式设置"""
+        return {mid: mode for mid, mode in self._merge_modes.items() if mode != "merge_as_array"}

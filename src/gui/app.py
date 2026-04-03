@@ -1,13 +1,14 @@
 """
 主窗口 - 串联所有 GUI 面板和核心逻辑
 """
+import re
 import shutil
 from pathlib import Path
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QSplitter, QMessageBox, QProgressBar,
-    QFileDialog, QTextEdit
+    QFileDialog, QListWidget, QListWidgetItem
 )
 from PySide6.QtCore import Qt, QThread, Signal
 
@@ -28,12 +29,13 @@ class MergeWorker(QThread):
     error = Signal(str)
     progress = Signal(str)
 
-    def __init__(self, game_config_path, mod_configs, output_path, mod_paths):
+    def __init__(self, game_config_path, mod_configs, output_path, mod_paths, merge_modes=None):
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
+        self.merge_modes = merge_modes or {}
 
     def run(self):
         try:
@@ -41,7 +43,8 @@ class MergeWorker(QThread):
             results = merge_all_files(
                 self.game_config_path,
                 self.mod_configs,
-                self.output_path / "config"
+                self.output_path / "config",
+                merge_modes=self.merge_modes
             )
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path)
@@ -120,12 +123,16 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(btn_layout)
 
         # 错误日志面板
-        self.error_log = QTextEdit()
-        self.error_log.setReadOnly(True)
-        self.error_log.setMaximumHeight(100)
-        self.error_log.setPlaceholderText("错误日志（无错误）")
-        self.error_log.setStyleSheet("color: #e88; font-family: Consolas, monospace; font-size: 12px;")
+        self.error_log = QListWidget()
+        self.error_log.setMaximumHeight(120)
+        self.error_log.setStyleSheet(
+            "QListWidget { font-family: Consolas, monospace; font-size: 12px; }"
+            "QListWidget::item { color: #e88; padding: 3px 4px;"
+            "  border-bottom: 1px solid #444; }"
+        )
         self.error_log.setVisible(False)
+        self.error_log.itemDoubleClicked.connect(self._on_error_double_clicked)
+        self._error_count = 0
         main_layout.addWidget(self.error_log)
 
         # 信号连接
@@ -163,7 +170,8 @@ class MainWindow(QMainWindow):
         self.mod_list_panel.set_mods(
             mods,
             order=self.config.mod_order or None,
-            enabled=self.config.enabled_mods or None
+            enabled=self.config.enabled_mods or None,
+            merge_modes=self.config.merge_modes or None
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
         # 汇总所有错误和警告
@@ -173,6 +181,7 @@ class MainWindow(QMainWindow):
     def _save_config(self):
         self.config.mod_order = self.mod_list_panel.get_mod_order()
         self.config.enabled_mods = self.mod_list_panel.get_enabled_ids()
+        self.config.merge_modes = self.mod_list_panel.get_merge_modes()
         self.config.save()
 
     def _get_mod_configs(self) -> list[tuple[str, str, Path]]:
@@ -226,11 +235,13 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # 不确定进度
 
+        merge_modes = self.mod_list_panel.get_merge_modes()
         self._worker = MergeWorker(
             self.config.game_config_path,
             mod_configs,
             MERGED_OUTPUT_PATH,
-            mod_paths
+            mod_paths,
+            merge_modes=merge_modes
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
         self._worker.finished.connect(self._on_merge_finished)
@@ -305,14 +316,35 @@ class MainWindow(QMainWindow):
 
     def _show_errors(self, errors: list[str]):
         """显示或隐藏错误日志"""
+        self.error_log.clear()
+        self._error_count = 0
         if errors:
-            self.error_log.setPlainText("\n".join(errors))
-            self.error_log.setVisible(True)
+            for msg in errors:
+                self._log_error(msg)
         else:
-            self.error_log.clear()
             self.error_log.setVisible(False)
 
     def _log_error(self, msg: str):
         """追加一条错误到日志面板"""
+        self._error_count += 1
+        item = QListWidgetItem(f"[{self._error_count}] {msg}")
+        # 从消息中提取文件路径
+        match = re.match(r'([A-Za-z]:\\[^:]+\.json|/[^:]+\.json)', msg)
+        if match:
+            item.setData(Qt.ItemDataRole.UserRole, match.group(1))
+        self.error_log.addItem(item)
         self.error_log.setVisible(True)
-        self.error_log.append(msg)
+
+    def _on_error_double_clicked(self, item: QListWidgetItem):
+        """双击错误日志条目，打开文件编辑器"""
+        file_path = item.data(Qt.ItemDataRole.UserRole)
+        if not file_path:
+            return
+        path = Path(file_path)
+        if not path.exists():
+            QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
+            return
+
+        from .json_editor import JsonEditorDialog
+        dlg = JsonEditorDialog(path, parent=self)
+        dlg.exec()
