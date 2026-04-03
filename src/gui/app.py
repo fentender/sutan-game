@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt, QThread, Signal
 from ..config import UserConfig, MERGED_OUTPUT_PATH, SYNTHETIC_MOD_ID
 from ..core.mod_scanner import scan_all_mods, scan_errors
 from ..core.json_parser import parse_warnings
-from ..core.merger import merge_all_files
+from ..core.merger import merge_all_files, merge_warnings
 from ..core.conflict import analyze_all_overrides
 from ..core.deployer import deploy_to_workshop, clean_synthetic_mod, copy_resources
 from .mod_list import ModListPanel
@@ -71,6 +71,7 @@ class MainWindow(QMainWindow):
         file_menu = menubar.addMenu("文件")
         file_menu.addAction("设置游戏路径...", self._set_game_path)
         file_menu.addAction("设置 Workshop 路径...", self._set_workshop_path)
+        file_menu.addAction("设置本地 Mod 路径...", self._set_local_mod_path)
         file_menu.addSeparator()
         file_menu.addAction("退出", self.close)
 
@@ -139,13 +140,26 @@ class MainWindow(QMainWindow):
         self.statusBar().addPermanentWidget(self.progress_bar)
 
     def _load_mods(self):
-        """加载所有 mod"""
+        """加载所有 mod（workshop + 本地目录）"""
         scan_errors.clear()
         parse_warnings.clear()
+
+        # 扫描 workshop 目录
         mods = scan_all_mods(
             self.config.workshop_dir,
             exclude_ids={SYNTHETIC_MOD_ID}
         )
+
+        # 扫描本地 mod 目录
+        local_dir = self.config.local_mod_dir
+        if local_dir.exists():
+            local_mods = scan_all_mods(local_dir)
+            # 用 mod_id 去重（workshop 优先）
+            existing_ids = {m.mod_id for m in mods}
+            for lm in local_mods:
+                if lm.mod_id not in existing_ids:
+                    mods.append(lm)
+
         self.mod_list_panel.set_mods(
             mods,
             order=self.config.mod_order or None,
@@ -221,7 +235,12 @@ class MainWindow(QMainWindow):
 
     def _on_merge_finished(self, results: dict):
         self.progress_bar.setVisible(False)
-        self.statusBar().showMessage(f"合并完成: {len(results)} 个文件已合并到 merged_output/")
+        msg = f"合并完成: {len(results)} 个文件已合并到 merged_output/"
+        self.statusBar().showMessage(msg)
+        # 展示合并过程中的警告
+        if merge_warnings:
+            for w in merge_warnings:
+                self._log_error(w)
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{MERGED_OUTPUT_PATH}")
 
     def _on_merge_error(self, error: str):
@@ -270,6 +289,13 @@ class MainWindow(QMainWindow):
         path = QFileDialog.getExistingDirectory(self, "选择 Workshop 目录", self.config.workshop_path)
         if path:
             self.config.workshop_path = path
+            self.config.save()
+            self._load_mods()
+
+    def _set_local_mod_path(self):
+        path = QFileDialog.getExistingDirectory(self, "选择本地 Mod 目录", self.config.local_mod_path)
+        if path:
+            self.config.local_mod_path = path
             self.config.save()
             self._load_mods()
 

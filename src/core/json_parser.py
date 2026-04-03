@@ -55,29 +55,25 @@ def load_json(file_path: str | Path) -> dict:
     """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告"""
     path = Path(file_path)
     raw_bytes = path.read_bytes()
-    fixes = []
+    abnormal_fixes = []
 
-    # 检测并去除 BOM
+    # 检测并去除 BOM（异常格式，需要报告）
     if raw_bytes.startswith(b'\xef\xbb\xbf'):
-        fixes.append("UTF-8 BOM")
+        abnormal_fixes.append("UTF-8 BOM")
         raw_bytes = raw_bytes[3:]
 
     raw = raw_bytes.decode('utf-8')
 
-    # 去除 // 注释
+    # 去除 // 注释（游戏 JSON 常态，不报告）
     cleaned = strip_js_comments(raw)
-    if cleaned != raw:
-        fixes.append("// 注释")
 
-    # 去除尾随逗号
-    after_comma = strip_trailing_commas(cleaned)
-    if after_comma != cleaned:
-        fixes.append("尾随逗号")
-    cleaned = after_comma
+    # 去除尾随逗号（游戏 JSON 常态，不报告）
+    cleaned = strip_trailing_commas(cleaned)
 
-    if fixes:
-        msg = f"{path.name}: 已自动修正 [{', '.join(fixes)}]"
-        log.info(msg)
+    # 只记录真正异常的格式问题
+    if abnormal_fixes:
+        msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
+        log.warning(msg)
         parse_warnings.append(msg)
 
     return json.loads(cleaned)

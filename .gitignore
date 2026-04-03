@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+merged_output/
+user_config.json

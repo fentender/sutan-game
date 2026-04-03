@@ -1,15 +1,13 @@
 """
 苏丹的游戏 - Mod 合并管理器
 入口文件
+
+运行方式: 在项目根目录执行 python -m src.main
 """
 import sys
-from pathlib import Path
-
-# 将 src 目录加入 Python 路径
-sys.path.insert(0, str(Path(__file__).parent))
 
 from PySide6.QtWidgets import QApplication
-from gui.app import MainWindow
+from .gui.app import MainWindow
 
 
 def main():
