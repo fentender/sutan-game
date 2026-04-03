@@ -192,11 +192,15 @@ class MainWindow(QMainWindow):
             return
 
         self.statusBar().showMessage("正在分析覆盖情况...")
+        parse_warnings.clear()
         overrides = analyze_all_overrides(
             self.config.game_config_path,
             mod_configs
         )
-        self.override_panel.set_data(overrides)
+        self.override_panel.set_data(overrides, self.config.game_config_path, mod_configs)
+
+        for w in parse_warnings:
+            self._log_error(w)
 
         conflict_count = sum(1 for o in overrides if o.has_conflict)
         self.statusBar().showMessage(

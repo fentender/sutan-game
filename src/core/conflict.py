@@ -2,10 +2,13 @@
 冲突检测与覆盖链报告
 """
 import json
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .json_parser import load_json
+from .json_parser import load_json, parse_warnings
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -136,11 +139,25 @@ def analyze_all_overrides(
     results = []
     for rel_path, mod_file_list in sorted(all_files.items()):
         base_file = game_config_path / rel_path
-        base_data = load_json(base_file) if base_file.exists() else {}
+        if base_file.exists():
+            try:
+                base_data = load_json(base_file)
+            except json.JSONDecodeError as e:
+                msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
+                log.warning(msg)
+                parse_warnings.append(msg)
+                continue
+        else:
+            base_data = {}
 
         mod_data_list = []
         for mod_id, mod_name, mod_file in mod_file_list:
-            mod_data_list.append((mod_id, mod_name, load_json(mod_file)))
+            try:
+                mod_data_list.append((mod_id, mod_name, load_json(mod_file)))
+            except json.JSONDecodeError as e:
+                msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
+                log.warning(msg)
+                parse_warnings.append(msg)
 
         info = analyze_file_overrides(rel_path, base_data, mod_data_list)
         results.append(info)

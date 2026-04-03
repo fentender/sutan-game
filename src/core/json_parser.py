@@ -76,7 +76,14 @@ def load_json(file_path: str | Path) -> dict:
         log.warning(msg)
         parse_warnings.append(msg)
 
-    return json.loads(cleaned)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError(
+            f"{path}: {e.msg}",
+            e.doc,
+            e.pos,
+        ) from None
 
 
 def dump_json(data: dict, file_path: str | Path):

@@ -1,11 +1,14 @@
 """
 覆盖详情面板 - 按文件维度展示覆盖链和字段级覆盖情况
 """
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QTreeWidget, QTreeWidgetItem, QLineEdit, QPushButton
 )
 from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
 
 from ..core.conflict import FileOverrideInfo
 
@@ -16,21 +19,37 @@ class OverridePanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._data: list[FileOverrideInfo] = []
+        self._game_config_path: Path | None = None
+        self._mod_configs: list[tuple[str, str, Path]] | None = None
+        self._filter_mode: str = "all"
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # 标题栏和搜索
+        # 标题栏、筛选和搜索
         header_layout = QHBoxLayout()
         self.toggle_btn = QPushButton("▼ 覆盖详情")
         self.toggle_btn.setStyleSheet("font-weight: bold; text-align: left; border: none; padding: 4px;")
         self.toggle_btn.clicked.connect(self._toggle)
         header_layout.addWidget(self.toggle_btn)
 
+        # 筛选按钮组
+        self._filter_buttons: dict[str, QPushButton] = {}
+        for label, mode in [("所有", "all"), ("普通", "normal"), ("冲突", "conflict")]:
+            btn = QPushButton(label)
+            btn.setCheckable(True)
+            btn.setFixedWidth(50)
+            btn.clicked.connect(lambda _, m=mode: self._set_filter_mode(m))
+            header_layout.addWidget(btn)
+            self._filter_buttons[mode] = btn
+        self._filter_buttons["all"].setChecked(True)
+
+        header_layout.addStretch()
+
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("搜索文件名或 mod 名...")
         self.search_input.setMaximumWidth(250)
-        self.search_input.textChanged.connect(self._filter)
+        self.search_input.textChanged.connect(lambda _: self._apply_filter())
         header_layout.addWidget(self.search_input)
 
         layout.addLayout(header_layout)
@@ -41,6 +60,7 @@ class OverridePanel(QWidget):
         self.tree.setColumnWidth(0, 300)
         self.tree.setColumnWidth(1, 400)
         self.tree.setAlternatingRowColors(True)
+        self.tree.itemDoubleClicked.connect(self._on_item_double_clicked)
         layout.addWidget(self.tree)
 
         self._collapsed = False
@@ -51,20 +71,58 @@ class OverridePanel(QWidget):
         self.search_input.setVisible(not self._collapsed)
         self.toggle_btn.setText("► 覆盖详情" if self._collapsed else "▼ 覆盖详情")
 
-    def _filter(self, text: str):
-        text = text.lower()
+    def _set_filter_mode(self, mode: str):
+        self._filter_mode = mode
+        for m, btn in self._filter_buttons.items():
+            btn.setChecked(m == mode)
+        self._apply_filter()
+
+    def _apply_filter(self):
+        text = self.search_input.text().lower()
         for i in range(self.tree.topLevelItemCount()):
             item = self.tree.topLevelItem(i)
             if item is None:
                 continue
-            visible = (not text or
-                       text in item.text(0).lower() or
-                       text in item.text(1).lower())
-            item.setHidden(not visible)
+            # 搜索匹配
+            text_match = (not text or
+                          text in item.text(0).lower() or
+                          text in item.text(1).lower())
+            # 筛选模式匹配
+            info: FileOverrideInfo = item.data(0, Qt.ItemDataRole.UserRole)
+            if info is not None:
+                mode_match = (self._filter_mode == "all" or
+                              (self._filter_mode == "conflict" and info.has_conflict) or
+                              (self._filter_mode == "normal" and not info.has_conflict))
+            else:
+                mode_match = True
+            item.setHidden(not (text_match and mode_match))
 
-    def set_data(self, overrides: list[FileOverrideInfo]):
+    def _on_item_double_clicked(self, item: QTreeWidgetItem, column: int):
+        # 只响应文件级节点（顶层节点）
+        if item.parent() is not None:
+            return
+        if self._game_config_path is None or self._mod_configs is None:
+            return
+        info: FileOverrideInfo = item.data(0, Qt.ItemDataRole.UserRole)
+        if info is None:
+            return
+
+        from .diff_dialog import DiffDialog
+        dlg = DiffDialog(
+            rel_path=info.rel_path,
+            game_config_path=self._game_config_path,
+            mod_configs=self._mod_configs,
+            parent=self
+        )
+        dlg.exec()
+
+    def set_data(self, overrides: list[FileOverrideInfo],
+                 game_config_path: Path = None,
+                 mod_configs: list[tuple[str, str, Path]] = None):
         """设置覆盖数据并刷新显示"""
         self._data = overrides
+        self._game_config_path = game_config_path
+        self._mod_configs = mod_configs
         self.tree.clear()
 
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突
@@ -73,6 +131,7 @@ class OverridePanel(QWidget):
             # 文件级节点
             chain_text = "[本体] ← " + " ← ".join(info.mod_chain) if info.mod_chain else "[仅本体]"
             file_item = QTreeWidgetItem([info.rel_path, chain_text, ""])
+            file_item.setData(0, Qt.ItemDataRole.UserRole, info)
 
             if info.has_conflict:
                 file_item.setForeground(0, conflict_color)
@@ -80,10 +139,7 @@ class OverridePanel(QWidget):
 
             # 字段级子节点
             for fo in info.field_overrides:
-                values_text = " → ".join(
-                    f"{name}={_format_value(val)}" for name, val in fo.mod_values
-                )
-                override_text = f"本体={_format_value(fo.base_value)} → {values_text}"
+                override_text = "[本体] ← " + " ← ".join(name for name, _ in fo.mod_values)
                 child = QTreeWidgetItem([
                     fo.field_path,
                     override_text,
