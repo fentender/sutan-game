@@ -3,11 +3,114 @@ Mod 列表面板 - 左侧面板，显示所有 mod 并支持排序和启用/禁�
 """
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QListWidget, QListWidgetItem, QCheckBox, QLabel, QComboBox
+    QListWidget, QListWidgetItem, QCheckBox, QLabel, QComboBox,
+    QAbstractItemView
 )
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt, QMimeData
+from PySide6.QtGui import QDrag, QPainter, QPen, QColor, QPixmap
 
 from ..core.mod_scanner import ModInfo
+
+
+class DraggableModList(QListWidget):
+    """支持拖拽排序的 Mod 列表"""
+    item_moved = Signal(int, int)  # from_row, to_row
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self._drag_from_row = -1
+        self._drop_indicator_row = -1
+
+    def startDrag(self, supportedActions):
+        """绘制简洁的拖拽预览：半透明圆角背景 + Mod 名称"""
+        item = self.currentItem()
+        if not item:
+            return
+        self._drag_from_row = self.currentRow()
+        widget: ModListItem | None = self.itemWidget(item)  # type: ignore[assignment]
+        drag = QDrag(self)
+        drag.setMimeData(QMimeData())
+        if widget:
+            rect = self.visualItemRect(item)
+            pixmap = QPixmap(rect.width(), rect.height())
+            pixmap.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.setOpacity(0.85)
+            painter.setBrush(QColor(60, 60, 60, 220))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(pixmap.rect(), 6, 6)
+            painter.setOpacity(1.0)
+            painter.setPen(QColor(255, 255, 255))
+            painter.setFont(widget.label.font())
+            painter.drawText(pixmap.rect().adjusted(12, 0, -12, 0),
+                             Qt.AlignmentFlag.AlignVCenter, widget.label.text())
+            painter.end()
+            drag.setPixmap(pixmap)
+            drag.setHotSpot(self.mapFromGlobal(self.cursor().pos())
+                            - self.visualItemRect(item).topLeft())
+        drag.exec(Qt.DropAction.MoveAction)
+
+    def dragEnterEvent(self, event):
+        if event.source() is self:
+            event.accept()
+        else:
+            super().dragEnterEvent(event)
+
+    def _row_at_pos(self, pos):
+        """根据鼠标位置计算插入行号"""
+        target_item = self.itemAt(pos)
+        if target_item:
+            rect = self.visualItemRect(target_item)
+            row = self.row(target_item)
+            # 鼠标在项的下半部分时，插入到下一行
+            if pos.y() > rect.center().y():
+                return row + 1
+            return row
+        return self.count()
+
+    def dragMoveEvent(self, event):
+        if event.source() is self:
+            self._drop_indicator_row = self._row_at_pos(event.position().toPoint())
+            self.viewport().update()
+            event.accept()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        self._drop_indicator_row = -1
+        self.viewport().update()
+        if event.source() is not self:
+            super().dropEvent(event)
+            return
+        from_row = self._drag_from_row
+        to_row = self._row_at_pos(event.position().toPoint())
+        # 从上往下拖时，pop 后目标索引需要减 1
+        if from_row < to_row:
+            to_row -= 1
+        event.accept()
+        self._drag_from_row = -1
+        if from_row != to_row and from_row >= 0 and 0 <= to_row < self.count():
+            self.item_moved.emit(from_row, to_row)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self._drop_indicator_row < 0:
+            return
+        # 计算指示线的 y 坐标
+        if self._drop_indicator_row < self.count():
+            rect = self.visualItemRect(self.item(self._drop_indicator_row))
+            y = rect.top()
+        else:
+            rect = self.visualItemRect(self.item(self.count() - 1))
+            y = rect.bottom()
+        painter = QPainter(self.viewport())
+        pen = QPen(QColor(51, 153, 255), 2)
+        painter.setPen(pen)
+        painter.drawLine(0, y, self.viewport().width(), y)
+        painter.end()
 
 
 class ModListItem(QWidget):
@@ -73,8 +176,9 @@ class ModListPanel(QWidget):
         header.setStyleSheet("font-weight: bold; font-size: 14px; padding: 4px;")
         layout.addWidget(header)
 
-        self.list_widget = QListWidget()
+        self.list_widget = DraggableModList()
         self.list_widget.currentRowChanged.connect(self._on_selection_changed)
+        self.list_widget.item_moved.connect(self._on_item_moved)
         layout.addWidget(self.list_widget)
 
         btn_layout = QHBoxLayout()
@@ -133,6 +237,14 @@ class ModListPanel(QWidget):
 
     def _on_merge_mode_changed(self, mod_id: str, mode: str):
         self._merge_modes[mod_id] = mode
+        self.order_changed.emit()
+
+    def _on_item_moved(self, from_row: int, to_row: int):
+        """拖拽排序后同步数据模型"""
+        mod = self._mods.pop(from_row)
+        self._mods.insert(to_row, mod)
+        self._refresh_list()
+        self.list_widget.setCurrentRow(to_row)
         self.order_changed.emit()
 
     def _on_move_up(self, mod_id: str):
