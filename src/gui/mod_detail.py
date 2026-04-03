@@ -2,7 +2,7 @@
 Mod 详情面板 - 右侧面板，显示选中 mod 的详细信息和 preview 图片
 """
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QListWidget
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea
 )
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
@@ -23,38 +23,52 @@ class ModDetailPanel(QWidget):
         header.setStyleSheet("font-weight: bold; font-size: 14px; padding: 4px;")
         layout.addWidget(header)
 
-        # preview 图片
+        # ── 顶部区域：左图片 + 右基本信息 ──
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(10)
+
+        # 左栏：预览图片
+        left_col = QVBoxLayout()
         self.preview_label = QLabel()
-        self.preview_label.setFixedHeight(180)
+        self.preview_label.setFixedSize(140, 140)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setStyleSheet("background-color: #2a2a2a; border-radius: 4px;")
-        layout.addWidget(self.preview_label)
+        left_col.addWidget(self.preview_label)
+        left_col.addStretch()
+        top_layout.addLayout(left_col)
 
-        # 基本信息
+        # 右栏：名称 + 版本 + 标签
+        right_col = QVBoxLayout()
+        right_col.setSpacing(2)
+
         self.name_label = QLabel()
-        self.name_label.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 8px;")
-        layout.addWidget(self.name_label)
+        self.name_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        right_col.addWidget(self.name_label)
 
         self.version_label = QLabel()
         self.version_label.setStyleSheet("color: #888;")
-        layout.addWidget(self.version_label)
+        right_col.addWidget(self.version_label)
 
         self.tags_label = QLabel()
         self.tags_label.setWordWrap(True)
-        layout.addWidget(self.tags_label)
+        right_col.addWidget(self.tags_label)
+
+        right_col.addStretch()
+        top_layout.addLayout(right_col, 1)
+        layout.addLayout(top_layout)
+
+        # ── 底部区域：描述文本（可滚动） ──
+        self.desc_scroll = QScrollArea()
+        self.desc_scroll.setWidgetResizable(True)
+        self.desc_scroll.setStyleSheet("QScrollArea { border: none; }")
 
         self.desc_label = QLabel()
         self.desc_label.setWordWrap(True)
-        self.desc_label.setMaximumHeight(80)
-        layout.addWidget(self.desc_label)
+        self.desc_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.desc_label.setStyleSheet("padding: 4px;")
+        self.desc_scroll.setWidget(self.desc_label)
 
-        # 文件列表
-        files_header = QLabel("修改的文件:")
-        files_header.setStyleSheet("font-weight: bold; margin-top: 8px;")
-        layout.addWidget(files_header)
-
-        self.file_list = QListWidget()
-        layout.addWidget(self.file_list)
+        layout.addWidget(self.desc_scroll, 1)
 
         self._clear()
 
@@ -65,16 +79,15 @@ class ModDetailPanel(QWidget):
         self.version_label.clear()
         self.tags_label.clear()
         self.desc_label.clear()
-        self.file_list.clear()
 
     def show_mod(self, mod: ModInfo):
         """显示指定 mod 的详情"""
-        # preview 图片
+        # 预览图片
         if mod.preview_path:
             pixmap = QPixmap(mod.preview_path)
             if not pixmap.isNull():
                 scaled = pixmap.scaled(
-                    self.preview_label.width(), 180,
+                    140, 140,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
                 )
@@ -87,14 +100,14 @@ class ModDetailPanel(QWidget):
         self.name_label.setText(mod.name or mod.mod_id)
         self.version_label.setText(f"版本: {mod.version}" if mod.version else "")
         self.tags_label.setText(f"标签: {', '.join(mod.tags)}" if mod.tags else "")
-        self.desc_label.setText(mod.description or "无描述")
 
-        self.file_list.clear()
-        for f in sorted(mod.config_files):
-            self.file_list.addItem(f)
-        if mod.resource_files:
-            self.file_list.addItem(f"--- 资源文件 ({len(mod.resource_files)}) ---")
-            for f in sorted(mod.resource_files)[:20]:
-                self.file_list.addItem(f)
-            if len(mod.resource_files) > 20:
-                self.file_list.addItem(f"... 还有 {len(mod.resource_files) - 20} 个文件")
+        # 描述
+        desc = mod.description or "无描述"
+        self.desc_label.setText(desc)
+        line_count = desc.count('\n') + 1
+        if line_count <= 3 and len(desc) < 150:
+            self.desc_scroll.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        else:
+            self.desc_scroll.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded)
