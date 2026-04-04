@@ -259,7 +259,7 @@ def _find_array_match_key(arr: list) -> str | None:
                 break
             values.append(item[key])
         else:
-            if len(set(str(v) for v in values)) == len(values):
+            if len(set((type(v), v) for v in values)) == len(values):
                 return key
     return None
 
@@ -340,7 +340,7 @@ def deep_merge(base: object, override: object,
     result = copy.deepcopy(base)
 
     for key, value in override.items():
-        child_path = field_path + [key] if field_path else None
+        child_path = field_path + [key] if field_path is not None else None
         child_def = get_field_def(schema, child_path) if schema and child_path else None
         child_game_base = game_base.get(key) if isinstance(game_base, dict) else None
 
@@ -555,8 +555,8 @@ def classify_json(data: dict) -> str:
         return "entity"
 
     keys = list(data.keys())
-    if keys and all(isinstance(data[k], dict) for k in keys[:5]):
-        if any('id' in data[k] for k in keys[:5]):
+    if keys and all(isinstance(data[k], dict) for k in keys):
+        if any('id' in data[k] for k in keys):
             return "dictionary"
 
     return "config"

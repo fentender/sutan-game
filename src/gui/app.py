@@ -25,7 +25,7 @@ from .override_panel import OverridePanel
 
 class MergeWorker(QThread):
     """后台合并线程"""
-    finished = Signal(dict)  # 合并结果
+    finished = Signal(dict, list)  # 合并结果, 警告列表
     error = Signal(str)
     progress = Signal(str)
 
@@ -48,9 +48,11 @@ class MergeWorker(QThread):
                 schema_dir=SCHEMA_DIR,
                 allow_deletions=self.allow_deletions,
             )
+            # 在工作线程内快照警告，避免跨线程竞态
+            warnings_snapshot = list(merge_warnings)
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path)
-            self.finished.emit(results)
+            self.finished.emit(results, warnings_snapshot)
         except Exception as e:
             self.error.emit(str(e))
 
@@ -109,10 +111,10 @@ class MainWindow(QMainWindow):
         btn_analyze.clicked.connect(self._analyze_conflicts)
         btn_layout.addWidget(btn_analyze)
 
-        btn_merge = QPushButton("执行合并")
-        btn_merge.setStyleSheet("font-weight: bold;")
-        btn_merge.clicked.connect(self._execute_merge)
-        btn_layout.addWidget(btn_merge)
+        self.btn_merge = QPushButton("执行合并")
+        self.btn_merge.setStyleSheet("font-weight: bold;")
+        self.btn_merge.clicked.connect(self._execute_merge)
+        btn_layout.addWidget(self.btn_merge)
 
         btn_clean = QPushButton("清理合成Mod")
         btn_clean.clicked.connect(self._clean)
@@ -199,7 +201,6 @@ class MainWindow(QMainWindow):
             mods,
             order=self.config.mod_order or None,
             enabled=self.config.enabled_mods or None,
-            merge_modes=self.config.merge_modes or None
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 
@@ -221,7 +222,6 @@ class MainWindow(QMainWindow):
     def _save_config(self):
         self.config.mod_order = self.mod_list_panel.get_mod_order()
         self.config.enabled_mods = self.mod_list_panel.get_enabled_ids()
-        self.config.merge_modes = self.mod_list_panel.get_merge_modes()
         self.config.save()
 
     def _get_mod_configs(self) -> list[tuple[str, str, Path]]:
@@ -251,8 +251,8 @@ class MainWindow(QMainWindow):
             allow_deletions=self.config.allow_deletions
         )
 
-        for w in parse_warnings:
-            self._log_error(self._prefix_mod_title(w))
+        if parse_warnings:
+            self._show_errors([self._prefix_mod_title(w) for w in parse_warnings])
 
         conflict_count = sum(1 for o in overrides if o.has_conflict)
         self.statusBar().showMessage(
@@ -276,6 +276,7 @@ class MainWindow(QMainWindow):
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_paths = [(m.name, m.path) for m in enabled]
 
+        self.btn_merge.setEnabled(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # 不确定进度
 
@@ -292,7 +293,8 @@ class MainWindow(QMainWindow):
         self._worker.error.connect(self._on_merge_error)
         self._worker.start()
 
-    def _on_merge_finished(self, results: dict):
+    def _on_merge_finished(self, results: dict, warnings: list[str]):
+        self.btn_merge.setEnabled(True)
         self.progress_bar.setVisible(False)
         # 生成合成 Mod 的 Info.json
         enabled = self.mod_list_panel.get_enabled_mods()
@@ -302,14 +304,17 @@ class MainWindow(QMainWindow):
         output = self._merge_output_path
         msg = f"合并完成: {len(results)} 个文件已合并到 {output}"
         self.statusBar().showMessage(msg)
-        # 展示合并过程中的警告
-        if merge_warnings:
-            for w in merge_warnings:
-                self._log_error(self._prefix_mod_title(w))
+        # 展示合并过程中的警告（通过信号从工作线程传递，避免竞态）
+        for w in warnings:
+            self._log_error(self._prefix_mod_title(w))
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
     def _on_merge_error(self, error: str):
+        self.btn_merge.setEnabled(True)
         self.progress_bar.setVisible(False)
+        # 清理合并失败后残留的半成品输出目录
+        if self._merge_output_path and self._merge_output_path.exists():
+            shutil.rmtree(self._merge_output_path, ignore_errors=True)
         self.statusBar().showMessage(f"合并失败: {error}")
         self._log_error(f"合并失败: {error}")
         QMessageBox.critical(self, "合并失败", error)
@@ -412,3 +417,13 @@ class MainWindow(QMainWindow):
         from .json_editor import JsonEditorDialog
         dlg = JsonEditorDialog(path, parent=self)
         dlg.exec()
+
+    def closeEvent(self, event):
+        """关闭窗口时等待工作线程结束"""
+        if self._worker is not None and self._worker.isRunning():
+            self._worker.quit()
+            self._worker.wait(3000)
+            if self._worker.isRunning():
+                self._worker.terminate()
+                self._worker.wait()
+        event.accept()

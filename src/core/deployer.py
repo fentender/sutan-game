@@ -3,6 +3,7 @@
 """
 import shutil
 import json
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -55,19 +56,26 @@ def deploy_to_workshop(
 ) -> Path:
     """
     将合并结果部署为合成 Mod。
+    使用临时目录 + 重命名，确保部署失败时不会破坏旧的合成 Mod。
 
     返回合成 Mod 的路径。
     """
     target = workshop_path / SYNTHETIC_MOD_ID
-    # 清理旧的合成 Mod
-    if target.exists():
-        shutil.rmtree(target)
+    # 先复制到同级临时目录（同一文件系统才能原子重命名）
+    tmp_dir = Path(tempfile.mkdtemp(dir=workshop_path, prefix="_merge_tmp_"))
+    try:
+        tmp_target = tmp_dir / SYNTHETIC_MOD_ID
+        shutil.copytree(merged_output, tmp_target)
+        generate_info_json(mod_names, tmp_target)
 
-    # 复制合并输出
-    shutil.copytree(merged_output, target)
-
-    # 生成 Info.json
-    generate_info_json(mod_names, target)
+        # 复制成功后，再删除旧 Mod 并重命名
+        if target.exists():
+            shutil.rmtree(target)
+        shutil.move(str(tmp_target), str(target))
+    finally:
+        # 清理临时目录残留
+        if tmp_dir.exists():
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
     return target
 

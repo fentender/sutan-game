@@ -2,9 +2,13 @@
 配置模块 - 路径常量和用户配置读写
 """
 import json
+import logging
 import os
+import tempfile
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
+
+log = logging.getLogger(__name__)
 
 
 # 项目根目录
@@ -41,8 +45,6 @@ class UserConfig:
     mod_order: list[str] = field(default_factory=list)
     # 启用的 mod 集合
     enabled_mods: list[str] = field(default_factory=list)
-    # 每个 mod 的覆盖模式：mod_id -> "replace" | "merge_as_array"
-    merge_modes: dict[str, str] = field(default_factory=dict)
     # 是否允许删减（mod 中缺少的条目从合并结果中删除）
     allow_deletions: bool = False
 
@@ -59,16 +61,27 @@ class UserConfig:
         return Path(self.local_mod_path)
 
     def save(self):
-        USER_CONFIG_PATH.write_text(
-            json.dumps(asdict(self), ensure_ascii=False, indent=4),
-            encoding='utf-8'
+        """原子保存配置：先写临时文件，再重命名覆盖"""
+        content = json.dumps(asdict(self), ensure_ascii=False, indent=4)
+        tmp_fd, tmp_path = tempfile.mkstemp(
+            dir=USER_CONFIG_PATH.parent, suffix='.tmp'
         )
+        try:
+            with os.fdopen(tmp_fd, 'w', encoding='utf-8') as f:
+                f.write(content)
+            os.replace(tmp_path, USER_CONFIG_PATH)
+        except BaseException:
+            os.unlink(tmp_path)
+            raise
 
     @classmethod
     def load(cls) -> 'UserConfig':
         if USER_CONFIG_PATH.exists():
-            data = json.loads(USER_CONFIG_PATH.read_text(encoding='utf-8'))
-            # 兼容旧配置（没有 local_mod_path 字段）
+            try:
+                data = json.loads(USER_CONFIG_PATH.read_text(encoding='utf-8'))
+            except (json.JSONDecodeError, IOError) as e:
+                log.warning("配置文件损坏，使用默认配置: %s", e)
+                return cls()
             valid_fields = {f.name for f in cls.__dataclass_fields__.values()}
             filtered = {k: v for k, v in data.items() if k in valid_fields}
             return cls(**filtered)

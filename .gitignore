@@ -1,4 +1,15 @@
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+venv/
+.venv/
+
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
 merged_output/
 user_config.json
