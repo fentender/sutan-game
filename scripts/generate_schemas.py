@@ -110,9 +110,11 @@ def collect_field_info(obj, info, prefix="", max_depth=7):
                 "has_action": False,
                 "has_result_title": False,
                 "sample_values": [],
+                "count": 0,
             }
 
         entry = info[path]
+        entry["count"] += 1
         vtype = get_type_str(v)
         detailed_type = analyze_value_type(v)
         entry["types"].add(detailed_type)
@@ -240,6 +242,12 @@ def build_field_def(path, info, all_info):
                 child_info = all_info[child_path]
                 child_types = child_info["types"]
                 all_dv_types.update(child_types)
+                # 跳过出现次数太少的子 key（占比 < 10%），
+                # 它们是特定文件的动态内容（如 case:op3），不是固定结构
+                child_count = child_info.get("count", 0)
+                parent_count = field_info.get("count", 1)
+                if child_count < max(2, parent_count * 0.1):
+                    continue
                 # 值是 object 且有固定子 key → 记为已知字段
                 if (child_types == {"object"}
                         and child_info["child_keys"]
@@ -423,23 +431,26 @@ def analyze_single_file(filepath):
         }
 
 
-def analyze_directory(dirpath, sample_limit=80):
-    """分析子目录（采样），返回 schema dict"""
+def analyze_directory(dirpath):
+    """分析子目录所有文件，返回 schema dict。多线程并行读取加速。"""
+    from concurrent.futures import ThreadPoolExecutor
+
     files = sorted([f for f in os.listdir(dirpath) if f.endswith(".json")])
     total = len(files)
-    if total > sample_limit:
-        step = max(1, total // sample_limit)
-        sampled = files[::step][:sample_limit]
-    else:
-        sampled = files
+
+    # 多线程并行读取 JSON 文件
+    def _load(fname):
+        filepath = os.path.join(dirpath, fname)
+        return load_json(filepath)
+
+    with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
+        results = list(pool.map(_load, files))
 
     info = {}
     file_count = 0
     file_type = None
 
-    for fname in sampled:
-        filepath = os.path.join(dirpath, fname)
-        data = load_json(filepath)
+    for data in results:
         if data is None:
             continue
         file_count += 1
@@ -472,7 +483,7 @@ def analyze_directory(dirpath, sample_limit=80):
             "description": dirname,
             "source": f"{dirname}/",
             "file_count": total,
-            "sampled": file_count,
+            "analyzed": file_count,
         },
         schema_key: fields_schema,
     }
@@ -480,7 +491,7 @@ def analyze_directory(dirpath, sample_limit=80):
 
 # ==================== 主入口 ====================
 
-def generate_all(config_dir, output_dir, sample_limit=80):
+def generate_all(config_dir, output_dir):
     """生成所有 schema 文件"""
     config_path = Path(config_dir)
     output_path = Path(output_dir)
@@ -519,7 +530,7 @@ def generate_all(config_dir, output_dir, sample_limit=80):
     for subdir in subdirs:
         dirpath = config_path / subdir
         print(f"分析: {subdir}/ ...", end=" ")
-        schema = analyze_directory(str(dirpath), sample_limit)
+        schema = analyze_directory(str(dirpath))
         if schema:
             out_name = f"{subdir}.schema.json"
             out_file = output_path / out_name
@@ -546,9 +557,5 @@ if __name__ == "__main__":
         "--output-dir", default=str(PROJECT_ROOT / "schemas"),
         help="schema 输出目录",
     )
-    parser.add_argument(
-        "--sample-limit", type=int, default=80,
-        help="子目录采样文件数上限",
-    )
     args = parser.parse_args()
-    generate_all(args.config_dir, args.output_dir, args.sample_limit)
+    generate_all(args.config_dir, args.output_dir)

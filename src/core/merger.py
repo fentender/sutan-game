@@ -440,6 +440,32 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
         return result if result is not None else {}
 
 
+def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
+                        match_key: str) -> list[dict] | None:
+    """
+    对象数组的元素级 delta（按 match_key 匹配）。
+    每个 delta 元素只含变化字段 + match_key。
+    返回 None 表示无变化。
+    """
+    base_map: dict = {item[match_key]: item
+                      for item in base_arr if match_key in item}
+
+    delta_items: list[dict] = []
+    for mod_item in mod_arr:
+        kv = mod_item.get(match_key)
+        base_item = base_map.get(kv) if kv is not None else None
+        if base_item is not None:
+            elem_delta = _recursive_delta(base_item, mod_item)
+            if elem_delta is not None:
+                elem_delta[match_key] = kv  # 保留 key 用于合并匹配
+                delta_items.append(elem_delta)
+        else:
+            # 新增元素，完整保留
+            delta_items.append(copy.deepcopy(mod_item))
+
+    return delta_items if delta_items else None
+
+
 def _recursive_delta(base, mod):
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
     if isinstance(base, dict) and isinstance(mod, dict):
@@ -454,7 +480,15 @@ def _recursive_delta(base, mod):
         return delta if delta else None
 
     if isinstance(base, list) and isinstance(mod, list):
-        # 数组原子比较（不递归进元素，交给 smart_match/append 处理）
+        # 对象数组：按 key 匹配做元素级 delta
+        if (base and mod
+                and all(isinstance(x, dict) for x in base)
+                and all(isinstance(x, dict) for x in mod)):
+            match_key = _find_array_match_key(base)
+            if match_key:
+                return _object_array_delta(base, mod, match_key)
+
+        # 无法匹配或非对象数组：原子比较
         if base == mod:
             return None
         return copy.deepcopy(mod)

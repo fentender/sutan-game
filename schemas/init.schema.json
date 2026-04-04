@@ -5,7 +5,7 @@
     "description": "init",
     "source": "init/",
     "file_count": 2,
-    "sampled": 2
+    "analyzed": 2
   },
   "_fields": {
     "back_to_prev_round_count": {

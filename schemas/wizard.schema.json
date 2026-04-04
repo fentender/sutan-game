@@ -5,7 +5,7 @@
     "description": "wizard",
     "source": "wizard/",
     "file_count": 2,
-    "sampled": 2
+    "analyzed": 2
   },
   "_fields": {
     "id": {

@@ -5,7 +5,7 @@
     "description": "after_story",
     "source": "after_story/",
     "file_count": 66,
-    "sampled": 66
+    "analyzed": 66
   },
   "_fields": {
     "extra": {
@@ -16,30 +16,6 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "all": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "have.2000867.已收容": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "have.2000887.已收容": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "have.2000889.已收容": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "have.2001115.已收容": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
               "int",

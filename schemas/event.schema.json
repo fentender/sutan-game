@@ -5,7 +5,7 @@
     "description": "event",
     "source": "event/",
     "file_count": 1863,
-    "sampled": 80
+    "analyzed": 1863
   },
   "_fields": {
     "auto_start": {
@@ -20,124 +20,11 @@
       "type": "object",
       "merge": "merge",
       "dynamic_keys": true,
-      "fields": {
-        "any": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "!have.2000055": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "!have.2001299": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "all": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "!table_have.2000771.宝石宣传": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "table_have.2000771": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    }
-                  }
-                },
-                "counter.7000256<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000281>=": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7100003>=": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table_have.2001275": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "counter.7000306>=": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "counter.7000463>=": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "counter.7100003<": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "hand_have.受伤": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "hand_have.生病": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "have.2000055.大敌": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "have.2000867 ": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "have.2000887": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "have.2000889 ": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "have.2001115": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "table_have.2000845": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "table_have.2000846": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "table_have.2000847": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "table_have.2000848": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        }
-      },
       "dynamic_value": {
         "type": [
           "int",
-          "object"
+          "object",
+          "string"
         ],
         "merge": "replace",
         "merge_by_type": {
@@ -157,13 +44,82 @@
       "type": "object",
       "merge": "merge",
       "fields": {
+        "back_to_prev_round_end": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "card_born": {
+          "type": "int",
+          "merge": "replace"
+        },
         "card_clean": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "close_begin_guide": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "close_prompt": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_wizard": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "counter": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "game_end": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "open_card_info": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "open_card_info_end": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "open_rite": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "open_rite_end": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite_can_fill": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite_can_start": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite_can_stop": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite_cancel": {
           "type": "int",
           "merge": "replace"
         },
         "rite_end": {
-          "type": "int",
-          "merge": "replace"
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
         },
         "rite_start": {
           "type": "int",
@@ -175,6 +131,14 @@
             "int"
           ],
           "merge": "coerce"
+        },
+        "show_wizard_option": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "sudan_redraw_start": {
+          "type": "int",
+          "merge": "replace"
         }
       }
     },
@@ -187,415 +151,6 @@
           "merge": "merge",
           "dynamic_keys": true,
           "fields": {
-            "begin_guide": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "anchors": {
-                  "type": "array<array>",
-                  "merge": "append"
-                },
-                "anim_type": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "is_on_in_mobile": {
-                  "type": "bool",
-                  "merge": "replace"
-                },
-                "is_show_ring": {
-                  "type": "bool",
-                  "merge": "replace"
-                },
-                "mobile_properties": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "anchors": {
-                      "type": "array<array>",
-                      "merge": "append"
-                    },
-                    "anim_type": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "pos": {
-                      "type": "array",
-                      "merge": "append"
-                    },
-                    "ring_pos": {
-                      "type": "array<float>",
-                      "merge": "append"
-                    }
-                  }
-                },
-                "pos": {
-                  "type": "array<int>",
-                  "merge": "append"
-                },
-                "ring_pos": {
-                  "type": "array<int>",
-                  "merge": "append"
-                },
-                "type": {
-                  "type": "string",
-                  "merge": "replace"
-                }
-              }
-            },
-            "case:op1": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "card": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000319": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000346": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000366": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000932": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter-7100003": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "delay": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "event_on": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "id": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "round": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "event_off": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_on": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "no_prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "table.2000057-事件提示": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "table.2000350-事件提示": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "over": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "icon": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "id": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "text": {
-                      "type": "string",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "rite": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "success": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "event_off": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "table.和小安纵欲+equip": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "金币": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "case:op2": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "coin": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000319": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7000346": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter+7100004": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "delay": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "event_on": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "id": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "round": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "event_off": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "no_prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "table.2000057-事件提示": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "table.2000350-事件提示": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "icon": {
-                      "type": [
-                        "array",
-                        "string"
-                      ],
-                      "merge": "coerce"
-                    },
-                    "id": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "text": {
-                      "type": "string",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "rite": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "success": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "event_off": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "table.和小安纵欲+equip": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "case:op3": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "counter+7100003": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_off": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "icon": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "id": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "text": {
-                      "type": "string",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "rite": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table.和小安纵欲+equip": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "case:op4": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "counter+7100002": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter-7100001": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_off": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "prompt": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "icon": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "id": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "text": {
-                      "type": "string",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              }
-            },
-            "confirm": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "cancel_text": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "confirm_text": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "icon": {
-                  "type": "array<string>",
-                  "merge": "append"
-                },
-                "id": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "text": {
-                  "type": "string",
-                  "merge": "replace"
-                }
-              }
-            },
-            "failed": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "event_off": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_on": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "no_prompt": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "card": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table.2000024=上朝": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table.clean.2000770": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table.传令官=传令官": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "table.旗手=旗手": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
             "option": {
               "type": "object",
               "merge": "merge",
@@ -603,6 +158,7 @@
                 "icon": {
                   "type": [
                     "array",
+                    "array<string>",
                     "string"
                   ],
                   "merge": "coerce"
@@ -637,6 +193,7 @@
               "fields": {
                 "icon": {
                   "type": [
+                    "array",
                     "array<string>",
                     "string"
                   ],
@@ -656,6 +213,14 @@
               "type": "object",
               "merge": "merge",
               "fields": {
+                "counter+7000057": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter+7000101": {
+                  "type": "int",
+                  "merge": "replace"
+                },
                 "event_off": {
                   "type": "int",
                   "merge": "replace"
@@ -673,8 +238,11 @@
                   "merge": "merge",
                   "fields": {
                     "icon": {
-                      "type": "string",
-                      "merge": "replace"
+                      "type": [
+                        "array<string>",
+                        "string"
+                      ],
+                      "merge": "coerce"
                     },
                     "id": {
                       "type": "string",
@@ -685,6 +253,10 @@
                       "merge": "replace"
                     }
                   }
+                },
+                "rite": {
+                  "type": "int",
+                  "merge": "replace"
                 }
               }
             }
@@ -692,9 +264,10 @@
           "dynamic_value": {
             "type": [
               "array",
-              "array<int>",
+              "array<float>",
+              "array<string>",
               "bool",
-              "int",
+              "float",
               "object",
               "string"
             ],

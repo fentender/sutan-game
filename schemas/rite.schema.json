@@ -5,7 +5,7 @@
     "description": "rite",
     "source": "rite/",
     "file_count": 1495,
-    "sampled": 80
+    "analyzed": 1495
   },
   "_fields": {
     "auto_begin": {
@@ -29,60 +29,6 @@
               "type": "object",
               "merge": "merge",
               "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "!贵族": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "counter.7000251>=": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "is": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "s2.is": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
-                    "is": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "史诗": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "情诗": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "讽刺诗": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "贵族": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "预言诗": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              },
               "dynamic_value": {
                 "type": [
                   "array<int>",
@@ -140,37 +86,137 @@
                   "merge": "merge",
                   "dynamic_keys": true,
                   "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "!is": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "!妻子": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "!法拉杰": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "f:智慧+社交<": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "f:智慧+社交>=": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
                     "any": {
                       "type": "object",
                       "merge": "merge",
                       "fields": {
+                        "all": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "s1": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s2": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s3": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s4": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s6": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s7": {
+                              "type": "int",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "counter.7000108>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000109>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000110>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000111>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000112>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000812>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7100004<": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "rite": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s1.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s10.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.妻子": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.法拉杰": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.贵族": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s4.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s5.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s6.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s7.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s8.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s9.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "女性": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
                         "法拉杰": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "男性": {
                           "type": "int",
                           "merge": "replace"
                         }
@@ -180,7 +226,8 @@
                   "dynamic_value": {
                     "type": [
                       "int",
-                      "object"
+                      "object",
+                      "string"
                     ],
                     "merge": "replace",
                     "merge_by_type": {
@@ -197,129 +244,6 @@
             }
           }
         },
-        "s10": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "dynamic_value": {
-                "type": [
-                  "int",
-                  "string"
-                ],
-                "merge": "replace"
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
-        "s11": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "dynamic_value": {
-                "type": "int",
-                "merge": "replace"
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
-        "s12": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "dynamic_value": {
-                "type": [
-                  "int",
-                  "string"
-                ],
-                "merge": "replace"
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
         "s2": {
           "type": "object",
           "merge": "merge",
@@ -328,82 +252,9 @@
               "type": "object",
               "merge": "merge",
               "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "!侧室": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "counter.7100001": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "is": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "type": {
-                          "type": "string",
-                          "merge": "replace"
-                        },
-                        "主角": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "诅咒": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
-                    "cost.金币": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "is": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "type": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "主角": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "大餐": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "妻子": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "智慧>=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "法拉杰": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "追随者": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              },
               "dynamic_value": {
                 "type": [
+                  "array<int>",
                   "int",
                   "object",
                   "string"
@@ -458,8 +309,15 @@
                   "merge": "merge",
                   "dynamic_keys": true,
                   "dynamic_value": {
-                    "type": "int",
-                    "merge": "replace"
+                    "type": [
+                      "int",
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
                   }
                 }
               },
@@ -479,235 +337,6 @@
               "type": "object",
               "merge": "merge",
               "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "!金币": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "any": {
-                          "type": "object",
-                          "merge": "merge",
-                          "fields": {
-                            "type": {
-                              "type": "string",
-                              "merge": "replace"
-                            },
-                            "征服": {
-                              "type": "int",
-                              "merge": "replace"
-                            },
-                            "杀戮": {
-                              "type": "int",
-                              "merge": "replace"
-                            }
-                          }
-                        },
-                        "cost.消耗品=": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "rare<=": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "type": {
-                          "type": "string",
-                          "merge": "replace"
-                        },
-                        "命运的羁绊": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "情报": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "部队": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
-                    "is": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "type": {
-                      "type": "string",
-                      "merge": "replace"
-                    },
-                    "主角": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "任意处置": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "妻子": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "邪神的面容": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              },
-              "dynamic_value": {
-                "type": [
-                  "int",
-                  "object",
-                  "string"
-                ],
-                "merge": "replace",
-                "merge_by_type": {
-                  "object": "merge"
-                }
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "pops": {
-              "type": "array<object>",
-              "merge": "smart_match",
-              "element": {
-                "action": {
-                  "type": "object",
-                  "merge": "merge",
-                  "dynamic_keys": true,
-                  "dynamic_value": {
-                    "type": "string",
-                    "merge": "replace"
-                  }
-                },
-                "condition": {
-                  "type": "object",
-                  "merge": "merge",
-                  "dynamic_keys": true,
-                  "dynamic_value": {
-                    "type": "int",
-                    "merge": "replace"
-                  }
-                }
-              },
-              "match_strategy": "rite"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
-        "s4": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "type": {
-                          "type": "string",
-                          "merge": "replace"
-                        },
-                        "命运的羁绊": {
-                          "type": "int",
-                          "merge": "replace"
-                        },
-                        "情报": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
-                    "cost.消耗品=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "is": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "妻子": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "杀戮": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "正神的面容": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "祖母绿": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "空屋": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "红宝石": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "纵欲": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "蓝宝石": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "邪神的面容": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "钻石": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              },
               "dynamic_value": {
                 "type": [
                   "array<int>",
@@ -750,8 +379,194 @@
                   "merge": "merge",
                   "dynamic_keys": true,
                   "dynamic_value": {
-                    "type": "string",
-                    "merge": "replace"
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "fields": {
+                    "any": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!s3.命运的羁绊": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s3.屠龙者": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s5": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "all": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "s1": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s2": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s3": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s4": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s6": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s7": {
+                              "type": "int",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "f:s2.战斗+s2.体魄+s3.战斗+s3.体魄+s4.战斗+s4.体魄-s1.战斗-s1.体魄>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.激情": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.祖母绿": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.紫水晶": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.红宝石": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.红玉髓": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.蓝宝石": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s3.钻石": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s5.征服": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    }
+                  },
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "dynamic_value": {
+                "type": [
+                  "array<int>",
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
                   }
                 },
                 "condition": {
@@ -759,8 +574,15 @@
                   "merge": "merge",
                   "dynamic_keys": true,
                   "dynamic_value": {
-                    "type": "int",
-                    "merge": "replace"
+                    "type": [
+                      "int",
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
                   }
                 }
               },
@@ -785,25 +607,86 @@
                   "type": "object",
                   "merge": "merge",
                   "fields": {
+                    "!平等": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "all": {
                       "type": "object",
                       "merge": "merge",
-                      "fields": {
-                        "type": {
-                          "type": "string",
-                          "merge": "replace"
-                        },
-                        "命运的羁绊": {
-                          "type": "int",
-                          "merge": "replace"
+                      "dynamic_keys": true,
+                      "dynamic_value": {
+                        "type": [
+                          "int",
+                          "object",
+                          "string"
+                        ],
+                        "merge": "replace",
+                        "merge_by_type": {
+                          "object": "merge"
                         }
                       }
                     },
+                    "cost.金币": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "is": {
+                      "type": [
+                        "int",
+                        "string"
+                      ],
+                      "merge": "coerce"
+                    },
+                    "s3.主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s4.主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    },
+                    "任意处置": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "动物": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "奢靡": {
                       "type": "int",
                       "merge": "replace"
                     },
                     "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "密教徒": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "平等": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "征服": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "怪物": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "淫具": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "火焰大王2": {
                       "type": "int",
                       "merge": "replace"
                     },
@@ -819,7 +702,23 @@
                       "type": "int",
                       "merge": "replace"
                     },
+                    "装备": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "贵族": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "部队": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "钻石": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "黑暗知识": {
                       "type": "int",
                       "merge": "replace"
                     }
@@ -859,6 +758,44 @@
               "type": "int",
               "merge": "replace"
             },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
             "text": {
               "type": "string",
               "merge": "replace"
@@ -878,10 +815,54 @@
                   "type": "object",
                   "merge": "merge",
                   "fields": {
+                    "!平等": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "all": {
                       "type": "object",
                       "merge": "merge",
                       "fields": {
+                        "!s1.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s2.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s3.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s4.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s5.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!主角": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!命运的羁绊": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!妻子": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!密教徒": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!金币": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
                         "any": {
                           "type": "object",
                           "merge": "merge",
@@ -892,12 +873,64 @@
                             }
                           }
                         },
+                        "cost.可堆叠=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "cost.消耗品": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "cost.消耗品=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "cost.金币": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "f:rare-s1.rare<=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "f:rare-s2.rare<=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
                         "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "rare=": {
                           "type": "int",
                           "merge": "replace"
                         },
                         "type": {
                           "type": "string",
+                          "merge": "replace"
+                        },
+                        "主角": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "入圣": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "情报": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "杀戮": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "激情": {
+                          "type": "int",
                           "merge": "replace"
                         },
                         "部队": {
@@ -907,6 +940,21 @@
                       }
                     },
                     "is": {
+                      "type": [
+                        "int",
+                        "string"
+                      ],
+                      "merge": "coerce"
+                    },
+                    "s3.主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s4.主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s5.主角": {
                       "type": "int",
                       "merge": "replace"
                     },
@@ -914,7 +962,23 @@
                       "type": "string",
                       "merge": "replace"
                     },
+                    "任意处置": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "奢靡": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "密教徒": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "平等": {
                       "type": "int",
                       "merge": "replace"
                     },
@@ -926,7 +990,19 @@
                       "type": "int",
                       "merge": "replace"
                     },
+                    "火焰大王2": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
                     "纵欲": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "部队": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "黑暗知识": {
                       "type": "int",
                       "merge": "replace"
                     }
@@ -935,6 +1011,7 @@
               },
               "dynamic_value": {
                 "type": [
+                  "array<int>",
                   "int",
                   "object",
                   "string"
@@ -974,8 +1051,14 @@
                   "merge": "merge",
                   "dynamic_keys": true,
                   "dynamic_value": {
-                    "type": "string",
-                    "merge": "replace"
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
                   }
                 },
                 "condition": {
@@ -987,6 +1070,36 @@
                       "type": "object",
                       "merge": "merge",
                       "fields": {
+                        "all": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "s1": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s2": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s3": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s4": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s6": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "s7": {
+                              "type": "int",
+                              "merge": "replace"
+                            }
+                          }
+                        },
                         "counter.7100002<": {
                           "type": "int",
                           "merge": "replace"
@@ -1031,6 +1144,124 @@
                   "type": "object",
                   "merge": "merge",
                   "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!have.2000129.墓碑前": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!have.2000129.贬斥": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s1.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s1.苏丹卡": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s2.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s3.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s3.苏丹卡": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s4.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s5.妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s5.苏丹卡": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!s9.苏丹卡": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!主角": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!入宫": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "f:rare-s2.rare<=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "rare=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s1": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "妖精": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "杀戮": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "追随者": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "部队": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "any": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "all": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "!火焰大王": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "is": {
+                              "type": "int",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "火焰大王": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
                     "is": {
                       "type": [
                         "int",
@@ -1041,149 +1272,33 @@
                     "type": {
                       "type": "string",
                       "merge": "replace"
-                    }
-                  }
-                }
-              },
-              "dynamic_value": {
-                "type": [
-                  "int",
-                  "object",
-                  "string"
-                ],
-                "merge": "replace",
-                "merge_by_type": {
-                  "object": "merge"
-                }
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
-        "s8": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "cost.金币": {
+                    },
+                    "任意处置": {
                       "type": "int",
                       "merge": "replace"
                     },
-                    "消耗品": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                }
-              },
-              "dynamic_value": {
-                "type": [
-                  "int",
-                  "object",
-                  "string"
-                ],
-                "merge": "replace",
-                "merge_by_type": {
-                  "object": "merge"
-                }
-              }
-            },
-            "guid": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "is_empty": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_enemy": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "is_key": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "text": {
-              "type": "string",
-              "merge": "replace"
-            }
-          }
-        },
-        "s9": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "condition": {
-              "type": "object",
-              "merge": "merge",
-              "dynamic_keys": true,
-              "fields": {
-                "any": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "all": {
-                      "type": "object",
-                      "merge": "merge",
-                      "fields": {
-                        "any": {
-                          "type": "object",
-                          "merge": "merge",
-                          "fields": {
-                            "type": {
-                              "type": "string",
-                              "merge": "replace"
-                            }
-                          }
-                        },
-                        "部队": {
-                          "type": "int",
-                          "merge": "replace"
-                        }
-                      }
-                    },
-                    "is": {
+                    "奢靡": {
                       "type": "int",
                       "merge": "replace"
                     },
-                    "type": {
-                      "type": "string",
+                    "已拥有": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "火焰大王2": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "纵欲": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "追随者": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "部队": {
+                      "type": "int",
                       "merge": "replace"
                     }
                   }
@@ -1221,6 +1336,43 @@
             "open_adsorb": {
               "type": "int",
               "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                }
+              },
+              "match_strategy": "rite"
             },
             "text": {
               "type": "string",
@@ -1292,6 +1444,10 @@
       "type": "string",
       "merge": "replace"
     },
+    "mapping": {
+      "type": "int",
+      "merge": "replace"
+    },
     "mapping_id": {
       "type": "int",
       "merge": "replace"
@@ -1319,120 +1475,6 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "!s6": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "all": {
-                  "type": "object",
-                  "merge": "merge",
-                  "fields": {
-                    "counter.7000444>=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "counter.7100002>=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "counter.7100005>=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "f:鳄鱼=": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s1": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s1.金币": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s2": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s2.is": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s4": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s5": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s5.征服": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s6": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s6.杀戮": {
-                      "type": "int",
-                      "merge": "replace"
-                    },
-                    "s7": {
-                      "type": "int",
-                      "merge": "replace"
-                    }
-                  }
-                },
-                "counter.7000444<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s1": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s3": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s4": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s5": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s6.奢靡": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s6.纵欲": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "智慧>=": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
               "int",
@@ -1461,6 +1503,26 @@
         "r1": {
           "type": "string",
           "merge": "replace"
+        },
+        "r2": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "r3": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "r4": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "r5": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "r6": {
+          "type": "string",
+          "merge": "replace"
         }
       }
     },
@@ -1469,6 +1531,84 @@
       "merge": "merge",
       "fields": {
         "r1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r10": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r11": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r12": {
           "type": "object",
           "merge": "merge",
           "fields": {
@@ -1623,6 +1763,84 @@
               "merge": "replace"
             }
           }
+        },
+        "r7": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r8": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r9": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
         }
       }
     },
@@ -1641,34 +1859,14 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "delay": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "counter=7000205": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_on": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "id": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "round": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
-              "int",
-              "object"
+              "array",
+              "array<float>",
+              "bool",
+              "float",
+              "object",
+              "string"
             ],
             "merge": "replace",
             "merge_by_type": {
@@ -1680,42 +1878,6 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "!s4": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s5": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7100001>": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7100002<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s4.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s5.is": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
               "array<int>",
@@ -1741,6 +1903,7 @@
             "type": [
               "array",
               "array<int>",
+              "array<string>",
               "int",
               "object",
               "string"
@@ -1773,28 +1936,10 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "delay": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "event_on": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "id": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "round": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
+              "array<int>",
+              "bool",
               "int",
               "object",
               "string"
@@ -1809,115 +1954,12 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "!s2.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s3.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s5.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s6.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s8.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!s9.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s1": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s1.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s1.主角": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2.主角": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s2.妻子": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s3": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s3.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s4": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s4.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s5": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s5.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s6": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s6.is": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s7": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s8": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "s9.is": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
               "array<int>",
               "int",
-              "object"
+              "object",
+              "string"
             ],
             "merge": "replace",
             "merge_by_type": {
@@ -1936,6 +1978,7 @@
           "dynamic_value": {
             "type": [
               "array",
+              "array<string>",
               "int",
               "object",
               "string"
@@ -1968,32 +2011,9 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "delay": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "counter=7000205": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "event_on": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "id": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "round": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
+              "array<int>",
               "int",
               "object"
             ],
@@ -2007,20 +2027,9 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "s4.is": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
+              "array<int>",
               "int",
               "object"
             ],
@@ -2041,8 +2050,10 @@
           "dynamic_value": {
             "type": [
               "array",
+              "array<string>",
               "int",
-              "object"
+              "object",
+              "string"
             ],
             "merge": "replace",
             "merge_by_type": {
@@ -2123,6 +2134,7 @@
               "fields": {
                 "icon": {
                   "type": [
+                    "array",
                     "array<string>",
                     "string"
                   ],
@@ -2142,8 +2154,10 @@
           "dynamic_value": {
             "type": [
               "array",
+              "array<int>",
               "int",
-              "object"
+              "object",
+              "string"
             ],
             "merge": "replace",
             "merge_by_type": {
@@ -2156,36 +2170,23 @@
           "merge": "merge",
           "dynamic_keys": true,
           "dynamic_value": {
-            "type": "int",
-            "merge": "replace"
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
           }
         },
         "result": {
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "prompt": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "icon": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "id": {
-                  "type": "string",
-                  "merge": "replace"
-                },
-                "text": {
-                  "type": "string",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
+              "array",
               "int",
               "object"
             ],

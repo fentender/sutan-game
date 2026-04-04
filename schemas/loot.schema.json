@@ -5,7 +5,7 @@
     "description": "loot",
     "source": "loot/",
     "file_count": 193,
-    "sampled": 80
+    "analyzed": 193
   },
   "_fields": {
     "id": {
@@ -20,64 +20,6 @@
           "type": "object",
           "merge": "merge",
           "dynamic_keys": true,
-          "fields": {
-            "all": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "!table_have.2000080": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!table_have.2000081": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "!table_have.2000082": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000417<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000417>=": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000418<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000418>=": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000419<": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "counter.7000419>=": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            },
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "have.2000021": {
-                  "type": "int",
-                  "merge": "replace"
-                },
-                "have.2000022": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          },
           "dynamic_value": {
             "type": [
               "int",

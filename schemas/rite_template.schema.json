@@ -5,7 +5,7 @@
     "description": "rite_template",
     "source": "rite_template/",
     "file_count": 251,
-    "sampled": 80
+    "analyzed": 251
   },
   "_fields": {
     "bg": {
@@ -21,7 +21,7 @@
           "merge": "replace"
         },
         "y": {
-          "type": "int",
+          "type": "float",
           "merge": "replace"
         }
       }
@@ -121,7 +121,7 @@
                   "merge": "replace"
                 },
                 "y": {
-                  "type": "int",
+                  "type": "float",
                   "merge": "replace"
                 }
               }
@@ -267,11 +267,11 @@
               "merge": "merge",
               "fields": {
                 "x": {
-                  "type": "int",
+                  "type": "float",
                   "merge": "replace"
                 },
                 "y": {
-                  "type": "int",
+                  "type": "float",
                   "merge": "replace"
                 }
               }
@@ -317,11 +317,11 @@
               "merge": "merge",
               "fields": {
                 "x": {
-                  "type": "int",
+                  "type": "float",
                   "merge": "replace"
                 },
                 "y": {
-                  "type": "int",
+                  "type": "float",
                   "merge": "replace"
                 }
               }
@@ -877,7 +877,7 @@
               }
             },
             "rotation_z": {
-              "type": "int",
+              "type": "float",
               "merge": "replace"
             },
             "scale": {
