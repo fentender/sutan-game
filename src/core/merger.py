@@ -197,22 +197,25 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
     else:
         find_fn = _find_matching_rite_item
 
-    for mod_item in mod_arr:
+    for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
             continue
+
+        # 有游戏本体参照：按位置对应（mod 是本体的拷贝，索引一一对应）
+        if game_base_arr and i < len(game_base_arr) and i < len(result):
+            gb_item = game_base_arr[i]
+            elem_delta = _recursive_delta(gb_item, mod_item)
+            if elem_delta is None:
+                matched.add(i)
+                continue  # 此元素相对游戏本体无变化
+            result[i] = deep_merge(result[i], elem_delta, schema, element_path)
+            matched.add(i)
+            continue
+
+        # 无 game_base 或位置超出（mod 新增的元素）：用 mod 元素匹配
         idx = find_fn(result, mod_item, matched)
         if idx is not None:
-            merge_data = mod_item
-            # 有游戏本体参照时，只合并 mod 实际修改的字段
-            if game_base_arr:
-                gb_idx = find_fn(game_base_arr, mod_item, set())
-                if gb_idx is not None:
-                    elem_delta = _recursive_delta(game_base_arr[gb_idx], mod_item)
-                    if elem_delta is None:
-                        matched.add(idx)
-                        continue  # 此元素相对游戏本体无变化
-                    merge_data = elem_delta
-            result[idx] = deep_merge(result[idx], merge_data, schema, element_path)
+            result[idx] = deep_merge(result[idx], mod_item, schema, element_path)
             matched.add(idx)
         else:
             result.append(copy.deepcopy(mod_item))
