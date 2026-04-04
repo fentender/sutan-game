@@ -128,6 +128,12 @@ class ModListItem(QWidget):
         layout.setContentsMargins(4, 2, 4, 2)
 
         self.checkbox = QCheckBox()
+        self.checkbox.setStyleSheet("""
+            QCheckBox::indicator:unchecked {
+                border: 1px solid #000;
+                background-color: #fff;
+            }
+        """)
         self.checkbox.setChecked(enabled)
         self.checkbox.toggled.connect(lambda checked: self.toggled.emit(self.mod.mod_id, checked))
         layout.addWidget(self.checkbox)
@@ -207,6 +213,9 @@ class ModListPanel(QWidget):
             self._enabled = {m.mod_id: m.mod_id in enabled for m in self._mods}
         else:
             self._enabled = {m.mod_id: True for m in self._mods}
+
+        # 未勾选的排到勾选的后面（稳定排序，保持组内相对顺序）
+        self._mods.sort(key=lambda m: 0 if self._enabled.get(m.mod_id, True) else 1)
 
         self._merge_modes = merge_modes or {}
 

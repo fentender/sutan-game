@@ -1,0 +1,79 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "gallery_cards",
+    "source": "gallery_cards.json"
+  },
+  "_entry": {
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "is_show": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "plots": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "coerce",
+      "element": {
+        "data": {
+          "type": "array<object>",
+          "merge": "smart_match",
+          "element": {
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "plot_text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "plot_title": {
+              "type": "string",
+              "merge": "replace"
+            }
+          },
+          "match_strategy": "rite"
+        },
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "resources": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "coerce",
+      "element": {
+        "pic_res": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "rare": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "show_type": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "sort": {
+      "type": "int",
+      "merge": "replace"
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "cards",
+    "source": "cards.json"
+  },
+  "_entry": {
+    "card_favour": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "card_vanishing": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "equips": {
+      "type": [
+        "array",
+        "array<string>"
+      ],
+      "merge": "coerce"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "is_only": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "pops": {
+      "type": "array",
+      "merge": "append"
+    },
+    "post_rite": {
+      "type": "array<object>",
+      "merge": "smart_match",
+      "element": {
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "is_rite": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": "int",
+            "merge": "replace"
+          }
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "rare": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "resource": {
+      "type": [
+        "array<string>",
+        "string"
+      ],
+      "merge": "coerce"
+    },
+    "tag": {
+      "type": "object",
+      "merge": "merge",
+      "dynamic_keys": true,
+      "dynamic_value": {
+        "type": "int",
+        "merge": "replace"
+      }
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tips": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "title": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "type": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "vanish": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "over": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

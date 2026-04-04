@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "tag",
+    "source": "tag.json"
+  },
+  "_entry": {
+    "attributes": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "吸附指定": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "can_add": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "can_inherit": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "can_nagative_and_zero": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "can_visible": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "code": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "fail_tag": {
+      "type": "array",
+      "merge": "append"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "resource": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tag_rank": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "tag_sfx": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tag_vanishing": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tips": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "type": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

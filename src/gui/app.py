@@ -6,18 +6,18 @@ import shutil
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QSplitter, QMessageBox, QProgressBar,
-    QFileDialog, QListWidget, QListWidgetItem
+    QFileDialog, QListWidget, QListWidgetItem, QCheckBox
 )
 from PySide6.QtCore import Qt, QThread, Signal
 
-from ..config import UserConfig, MERGED_OUTPUT_PATH, SYNTHETIC_MOD_ID
+from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR
 from ..core.mod_scanner import scan_all_mods, scan_errors
 from ..core.json_parser import parse_warnings
 from ..core.merger import merge_all_files, merge_warnings
 from ..core.conflict import analyze_all_overrides
-from ..core.deployer import deploy_to_workshop, clean_synthetic_mod, copy_resources
+from ..core.deployer import generate_info_json, copy_resources
 from .mod_list import ModListPanel
 from .mod_detail import ModDetailPanel
 from .override_panel import OverridePanel
@@ -29,13 +29,14 @@ class MergeWorker(QThread):
     error = Signal(str)
     progress = Signal(str)
 
-    def __init__(self, game_config_path, mod_configs, output_path, mod_paths, merge_modes=None):
+    def __init__(self, game_config_path, mod_configs, output_path, mod_paths,
+                 allow_deletions=False):
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
-        self.merge_modes = merge_modes or {}
+        self.allow_deletions = allow_deletions
 
     def run(self):
         try:
@@ -44,7 +45,8 @@ class MergeWorker(QThread):
                 self.game_config_path,
                 self.mod_configs,
                 self.output_path / "config",
-                merge_modes=self.merge_modes
+                schema_dir=SCHEMA_DIR,
+                allow_deletions=self.allow_deletions,
             )
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path)
@@ -112,17 +114,43 @@ class MainWindow(QMainWindow):
         btn_merge.clicked.connect(self._execute_merge)
         btn_layout.addWidget(btn_merge)
 
-        btn_deploy = QPushButton("部署到游戏")
-        btn_deploy.clicked.connect(self._deploy)
-        btn_layout.addWidget(btn_deploy)
-
         btn_clean = QPushButton("清理合成Mod")
         btn_clean.clicked.connect(self._clean)
         btn_layout.addWidget(btn_clean)
 
+        btn_layout.addStretch()
+
+        self.chk_allow_deletions = QCheckBox("允许删减")
+        self.chk_allow_deletions.setChecked(self.config.allow_deletions)
+        self.chk_allow_deletions.setToolTip(
+            "勾选后，Mod 中缺少的条目会从合并结果中删除。\n"
+            "默认关闭，兼容未及时跟上游戏版本的 Mod。"
+        )
+        self.chk_allow_deletions.toggled.connect(self._on_allow_deletions_changed)
+        btn_layout.addWidget(self.chk_allow_deletions)
+
         main_layout.addLayout(btn_layout)
 
         # 错误日志面板
+        self._error_panel = QWidget()
+        self._error_panel.setVisible(False)
+        error_panel_layout = QVBoxLayout(self._error_panel)
+        error_panel_layout.setContentsMargins(0, 0, 0, 0)
+        error_panel_layout.setSpacing(0)
+
+        error_header = QHBoxLayout()
+        error_header.setContentsMargins(4, 2, 4, 2)
+        error_label = QLabel("日志")
+        error_label.setStyleSheet("font-size: 12px; color: #aaa;")
+        error_header.addWidget(error_label)
+        error_header.addStretch()
+        btn_clear_log = QPushButton("清理")
+        btn_clear_log.setFixedSize(40, 20)
+        btn_clear_log.setStyleSheet("font-size: 11px; padding: 0;")
+        btn_clear_log.clicked.connect(self._clear_error_log)
+        error_header.addWidget(btn_clear_log)
+        error_panel_layout.addLayout(error_header)
+
         self.error_log = QListWidget()
         self.error_log.setMaximumHeight(120)
         self.error_log.setStyleSheet(
@@ -130,10 +158,10 @@ class MainWindow(QMainWindow):
             "QListWidget::item { color: #e88; padding: 3px 4px;"
             "  border-bottom: 1px solid #444; }"
         )
-        self.error_log.setVisible(False)
         self.error_log.itemDoubleClicked.connect(self._on_error_double_clicked)
         self._error_count = 0
-        main_layout.addWidget(self.error_log)
+        error_panel_layout.addWidget(self.error_log)
+        main_layout.addWidget(self._error_panel)
 
         # 信号连接
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
@@ -174,9 +202,21 @@ class MainWindow(QMainWindow):
             merge_modes=self.config.merge_modes or None
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
-        # 汇总所有错误和警告
+
+        # 缓存 mod_id -> mod_name 映射（仅含成功读取名称的 mod）
+        self._mod_name_map = {
+            m.mod_id: m.name
+            for m in self.mod_list_panel._mods
+            if m.name and m.name != m.mod_id
+        }
+
+        # 汇总所有错误和警告，添加 mod 名称前缀
         all_messages = list(scan_errors) + list(parse_warnings)
-        self._show_errors(all_messages)
+        self._show_errors([self._prefix_mod_title(msg) for msg in all_messages])
+
+    def _on_allow_deletions_changed(self, checked: bool):
+        self.config.allow_deletions = checked
+        self.config.save()
 
     def _save_config(self):
         self.config.mod_order = self.mod_list_panel.get_mod_order()
@@ -206,10 +246,13 @@ class MainWindow(QMainWindow):
             self.config.game_config_path,
             mod_configs
         )
-        self.override_panel.set_data(overrides, self.config.game_config_path, mod_configs)
+        self.override_panel.set_data(
+            overrides, self.config.game_config_path, mod_configs,
+            allow_deletions=self.config.allow_deletions
+        )
 
         for w in parse_warnings:
-            self._log_error(w)
+            self._log_error(self._prefix_mod_title(w))
 
         conflict_count = sum(1 for o in overrides if o.has_conflict)
         self.statusBar().showMessage(
@@ -224,10 +267,11 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "提示", "没有启用的 Mod")
             return
 
-        # 清理输出目录
-        if MERGED_OUTPUT_PATH.exists():
-            shutil.rmtree(MERGED_OUTPUT_PATH)
-        MERGED_OUTPUT_PATH.mkdir(parents=True)
+        # 输出到本地 Mod 目录
+        output_path = self.config.local_mod_dir / SYNTHETIC_MOD_ID
+        if output_path.exists():
+            shutil.rmtree(output_path)
+        output_path.mkdir(parents=True)
 
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_paths = [(m.name, m.path) for m in enabled]
@@ -235,13 +279,13 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # 不确定进度
 
-        merge_modes = self.mod_list_panel.get_merge_modes()
+        self._merge_output_path = output_path
         self._worker = MergeWorker(
             self.config.game_config_path,
             mod_configs,
-            MERGED_OUTPUT_PATH,
+            output_path,
             mod_paths,
-            merge_modes=merge_modes
+            allow_deletions=self.config.allow_deletions,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
         self._worker.finished.connect(self._on_merge_finished)
@@ -250,13 +294,19 @@ class MainWindow(QMainWindow):
 
     def _on_merge_finished(self, results: dict):
         self.progress_bar.setVisible(False)
-        msg = f"合并完成: {len(results)} 个文件已合并到 merged_output/"
+        # 生成合成 Mod 的 Info.json
+        enabled = self.mod_list_panel.get_enabled_mods()
+        mod_names = [m.name for m in enabled]
+        generate_info_json(mod_names, self._merge_output_path)
+
+        output = self._merge_output_path
+        msg = f"合并完成: {len(results)} 个文件已合并到 {output}"
         self.statusBar().showMessage(msg)
         # 展示合并过程中的警告
         if merge_warnings:
             for w in merge_warnings:
-                self._log_error(w)
-        QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{MERGED_OUTPUT_PATH}")
+                self._log_error(self._prefix_mod_title(w))
+        QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
     def _on_merge_error(self, error: str):
         self.progress_bar.setVisible(False)
@@ -264,30 +314,11 @@ class MainWindow(QMainWindow):
         self._log_error(f"合并失败: {error}")
         QMessageBox.critical(self, "合并失败", error)
 
-    def _deploy(self):
-        """部署合成 Mod"""
-        if not MERGED_OUTPUT_PATH.exists() or not any(MERGED_OUTPUT_PATH.iterdir()):
-            QMessageBox.warning(self, "提示", "请先执行合并")
-            return
-
-        enabled = self.mod_list_panel.get_enabled_mods()
-        mod_names = [m.name for m in enabled]
-
-        target = deploy_to_workshop(
-            MERGED_OUTPUT_PATH,
-            self.config.workshop_dir,
-            mod_names
-        )
-        self.statusBar().showMessage(f"已部署到: {target}")
-        QMessageBox.information(
-            self, "部署完成",
-            f"合成 Mod 已部署到:\n{target}\n\n"
-            "请在游戏中禁用所有原始 Mod，只启用合成 Mod。"
-        )
-
     def _clean(self):
         """清理合成 Mod"""
-        if clean_synthetic_mod(self.config.workshop_dir):
+        target = self.config.local_mod_dir / SYNTHETIC_MOD_ID
+        if target.exists():
+            shutil.rmtree(target)
             self.statusBar().showMessage("已清理合成 Mod")
             QMessageBox.information(self, "清理完成", "合成 Mod 已删除")
         else:
@@ -314,6 +345,33 @@ class MainWindow(QMainWindow):
             self.config.save()
             self._load_mods()
 
+    def _prefix_mod_title(self, msg: str) -> str:
+        """尝试从消息中提取 mod_id，查找对应 mod 名称并添加前缀"""
+        name_map = getattr(self, '_mod_name_map', {})
+        if not name_map:
+            return msg
+
+        # 已含 mod 名称的消息不重复添加
+        if re.search(r'Mod \[.+?\]', msg):
+            return msg
+
+        # "Mod {mod_id}: ..." 格式（scan_errors）
+        match = re.match(r'Mod (\d+):', msg)
+        if match:
+            name = name_map.get(match.group(1))
+            if name:
+                return f"【{name}】{msg}"
+            return msg
+
+        # 路径中提取 mod_id（workshop 目录结构）
+        match = re.search(r'[/\\](\d{5,})[/\\]config[/\\]', msg)
+        if match:
+            name = name_map.get(match.group(1))
+            if name:
+                return f"【{name}】{msg}"
+
+        return msg
+
     def _show_errors(self, errors: list[str]):
         """显示或隐藏错误日志"""
         self.error_log.clear()
@@ -322,18 +380,24 @@ class MainWindow(QMainWindow):
             for msg in errors:
                 self._log_error(msg)
         else:
-            self.error_log.setVisible(False)
+            self._error_panel.setVisible(False)
 
     def _log_error(self, msg: str):
         """追加一条错误到日志面板"""
         self._error_count += 1
         item = QListWidgetItem(f"[{self._error_count}] {msg}")
         # 从消息中提取文件路径
-        match = re.match(r'([A-Za-z]:\\[^:]+\.json|/[^:]+\.json)', msg)
+        match = re.search(r'([A-Za-z]:\\[^:]+\.json|/[^:]+\.json)', msg)
         if match:
             item.setData(Qt.ItemDataRole.UserRole, match.group(1))
         self.error_log.addItem(item)
-        self.error_log.setVisible(True)
+        self._error_panel.setVisible(True)
+
+    def _clear_error_log(self):
+        """清理错误日志"""
+        self.error_log.clear()
+        self._error_count = 0
+        self._error_panel.setVisible(False)
 
     def _on_error_double_clicked(self, item: QListWidgetItem):
         """双击错误日志条目，打开文件编辑器"""

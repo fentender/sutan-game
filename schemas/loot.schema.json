@@ -1,0 +1,124 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "loot",
+    "source": "loot/",
+    "file_count": 193,
+    "sampled": 80
+  },
+  "_fields": {
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "item": {
+      "type": "array<object>",
+      "merge": "smart_match",
+      "element": {
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "all": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "!table_have.2000080": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!table_have.2000081": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!table_have.2000082": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000417<": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000417>=": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000418<": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000418>=": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000419<": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7000419>=": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "have.2000021": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "have.2000022": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "num": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "weight": {
+          "type": "int",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "repeat": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "type": {
+      "type": "int",
+      "merge": "replace"
+    }
+  }
+}

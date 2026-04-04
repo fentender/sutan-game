@@ -1,0 +1,460 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "gallery_cg",
+    "source": "gallery_cg.json"
+  },
+  "_fields": {
+    "1": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "10": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "11": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "12": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "13": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "14": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "15": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "2": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "3": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "4": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "5": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "6": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "7": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "8": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "9": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

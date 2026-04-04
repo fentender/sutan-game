@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "upgrade",
+    "source": "upgrade.json"
+  },
+  "_entry": {
+    "condition": {
+      "type": "object",
+      "merge": "merge",
+      "dynamic_keys": true,
+      "dynamic_value": {
+        "type": "int",
+        "merge": "replace"
+      }
+    },
+    "cost": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "effect": {
+      "type": "object",
+      "merge": "merge",
+      "dynamic_keys": true,
+      "dynamic_value": {
+        "type": [
+          "array",
+          "array<int>",
+          "int"
+        ],
+        "merge": "replace"
+      }
+    },
+    "icon": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "incompatible": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "link_card": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

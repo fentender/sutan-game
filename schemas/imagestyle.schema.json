@@ -1,0 +1,98 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "imagestyle",
+    "source": "imagestyle.json"
+  },
+  "_fields": {
+    "MAIN_UI_LEAVE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "height": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posX": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posY": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "width": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "OVER_UI_LOGO": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "height": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posX": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posY": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "width": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    },
+    "START_UI_LOGO": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "height": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "posX": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "posY": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "width": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    },
+    "START_UI_START_GAME_BUTTON_BG": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "height": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posX": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "posY": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "width": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

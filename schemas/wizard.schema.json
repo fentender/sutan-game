@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "wizard",
+    "source": "wizard/",
+    "file_count": 2,
+    "sampled": 2
+  },
+  "_fields": {
+    "id": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "options": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "name": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "op": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "options": {
+          "type": "array<object>",
+          "merge": "smart_match",
+          "element": {
+            "action": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true
+            },
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true
+            },
+            "dt": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "op": {
+              "type": "string",
+              "merge": "replace"
+            }
+          },
+          "match_strategy": "rite"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "prompt_draw_sudan_end_with_times": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "prompt_draw_sudan_end_without_times": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "prompt_draw_sudan_start": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "prompt_draw_sudan_start_first": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

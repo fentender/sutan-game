@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "mobile_help",
+    "source": "mobile_help.json"
+  },
+  "_fields": {
+    "Bag": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "slides": {
+          "type": "array<object>",
+          "merge": "append",
+          "element": {
+            "res": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "Card": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "slides": {
+          "type": "array<object>",
+          "merge": "append",
+          "element": {
+            "res": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "Main": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "slides": {
+          "type": "array<object>",
+          "merge": "append",
+          "element": {
+            "res": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "Rite": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "slides": {
+          "type": "array<object>",
+          "merge": "append",
+          "element": {
+            "res": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

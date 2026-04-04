@@ -1,0 +1,2210 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "rite",
+    "source": "rite/",
+    "file_count": 1495,
+    "sampled": 80
+  },
+  "_fields": {
+    "auto_begin": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "auto_result": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "cards_slot": {
+      "type": "object",
+      "merge": "merge",
+      "dynamic_keys": true,
+      "fields": {
+        "s1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!贵族": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7000251>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "s2.is": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "史诗": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "情诗": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "讽刺诗": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "贵族": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "预言诗": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "array<int>",
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!妻子": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "!法拉杰": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "f:智慧+社交<": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "f:智慧+社交>=": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "any": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "法拉杰": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    }
+                  },
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s10": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "string"
+                ],
+                "merge": "replace"
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s11": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "dynamic_value": {
+                "type": "int",
+                "merge": "replace"
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s12": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "string"
+                ],
+                "merge": "replace"
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!侧室": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7100001": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "主角": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "诅咒": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "cost.金币": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    },
+                    "主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "大餐": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "智慧>=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "法拉杰": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "追随者": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": [
+                      "object",
+                      "string"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "int",
+                    "merge": "replace"
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "!金币": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "any": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "type": {
+                              "type": "string",
+                              "merge": "replace"
+                            },
+                            "征服": {
+                              "type": "int",
+                              "merge": "replace"
+                            },
+                            "杀戮": {
+                              "type": "int",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "cost.消耗品=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "rare<=": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "命运的羁绊": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "情报": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "部队": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    },
+                    "主角": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "任意处置": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "邪神的面容": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "string",
+                    "merge": "replace"
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "int",
+                    "merge": "replace"
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "命运的羁绊": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "情报": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "cost.消耗品=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "杀戮": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "正神的面容": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "祖母绿": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "空屋": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "红宝石": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "纵欲": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "蓝宝石": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "邪神的面容": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "钻石": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "array<int>",
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "string",
+                    "merge": "replace"
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "int",
+                    "merge": "replace"
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "命运的羁绊": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "妻子": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "祖母绿": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "红宝石": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "蓝宝石": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "钻石": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "array<int>",
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s6": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "any": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "type": {
+                              "type": "string",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "is": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "type": {
+                          "type": "string",
+                          "merge": "replace"
+                        },
+                        "部队": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    },
+                    "奢靡": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "征服": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "杀戮": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "纵欲": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "pops": {
+              "type": "array<object>",
+              "merge": "smart_match",
+              "element": {
+                "action": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "dynamic_value": {
+                    "type": "string",
+                    "merge": "replace"
+                  }
+                },
+                "condition": {
+                  "type": "object",
+                  "merge": "merge",
+                  "dynamic_keys": true,
+                  "fields": {
+                    "any": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "counter.7100002<": {
+                          "type": "int",
+                          "merge": "replace"
+                        },
+                        "counter.7100005<": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    }
+                  },
+                  "dynamic_value": {
+                    "type": [
+                      "int",
+                      "object"
+                    ],
+                    "merge": "replace",
+                    "merge_by_type": {
+                      "object": "merge"
+                    }
+                  }
+                }
+              },
+              "match_strategy": "rite"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s7": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "is": {
+                      "type": [
+                        "int",
+                        "string"
+                      ],
+                      "merge": "coerce"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s8": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "cost.金币": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "消耗品": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s9": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true,
+              "fields": {
+                "any": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "all": {
+                      "type": "object",
+                      "merge": "merge",
+                      "fields": {
+                        "any": {
+                          "type": "object",
+                          "merge": "merge",
+                          "fields": {
+                            "type": {
+                              "type": "string",
+                              "merge": "replace"
+                            }
+                          }
+                        },
+                        "部队": {
+                          "type": "int",
+                          "merge": "replace"
+                        }
+                      }
+                    },
+                    "is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "type": {
+                      "type": "string",
+                      "merge": "replace"
+                    }
+                  }
+                }
+              },
+              "dynamic_value": {
+                "type": [
+                  "array<int>",
+                  "int",
+                  "object",
+                  "string"
+                ],
+                "merge": "replace",
+                "merge_by_type": {
+                  "object": "merge"
+                }
+              }
+            },
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        }
+      },
+      "dynamic_value": {
+        "type": "object",
+        "merge": "merge"
+      }
+    },
+    "final_pin": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "from_pins": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "arrow_angle": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "arrow_length": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "color": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "controls": {
+          "type": "array<array>",
+          "merge": "append"
+        },
+        "dashed": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "resolution": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite_id": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "start_reserve": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "width": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "icon": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "location": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "mapping_id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "method_settlement": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "once_new": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "open_conditions": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "coerce",
+      "element": {
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "!s6": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "all": {
+                  "type": "object",
+                  "merge": "merge",
+                  "fields": {
+                    "counter.7000444>=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "counter.7100002>=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "counter.7100005>=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "f:鳄鱼=": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s1": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s1.金币": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s2": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s2.is": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s4": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s5": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s5.征服": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s6": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s6.杀戮": {
+                      "type": "int",
+                      "merge": "replace"
+                    },
+                    "s7": {
+                      "type": "int",
+                      "merge": "replace"
+                    }
+                  }
+                },
+                "counter.7000444<": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s1": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s3": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s4": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s5": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s6.奢靡": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s6.纵欲": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "智慧>=": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "tips": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "random_effect": {
+      "type": "object",
+      "merge": "merge"
+    },
+    "random_text": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "r1": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "random_text_up": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "r1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "r6": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "low_target": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "low_target_tips": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "type_tips": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "round_number": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "settlement": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "smart_match",
+      "element": {
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "delay": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "counter=7000205": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "event_on": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "id": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "round": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "!s4": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s5": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7100001>": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "counter.7100002<": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s4.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s5.is": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "array<int>",
+              "int",
+              "object",
+              "string"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": [
+              "array",
+              "array<int>",
+              "int",
+              "object",
+              "string"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result_title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "settlement_extre": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "smart_match",
+      "element": {
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "delay": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "event_on": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "id": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "round": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object",
+              "string"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "!s2.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s3.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s5.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s6.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s8.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "!s9.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s1": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s1.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s1.主角": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2.主角": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s2.妻子": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s3": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s3.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s4": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s4.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s5": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s5.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s6": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s6.is": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s7": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s8": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "s9.is": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "array<int>",
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": [
+              "array",
+              "int",
+              "object",
+              "string"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result_title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "settlement_prior": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "smart_match",
+      "element": {
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "delay": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "counter=7000205": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "event_on": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "id": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "round": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "any": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "s4.is": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": [
+              "array",
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result_title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "tag_tips": {
+      "type": [
+        "array",
+        "array<string>"
+      ],
+      "merge": "coerce"
+    },
+    "tag_tips_up": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "tips": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tips": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "tips_text": {
+      "type": [
+        "array",
+        "array<string>"
+      ],
+      "merge": "coerce"
+    },
+    "type": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "waiting_round": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "waiting_round_end_action": {
+      "type": [
+        "array",
+        "array<object>"
+      ],
+      "merge": "smart_match",
+      "element": {
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "prompt": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "icon": {
+                  "type": [
+                    "array<string>",
+                    "string"
+                  ],
+                  "merge": "coerce"
+                },
+                "id": {
+                  "type": "string",
+                  "merge": "replace"
+                },
+                "text": {
+                  "type": "string",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "array",
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": "int",
+            "merge": "replace"
+          }
+        },
+        "result": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "prompt": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "icon": {
+                  "type": "string",
+                  "merge": "replace"
+                },
+                "id": {
+                  "type": "string",
+                  "merge": "replace"
+                },
+                "text": {
+                  "type": "string",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result_title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    }
+  }
+}

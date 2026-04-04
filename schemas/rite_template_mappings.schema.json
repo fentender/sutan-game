@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "rite_template_mappings",
+    "source": "rite_template_mappings.json"
+  },
+  "_entry": {
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "slot_open": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "template_id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "tips": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

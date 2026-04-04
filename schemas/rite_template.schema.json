@@ -1,0 +1,932 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "rite_template",
+    "source": "rite_template/",
+    "file_count": 251,
+    "sampled": 80
+  },
+  "_fields": {
+    "bg": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "bg_pos": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "x": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "y": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "fg": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "fg_in_slot_index": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "nomal_slot_bg": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "slots": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "s1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s10": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s11": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s12": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s13": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s14": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s15": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s16": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s17": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s6": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s7": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s8": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "s9": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "is_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "is_set_card_hide_bg": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "pos": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            },
+            "rotation_z": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "scale": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "x": {
+                  "type": "float",
+                  "merge": "replace"
+                },
+                "y": {
+                  "type": "float",
+                  "merge": "replace"
+                }
+              }
+            },
+            "slot_bg": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "tips": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "title_bg_hide": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "title_help_btn_hide": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "title_pos": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "x": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "y": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

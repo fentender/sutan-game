@@ -1,0 +1,62 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "dictionary",
+    "description": "quest",
+    "source": "quest.json"
+  },
+  "_entry": {
+    "favour_text": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "icon": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "pre": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "target": {
+      "type": "array<object>",
+      "merge": "smart_match",
+      "element": {
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "dynamic_value": {
+            "type": "int",
+            "merge": "replace"
+          }
+        },
+        "show_counter": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "text": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "upgrade_point": {
+      "type": "int",
+      "merge": "replace"
+    }
+  }
+}

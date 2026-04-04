@@ -1,0 +1,254 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "init",
+    "source": "init/",
+    "file_count": 2,
+    "sampled": 2
+  },
+  "_fields": {
+    "back_to_prev_round_count": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "card_equips": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "2000024": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "2000061": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "2000328": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "2000791": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "merge": "append"
+    },
+    "default_cards": {
+      "type": "array<int>",
+      "merge": "append"
+    },
+    "default_rite": {
+      "type": "array",
+      "merge": "append"
+    },
+    "difficulty": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "back_to_prev_round_count": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "desc": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "gold_dice_count": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "name": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "single_dice_face_weight": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "sudan_life_time": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "sudan_redraw_times_per_round": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "gold_dice_count": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "show_deadline": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "show_helpbtn": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "show_ithink": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "show_prestige": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "show_story": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "single_dice_face_weight": {
+      "type": "array<int>",
+      "merge": "append"
+    },
+    "sudan_box_show_after_wizard": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "sudan_card_desc": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "2000512": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2000513": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2000514": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2000515": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010001": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010002": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010003": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010004": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010005": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010006": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010007": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010008": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010009": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010010": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010011": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010012": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010013": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010014": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010015": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "2010016": {
+          "type": "array<string>",
+          "merge": "append"
+        }
+      }
+    },
+    "sudan_life_time": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "sudan_pool": {
+      "type": "array<int>",
+      "merge": "append"
+    },
+    "sudan_pool_desc": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "sudan_redraw_count": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "sudan_redraw_times_per_round": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "sudan_redraw_times_recovery_round": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "sudan_shuffle": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "think_id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "think_show_settlement": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "wizard": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

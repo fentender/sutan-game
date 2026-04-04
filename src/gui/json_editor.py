@@ -14,6 +14,98 @@ from PySide6.QtCore import Qt, QRect, QSize
 from ..core.json_parser import strip_js_comments, strip_trailing_commas
 
 _FONT = QFont("Consolas", 10)
+_INDENT = "    "
+
+
+def _split_code_comment(line: str) -> tuple[str, str]:
+    """将一行拆分为 (代码部分, 注释部分)，正确处理字符串内的 //"""
+    in_string = False
+    escape = False
+    for i, ch in enumerate(line):
+        if escape:
+            escape = False
+            continue
+        if ch == '\\' and in_string:
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if not in_string and ch == '/' and i + 1 < len(line) and line[i + 1] == '/':
+            return line[:i], line[i:]
+    return line, ""
+
+
+def _count_brackets(code: str) -> tuple[int, int, int]:
+    """统计代码中的开/闭括号数和行首闭括号数（排除字符串内的）
+    返回 (opens, closes, leading_closes)"""
+    in_string = False
+    escape = False
+    opens = 0
+    closes = 0
+    leading_closes = 0
+    found_non_bracket = False
+
+    for ch in code:
+        if escape:
+            escape = False
+            continue
+        if ch == '\\' and in_string:
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            found_non_bracket = True
+            continue
+        if in_string:
+            continue
+        if ch in ('{', '['):
+            opens += 1
+            found_non_bracket = True
+        elif ch in ('}', ']'):
+            closes += 1
+            if not found_non_bracket:
+                leading_closes += 1
+        elif not ch.isspace():
+            found_non_bracket = True
+
+    return opens, closes, leading_closes
+
+
+def _format_with_comments(text: str) -> str:
+    """基于括号深度的缩进格式化，保留注释"""
+    lines = text.split('\n')
+    result = []
+    indent_level = 0
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            result.append("")
+            continue
+
+        code, comment = _split_code_comment(stripped)
+        code = code.rstrip()
+        opens, closes, leading_closes = _count_brackets(code)
+
+        this_indent = max(0, indent_level - leading_closes)
+
+        if code and comment:
+            result.append(_INDENT * this_indent + code + "  " + comment)
+        elif code:
+            result.append(_INDENT * this_indent + code)
+        else:
+            # 纯注释行
+            result.append(_INDENT * this_indent + comment)
+
+        indent_level += opens - closes
+        indent_level = max(0, indent_level)
+
+    # 去除末尾多余空行
+    while result and result[-1] == "":
+        result.pop()
+
+    return '\n'.join(result) + '\n'
 
 
 class _LineNumberArea(QWidget):
@@ -189,16 +281,9 @@ class JsonEditorDialog(QDialog):
             self._editor.clear_highlights()
 
     def _format(self):
-        """格式化 JSON：清理注释和尾逗号后重新缩进"""
+        """格式化 JSON：调整缩进，保留注释"""
         text = self._editor.toPlainText()
-        cleaned = strip_trailing_commas(strip_js_comments(text))
-        try:
-            data = json.loads(cleaned)
-        except json.JSONDecodeError:
-            QMessageBox.warning(self, "格式化失败", "JSON 语法错误，无法格式化")
-            return
-        formatted = json.dumps(data, ensure_ascii=False, indent=4)
-        # 保持滚动位置
+        formatted = _format_with_comments(text)
         scroll_val = self._editor.verticalScrollBar().value()
         self._editor.setPlainText(formatted)
         self._editor.verticalScrollBar().setValue(scroll_val)

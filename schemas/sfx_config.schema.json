@@ -1,0 +1,1268 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "sfx_config",
+    "source": "sfx_config.json"
+  },
+  "_fields": {
+    "armageddon_music_loop": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "5003027": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5006068": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5006079": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_instant": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010001": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010013": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_instant": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010022": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010025": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010034": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010045": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010046": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010047": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010050": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010060": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010061": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010062": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010069": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010070": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010071": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010075": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010080": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010087": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5010201": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "play_in_rite_create": {
+              "type": "bool",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "main_game_loop": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "6": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "7": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "main_game_loop_difficulty": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "float",
+              "merge": "replace"
+            }
+          }
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "settle_loop": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "6": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "7": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "settle_loop_difficulty": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "clip": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "loop_end": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "loop_start": {
+              "type": "float",
+              "merge": "replace"
+            },
+            "start": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    }
+  }
+}

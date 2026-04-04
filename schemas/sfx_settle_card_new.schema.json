@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "sfx_settle_card_new",
+    "source": "sfx_settle_card_new.json"
+  },
+  "_fields": {
+    "0": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "1": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000083": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000168": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000326": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000558": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000672": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000680": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "2000698": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

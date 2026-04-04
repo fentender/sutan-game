@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "dt",
+    "source": "dt/",
+    "file_count": 9,
+    "sampled": 9
+  },
+  "_fields": {
+    "Item": {
+      "type": "array<object>",
+      "merge": "smart_match",
+      "element": {
+        "Option": {
+          "type": [
+            "array",
+            "array<object>"
+          ],
+          "merge": "coerce",
+          "element": {
+            "action": {
+              "type": "object",
+              "merge": "merge",
+              "dynamic_keys": true
+            },
+            "option_Jump_condition": {
+              "type": "object",
+              "merge": "merge"
+            },
+            "option_Jump_id": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "option_Jump_word": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "action": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true
+        },
+        "direct_id": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "jump_type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "word": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "word_id": {
+          "type": "string",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "event"
+    },
+    "description": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "dialog_tree_id": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "first_word_id": {
+      "type": "string",
+      "merge": "replace"
+    }
+  }
+}

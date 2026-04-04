@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "textstyle",
+    "source": "textstyle.json",
+    "dynamic_keys": true
+  },
+  "_dynamic_value": {
+    "type": "object",
+    "merge": "merge"
+  }
+}

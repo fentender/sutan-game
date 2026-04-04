@@ -1,5 +1,5 @@
 """
-核心合并算法 - 字典合并、实体合并、数组智能匹配
+核心合并算法 - 基于 schema 规则的字典合并、实体合并、数组智能匹配
 """
 import json
 import logging
@@ -8,14 +8,18 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .json_parser import load_json, dump_json
+from .schema_loader import (
+    load_schemas, resolve_schema, get_field_def,
+    get_schema_root_key, check_type_match,
+)
 
 log = logging.getLogger(__name__)
 
-# 需要智能合并的数组字段名（rite 文件中使用）
-SMART_MERGE_ARRAY_KEYS = {'settlement', 'settlement_prior', 'settlement_extre'}
-
 # 需要整文件替换而非合并的文件
 WHOLE_FILE_REPLACE = {'sfx_config.json'}
+
+# 删除标记（用于 allow_deletions 模式）
+_DELETED = object()
 
 
 @dataclass
@@ -134,9 +138,6 @@ def _find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set
             if base_str == mod_str:
                 return i
 
-    # 级别3: 按位置匹配（如果 mod 和 base 数组长度相同，按索引对应）
-    # 这里不实现，由调用方在无法匹配时决定策略
-
     return None
 
 
@@ -146,10 +147,8 @@ def _extract_action_keys(action: dict) -> set[str]:
     if not isinstance(action, dict):
         return keys
 
-    # rite 指令
     if 'rite' in action:
         keys.add(f"rite:{action['rite']}")
-    # event_on 指令
     if 'event_on' in action:
         val = action['event_on']
         if isinstance(val, list):
@@ -157,13 +156,10 @@ def _extract_action_keys(action: dict) -> set[str]:
                 keys.add(f"event_on:{v}")
         else:
             keys.add(f"event_on:{val}")
-    # prompt.id
     if isinstance(action.get('prompt'), dict) and 'id' in action['prompt']:
         keys.add(f"prompt:{action['prompt']['id']}")
-    # option.id
     if isinstance(action.get('option'), dict) and 'id' in action['option']:
         keys.add(f"option:{action['option']['id']}")
-    # confirm.id
     if isinstance(action.get('confirm'), dict) and 'id' in action['confirm']:
         keys.add(f"confirm:{action['confirm']['id']}")
 
@@ -172,7 +168,9 @@ def _extract_action_keys(action: dict) -> set[str]:
 
 # ==================== 通用数组合并 ====================
 
-def _merge_settlement_array(base_arr: list, mod_arr: list, merge_mode: str = "merge_as_array") -> list:
+def _merge_settlement_array(base_arr: list, mod_arr: list,
+                            schema: dict | None,
+                            element_path: list[str] | None) -> list:
     """
     智能合并 settlement 类数组。
     自动识别 rite 风格和 event 风格，使用对应的匹配策略。
@@ -181,8 +179,18 @@ def _merge_settlement_array(base_arr: list, mod_arr: list, merge_mode: str = "me
     result = copy.deepcopy(base_arr)
     matched = set()
 
-    # 选择匹配函数
-    if _is_event_settlement(mod_arr) or _is_event_settlement(base_arr):
+    # 优先从 schema 判断匹配策略
+    match_strategy = None
+    if schema and element_path:
+        field_def = get_field_def(schema, element_path)  # 获取数组字段本身的定义
+        if field_def:
+            match_strategy = field_def.get("match_strategy")
+
+    if match_strategy == "event":
+        find_fn = _find_matching_event_item
+    elif match_strategy == "rite":
+        find_fn = _find_matching_rite_item
+    elif _is_event_settlement(mod_arr) or _is_event_settlement(base_arr):
         find_fn = _find_matching_event_item
     else:
         find_fn = _find_matching_rite_item
@@ -192,7 +200,7 @@ def _merge_settlement_array(base_arr: list, mod_arr: list, merge_mode: str = "me
             continue
         idx = find_fn(result, mod_item, matched)
         if idx is not None:
-            result[idx] = deep_merge(result[idx], mod_item, merge_mode)
+            result[idx] = deep_merge(result[idx], mod_item, schema, element_path)
             matched.add(idx)
         else:
             result.append(copy.deepcopy(mod_item))
@@ -206,51 +214,263 @@ def _coerce_and_merge_array(base_val, override_val):
     将标量一侧包裹为单元素列表，然后合并（去重追加）。
     """
     if isinstance(base_val, list) and not isinstance(override_val, list):
-        # base 是数组，override 是标量：标量已在数组中则保留数组，否则追加
         if override_val in base_val:
             return copy.deepcopy(base_val)
         result = copy.deepcopy(base_val)
         result.append(copy.deepcopy(override_val))
         return result
     elif not isinstance(base_val, list) and isinstance(override_val, list):
-        # base 是标量，override 是数组：标量已在数组中则保留数组，否则插入首位
         if base_val in override_val:
             return copy.deepcopy(override_val)
         result = copy.deepcopy(override_val)
         result.insert(0, copy.deepcopy(base_val))
         return result
     else:
-        # 两边都非 list（如 int vs str），仍然替换
         return copy.deepcopy(override_val)
 
 
-def deep_merge(base: object, override: object, merge_mode: str = "merge_as_array") -> object:
+# 对象数组中常见的标识字段
+_COMMON_MATCH_KEYS = ('id', 'tag', 'guid', 'key')
+
+
+def _find_array_match_key(arr: list) -> str | None:
+    """在对象数组中找到可用于匹配的唯一标识字段"""
+    if not arr or not all(isinstance(x, dict) for x in arr):
+        return None
+    for key in _COMMON_MATCH_KEYS:
+        values = []
+        for item in arr:
+            if key not in item:
+                break
+            values.append(item[key])
+        else:
+            if len(set(str(v) for v in values)) == len(values):
+                return key
+    return None
+
+
+def _append_array(base_arr: list, override_arr: list,
+                  schema: dict | None = None,
+                  child_path: list[str] | None = None) -> list:
+    """数组追加去重。对象数组支持按 key 字段匹配合并。"""
+    result = copy.deepcopy(base_arr)
+
+    # 对象数组：尝试按 key 字段匹配并合并
+    if (base_arr and override_arr
+            and all(isinstance(x, dict) for x in base_arr)
+            and all(isinstance(x, dict) for x in override_arr)):
+        match_key = _find_array_match_key(base_arr)
+        if match_key:
+            key_index: dict = {}
+            for i, item in enumerate(result):
+                kv = item.get(match_key)
+                if kv is not None:
+                    key_index[kv] = i
+
+            for item in override_arr:
+                kv = item.get(match_key)
+                idx = key_index.get(kv) if kv is not None else None
+                if idx is not None:
+                    # 按 key 匹配到 → 深度合并更新
+                    result[idx] = deep_merge(result[idx], item, schema, child_path)
+                else:
+                    result.append(copy.deepcopy(item))
+            return result
+
+    for item in override_arr:
+        if item not in result:
+            result.append(copy.deepcopy(item))
+    return result
+
+
+def deep_merge(base: object, override: object,
+               schema: dict | None,
+               field_path: list[str] | None) -> object:
     """
-    递归深度合并。
-    - dict + dict: 递归合并
-    - list + list: 根据字段名判断是否智能合并
-    - 其他: 根据 merge_mode 决定替换或数组合并
+    递归深度合并，由 schema 驱动合并策略。
+
+    参数:
+        base: 基础数据
+        override: 覆盖数据
+        schema: schema 规则字典
+        field_path: 当前字段路径（用于查找 schema 定义）
     """
     if not isinstance(base, dict) or not isinstance(override, dict):
         return copy.deepcopy(override)
 
+    # 查找当前层的 schema 定义
+    current_def = None
+    if schema and field_path:
+        current_def = get_field_def(schema, field_path)
+
     result = copy.deepcopy(base)
+
     for key, value in override.items():
+        child_path = field_path + [key] if field_path else None
+        child_def = get_field_def(schema, child_path) if schema and child_path else None
+
+        # 确定合并策略
+        merge_strategy = _resolve_merge_strategy(child_def, result.get(key), value, key)
+
         if key in result:
-            if isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = deep_merge(result[key], value, merge_mode)
-            elif (isinstance(result[key], list) and isinstance(value, list)
-                  and key in SMART_MERGE_ARRAY_KEYS):
-                result[key] = _merge_settlement_array(result[key], value, merge_mode)
-            elif merge_mode == "merge_as_array" and (
-                isinstance(result[key], list) != isinstance(value, list)
-            ):
-                result[key] = _coerce_and_merge_array(result[key], value)
-            else:
-                result[key] = copy.deepcopy(value)
+            result[key] = _apply_merge_strategy(
+                merge_strategy, result[key], value, schema, child_path
+            )
         else:
             result[key] = copy.deepcopy(value)
+
+    # 未知 key 警告：检查 override 中的 key 是否在 schema 中有定义
+    if current_def and isinstance(current_def, dict):
+        # 收集 schema 中已知的字段名
+        known_keys = set()
+        is_dynamic = current_def.get("dynamic_keys", False)
+
+        if not is_dynamic:
+            # current_def 可能是 _entry/_fields 层（直接包含字段定义），
+            # 也可能是某个 object 字段的定义（通过 fields 包含子字段）
+            if "fields" in current_def:
+                known_keys = set(current_def["fields"].keys())
+            else:
+                # 检查是否是字段列表层：每个 value 都是 field_def
+                meta_keys = {"type", "merge", "dynamic_keys", "dynamic_value", "fields", "element", "match_strategy"}
+                field_candidates = {k for k in current_def if k not in meta_keys}
+                if field_candidates and all(
+                    isinstance(current_def[k], dict) and "type" in current_def[k]
+                    for k in field_candidates
+                ):
+                    known_keys = field_candidates
+
+        if known_keys:
+            for key in override:
+                if key not in known_keys:
+                    msg = f"未知字段 '{key}'，schema 中未定义"
+                    merge_warnings.append(msg)
+
     return result
+
+
+def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key: str) -> str:
+    """确定字段的合并策略"""
+    if child_def:
+        strategy = child_def.get("merge", "replace")
+
+        # 类型校验
+        schema_type = child_def.get("type")
+        if schema_type and override_val is not None:
+            if not check_type_match(schema_type, override_val):
+                from .schema_loader import _get_actual_type
+                actual = _get_actual_type(override_val)
+                msg = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
+                merge_warnings.append(msg)
+
+        # 按类型分派：dynamic_value 可以为不同类型指定不同策略
+        merge_by_type = child_def.get("merge_by_type")
+        if merge_by_type:
+            from .schema_loader import _get_actual_type
+            actual = _get_actual_type(override_val)
+            if actual in merge_by_type:
+                strategy = merge_by_type[actual]
+
+        return strategy
+
+    # 无 schema 时的默认策略：根据数据类型推断
+    if isinstance(base_val, dict) and isinstance(override_val, dict):
+        return "merge"
+    return "replace"
+
+
+def _apply_merge_strategy(strategy: str, base_val, override_val,
+                          schema: dict | None, child_path: list[str] | None) -> object:
+    """根据合并策略执行合并"""
+    if strategy == "replace":
+        return copy.deepcopy(override_val)
+
+    elif strategy == "merge":
+        if isinstance(base_val, dict) and isinstance(override_val, dict):
+            return deep_merge(base_val, override_val, schema, child_path)
+        return copy.deepcopy(override_val)
+
+    elif strategy == "append":
+        if isinstance(base_val, list) and isinstance(override_val, list):
+            return _append_array(base_val, override_val, schema, child_path)
+        return copy.deepcopy(override_val)
+
+    elif strategy == "smart_match":
+        if isinstance(base_val, list) and isinstance(override_val, list):
+            # element_path = child_path + ["[]的某个元素"]，这里传 child_path 让内部导航 element
+            return _merge_settlement_array(base_val, override_val, schema, child_path)
+        return copy.deepcopy(override_val)
+
+    elif strategy == "coerce":
+        return _coerce_and_merge_array(base_val, override_val)
+
+    else:
+        return copy.deepcopy(override_val)
+
+
+def compute_mod_delta(base_data: dict, mod_data: dict,
+                      file_type: str, allow_deletions: bool = False) -> dict:
+    """
+    计算 mod 相对于游戏本体的实际差异。
+
+    只提取 mod 真正修改的部分，忽略与本体完全相同的内容。
+    对 dictionary 类型文件按条目级 + 字段级递归 diff，
+    对 entity/config 类型文件按字段级递归 diff。
+    """
+    if not base_data:
+        return mod_data  # 本体无此文件，全部是新增
+
+    if file_type == "dictionary":
+        delta = {}
+        for key, mod_val in mod_data.items():
+            if key not in base_data:
+                delta[key] = mod_val  # 新增条目
+            else:
+                sub = _recursive_delta(base_data[key], mod_val)
+                if sub is not None:
+                    delta[key] = sub  # 有变化的条目（只含变化字段）
+        if allow_deletions:
+            for key in base_data:
+                if key not in mod_data:
+                    delta[key] = _DELETED
+        return delta
+    else:
+        # entity/config：递归提取变化字段
+        result = _recursive_delta(base_data, mod_data)
+        return result if result is not None else {}
+
+
+def _recursive_delta(base, mod):
+    """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
+    if isinstance(base, dict) and isinstance(mod, dict):
+        delta = {}
+        for key, mod_val in mod.items():
+            if key not in base:
+                delta[key] = copy.deepcopy(mod_val)
+            else:
+                sub = _recursive_delta(base[key], mod_val)
+                if sub is not None:
+                    delta[key] = sub
+        return delta if delta else None
+
+    if isinstance(base, list) and isinstance(mod, list):
+        # 数组原子比较（不递归进元素，交给 smart_match/append 处理）
+        if base == mod:
+            return None
+        return copy.deepcopy(mod)
+
+    # 标量与数组兼容：mod 作者可能将 [value, extra] 简化为 value
+    if isinstance(base, list) and not isinstance(mod, (list, dict)):
+        if mod in base:
+            return None  # 标量已在数组中，视为无变化
+    if isinstance(mod, list) and not isinstance(base, (list, dict)):
+        if base in mod:
+            return None  # 原标量已在新数组中，视为无变化
+
+    # 标量比较
+    if base == mod:
+        return None
+    return copy.deepcopy(mod)
 
 
 def classify_json(data: dict) -> str:
@@ -261,11 +481,9 @@ def classify_json(data: dict) -> str:
     if not isinstance(data, dict):
         return "config"
 
-    # 实体型：顶层有 id 字段
     if 'id' in data:
         return "entity"
 
-    # 字典型：所有 key 的 value 都是 dict 且包含 id
     keys = list(data.keys())
     if keys and all(isinstance(data[k], dict) for k in keys[:5]):
         if any('id' in data[k] for k in keys[:5]):
@@ -278,7 +496,7 @@ def merge_file(
     base_data: dict,
     mod_data_list: list[tuple[str, str, dict]],
     rel_path: str = "",
-    merge_modes: dict[str, str] | None = None
+    schema: dict | None = None,
 ) -> MergeResult:
     """
     合并单个文件。
@@ -287,14 +505,12 @@ def merge_file(
         base_data: 游戏本体的 JSON 数据
         mod_data_list: [(mod_id, mod_name, mod_json_data), ...] 按优先级排序
         rel_path: 文件相对路径（用于判断特殊文件）
-
-    返回:
-        MergeResult
+        schema: 该文件对应的 schema 规则
     """
     result = MergeResult()
     file_name = Path(rel_path).name if rel_path else ""
 
-    # sfx_config.json 等特殊文件：整文件替换，最后一个 mod 的数据直接生效
+    # sfx_config.json 等特殊文件：整文件替换
     if file_name in WHOLE_FILE_REPLACE:
         if mod_data_list:
             _, last_mod_name, last_mod_data = mod_data_list[-1]
@@ -306,21 +522,32 @@ def merge_file(
         return result
 
     current: dict = copy.deepcopy(base_data)
-    file_type = classify_json(base_data)
+
+    # 从 schema 或数据结构确定文件类型
+    if schema:
+        file_type = schema.get("_meta", {}).get("file_type", classify_json(base_data))
+    else:
+        file_type = classify_json(base_data)
+
+    # 确定 schema 根 key
+    root_key = get_schema_root_key(schema) if schema else None
 
     for mod_id, mod_name, mod_data in mod_data_list:
-        mode = (merge_modes or {}).get(mod_id, "merge_as_array")
         if file_type == "dictionary":
-            # 字典型：按 key 合并
             for key, value in mod_data.items():
+                if value is _DELETED:
+                    current.pop(key, None)
+                    continue
                 if key in current:
-                    current[key] = deep_merge(current[key], value, mode)
+                    field_path = [root_key] if root_key else None
+                    current[key] = deep_merge(current[key], value, schema, field_path)
                 else:
                     current[key] = copy.deepcopy(value)
                     result.new_entries.append(("", mod_name, f"新增 key: {key}"))
         else:
-            # 实体型和配置型：整体深度合并
-            current = deep_merge(current, mod_data, mode)  # type: ignore[assignment]
+            # 实体型和配置型
+            field_path = [root_key] if root_key else None
+            current = deep_merge(current, mod_data, schema, field_path)
 
     result.merged_data = current
     return result
@@ -334,7 +561,8 @@ def merge_all_files(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
     output_path: Path,
-    merge_modes: dict[str, str] | None = None
+    schema_dir: Path | None = None,
+    allow_deletions: bool = False,
 ) -> dict[str, MergeResult]:
     """
     合并所有文件。
@@ -343,11 +571,13 @@ def merge_all_files(
         game_config_path: 游戏本体 config 目录
         mod_configs: [(mod_id, mod_name, mod_config_path), ...] 按优先级排序
         output_path: 输出目录
-
-    返回:
-        {相对路径: MergeResult}
+        schema_dir: schema 规则文件目录
+        allow_deletions: 是否允许删减（mod 中缺少的条目从结果中删除）
     """
     merge_warnings.clear()
+
+    # 加载 schemas
+    schemas = load_schemas(schema_dir) if schema_dir else {}
 
     # 收集所有 mod 涉及的文件
     all_files: dict[str, list[tuple[str, str, Path]]] = {}
@@ -369,18 +599,30 @@ def merge_all_files(
         else:
             base_data = {}
 
-        # 加载各 mod 的数据
+        # 确定文件类型（用于 delta 计算）
+        file_type = classify_json(base_data) if base_data else "config"
+
+        # 加载各 mod 的数据，计算 delta（只保留实际修改的部分）
         mod_data_list = []
         for mod_id, mod_name, mod_file in mod_file_list:
             mod_data = load_json(mod_file)
-            mod_data_list.append((mod_id, mod_name, mod_data))
 
-        # tag.json name 匹配验证
-        if rel_path == "tag.json" and base_data:
-            _validate_tag_names(base_data, mod_data_list)
+            # tag.json name 匹配验证（需在 delta 计算前用原始数据验证）
+            if rel_path == "tag.json" and base_data:
+                _validate_tag_names(base_data, [(mod_id, mod_name, mod_data)])
+
+            delta = compute_mod_delta(base_data, mod_data, file_type, allow_deletions)
+            if delta:
+                mod_data_list.append((mod_id, mod_name, delta))
+
+        if not mod_data_list:
+            continue
+
+        # 查找 schema
+        schema = resolve_schema(rel_path, schemas) if schemas else None
 
         # 合并
-        merge_result = merge_file(base_data, mod_data_list, rel_path, merge_modes=merge_modes)
+        merge_result = merge_file(base_data, mod_data_list, rel_path, schema=schema)
         results[rel_path] = merge_result
 
         # 输出

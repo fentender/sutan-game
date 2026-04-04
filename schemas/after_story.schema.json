@@ -1,0 +1,86 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "entity",
+    "description": "after_story",
+    "source": "after_story/",
+    "file_count": 66,
+    "sampled": 66
+  },
+  "_fields": {
+    "extra": {
+      "type": "array<object>",
+      "merge": "smart_match",
+      "element": {
+        "condition": {
+          "type": "object",
+          "merge": "merge",
+          "dynamic_keys": true,
+          "fields": {
+            "all": {
+              "type": "object",
+              "merge": "merge",
+              "fields": {
+                "have.2000867.已收容": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "have.2000887.已收容": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "have.2000889.已收容": {
+                  "type": "int",
+                  "merge": "replace"
+                },
+                "have.2001115.已收容": {
+                  "type": "int",
+                  "merge": "replace"
+                }
+              }
+            }
+          },
+          "dynamic_value": {
+            "type": [
+              "int",
+              "object"
+            ],
+            "merge": "replace",
+            "merge_by_type": {
+              "object": "merge"
+            }
+          }
+        },
+        "key": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "pic": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "result_text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sort": {
+          "type": "int",
+          "merge": "replace"
+        }
+      },
+      "match_strategy": "rite"
+    },
+    "id": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "name": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "prior": {
+      "type": "array",
+      "merge": "append"
+    }
+  }
+}

@@ -21,6 +21,7 @@ class OverridePanel(QWidget):
         self._data: list[FileOverrideInfo] = []
         self._game_config_path: Path | None = None
         self._mod_configs: list[tuple[str, str, Path]] | None = None
+        self._allow_deletions: bool = False
         self._filter_mode: str = "all"
 
         layout = QVBoxLayout(self)
@@ -112,17 +113,20 @@ class OverridePanel(QWidget):
             rel_path=info.rel_path,
             game_config_path=self._game_config_path,
             mod_configs=self._mod_configs,
+            allow_deletions=self._allow_deletions,
             parent=self
         )
         dlg.exec()
 
     def set_data(self, overrides: list[FileOverrideInfo],
                  game_config_path: Path = None,
-                 mod_configs: list[tuple[str, str, Path]] = None):
+                 mod_configs: list[tuple[str, str, Path]] = None,
+                 allow_deletions: bool = False):
         """设置覆盖数据并刷新显示"""
         self._data = overrides
         self._game_config_path = game_config_path
         self._mod_configs = mod_configs
+        self._allow_deletions = allow_deletions
         self.tree.clear()
 
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突

@@ -1,0 +1,354 @@
+{
+  "_meta": {
+    "schema_version": 1,
+    "file_type": "config",
+    "description": "credits",
+    "source": "credits.json"
+  },
+  "_fields": {
+    "contributors": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "group": {
+          "type": "array<object>",
+          "merge": "append",
+          "element": {
+            "members": {
+              "type": "array<object>",
+              "merge": "append",
+              "element": {
+                "job": {
+                  "type": "string",
+                  "merge": "replace"
+                },
+                "name": {
+                  "type": "string",
+                  "merge": "replace"
+                }
+              }
+            },
+            "title": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "developers": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "SNOW2": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "TXT": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "ZETA": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "咕噜": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "家瑞": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "小古": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "小熊猫": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "小阳": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "思洁": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "木难": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "汝月": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "熊猫老师": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "米米": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "跑了猫": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "阿哞": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "阿铁": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "雨虹": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "面面": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        },
+        "韶韶": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "job": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "name": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
+        }
+      }
+    },
+    "thanks": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "cell_size": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "column": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "desc": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "members": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "page_size": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    }
+  }
+}

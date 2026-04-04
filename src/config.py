@@ -24,6 +24,9 @@ USER_CONFIG_PATH = PROJECT_ROOT / "user_config.json"
 # 合并输出目录
 MERGED_OUTPUT_PATH = PROJECT_ROOT / "merged_output"
 
+# Schema 规则文件目录
+SCHEMA_DIR = PROJECT_ROOT / "schemas"
+
 # 合成 Mod 的 ID（放在 workshop 目录下）
 SYNTHETIC_MOD_ID = "0000000001"
 
@@ -40,6 +43,8 @@ class UserConfig:
     enabled_mods: list[str] = field(default_factory=list)
     # 每个 mod 的覆盖模式：mod_id -> "replace" | "merge_as_array"
     merge_modes: dict[str, str] = field(default_factory=dict)
+    # 是否允许删减（mod 中缺少的条目从合并结果中删除）
+    allow_deletions: bool = False
 
     @property
     def game_config_path(self) -> Path:
