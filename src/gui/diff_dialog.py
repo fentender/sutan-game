@@ -98,12 +98,14 @@ class DiffDialog(QDialog):
                         next_state.pop(key, None)
                         continue
                     if key in next_state:
-                        next_state[key] = deep_merge(next_state[key], value, schema, field_path)
+                        next_state[key] = deep_merge(next_state[key], value, schema, field_path,
+                                                     game_base=base_data.get(key))
                     else:
                         next_state[key] = copy.deepcopy(value)
                 current = next_state
             else:
-                current = deep_merge(current, delta, schema, field_path)  # type: ignore[assignment]
+                current = deep_merge(current, delta, schema, field_path,  # type: ignore[assignment]
+                                     game_base=base_data)
 
             curr_text = _format_json(current)
             self._diff_pairs.append((mod_name, prev_text, curr_text))
