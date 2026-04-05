@@ -49,19 +49,7 @@
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true,
-          "fields": {
-            "any": {
-              "type": "object",
-              "merge": "merge",
-              "fields": {
-                "is_rite": {
-                  "type": "int",
-                  "merge": "replace"
-                }
-              }
-            }
-          }
+          "dynamic_keys": true
         },
         "guid": {
           "type": "string",

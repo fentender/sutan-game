@@ -539,203 +539,25 @@
     "main_game_loop": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "-1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "0": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "2": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "3": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "4": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "5": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "6": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "7": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
+      "_template": {
+        "type": "object",
+        "merge": "merge",
+        "fields": {
+          "clip": {
+            "type": "string",
+            "merge": "replace"
+          },
+          "loop_end": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "loop_start": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "start": {
+            "type": "float",
+            "merge": "replace"
           }
         }
       }
@@ -743,159 +565,25 @@
     "main_game_loop_difficulty": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "-1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "0": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "2": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "3": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "4": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "float",
-              "merge": "replace"
-            }
-          }
-        },
-        "5": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
+      "_template": {
+        "type": "object",
+        "merge": "merge",
+        "fields": {
+          "clip": {
+            "type": "string",
+            "merge": "replace"
+          },
+          "loop_end": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "loop_start": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "start": {
+            "type": "float",
+            "merge": "replace"
           }
         }
       }
@@ -903,203 +591,25 @@
     "settle_loop": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "-1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "0": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "2": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "3": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "4": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "5": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "6": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "7": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
+      "_template": {
+        "type": "object",
+        "merge": "merge",
+        "fields": {
+          "clip": {
+            "type": "string",
+            "merge": "replace"
+          },
+          "loop_end": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "loop_start": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "start": {
+            "type": "int",
+            "merge": "replace"
           }
         }
       }
@@ -1107,159 +617,25 @@
     "settle_loop_difficulty": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "-1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "0": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "1": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "2": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "3": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "4": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
-        },
-        "5": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "float",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
+      "_template": {
+        "type": "object",
+        "merge": "merge",
+        "fields": {
+          "clip": {
+            "type": "string",
+            "merge": "replace"
+          },
+          "loop_end": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "loop_start": {
+            "type": "float",
+            "merge": "replace"
+          },
+          "start": {
+            "type": "int",
+            "merge": "replace"
           }
         }
       }

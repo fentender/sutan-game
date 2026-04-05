@@ -107,6 +107,12 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
                     current = current["fields"][segment]
                     continue
 
+            # 同类子结构模板（如 cards_slot 的 s1-s18 共享同一模板）
+            # fields 未命中时，用 _template 继续导航
+            if "_template" in current:
+                current = current["_template"]
+                continue
+
             # 在 element 子结构中查找（数组元素字段）
             if "element" in current and isinstance(current["element"], dict):
                 if segment in current["element"]:
@@ -114,15 +120,9 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
                     continue
 
             # 动态 key 处理：当前层标记了 dynamic_keys
+            # DSL 字段（condition/action/result 等）的 key 是动态表达式，
+            # value 为基本类型，使用默认 replace 策略
             if current.get("dynamic_keys"):
-                # 如果有 _template（同类子结构的统一模板，如 cards_slot 的各槽位），
-                # 用模板继续向下导航
-                template = current.get("_template")
-                if template:
-                    current = template
-                    continue
-                # 否则是 DSL 字段（condition/action/result 等），
-                # value 为基本类型，使用默认 replace 策略
                 return None
 
             # 回退：直接在当前层级查找
