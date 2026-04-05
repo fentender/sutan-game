@@ -5,9 +5,5 @@
     "description": "over",
     "source": "over.json",
     "dynamic_keys": true
-  },
-  "_dynamic_value": {
-    "type": "object",
-    "merge": "merge"
   }
 }

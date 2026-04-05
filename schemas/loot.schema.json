@@ -19,17 +19,7 @@
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true,
-          "dynamic_value": {
-            "type": [
-              "int",
-              "object"
-            ],
-            "merge": "replace",
-            "merge_by_type": {
-              "object": "merge"
-            }
-          }
+          "dynamic_keys": true
         },
         "id": {
           "type": "string",

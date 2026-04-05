@@ -45,6 +45,11 @@ KNOWN_SMART_MATCH_FIELDS = {
     'waiting_round_end_action',
 }
 
+# dynamic_key 频数报告收集器
+# key: 字段路径（如 "rite._fields.condition"）
+# value: {"reason": str, "parent_count": int, "child_keys": {key: count}}
+_dynamic_key_report: dict[str, dict] = {}
+
 
 # ==================== 类型分析 ====================
 
@@ -232,40 +237,62 @@ def build_field_def(path, info, all_info):
     if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
         if is_dynamic_keys(field_info, field_name):
             result["dynamic_keys"] = True
-            # 分离已知结构子字段 vs 纯动态值
-            known_fields = {}
-            all_dv_types = set()  # 所有子 key 的类型（含已知字段），用于完整兜底
+            # 收集 dynamic_key 频数报告
+            reason = "KNOWN_DYNAMIC_FIELDS" if field_name in KNOWN_DYNAMIC_FIELDS else f"child_keys>{DYNAMIC_KEY_THRESHOLD}"
+            child_key_counts = {}
+            for ck in field_info["child_keys"]:
+                ck_path = f"{path}{SEP}{ck}"
+                ck_info = all_info.get(ck_path)
+                child_key_counts[ck] = ck_info["count"] if ck_info else 0
+            _dynamic_key_report[path] = {
+                "reason": reason,
+                "field_name": field_name,
+                "parent_count": field_info.get("count", 0),
+                "total_child_keys": len(field_info["child_keys"]),
+                "child_keys": child_key_counts,
+            }
+            # 收集高频出现的固定结构子字段
+            struct_children = []  # (child_key, child_path, child_info, count)
             for child_key in sorted(field_info["child_keys"]):
                 child_path = f"{path}{SEP}{child_key}"
                 if child_path not in all_info:
                     continue
                 child_info = all_info[child_path]
                 child_types = child_info["types"]
-                all_dv_types.update(child_types)
-                # 跳过出现次数太少的子 key（占比 < 10%），
-                # 它们是特定文件的动态内容（如 case:op3），不是固定结构
                 child_count = child_info.get("count", 0)
                 parent_count = field_info.get("count", 1)
                 if child_count < max(2, parent_count * 0.1):
                     continue
-                # 值是 object 且有固定子 key → 记为已知字段
                 if (child_types == {"object"}
                         and child_info["child_keys"]
                         and not is_dynamic_keys(child_info, child_key)):
-                    known_fields[child_key] = build_field_def(
-                        child_path, child_info, all_info
-                    )
-            if known_fields:
-                result["fields"] = known_fields
-            if all_dv_types:
-                dv_type = infer_type(all_dv_types)
-                # 默认策略用标量的（replace），按类型分派 object 用 merge
-                dv = {"type": dv_type, "merge": "replace"}
-                if isinstance(dv_type, list) and "object" in dv_type:
-                    dv["merge_by_type"] = {"object": "merge"}
-                elif dv_type == "object":
-                    dv["merge"] = "merge"
-                result["dynamic_value"] = dv
+                    struct_children.append((child_key, child_path, child_info, child_count))
+
+            if struct_children:
+                # 检测是否为同类结构：所有子 key 的顶层子字段名集合相同
+                field_name_sets = []
+                for _, cp, ci, _ in struct_children:
+                    sub_keys = set()
+                    for sk in ci["child_keys"]:
+                        sk_path = f"{cp}{SEP}{sk}"
+                        if sk_path in all_info:
+                            sub_keys.add(sk)
+                    field_name_sets.append(sub_keys)
+
+                all_same = len(field_name_sets) > 1 and all(
+                    s == field_name_sets[0] for s in field_name_sets[1:]
+                )
+
+                if all_same:
+                    # 同类结构：选出现次数最多的子 key 作为模板
+                    best = max(struct_children, key=lambda x: x[3])
+                    result["_template"] = build_field_def(best[1], best[2], all_info)
+                else:
+                    # 非同类：逐个放入 fields
+                    known_fields = {}
+                    for ck, cp, ci, _ in struct_children:
+                        known_fields[ck] = build_field_def(cp, ci, all_info)
+                    result["fields"] = known_fields
         else:
             # 固定 key object → 递归构建 fields
             fields = {}
@@ -342,9 +369,16 @@ def analyze_single_file(filepath):
             if all_simple:
                 file_type = "config"
                 info = {}
-                # 当作动态 key config 处理
-                dv_types = {analyze_value_type(v) for v in data.values()}
-                dv_type = infer_type(dv_types)
+                # 收集文件级 dynamic_key 频数
+                fname = Path(filepath).name
+                _dynamic_key_report[f"[file]{fname}"] = {
+                    "reason": f"file-level, child_keys>{DYNAMIC_KEY_THRESHOLD}",
+                    "field_name": fname,
+                    "parent_count": 1,
+                    "total_child_keys": len(top_keys),
+                    "child_keys": {k: 1 for k in top_keys},
+                }
+                # 文件级 dynamic_key：key 是 ID，merger 使用默认 replace
                 return {
                     "_meta": {
                         "schema_version": 1,
@@ -352,10 +386,6 @@ def analyze_single_file(filepath):
                         "description": Path(filepath).stem,
                         "source": Path(filepath).name,
                         "dynamic_keys": True,
-                    },
-                    "_dynamic_value": {
-                        "type": dv_type,
-                        "merge": infer_merge_strategy("", dv_type, {}),
                     },
                 }
 
@@ -397,11 +427,16 @@ def analyze_single_file(filepath):
         # 检查是否动态 key config
         top_child_keys = {k for k in info if SEP not in k}
         if len(top_child_keys) > DYNAMIC_KEY_THRESHOLD:
-            # 检查值类型是否统一
-            all_types = set()
-            for k in top_child_keys:
-                all_types.update(info[k]["types"])
-            dv_type = infer_type(all_types)
+            # 收集文件级 dynamic_key 频数
+            fname = Path(filepath).name
+            _dynamic_key_report[f"[file]{fname}"] = {
+                "reason": f"file-level, child_keys>{DYNAMIC_KEY_THRESHOLD}",
+                "field_name": fname,
+                "parent_count": 1,
+                "total_child_keys": len(top_child_keys),
+                "child_keys": {k: info[k].get("count", 0) for k in top_child_keys},
+            }
+            # 文件级 dynamic_key：merger 使用默认 replace
             return {
                 "_meta": {
                     "schema_version": 1,
@@ -409,10 +444,6 @@ def analyze_single_file(filepath):
                     "description": Path(filepath).stem,
                     "source": Path(filepath).name,
                     "dynamic_keys": True,
-                },
-                "_dynamic_value": {
-                    "type": dv_type,
-                    "merge": infer_merge_strategy("", dv_type, {}),
                 },
             }
 
@@ -489,6 +520,48 @@ def analyze_directory(dirpath):
     }
 
 
+# ==================== dynamic_key 频数报告 ====================
+
+def print_dynamic_key_report():
+    """打印所有被判定为 dynamic_keys 的字段及其子 key 频数"""
+    if not _dynamic_key_report:
+        print("\n未检测到 dynamic_key 字段。")
+        return
+
+    print("\n" + "=" * 80)
+    print("dynamic_key 频数报告")
+    print("=" * 80)
+
+    # 按来源分组：KNOWN_DYNAMIC_FIELDS vs 阈值触发 vs 文件级
+    by_reason: dict[str, list] = {}
+    for path, info in sorted(_dynamic_key_report.items()):
+        reason = info["reason"]
+        by_reason.setdefault(reason, []).append((path, info))
+
+    for reason, entries in sorted(by_reason.items()):
+        print(f"\n--- 判定原因: {reason} ({len(entries)} 个字段) ---")
+        for path, info in entries:
+            # 路径可读化：将 SEP 替换为 "."
+            display_path = path.replace(SEP, ".")
+            parent_count = info["parent_count"]
+            total_keys = info["total_child_keys"]
+            child_keys = info["child_keys"]
+
+            print(f"\n  [{info['field_name']}] {display_path}")
+            print(f"    父节点出现次数: {parent_count}, 不同子 key 数: {total_keys}")
+
+            # 按频次降序排列，只显示前 30 个
+            sorted_keys = sorted(child_keys.items(), key=lambda x: -x[1])
+            shown = sorted_keys[:30]
+            for key, count in shown:
+                ratio = f"({count / parent_count * 100:.0f}%)" if parent_count > 0 else ""
+                print(f"      {key}: {count} {ratio}")
+            if len(sorted_keys) > 30:
+                print(f"      ... 还有 {len(sorted_keys) - 30} 个 key 未显示")
+
+    print("\n" + "=" * 80)
+
+
 # ==================== 主入口 ====================
 
 def generate_all(config_dir, output_dir):
@@ -544,6 +617,10 @@ def generate_all(config_dir, output_dir):
             print("跳过（无文件）")
 
     print(f"\n共生成 {len(generated)} 个 schema 文件到 {output_path}")
+
+    # 打印 dynamic_key 频数报告
+    print_dynamic_key_report()
+
     return generated
 
 

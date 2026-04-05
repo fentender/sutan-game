@@ -33,11 +33,7 @@
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true,
-          "dynamic_value": {
-            "type": "int",
-            "merge": "replace"
-          }
+          "dynamic_keys": true
         },
         "show_counter": {
           "type": "string",

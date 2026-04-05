@@ -368,7 +368,7 @@ def deep_merge(base: object, override: object,
                 known_keys = set(current_def["fields"].keys())
             else:
                 # 检查是否是字段列表层：每个 value 都是 field_def
-                meta_keys = {"type", "merge", "dynamic_keys", "dynamic_value", "fields", "element", "match_strategy"}
+                meta_keys = {"type", "merge", "dynamic_keys", "fields", "element", "match_strategy"}
                 field_candidates = {k for k in current_def if k not in meta_keys}
                 if field_candidates and all(
                     isinstance(current_def[k], dict) and "type" in current_def[k]
@@ -398,14 +398,6 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
                 actual = _get_actual_type(override_val)
                 msg = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
                 merge_warnings.append(msg)
-
-        # 按类型分派：dynamic_value 可以为不同类型指定不同策略
-        merge_by_type = child_def.get("merge_by_type")
-        if merge_by_type:
-            from .schema_loader import _get_actual_type
-            actual = _get_actual_type(override_val)
-            if actual in merge_by_type:
-                strategy = merge_by_type[actual]
 
         return strategy
 

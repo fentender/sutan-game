@@ -9,11 +9,7 @@
     "condition": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true,
-      "dynamic_value": {
-        "type": "int",
-        "merge": "replace"
-      }
+      "dynamic_keys": true
     },
     "cost": {
       "type": "int",
@@ -22,15 +18,7 @@
     "effect": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true,
-      "dynamic_value": {
-        "type": [
-          "array",
-          "array<int>",
-          "int"
-        ],
-        "merge": "replace"
-      }
+      "dynamic_keys": true
     },
     "icon": {
       "type": "string",

@@ -83,24 +83,20 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
     导航逻辑：
     - 遇到 "_entry" / "_fields" → 直接取对应的 dict
     - 遇到有 "fields" 的节点 → 进入 fields
-    - 遇到 dynamic_keys → 返回 dynamic_value（如果目标是具体 key）
+    - 遇到 dynamic_keys → 返回 None（DSL 字段统一使用默认 replace 策略）
     - 遇到有 "element" 的节点 → 进入 element（用于数组元素的字段）
     """
     if not field_path or not schema:
         return None
 
     current = schema
-    for i, segment in enumerate(field_path):
+    for segment in field_path:
         if current is None:
             return None
 
-        # 顶层导航：_entry / _fields / _dynamic_value
+        # 顶层导航：_entry / _fields
         if segment in ("_entry", "_fields"):
             current = current.get(segment)
-            continue
-
-        if segment == "_dynamic_value":
-            current = current.get("_dynamic_value")
             continue
 
         # 在当前层级查找 segment
@@ -119,14 +115,15 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
 
             # 动态 key 处理：当前层标记了 dynamic_keys
             if current.get("dynamic_keys"):
-                dv = current.get("dynamic_value")
-                if dv:
-                    # 如果这是最后一个 segment，返回 dynamic_value 定义
-                    if i == len(field_path) - 1:
-                        return dv
-                    # 否则继续在 dynamic_value 中导航
-                    current = dv
+                # 如果有 _template（同类子结构的统一模板，如 cards_slot 的各槽位），
+                # 用模板继续向下导航
+                template = current.get("_template")
+                if template:
+                    current = template
                     continue
+                # 否则是 DSL 字段（condition/action/result 等），
+                # value 为基本类型，使用默认 replace 策略
+                return None
 
             # 回退：直接在当前层级查找
             if segment in current:

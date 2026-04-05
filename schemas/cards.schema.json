@@ -61,16 +61,6 @@
                 }
               }
             }
-          },
-          "dynamic_value": {
-            "type": [
-              "int",
-              "object"
-            ],
-            "merge": "replace",
-            "merge_by_type": {
-              "object": "merge"
-            }
           }
         },
         "guid": {
@@ -80,11 +70,7 @@
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true,
-          "dynamic_value": {
-            "type": "int",
-            "merge": "replace"
-          }
+          "dynamic_keys": true
         },
         "result_text": {
           "type": "string",
@@ -107,11 +93,7 @@
     "tag": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true,
-      "dynamic_value": {
-        "type": "int",
-        "merge": "replace"
-      }
+      "dynamic_keys": true
     },
     "text": {
       "type": "string",

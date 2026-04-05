@@ -5,18 +5,5 @@
     "description": "variable",
     "source": "variable.json",
     "dynamic_keys": true
-  },
-  "_dynamic_value": {
-    "type": [
-      "array<array>",
-      "array<float>",
-      "array<object>",
-      "array<string>",
-      "bool",
-      "float",
-      "object",
-      "string"
-    ],
-    "merge": "coerce"
   }
 }
