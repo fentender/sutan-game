@@ -45,7 +45,7 @@ class MergeResult:
     new_entries: list[tuple[str, str, str]] = field(default_factory=list)  # (file, mod_name, description)
 
 
-def _is_rite_settlement(items: list[dict]) -> bool:
+def is_rite_settlement(items: list[dict]) -> bool:
     """判断数组是否是 rite 风格的 settlement（含 condition / result_title 等字段）"""
     if not items:
         return False
@@ -53,7 +53,7 @@ def _is_rite_settlement(items: list[dict]) -> bool:
     return isinstance(sample, dict) and ('condition' in sample or 'result_title' in sample)
 
 
-def _is_event_settlement(items: list[dict]) -> bool:
+def is_event_settlement(items: list[dict]) -> bool:
     """判断数组是否是 event 风格的 settlement（含 tips_text / action 等字段）"""
     if not items:
         return False
@@ -63,7 +63,7 @@ def _is_event_settlement(items: list[dict]) -> bool:
 
 # ==================== Rite 风格匹配 ====================
 
-def _find_matching_rite_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
+def find_matching_rite_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
     """
     在 rite 的 base 数组中查找与 mod_item 匹配的条目。
     四级优先级依次尝试，第一个命中即返回。
@@ -115,7 +115,7 @@ def _find_matching_rite_item(base_arr: list[dict], mod_item: dict, matched: set[
 
 # ==================== Event 风格匹配 ====================
 
-def _find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
+def find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
     """
     在 event 的 base 数组中查找与 mod_item 匹配的条目。
     event settlement 结构: {tips_resource, tips_text, action}
@@ -123,12 +123,12 @@ def _find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set
     mod_action = mod_item.get('action', {})
 
     # 级别1: action 内容中的关键指令匹配（rite, event_on, prompt.id, option.id 等）
-    mod_keys = _extract_action_keys(mod_action)
+    mod_keys = extract_action_keys(mod_action)
     if mod_keys:
         for i, base_item in enumerate(base_arr):
             if i in matched:
                 continue
-            base_keys = _extract_action_keys(base_item.get('action', {}))
+            base_keys = extract_action_keys(base_item.get('action', {}))
             if base_keys and base_keys == mod_keys:
                 return i
 
@@ -145,7 +145,7 @@ def _find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set
     return None
 
 
-def _extract_action_keys(action: dict) -> set[str]:
+def extract_action_keys(action: dict) -> set[str]:
     """提取 action 中的关键标识（rite ID, event_on ID, prompt.id, option.id 等）"""
     keys = set()
     if not isinstance(action, dict):
@@ -170,7 +170,7 @@ def _extract_action_keys(action: dict) -> set[str]:
     return keys
 
 
-def _find_matching_tag_item(base_arr, mod_item, matched):
+def find_matching_tag_item(base_arr, mod_item, matched):
     """按 tag 字段精确匹配"""
     mod_tag = mod_item.get('tag')
     if mod_tag is None:
@@ -206,18 +206,27 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             match_strategy = field_def.get("match_strategy")
 
     if match_strategy == "event":
-        find_fn = _find_matching_event_item
+        find_fn = find_matching_event_item
     elif match_strategy == "rite":
-        find_fn = _find_matching_rite_item
+        find_fn = find_matching_rite_item
     elif match_strategy == "tag":
-        find_fn = _find_matching_tag_item
-    elif _is_event_settlement(mod_arr) or _is_event_settlement(base_arr):
-        find_fn = _find_matching_event_item
+        find_fn = find_matching_tag_item
+    elif is_event_settlement(mod_arr) or is_event_settlement(base_arr):
+        find_fn = find_matching_event_item
     else:
-        find_fn = _find_matching_rite_item
+        find_fn = find_matching_rite_item
 
+    to_remove = set()
     for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
+            continue
+
+        # 删除标记：从结果中移除匹配元素
+        if mod_item.get('_deleted'):
+            idx = find_fn(result, mod_item, matched)
+            if idx is not None:
+                to_remove.add(idx)
+                matched.add(idx)
             continue
 
         # 有游戏本体参照：按位置对应（mod 是本体的拷贝，索引一一对应）
@@ -238,6 +247,10 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             matched.add(idx)
         else:
             result.append(copy.deepcopy(mod_item))
+
+    # 移除标记删除的元素
+    if to_remove:
+        result = [item for i, item in enumerate(result) if i not in to_remove]
 
     return result
 
@@ -264,14 +277,14 @@ def _coerce_and_merge_array(base_val, override_val):
 
 
 # 对象数组中常见的标识字段
-_COMMON_MATCH_KEYS = ('id', 'tag', 'guid', 'key')
+COMMON_MATCH_KEYS = ('id', 'tag', 'guid', 'key')
 
 
-def _find_array_match_key(arr: list) -> str | None:
+def find_array_match_key(arr: list) -> str | None:
     """在对象数组中找到可用于匹配的唯一标识字段"""
     if not arr or not all(isinstance(x, dict) for x in arr):
         return None
-    for key in _COMMON_MATCH_KEYS:
+    for key in COMMON_MATCH_KEYS:
         values = []
         for item in arr:
             if key not in item:
@@ -294,7 +307,7 @@ def _append_array(base_arr: list, override_arr: list,
     if (base_arr and override_arr
             and all(isinstance(x, dict) for x in base_arr)
             and all(isinstance(x, dict) for x in override_arr)):
-        match_key = _find_array_match_key(base_arr)
+        match_key = find_array_match_key(base_arr)
         if match_key:
             key_index: dict = {}
             for i, item in enumerate(result):
@@ -311,7 +324,16 @@ def _append_array(base_arr: list, override_arr: list,
                         if gb_kv is not None:
                             gb_map[gb_kv] = gb_item
 
+            to_remove = set()
             for item in override_arr:
+                # 删除标记
+                if isinstance(item, dict) and item.get('_deleted'):
+                    kv = item.get(match_key)
+                    idx = key_index.get(kv) if kv is not None else None
+                    if idx is not None:
+                        to_remove.add(idx)
+                    continue
+
                 kv = item.get(match_key)
                 idx = key_index.get(kv) if kv is not None else None
                 if idx is not None:
@@ -326,6 +348,10 @@ def _append_array(base_arr: list, override_arr: list,
                     result[idx] = deep_merge(result[idx], merge_data, schema, child_path)
                 else:
                     result.append(copy.deepcopy(item))
+
+            # 移除标记删除的元素
+            if to_remove:
+                result = [r for i, r in enumerate(result) if i not in to_remove]
             return result
 
     for item in override_arr:
@@ -359,6 +385,9 @@ def deep_merge(base: object, override: object,
     result = copy.deepcopy(base)
 
     for key, value in override.items():
+        if value is _DELETED:
+            result.pop(key, None)
+            continue
         child_path = field_path + [key] if field_path is not None else None
         child_def = get_field_def(schema, child_path) if schema and child_path else None
         child_game_base = game_base.get(key) if isinstance(game_base, dict) else None
@@ -477,7 +506,7 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
             if key not in base_data:
                 delta[key] = mod_val  # 新增条目
             else:
-                sub = _recursive_delta(base_data[key], mod_val)
+                sub = _recursive_delta(base_data[key], mod_val, allow_deletions)
                 if sub is not None:
                     delta[key] = sub  # 有变化的条目（只含变化字段）
         if allow_deletions:
@@ -487,12 +516,12 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
         return delta
     else:
         # entity/config：递归提取变化字段
-        result = _recursive_delta(base_data, mod_data)
+        result = _recursive_delta(base_data, mod_data, allow_deletions)
         return result if result is not None else {}
 
 
 def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
-                        match_key: str) -> list[dict] | None:
+                        match_key: str, allow_deletions: bool = False) -> list[dict] | None:
     """
     对象数组的元素级 delta（按 match_key 匹配）。
     每个 delta 元素只含变化字段 + match_key。
@@ -502,11 +531,14 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
                       for item in base_arr if match_key in item}
 
     delta_items: list[dict] = []
+    seen_keys: set = set()
     for mod_item in mod_arr:
         kv = mod_item.get(match_key)
+        if kv is not None:
+            seen_keys.add(kv)
         base_item = base_map.get(kv) if kv is not None else None
         if base_item is not None:
-            elem_delta = _recursive_delta(base_item, mod_item)
+            elem_delta = _recursive_delta(base_item, mod_item, allow_deletions)
             if elem_delta is not None:
                 elem_delta[match_key] = kv  # 保留 key 用于合并匹配
                 delta_items.append(elem_delta)
@@ -514,10 +546,16 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
             # 新增元素，完整保留
             delta_items.append(copy.deepcopy(mod_item))
 
+    # 标记删除的元素
+    if allow_deletions:
+        for kv in base_map:
+            if kv not in seen_keys:
+                delta_items.append({match_key: kv, '_deleted': True})
+
     return delta_items if delta_items else None
 
 
-def _recursive_delta(base, mod):
+def _recursive_delta(base, mod, allow_deletions=False):
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
     if isinstance(base, dict) and isinstance(mod, dict):
         delta = {}
@@ -525,9 +563,13 @@ def _recursive_delta(base, mod):
             if key not in base:
                 delta[key] = copy.deepcopy(mod_val)
             else:
-                sub = _recursive_delta(base[key], mod_val)
+                sub = _recursive_delta(base[key], mod_val, allow_deletions)
                 if sub is not None:
                     delta[key] = sub
+        if allow_deletions:
+            for key in base:
+                if key not in mod:
+                    delta[key] = _DELETED
         return delta if delta else None
 
     if isinstance(base, list) and isinstance(mod, list):
@@ -535,9 +577,9 @@ def _recursive_delta(base, mod):
         if (base and mod
                 and all(isinstance(x, dict) for x in base)
                 and all(isinstance(x, dict) for x in mod)):
-            match_key = _find_array_match_key(base)
+            match_key = find_array_match_key(base)
             if match_key:
-                return _object_array_delta(base, mod, match_key)
+                return _object_array_delta(base, mod, match_key, allow_deletions)
 
         # 无法匹配或非对象数组：原子比较
         if base == mod:

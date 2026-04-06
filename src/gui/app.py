@@ -243,7 +243,8 @@ class MainWindow(QMainWindow):
         diag.snapshot("parse")  # 清空上次的解析消息
         overrides = analyze_all_overrides(
             self.config.game_config_path,
-            mod_configs
+            mod_configs,
+            schema_dir=SCHEMA_DIR,
         )
         self.override_panel.set_data(
             overrides, self.config.game_config_path, mod_configs,

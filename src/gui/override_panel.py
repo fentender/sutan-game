@@ -11,6 +11,7 @@ from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 
 from ..core.conflict import FileOverrideInfo
+from ..core.schema_generator import SEP
 
 
 class OverridePanel(QWidget):
@@ -144,8 +145,9 @@ class OverridePanel(QWidget):
             # 字段级子节点
             for fo in info.field_overrides:
                 override_text = "[本体] ← " + " ← ".join(name for name, _ in fo.mod_values)
+                display_path = fo.field_path.replace(SEP, " → ")
                 child = QTreeWidgetItem([
-                    fo.field_path,
+                    display_path,
                     override_text,
                     _format_value(fo.final_value)
                 ])
