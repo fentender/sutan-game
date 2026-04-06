@@ -130,17 +130,18 @@ def _get_key_vals(item: dict, match_keys: list[str]) -> tuple | None:
 
 def _merge_settlement_array(base_arr: list, mod_arr: list,
                             schema: dict | None,
-                            element_path: list[str] | None,
-                            game_base_arr: list | None = None) -> list:
+                            element_path: list[str] | None) -> list:
     """
     智能合并 array<object> 数组。
-    从 schema 读取 match_key 指定匹配字段，按精确匹配合并。
-    同 key 多对多时用字符串相似度做全局最优配对。
-    保持 base 顺序不变，匹配的条目原地合并，新增条目追加到末尾。
-    若提供 game_base_arr，合并时只应用 mod 相对于游戏本体的变化字段。
+    mod_arr 必须是经过 _object_array_delta 产出的 delta 数组，
+    每个元素必须带有 _delta / _new_entry / _deleted 标记。
+
+    处理规则：
+      _delta:     按 match_key 找到 result 中的对应元素，deep_merge 应用变化
+      _new_entry: 直接追加到 result 末尾
+      _deleted:   从 result 中移除对应元素
     """
     result = copy.deepcopy(base_arr)
-    matched = set()
 
     # 从 schema 读取 match_key
     match_keys = None
@@ -154,35 +155,28 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             f"smart_match 数组缺少 match_key 定义 (path: {element_path})"
         )
 
-    # 有游戏本体参照时，按 match_key 建立索引（支持重复 key）
-    gb_index: dict[tuple, list[int]] = {}
-    if game_base_arr:
-        for gi, gb_item in enumerate(game_base_arr):
-            if isinstance(gb_item, dict):
-                kv = _get_key_vals(gb_item, match_keys)
-                if kv is not None:
-                    gb_index.setdefault(kv, []).append(gi)
-    gb_matched: set[int] = set()  # 已配对的 game_base 索引
-
-    # --- 第一阶段：按 match_key 值将 mod 元素分组 ---
-    mod_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
-    deleted_items: list[dict] = []
+    # --- 按标记分类 ---
+    delta_items: list[dict] = []
     new_entry_items: list[dict] = []
-    for i, mod_item in enumerate(mod_arr):
+    deleted_items: list[dict] = []
+
+    for mod_item in mod_arr:
         if not isinstance(mod_item, dict):
             continue
         if mod_item.get('_deleted'):
             deleted_items.append(mod_item)
-            continue
-        if mod_item.get('_new_entry'):
-            # delta 阶段已确定为新增的元素，跳过 game_base 匹配，直接追加
-            clean = {k: v for k, v in mod_item.items() if k != '_new_entry'}
-            new_entry_items.append(clean)
-            continue
-        kv = _get_key_vals(mod_item, match_keys)
-        mod_groups.setdefault(kv, []).append((i, mod_item))
+        elif mod_item.get('_new_entry'):
+            new_entry_items.append(mod_item)
+        elif mod_item.get('_delta'):
+            delta_items.append(mod_item)
+        else:
+            raise ValueError(
+                f"smart_match 数组收到未标记的元素（缺少 _delta/_new_entry/_deleted），"
+                f"match_keys={match_keys}, 元素 keys={list(mod_item.keys())}"
+            )
 
-    # --- 处理删除标记 ---
+    # --- 处理删除 ---
+    matched = set()
     to_remove = set()
     for mod_item in deleted_items:
         idx = find_matching_item(result, mod_item, matched, match_keys)
@@ -190,7 +184,7 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             to_remove.add(idx)
             matched.add(idx)
 
-    # --- 第二阶段：收集 result 中各 key 值对应的索引 ---
+    # --- 建立 result 索引 ---
     result_index: dict[tuple, list[int]] = {}
     for ri, r_item in enumerate(result):
         if isinstance(r_item, dict):
@@ -198,86 +192,43 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             if kv is not None:
                 result_index.setdefault(kv, []).append(ri)
 
-    # --- 第三阶段：逐组匹配并合并 ---
-    def _pick_best_res(mod_item: dict, candidates: list[int]) -> int | None:
-        """从 result 候选中选最佳匹配，返回索引并从 candidates 中移除"""
-        if not candidates:
-            return None
-        if len(candidates) == 1:
-            return candidates.pop(0)
-        # 多候选：用相似度
-        pairs, _ = _resolve_duplicates([(0, mod_item)], result, candidates)
-        if pairs:
-            idx = pairs[0][2]
-            candidates.remove(idx)
-            return idx
-        return None
+    # --- 按 key 分组 delta 元素并合并 ---
+    delta_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
+    for i, item in enumerate(delta_items):
+        kv = _get_key_vals(item, match_keys)
+        delta_groups.setdefault(kv, []).append((i, item))
 
-    def _apply_to_result(mod_item: dict, merge_data: dict,
-                         candidates: list[int]) -> None:
-        """将 merge_data 合并到 result 中最佳候选，或追加"""
-        res_idx = _pick_best_res(mod_item, candidates)
-        if res_idx is not None:
-            result[res_idx] = deep_merge(
-                result[res_idx], merge_data, schema, element_path
-            )
-            matched.add(res_idx)
-        else:
-            result.append(copy.deepcopy(mod_item))
-
-    for kv, mod_items in mod_groups.items():
+    for kv, items in delta_groups.items():
         if kv is None:
-            # match_key 缺失的 mod 元素直接追加
-            for _, mod_item in mod_items:
-                result.append(copy.deepcopy(mod_item))
+            # match_key 缺失，无法匹配，追加
+            for _, item in items:
+                clean = {k: v for k, v in item.items() if k != '_delta'}
+                result.append(clean)
             continue
 
-        # 收集 result 中未匹配的同 key 候选
         res_candidates = [ri for ri in result_index.get(kv, []) if ri not in matched]
 
-        # 有 game_base 参照：先与 game_base 配对算 delta
-        gb_candidates = [gi for gi in gb_index.get(kv, []) if gi not in gb_matched]
-        if game_base_arr and gb_candidates:
-            gb_pairs, gb_unmatched = _resolve_duplicates(
-                mod_items, game_base_arr, gb_candidates
-            )
-            for _, mod_item, gb_idx in gb_pairs:
-                gb_matched.add(gb_idx)
-                elem_delta = _recursive_delta(game_base_arr[gb_idx], mod_item)
-                if elem_delta is None:
-                    # 无变化，仅标记 result 对应元素已处理
-                    res_idx = _pick_best_res(mod_item, res_candidates)
-                    if res_idx is not None:
-                        matched.add(res_idx)
-                elif isinstance(elem_delta, dict):
-                    _apply_to_result(mod_item, elem_delta, res_candidates)
-
-            # gb_unmatched: game_base 中没有对应的 → mod 新增的元素
-            for _, mod_item in gb_unmatched:
-                _apply_to_result(mod_item, mod_item, res_candidates)
-            continue
-
-        # 无 game_base：mod 元素与 result 做全局最优配对
         if res_candidates:
-            pairs, unmatched = _resolve_duplicates(
-                mod_items, result, res_candidates
-            )
+            pairs, unmatched = _resolve_duplicates(items, result, res_candidates)
             for _, mod_item, res_idx in pairs:
-                result[res_idx] = deep_merge(
-                    result[res_idx], mod_item, schema, element_path
-                )
+                # 清除标记后合并变化字段
+                clean = {k: v for k, v in mod_item.items() if k != '_delta'}
+                result[res_idx] = deep_merge(result[res_idx], clean, schema, element_path)
                 matched.add(res_idx)
             for _, mod_item in unmatched:
-                result.append(copy.deepcopy(mod_item))
+                clean = {k: v for k, v in mod_item.items() if k != '_delta'}
+                result.append(clean)
         else:
-            for _, mod_item in mod_items:
-                result.append(copy.deepcopy(mod_item))
+            for _, item in items:
+                clean = {k: v for k, v in item.items() if k != '_delta'}
+                result.append(clean)
 
-    # 追加 delta 阶段标记的新增元素
+    # --- 追加新增元素 ---
     for item in new_entry_items:
-        result.append(copy.deepcopy(item))
+        clean = {k: v for k, v in item.items() if k != '_new_entry'}
+        result.append(copy.deepcopy(clean))
 
-    # 移除标记删除的元素
+    # --- 移除删除元素 ---
     if to_remove:
         result = [item for i, item in enumerate(result) if i not in to_remove]
 
@@ -327,12 +278,12 @@ def find_array_match_key(arr: list) -> str | None:
 
 def _append_array(base_arr: list, override_arr: list,
                   schema: dict | None = None,
-                  child_path: list[str] | None = None,
-                  game_base_arr: list | None = None) -> list:
-    """数组追加去重。对象数组支持按 key 字段匹配合并。"""
+                  child_path: list[str] | None = None) -> list:
+    """数组追加去重。对象数组按标记驱动合并。
+    override_arr 中的对象元素必须带 _delta/_new_entry/_deleted 标记。"""
     result = copy.deepcopy(base_arr)
 
-    # 对象数组：尝试按 key 字段匹配并合并
+    # 对象数组：按 key 字段匹配并合并
     if (base_arr and override_arr
             and all(isinstance(x, dict) for x in base_arr)
             and all(isinstance(x, dict) for x in override_arr)):
@@ -344,39 +295,37 @@ def _append_array(base_arr: list, override_arr: list,
                 if kv is not None:
                     key_index[kv] = i
 
-            # game_base 按 key 索引
-            gb_map: dict = {}
-            if game_base_arr:
-                for gb_item in game_base_arr:
-                    if isinstance(gb_item, dict):
-                        gb_kv = gb_item.get(match_key)
-                        if gb_kv is not None:
-                            gb_map[gb_kv] = gb_item
-
             to_remove = set()
             for item in override_arr:
-                # 删除标记
-                if isinstance(item, dict) and item.get('_deleted'):
+                if not isinstance(item, dict):
+                    continue
+
+                if item.get('_deleted'):
                     kv = item.get(match_key)
                     idx = key_index.get(kv) if kv is not None else None
                     if idx is not None:
                         to_remove.add(idx)
                     continue
 
-                kv = item.get(match_key)
-                idx = key_index.get(kv) if kv is not None else None
-                if idx is not None:
-                    merge_data = item
-                    # 有游戏本体参照时，只合并实际修改的字段
-                    gb_item = gb_map.get(kv)
-                    if gb_item is not None:
-                        elem_delta = _recursive_delta(gb_item, item)
-                        if elem_delta is None:
-                            continue  # 无变化
-                        merge_data = elem_delta
-                    result[idx] = deep_merge(result[idx], merge_data, schema, child_path)
-                else:
-                    result.append(copy.deepcopy(item))
+                if item.get('_new_entry'):
+                    clean = {k: v for k, v in item.items() if k != '_new_entry'}
+                    result.append(copy.deepcopy(clean))
+                    continue
+
+                if item.get('_delta'):
+                    clean = {k: v for k, v in item.items() if k != '_delta'}
+                    kv = item.get(match_key)
+                    idx = key_index.get(kv) if kv is not None else None
+                    if idx is not None:
+                        result[idx] = deep_merge(result[idx], clean, schema, child_path)
+                    else:
+                        result.append(clean)
+                    continue
+
+                raise ValueError(
+                    f"append 对象数组收到未标记的元素（缺少 _delta/_new_entry/_deleted），"
+                    f"match_key={match_key}, 元素 keys={list(item.keys())}"
+                )
 
             # 移除标记删除的元素
             if to_remove:
@@ -391,17 +340,15 @@ def _append_array(base_arr: list, override_arr: list,
 
 def deep_merge(base: object, override: object,
                schema: dict | None,
-               field_path: list[str] | None,
-               game_base: object = None) -> object:
+               field_path: list[str] | None) -> object:
     """
     递归深度合并，由 schema 驱动合并策略。
 
     参数:
         base: 基础数据（当前合并状态）
-        override: 覆盖数据（mod 的 delta 或完整数据）
+        override: 覆盖数据（mod 的 delta）
         schema: schema 规则字典
         field_path: 当前字段路径（用于查找 schema 定义）
-        game_base: 游戏本体数据（用于数组元素级 delta 计算）
     """
     if not isinstance(base, dict) or not isinstance(override, dict):
         return copy.deepcopy(override)
@@ -419,15 +366,13 @@ def deep_merge(base: object, override: object,
             continue
         child_path = field_path + [key] if field_path is not None else None
         child_def = get_field_def(schema, child_path) if schema and child_path else None
-        child_game_base = game_base.get(key) if isinstance(game_base, dict) else None
 
         # 确定合并策略
         merge_strategy = _resolve_merge_strategy(child_def, result.get(key), value, key)
 
         if key in result:
             result[key] = _apply_merge_strategy(
-                merge_strategy, result[key], value, schema, child_path,
-                game_base=child_game_base
+                merge_strategy, result[key], value, schema, child_path
             )
         else:
             result[key] = copy.deepcopy(value)
@@ -487,27 +432,24 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
 
 
 def _apply_merge_strategy(strategy: str, base_val, override_val,
-                          schema: dict | None, child_path: list[str] | None,
-                          game_base=None) -> object:
+                          schema: dict | None, child_path: list[str] | None) -> object:
     """根据合并策略执行合并"""
     if strategy == "replace":
         return copy.deepcopy(override_val)
 
     elif strategy == "merge":
         if isinstance(base_val, dict) and isinstance(override_val, dict):
-            return deep_merge(base_val, override_val, schema, child_path, game_base)
+            return deep_merge(base_val, override_val, schema, child_path)
         return copy.deepcopy(override_val)
 
     elif strategy == "append":
         if isinstance(base_val, list) and isinstance(override_val, list):
-            return _append_array(base_val, override_val, schema, child_path,
-                                 game_base_arr=game_base if isinstance(game_base, list) else None)
+            return _append_array(base_val, override_val, schema, child_path)
         return copy.deepcopy(override_val)
 
     elif strategy == "smart_match":
         if isinstance(base_val, list) and isinstance(override_val, list):
-            return _merge_settlement_array(base_val, override_val, schema, child_path,
-                                           game_base_arr=game_base if isinstance(game_base, list) else None)
+            return _merge_settlement_array(base_val, override_val, schema, child_path)
         return copy.deepcopy(override_val)
 
     elif strategy == "coerce":
@@ -582,7 +524,7 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
         base_items = base_groups.get(kv, [])
 
         if not base_items:
-            # 全部新增，标记 _new_entry 以防下游重复匹配 game_base
+            # 全部新增
             for mod_item in mod_items:
                 new_item = copy.deepcopy(mod_item)
                 new_item['_new_entry'] = True
@@ -600,6 +542,7 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
             elem_delta = _recursive_delta(base_items[base_idx], mod_item, allow_deletions)
             if elem_delta is not None:
                 elem_delta[match_key] = kv
+                elem_delta['_delta'] = True
                 delta_items.append(elem_delta)
 
         for _, mod_item in unmatched:
@@ -716,16 +659,14 @@ def merge_file(
                     continue
                 if key in current:
                     field_path = [root_key] if root_key else None
-                    current[key] = deep_merge(current[key], value, schema, field_path,
-                                              game_base=base_data.get(key))
+                    current[key] = deep_merge(current[key], value, schema, field_path)
                 else:
                     current[key] = copy.deepcopy(value)
                     result.new_entries.append(("", mod_name, f"新增 key: {key}"))
         else:
             # 实体型和配置型
             field_path = [root_key] if root_key else None
-            current = deep_merge(current, mod_data, schema, field_path,
-                                 game_base=base_data)
+            current = deep_merge(current, mod_data, schema, field_path)
 
     result.merged_data = current
     return result
