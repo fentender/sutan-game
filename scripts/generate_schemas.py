@@ -606,117 +606,6 @@ def _build_dir_schema(dirpath, file_type, info, file_count, total):
 
 # ==================== 主入口 ====================
 
-def _format_types(types_dict):
-    """将 {type_str: count} 格式化为可读字符串，如 'string(120) int(3)'"""
-    if not types_dict:
-        return ""
-    parts = sorted(types_dict.items(), key=lambda x: x[1], reverse=True)
-    return "  ".join(f"{t}({c})" for t, c in parts)
-
-
-def _write_dsl_report(log_path):
-    """基于 _global_field_info 生成 DSL 模式分类报告"""
-    # 筛选 child_keys > 阈值的字段（聚合后）
-    report_fields = {
-        name: info for name, info in _global_field_info.items()
-        if len(info["child_keys"]) > DYNAMIC_KEY_THRESHOLD
-    }
-
-    if not report_fields:
-        print("无字段超过聚合阈值，跳过报告")
-        return
-
-    lines = ["=" * 60, " DSL Key 模式分类报告", "=" * 60, ""]
-
-    idx = 0
-    for field_name, fi in sorted(report_fields.items(), key=lambda x: -len(x[1]["child_keys"])):
-        idx += 1
-        total_obj = fi["count"]
-        total_unique = len(fi["child_keys"])
-        key_counts = fi["child_key_counts"]
-        key_types = fi["child_key_types"]
-
-        # 将所有 key 按 DSL 模式分类
-        classified = {}   # group_name → [(key, count)]
-        unclassified = []  # [(key, count)]
-        for k, cnt in key_counts.items():
-            group = classify_dsl_key(k)
-            if group:
-                classified.setdefault(group, []).append((k, cnt))
-            else:
-                unclassified.append((k, cnt))
-
-        # 统计
-        classified_key_count = sum(len(v) for v in classified.values())
-        classified_total_occ = sum(cnt for grp in classified.values() for _, cnt in grp)
-        unclassified_total_occ = sum(cnt for _, cnt in unclassified)
-
-        lines.append(f"[{idx}] 字段名: {field_name}")
-        lines.append(f"    出现路径数: {len(fi['paths'])}")
-        lines.append(f"    该 object 总出现次数: {total_obj}")
-        lines.append(f"    不同 key 总数: {total_unique}")
-        lines.append(f"    已分类 DSL key: {classified_key_count} 个 ({classified_total_occ} 次出现)")
-        lines.append(f"    未分类 key: {len(unclassified)} 个 ({unclassified_total_occ} 次出现)")
-        lines.append("")
-
-        # 输出已分类的 DSL 模式组
-        if classified:
-            lines.append(f"    ── 已分类 DSL 模式 ──")
-            for group_name, keys in sorted(classified.items(), key=lambda x: -sum(c for _, c in x[1])):
-                group_total = sum(c for _, c in keys)
-                group_ratio = group_total / total_obj * 100 if total_obj > 0 else 0
-                lines.append(f"    [{group_name}] {len(keys)} 个 key, 共 {group_total} 次 ({group_ratio:.1f}%)")
-                # 展示该组出现次数最多的前 5 个 key 作为示例
-                top_keys = sorted(keys, key=lambda x: x[1], reverse=True)[:5]
-                for k, cnt in top_keys:
-                    ratio = cnt / total_obj * 100 if total_obj > 0 else 0
-                    types_info = _format_types(key_types.get(k, {}))
-                    lines.append(f"      例: {k:40s} {cnt:>5d}次 ({ratio:>5.1f}%)  {types_info}")
-                if len(keys) > 5:
-                    lines.append(f"      ... 及其余 {len(keys) - 5} 个")
-            lines.append("")
-
-        # 输出未分类的 key（全部列出）
-        if unclassified:
-            lines.append(f"    ── 未分类 key ({len(unclassified)} 个) ──")
-            for k, cnt in sorted(unclassified, key=lambda x: x[1], reverse=True):
-                ratio = cnt / total_obj * 100 if total_obj > 0 else 0
-                types_info = _format_types(key_types.get(k, {}))
-                lines.append(f"      {k:40s} : {cnt:>5d}次 ({ratio:>5.1f}%)  {types_info}")
-            lines.append("")
-
-        # 出现路径列表
-        lines.append(f"    出现路径列表:")
-        for p in sorted(fi["paths"]):
-            lines.append(f"      - {p}")
-        lines.append("")
-        lines.append("-" * 60)
-        lines.append("")
-
-    # 汇总
-    lines.append("=" * 60)
-    lines.append(" 汇总")
-    lines.append("=" * 60)
-    total_all_keys = sum(len(fi["child_keys"]) for fi in report_fields.values())
-    total_classified = 0
-    total_unclassified = 0
-    for fi in report_fields.values():
-        for k in fi["child_key_counts"]:
-            if classify_dsl_key(k):
-                total_classified += 1
-            else:
-                total_unclassified += 1
-    lines.append(f"报告字段数: {len(report_fields)}")
-    lines.append(f"总 key 数（去重）: {total_all_keys}")
-    lines.append(f"已分类: {total_classified}")
-    lines.append(f"未分类: {total_unclassified}")
-    if total_all_keys > 0:
-        lines.append(f"分类覆盖率: {total_classified / (total_classified + total_unclassified) * 100:.1f}%")
-
-    log_path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"DSL 模式分类报告已写入: {log_path}")
-
-
 def generate_all(config_dir, output_dir):
     """生成所有 schema 文件（两遍处理：先收集字段信息，再构建 schema）"""
     config_path = Path(config_dir)
@@ -820,10 +709,6 @@ def generate_all(config_dir, output_dir):
             print("跳过")
 
     print(f"\n共生成 {len(generated)} 个 schema 文件 + 1 个全局模板到 {output_path}")
-
-    # ==================== 生成 DSL 模式分类报告 ====================
-    log_path = PROJECT_ROOT / "dynamic_key_report.log"
-    _write_dsl_report(log_path)
 
     return generated
 
