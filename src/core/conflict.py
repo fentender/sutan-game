@@ -290,7 +290,7 @@ def analyze_all_overrides(
                 diag.warn("parse", msg)
                 continue
         else:
-            diag.warn("parse", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
+            diag.info("parse", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
         mod_data_list = []

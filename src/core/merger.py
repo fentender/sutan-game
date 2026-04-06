@@ -718,7 +718,7 @@ def merge_all_files(
         if base_file.exists():
             base_data = load_json(base_file)
         else:
-            diag.warn("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
+            diag.info("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
         # 确定文件类型（用于 delta 计算）
