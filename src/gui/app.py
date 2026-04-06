@@ -13,9 +13,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QThread, Signal
 
 from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR
-from ..core.mod_scanner import scan_all_mods, scan_errors
-from ..core.json_parser import parse_warnings
-from ..core.merger import merge_all_files, merge_warnings
+from ..core.mod_scanner import scan_all_mods
+from ..core.merger import merge_all_files
+from ..core.diagnostics import diag
 from ..core.conflict import analyze_all_overrides
 from ..core.deployer import generate_info_json, copy_resources
 from .mod_list import ModListPanel
@@ -49,12 +49,12 @@ class MergeWorker(QThread):
                 allow_deletions=self.allow_deletions,
             )
             # 在工作线程内快照警告，避免跨线程竞态
-            warnings_snapshot = list(merge_warnings)
+            warnings_snapshot = diag.snapshot("merge")
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path)
             self.finished.emit(results, warnings_snapshot)
         except Exception as e:
-            self.error.emit(str(e))
+            self.error.emit(f"{type(e).__name__}: {e}")
 
 
 class MainWindow(QMainWindow):
@@ -178,8 +178,7 @@ class MainWindow(QMainWindow):
 
     def _load_mods(self):
         """加载所有 mod（workshop + 本地目录）"""
-        scan_errors.clear()
-        parse_warnings.clear()
+        diag.snapshot("scan", "parse")  # 清空上次的扫描/解析消息
 
         # 扫描 workshop 目录
         mods = scan_all_mods(
@@ -212,7 +211,7 @@ class MainWindow(QMainWindow):
         }
 
         # 汇总所有错误和警告，添加 mod 名称前缀
-        all_messages = list(scan_errors) + list(parse_warnings)
+        all_messages = diag.snapshot("scan", "parse")
         self._show_errors([self._prefix_mod_title(msg) for msg in all_messages])
 
     def _on_allow_deletions_changed(self, checked: bool):
@@ -241,7 +240,7 @@ class MainWindow(QMainWindow):
             return
 
         self.statusBar().showMessage("正在分析覆盖情况...")
-        parse_warnings.clear()
+        diag.snapshot("parse")  # 清空上次的解析消息
         overrides = analyze_all_overrides(
             self.config.game_config_path,
             mod_configs
@@ -251,8 +250,9 @@ class MainWindow(QMainWindow):
             allow_deletions=self.config.allow_deletions
         )
 
-        if parse_warnings:
-            self._show_errors([self._prefix_mod_title(w) for w in parse_warnings])
+        parse_msgs = diag.snapshot("parse")
+        if parse_msgs:
+            self._show_errors([self._prefix_mod_title(w) for w in parse_msgs])
 
         conflict_count = sum(1 for o in overrides if o.has_conflict)
         self.statusBar().showMessage(

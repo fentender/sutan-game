@@ -8,8 +8,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-# 全局解析警告收集器
-parse_warnings: list[str] = []
+from .diagnostics import diag
 
 
 def strip_js_comments(text: str) -> str:
@@ -74,7 +73,7 @@ def load_json(file_path: str | Path) -> dict:
     if abnormal_fixes:
         msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
         log.warning(msg)
-        parse_warnings.append(msg)
+        diag.warn("parse", msg)
 
     try:
         return json.loads(cleaned)

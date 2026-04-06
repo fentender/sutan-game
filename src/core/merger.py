@@ -12,6 +12,9 @@ from .schema_loader import (
     load_schemas, resolve_schema, get_field_def,
     get_schema_root_key, check_type_match,
 )
+from .type_utils import classify_json
+from .mod_scanner import collect_mod_files
+from .diagnostics import diag
 
 log = logging.getLogger(__name__)
 
@@ -380,7 +383,7 @@ def deep_merge(base: object, override: object,
             for key in override:
                 if key not in known_keys:
                     msg = f"未知字段 '{key}'，schema 中未定义"
-                    merge_warnings.append(msg)
+                    diag.warn("merge", msg)
 
     return result
 
@@ -394,10 +397,10 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
         schema_type = child_def.get("type")
         if schema_type and override_val is not None:
             if not check_type_match(schema_type, override_val):
-                from .schema_loader import _get_actual_type
-                actual = _get_actual_type(override_val)
+                from .type_utils import get_type_str
+                actual = get_type_str(override_val)
                 msg = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
-                merge_warnings.append(msg)
+                diag.warn("merge", msg)
 
         return strategy
 
@@ -535,24 +538,6 @@ def _recursive_delta(base, mod):
     return copy.deepcopy(mod)
 
 
-def classify_json(data: dict) -> str:
-    """
-    分类 JSON 文件类型。
-    返回: "dictionary" | "entity" | "config"
-    """
-    if not isinstance(data, dict):
-        return "config"
-
-    if 'id' in data:
-        return "entity"
-
-    keys = list(data.keys())
-    if keys and all(isinstance(data[k], dict) for k in keys):
-        if any('id' in data[k] for k in keys):
-            return "dictionary"
-
-    return "config"
-
 
 def merge_file(
     base_data: dict,
@@ -617,9 +602,6 @@ def merge_file(
     return result
 
 
-# 合并警告收集器
-merge_warnings: list[str] = []
-
 
 def merge_all_files(
     game_config_path: Path,
@@ -638,21 +620,12 @@ def merge_all_files(
         schema_dir: schema 规则文件目录
         allow_deletions: 是否允许删减（mod 中缺少的条目从结果中删除）
     """
-    merge_warnings.clear()
+    diag.snapshot("merge")  # 清空上次的合并警告
 
     # 加载 schemas
     schemas = load_schemas(schema_dir) if schema_dir else {}
 
-    # 收集所有 mod 涉及的文件
-    all_files: dict[str, list[tuple[str, str, Path]]] = {}
-    for mod_id, mod_name, mod_config_path in mod_configs:
-        if not mod_config_path.exists():
-            continue
-        for json_file in mod_config_path.rglob("*.json"):
-            rel = str(json_file.relative_to(mod_config_path)).replace("\\", "/")
-            if rel not in all_files:
-                all_files[rel] = []
-            all_files[rel].append((mod_id, mod_name, json_file))
+    all_files = collect_mod_files(mod_configs)
 
     results = {}
     for rel_path, mod_file_list in all_files.items():
@@ -661,6 +634,7 @@ def merge_all_files(
         if base_file.exists():
             base_data = load_json(base_file)
         else:
+            diag.warn("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
         # 确定文件类型（用于 delta 计算）
@@ -707,4 +681,4 @@ def _validate_tag_names(base_data: dict, mod_data_list: list[tuple[str, str, dic
                     msg = (f"tag.json: Mod [{mod_name}] 的 tag [{key}] "
                            f"name=\"{mod_tag_name}\" 与本体 name=\"{base_name}\" 不一致，可能导致游戏出错")
                     log.warning(msg)
-                    merge_warnings.append(msg)
+                    diag.warn("merge", msg)

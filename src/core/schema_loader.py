@@ -5,6 +5,8 @@ import json
 import logging
 from pathlib import Path
 
+from .type_utils import get_type_str
+
 log = logging.getLogger(__name__)
 
 # 缓存的 schemas：{pattern: schema_dict}
@@ -153,29 +155,12 @@ def check_type_match(schema_type, actual_value) -> bool:
     if schema_type is None:
         return True
 
-    actual_type = _get_actual_type(actual_value)
+    actual_type = get_type_str(actual_value)
     if isinstance(schema_type, list):
         return any(_type_compatible(st, actual_type, actual_value) for st in schema_type)
     return _type_compatible(schema_type, actual_type, actual_value)
 
 
-def _get_actual_type(value) -> str:
-    """获取值的类型字符串"""
-    if value is None:
-        return "null"
-    if isinstance(value, bool):
-        return "bool"
-    if isinstance(value, int):
-        return "int"
-    if isinstance(value, float):
-        return "float"
-    if isinstance(value, str):
-        return "string"
-    if isinstance(value, list):
-        return "array"
-    if isinstance(value, dict):
-        return "object"
-    return type(value).__name__
 
 
 def _type_compatible(schema_type: str, actual_type: str, actual_value) -> bool:

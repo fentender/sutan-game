@@ -20,6 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.core.json_parser import load_json
+from src.core.type_utils import get_type_str, classify_json
 
 DEFAULT_CONFIG_DIR = (
     r"D:\SteamLibrary\steamapps\common\Sultan's Game"
@@ -48,23 +49,6 @@ KNOWN_SMART_MATCH_FIELDS = {
 
 # ==================== 类型分析 ====================
 
-def get_type_str(v):
-    """获取 Python 值的类型字符串"""
-    if v is None:
-        return "null"
-    if isinstance(v, bool):
-        return "bool"
-    if isinstance(v, int):
-        return "int"
-    if isinstance(v, float):
-        return "float"
-    if isinstance(v, str):
-        return "string"
-    if isinstance(v, list):
-        return "array"
-    if isinstance(v, dict):
-        return "object"
-    return type(v).__name__
 
 
 def analyze_value_type(v):
@@ -94,7 +78,7 @@ def collect_field_info(obj, info, prefix="", max_depth=7):
     }
     """
     if not isinstance(obj, dict):
-        return
+        raise TypeError(f"collect_field_info 期望 dict，收到 {type(obj).__name__}")
 
     for k, v in obj.items():
         path = f"{prefix}{SEP}{k}" if prefix else k
@@ -239,6 +223,8 @@ def build_field_def(path, info, all_info):
                 child_path = f"{path}{SEP}{child_key}"
                 if child_path in all_info:
                     fields[child_key] = build_field_def(child_path, all_info[child_path], all_info)
+                else:
+                    print(f"  警告: 子路径 {child_path} 未在分析数据中找到")
             if fields:
                 # 检测子 key 是否为同类结构：
                 # 全部 value 都是 object 且子字段名集合存在包含关系 → 用 _template 替代
@@ -277,26 +263,14 @@ def build_field_def(path, info, all_info):
                     element[remainder] = build_field_def(key, all_info[key], all_info)
         if element:
             result["element"] = element
+        else:
+            print(f"  警告: 数组元素无字段信息: {arr_path}")
 
         if merge == "smart_match":
             result["match_strategy"] = infer_match_strategy(field_info)
 
     return result
 
-
-# ==================== 文件分类 ====================
-
-def classify_json(data):
-    """分类 JSON 文件类型，与 merger.py 保持一致"""
-    if not isinstance(data, dict):
-        return "config"
-    if "id" in data:
-        return "entity"
-    keys = list(data.keys())
-    if keys and all(isinstance(data[k], dict) for k in keys[:5]):
-        if any("id" in data[k] for k in keys[:5]):
-            return "dictionary"
-    return "config"
 
 
 # ==================== 分析入口 ====================

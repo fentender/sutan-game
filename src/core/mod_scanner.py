@@ -1,6 +1,7 @@
 """
 Mod 扫描器 - 扫描 workshop 目录，读取 mod 元数据
 """
+import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,8 +10,7 @@ from .json_parser import load_json
 
 log = logging.getLogger(__name__)
 
-# 全局错误收集器，GUI 可以读取并展示
-scan_errors: list[str] = []
+from .diagnostics import diag
 
 
 @dataclass
@@ -52,7 +52,7 @@ def scan_config_files(mod_path: Path) -> tuple[list[str], list[str]]:
 
     for f in config_dir.rglob("*"):
         if f.is_file():
-            rel = str(f.relative_to(config_dir)).replace("\\", "/")
+            rel = normalize_rel_path(f, config_dir)
             if f.suffix.lower() == '.json':
                 config_files.append(rel)
             else:
@@ -61,7 +61,7 @@ def scan_config_files(mod_path: Path) -> tuple[list[str], list[str]]:
     # 扫描 config 目录之外的资源
     for f in mod_path.rglob("*"):
         if f.is_file() and f.name not in ("Info.json",) and f.stem.lower() != "preview":
-            rel = str(f.relative_to(mod_path)).replace("\\", "/")
+            rel = normalize_rel_path(f, mod_path)
             if not rel.startswith("config/"):
                 resource_files.append(rel)
 
@@ -85,10 +85,10 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
             info.description = data.get("description", "")
             info.tags = data.get("tags", [])
             info.version = data.get("version", "")
-        except Exception as e:
+        except json.JSONDecodeError as e:
             msg = f"Mod {mod_id}: Info.json 解析失败 - {e}"
             log.warning(msg)
-            scan_errors.append(msg)
+            diag.warn("scan", msg)
             info.name = mod_id
     else:
         info.name = mod_id
@@ -108,6 +108,42 @@ def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> l
     if not workshop_path.exists():
         return mods
 
+    for entry in sorted(workshop_path.iterdir()):
+        if entry.is_dir() and entry.name not in exclude_ids:
+            mod = scan_single_mod(entry)
+            if mod:
+                mods.append(mod)
+
+    return mods
+
+
+def normalize_rel_path(path: Path, base: Path) -> str:
+    """计算相对路径并规范化分隔符为 /"""
+    return str(path.relative_to(base)).replace("\\", "/")
+
+
+def collect_mod_files(
+    mod_configs: list[tuple[str, str, Path]]
+) -> dict[str, list[tuple[str, str, Path]]]:
+    """
+    收集所有 mod 的 JSON 文件，按相对路径聚合。
+
+    参数:
+        mod_configs: [(mod_id, mod_name, mod_config_path), ...] 按优先级排序
+
+    返回:
+        {rel_path: [(mod_id, mod_name, file_path), ...]}
+    """
+    all_files: dict[str, list[tuple[str, str, Path]]] = {}
+    for mod_id, mod_name, mod_config_path in mod_configs:
+        if not mod_config_path.exists():
+            continue
+        for json_file in mod_config_path.rglob("*.json"):
+            rel = normalize_rel_path(json_file, mod_config_path)
+            if rel not in all_files:
+                all_files[rel] = []
+            all_files[rel].append((mod_id, mod_name, json_file))
+    return all_files
     for entry in sorted(workshop_path.iterdir()):
         if entry.is_dir() and entry.name not in exclude_ids:
             mod = scan_single_mod(entry)

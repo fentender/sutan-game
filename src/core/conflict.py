@@ -6,7 +6,9 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .json_parser import load_json, parse_warnings
+from .json_parser import load_json
+from .mod_scanner import collect_mod_files
+from .diagnostics import diag
 
 log = logging.getLogger(__name__)
 
@@ -125,16 +127,7 @@ def analyze_all_overrides(
     返回:
         FileOverrideInfo 列表
     """
-    # 收集所有 mod 涉及的文件
-    all_files: dict[str, list[tuple[str, str, Path]]] = {}
-    for mod_id, mod_name, mod_config_path in mod_configs:
-        if not mod_config_path.exists():
-            continue
-        for json_file in mod_config_path.rglob("*.json"):
-            rel = str(json_file.relative_to(mod_config_path)).replace("\\", "/")
-            if rel not in all_files:
-                all_files[rel] = []
-            all_files[rel].append((mod_id, mod_name, json_file))
+    all_files = collect_mod_files(mod_configs)
 
     results = []
     for rel_path, mod_file_list in sorted(all_files.items()):
@@ -145,9 +138,10 @@ def analyze_all_overrides(
             except json.JSONDecodeError as e:
                 msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)
-                parse_warnings.append(msg)
+                diag.warn("parse", msg)
                 continue
         else:
+            diag.warn("parse", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
         mod_data_list = []
@@ -157,7 +151,7 @@ def analyze_all_overrides(
             except json.JSONDecodeError as e:
                 msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)
-                parse_warnings.append(msg)
+                diag.warn("parse", msg)
 
         info = analyze_file_overrides(rel_path, base_data, mod_data_list)
         results.append(info)
