@@ -212,8 +212,21 @@ def _type_compatible(schema_type: str, actual_type: str, actual_value) -> bool:
     if schema_type == "float" and actual_type == "int":
         return True
 
-    # array<X> 匹配实际的 array
+    # array<X> 或 array<X,Y> 匹配裸 array
     if schema_type.startswith("array") and actual_type == "array":
+        return True
+
+    # 多类型数组兼容性：actual 的元素类型应为 schema 声明类型的子集
+    if schema_type.startswith("array<") and actual_type.startswith("array<"):
+        schema_inner = set(schema_type[6:-1].split(","))
+        actual_inner = set(actual_type[6:-1].split(","))
+        for at in actual_inner:
+            if at in schema_inner:
+                continue
+            # int 兼容 float
+            if at == "int" and "float" in schema_inner:
+                continue
+            return False
         return True
 
     return False

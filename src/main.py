@@ -6,14 +6,76 @@
 """
 import sys
 
-from PySide6.QtWidgets import QApplication
-from .gui.app import MainWindow
+from PySide6.QtWidgets import QApplication, QProgressDialog
+from PySide6.QtCore import Qt, QThread, Signal
+
+from .config import UserConfig, SCHEMA_DIR
+
+
+class _SchemaWorker(QThread):
+    """后台 schema 生成线程"""
+    progress = Signal(int, int, str)  # current, total, name
+    finished = Signal()
+    error = Signal(str)
+
+    def __init__(self, config_dir, schema_dir):
+        super().__init__()
+        self.config_dir = config_dir
+        self.schema_dir = schema_dir
+
+    def run(self):
+        try:
+            from .core.schema_generator import generate_all
+            generate_all(
+                str(self.config_dir), str(self.schema_dir),
+                progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
+            )
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(f"{type(e).__name__}: {e}")
+
+
+def _ensure_schemas_with_ui(config_dir, schema_dir):
+    """检查 schemas/ 是否已初始化，若为空则弹出进度框并生成"""
+    if schema_dir.exists() and any(schema_dir.glob("*.schema.json")):
+        return
+
+    dlg = QProgressDialog("首次运行: 生成 Schema 规则...", "取消", 0, 100)
+    dlg.setWindowTitle("Schema 初始化")
+    dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
+    dlg.setMinimumDuration(0)
+    dlg.setValue(0)
+
+    worker = _SchemaWorker(config_dir, schema_dir)
+
+    def _on_progress(current, total, name):
+        if total > 0:
+            dlg.setMaximum(total)
+            dlg.setValue(current)
+            dlg.setLabelText(f"生成 Schema 规则: {name} ({current}/{total})")
+
+    def _on_error(msg):
+        from PySide6.QtWidgets import QMessageBox
+        dlg.close()
+        QMessageBox.critical(None, "Schema 生成失败", msg)
+
+    worker.progress.connect(_on_progress)
+    worker.finished.connect(dlg.close)
+    worker.error.connect(_on_error)
+
+    worker.start()
+    dlg.exec()
+    worker.wait()
 
 
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
+    config = UserConfig.load()
+    _ensure_schemas_with_ui(config.game_config_path, SCHEMA_DIR)
+
+    from .gui.app import MainWindow
     window = MainWindow()
     window.show()
 

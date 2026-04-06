@@ -14,6 +14,10 @@
       "type": "int",
       "merge": "replace"
     },
+    "destroy_resources": {
+      "type": "array<string>",
+      "merge": "append"
+    },
     "equips": {
       "type": [
         "array",
@@ -78,10 +82,18 @@
       ],
       "merge": "coerce"
     },
+    "sfx": {
+      "type": "string",
+      "merge": "replace"
+    },
     "tag": {
       "type": "object",
       "merge": "merge",
       "fields": {
+        "不举的传言": {
+          "type": "int",
+          "merge": "replace"
+        },
         "不满": {
           "type": "int",
           "merge": "replace"
@@ -90,11 +102,107 @@
           "type": "int",
           "merge": "replace"
         },
+        "主旋律": {
+          "type": "int",
+          "merge": "replace"
+        },
         "主角": {
           "type": "int",
           "merge": "replace"
         },
+        "主角专属1": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "主角专属2": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "主角专属3": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "主角专属4": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "主角专属5": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "乐": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "书店老板": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "令人开心的妆扮": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "价值": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "任意处置": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "伊曼的残留": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "传统": {
+          "type": "int",
+          "merge": "replace"
+        },
         "体魄": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "侠名的遮掩": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "信": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "信誉": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "倒计时": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "免疫": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "关闭": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "军队的好感": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "冤魂": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "剑客蓄势": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "动物": {
           "type": "int",
           "merge": "replace"
         },
@@ -106,7 +214,19 @@
           "type": "int",
           "merge": "replace"
         },
+        "变革戒": {
+          "type": "int",
+          "merge": "replace"
+        },
         "可堆叠": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "史诗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "命运点": {
           "type": "int",
           "merge": "replace"
         },
@@ -118,6 +238,62 @@
           "type": "int",
           "merge": "replace"
         },
+        "哲瓦德的优势": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "善名的遮掩": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "囚徒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "回应誓言": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "国民的好感": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "地点": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "坐骑": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "墓碑": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "大颗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "大餐": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "天象": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "奇珍": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "奈费勒的优势": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "奢靡": {
+          "type": "int",
+          "merge": "replace"
+        },
         "女性": {
           "type": "int",
           "merge": "replace"
@@ -126,11 +302,43 @@
           "type": "int",
           "merge": "replace"
         },
+        "妆扮": {
+          "type": "int",
+          "merge": "replace"
+        },
         "妓女": {
           "type": "int",
           "merge": "replace"
         },
+        "妖精": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "妖精女王": {
+          "type": "int",
+          "merge": "replace"
+        },
         "妻子": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "娜依拉的不满": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "孤儿": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "官吏的好感": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "宝石": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "宰相": {
           "type": "int",
           "merge": "replace"
         },
@@ -143,6 +351,38 @@
           "merge": "replace"
         },
         "小偷": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小安": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小留": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小筹": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小筹征服": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小筹的金币": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小薇": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小颗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "尸体": {
           "type": "int",
           "merge": "replace"
         },
@@ -166,7 +406,15 @@
           "type": "int",
           "merge": "replace"
         },
+        "征服": {
+          "type": "int",
+          "merge": "replace"
+        },
         "思潮": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "怪物": {
           "type": "int",
           "merge": "replace"
         },
@@ -174,7 +422,19 @@
           "type": "int",
           "merge": "replace"
         },
+        "恶名挑战者": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "恶名谋杀者": {
+          "type": "int",
+          "merge": "replace"
+        },
         "情报": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "情诗": {
           "type": "int",
           "merge": "replace"
         },
@@ -186,7 +446,39 @@
           "type": "int",
           "merge": "replace"
         },
+        "承阳": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "抑郁": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "抱猫人": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "挖矿奴隶": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "描边": {
+          "type": "int",
+          "merge": "replace"
+        },
         "支持": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "改革": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "新月": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "智": {
           "type": "int",
           "merge": "replace"
         },
@@ -194,7 +486,27 @@
           "type": "int",
           "merge": "replace"
         },
+        "有跟班": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "服装": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "未被苏丹所知": {
+          "type": "int",
+          "merge": "replace"
+        },
         "未鉴定": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "杀戮": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "权势的遮掩": {
           "type": "int",
           "merge": "replace"
         },
@@ -202,11 +514,31 @@
           "type": "int",
           "merge": "replace"
         },
+        "欲蛇之纱": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "正当性": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "正教的乙太": {
+          "type": "int",
+          "merge": "replace"
+        },
         "正教的信徒": {
           "type": "int",
           "merge": "replace"
         },
+        "正神的面容": {
+          "type": "int",
+          "merge": "replace"
+        },
         "武器": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "毒蛇之链": {
           "type": "int",
           "merge": "replace"
         },
@@ -218,6 +550,10 @@
           "type": "int",
           "merge": "replace"
         },
+        "法拉杰": {
+          "type": "int",
+          "merge": "replace"
+        },
         "消耗品": {
           "type": "int",
           "merge": "replace"
@@ -226,7 +562,27 @@
           "type": "int",
           "merge": "replace"
         },
+        "淬毒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "深度": {
+          "type": "int",
+          "merge": "replace"
+        },
         "激情": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "火焰大王": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "灵感": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "灵视的遮掩": {
           "type": "int",
           "merge": "replace"
         },
@@ -234,7 +590,35 @@
           "type": "int",
           "merge": "replace"
         },
+        "爱": {
+          "type": "int",
+          "merge": "replace"
+        },
         "爱书人": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "犯罪号召": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "犯罪计划": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "猜忌": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "玛瑙": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "生命之心": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "生命权杖": {
           "type": "int",
           "merge": "replace"
         },
@@ -242,7 +626,19 @@
           "type": "int",
           "merge": "replace"
         },
+        "生病": {
+          "type": "int",
+          "merge": "replace"
+        },
         "男性": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "疯狂": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "疲劳": {
           "type": "int",
           "merge": "replace"
         },
@@ -250,11 +646,87 @@
           "type": "int",
           "merge": "replace"
         },
+        "破除封锁": {
+          "type": "int",
+          "merge": "replace"
+        },
         "社交": {
           "type": "int",
           "merge": "replace"
         },
+        "祖母绿": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "神器": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "秘宝": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "租赁协议": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "空屋": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "第一推动力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "紫水晶": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "红宝石": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "红玉髓": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "纯洁之纱": {
+          "type": "int",
+          "merge": "replace"
+        },
         "纯色材质": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "纵欲": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "罪证": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "羊肉炉": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "羊肉炉飞升进度": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "群星戒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "耐心": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "芮尔": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "芮尔手下": {
           "type": "int",
           "merge": "replace"
         },
@@ -266,7 +738,51 @@
           "type": "int",
           "merge": "replace"
         },
+        "苏丹卡": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "苏丹的怒火": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "苏丹的精兵": {
+          "type": "int",
+          "merge": "replace"
+        },
         "苏丹的近卫": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "蒙面苏丹": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "蓄谋": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "蓝宝石": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "虚空护盾": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "被侮辱的": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "被囚禁": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "被流放": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "被覆者": {
           "type": "int",
           "merge": "replace"
         },
@@ -278,11 +794,59 @@
           "type": "int",
           "merge": "replace"
         },
+        "装潢": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "讽刺诗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "诅咒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "读物": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "谗言": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "质子": {
+          "type": "int",
+          "merge": "replace"
+        },
         "贵族": {
           "type": "int",
           "merge": "replace"
         },
+        "赤字": {
+          "type": "int",
+          "merge": "replace"
+        },
         "身价": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "追随者": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "造物的工具": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "避孕套": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "邪神的面容": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "部落遗物": {
           "type": "int",
           "merge": "replace"
         },
@@ -298,7 +862,35 @@
           "type": "int",
           "merge": "replace"
         },
+        "金色文字": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "金血之证": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "钻石": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "铁头的优势": {
+          "type": "int",
+          "merge": "replace"
+        },
         "银趴绝缘者": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "锁定祭司": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "锁定穆尔台兹": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "镜子": {
           "type": "int",
           "merge": "replace"
         },
@@ -306,7 +898,27 @@
           "type": "int",
           "merge": "replace"
         },
+        "预言诗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "飞升的阶梯": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "食客": {
+          "type": "int",
+          "merge": "replace"
+        },
         "食物": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "饰品": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "驯兽": {
           "type": "int",
           "merge": "replace"
         },
@@ -314,11 +926,27 @@
           "type": "int",
           "merge": "replace"
         },
+        "魅力护符": {
+          "type": "int",
+          "merge": "replace"
+        },
         "魔力": {
           "type": "int",
           "merge": "replace"
         },
+        "魔力戒指": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "鳄鱼": {
+          "type": "int",
+          "merge": "replace"
+        },
         "黑暗知识": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "黑街声望": {
           "type": "int",
           "merge": "replace"
         },
@@ -348,6 +976,18 @@
       "type": "object",
       "merge": "merge",
       "fields": {
+        "delay": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "delay"
+        },
+        "event_on": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
         "over": {
           "type": "int",
           "merge": "replace"

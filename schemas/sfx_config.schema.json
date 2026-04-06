@@ -13,630 +13,296 @@
         "5003027": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5006068": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5006079": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_instant": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010001": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010013": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_instant": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010022": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010025": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010034": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010045": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010046": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010047": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010050": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010060": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010061": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010062": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010069": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010070": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010071": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010075": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010080": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010087": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         },
         "5010201": {
           "type": "object",
           "merge": "merge",
-          "fields": {
-            "clip": {
-              "type": "string",
-              "merge": "replace"
-            },
-            "loop_end": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "loop_start": {
-              "type": "int",
-              "merge": "replace"
-            },
-            "play_in_rite_create": {
-              "type": "bool",
-              "merge": "replace"
-            },
-            "start": {
-              "type": "int",
-              "merge": "replace"
-            }
-          }
+          "_use_template": "music_entry"
         }
       }
     },
     "main_game_loop": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "clip": {
-            "type": "string",
-            "merge": "replace"
-          },
-          "loop_end": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "loop_start": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "start": {
-            "type": "float",
-            "merge": "replace"
-          }
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "6": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "7": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
         }
       }
     },
     "main_game_loop_difficulty": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "clip": {
-            "type": "string",
-            "merge": "replace"
-          },
-          "loop_end": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "loop_start": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "start": {
-            "type": "float",
-            "merge": "replace"
-          }
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
         }
       }
     },
     "settle_loop": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "clip": {
-            "type": "string",
-            "merge": "replace"
-          },
-          "loop_end": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "loop_start": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "start": {
-            "type": "int",
-            "merge": "replace"
-          }
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "6": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "7": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
         }
       }
     },
     "settle_loop_difficulty": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "clip": {
-            "type": "string",
-            "merge": "replace"
-          },
-          "loop_end": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "loop_start": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "start": {
-            "type": "int",
-            "merge": "replace"
-          }
+      "fields": {
+        "-1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "0": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
+        },
+        "5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "music_entry"
         }
       }
     }

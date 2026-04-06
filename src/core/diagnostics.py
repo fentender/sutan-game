@@ -2,23 +2,41 @@
 线程安全的全局诊断信息收集器
 
 替代原来散落在各模块中的 parse_warnings / scan_errors / merge_warnings 列表。
-使用 category 区分消息来源："parse" / "scan" / "merge"。
+使用 category 区分消息来源："parse" / "scan" / "merge" / "schema"。
+每条消息附带级别：INFO / WARNING / ERROR。
 """
 import threading
+
+# 日志级别常量
+INFO = "info"
+WARNING = "warning"
+ERROR = "error"
 
 
 class Diagnostics:
     def __init__(self):
         self._lock = threading.Lock()
-        self._messages: dict[str, list[str]] = {}
+        self._messages: dict[str, list[tuple[str, str]]] = {}  # category → [(level, msg)]
+
+    def info(self, category: str, msg: str):
+        """线程安全地追加一条信息级别的诊断消息"""
+        with self._lock:
+            self._messages.setdefault(category, []).append((INFO, msg))
 
     def warn(self, category: str, msg: str):
-        """线程安全地追加一条诊断消息"""
+        """线程安全地追加一条警告级别的诊断消息"""
         with self._lock:
-            self._messages.setdefault(category, []).append(msg)
+            self._messages.setdefault(category, []).append((WARNING, msg))
 
-    def snapshot(self, *categories: str) -> list[str]:
-        """返回指定类别的消息并清空。不传参则返回全部类别。"""
+    def error(self, category: str, msg: str):
+        """线程安全地追加一条错误级别的诊断消息"""
+        with self._lock:
+            self._messages.setdefault(category, []).append((ERROR, msg))
+
+    def snapshot(self, *categories: str) -> list[tuple[str, str]]:
+        """返回指定类别的消息并清空。不传参则返回全部类别。
+        返回 [(level, msg), ...] 列表。
+        """
         with self._lock:
             if not categories:
                 categories = tuple(self._messages.keys())

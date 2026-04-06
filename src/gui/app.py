@@ -49,7 +49,7 @@ class MergeWorker(QThread):
                 allow_deletions=self.allow_deletions,
             )
             # 在工作线程内快照警告，避免跨线程竞态
-            warnings_snapshot = diag.snapshot("merge")
+            warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path)
             self.finished.emit(results, warnings_snapshot)
@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
         }
 
         # 汇总所有错误和警告，添加 mod 名称前缀
-        all_messages = diag.snapshot("scan", "parse")
+        all_messages = [msg for _, msg in diag.snapshot("scan", "parse")]
         self._show_errors([self._prefix_mod_title(msg) for msg in all_messages])
 
     def _on_allow_deletions_changed(self, checked: bool):
@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
             allow_deletions=self.config.allow_deletions
         )
 
-        parse_msgs = diag.snapshot("parse")
+        parse_msgs = [msg for _, msg in diag.snapshot("parse")]
         if parse_msgs:
             self._show_errors([self._prefix_mod_title(w) for w in parse_msgs])
 

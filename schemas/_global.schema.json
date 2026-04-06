@@ -9,7 +9,8 @@
           "merge": "replace"
         },
         "any": {
-          "_use_template": "condition"
+          "type": "object",
+          "merge": "merge"
         },
         "is": {
           "type": [
@@ -19,7 +20,12 @@
           "merge": "coerce"
         },
         "all": {
-          "_use_template": "condition"
+          "type": "object",
+          "merge": "merge"
+        },
+        "is_rite": {
+          "type": "int",
+          "merge": "replace"
         },
         "rite": {
           "type": "int",
@@ -34,10 +40,6 @@
           "merge": "replace"
         },
         "round": {
-          "type": "int",
-          "merge": "replace"
-        },
-        "is_rite": {
           "type": "int",
           "merge": "replace"
         },
@@ -72,7 +74,7 @@
         },
         "card": {
           "type": [
-            "array",
+            "array<int,string>",
             "array<int>",
             "int"
           ],
@@ -97,10 +99,12 @@
           "merge": "coerce"
         },
         "choose": {
-          "_use_template": "action"
+          "type": "object",
+          "merge": "merge"
         },
         "success": {
-          "_use_template": "action"
+          "type": "object",
+          "merge": "merge"
         },
         "over": {
           "type": "int",
@@ -142,7 +146,8 @@
           "merge": "replace"
         },
         "failed": {
-          "_use_template": "action"
+          "type": "object",
+          "merge": "merge"
         },
         "all": {
           "_use_template": "condition"
@@ -217,13 +222,214 @@
         }
       }
     },
+    "delay": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "id": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "round": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "event_on": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rite": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "card": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "prompt": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "loot": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "music_entry": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "clip": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "start": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "loop_start": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "loop_end": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "title": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "bg": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "name": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "text_extra": {
+          "type": "array<object>",
+          "merge": "append"
+        },
+        "sub_name": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "success": {
+          "_use_template": "action"
+        },
+        "open_after_story": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "manual_prompt": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "over_id": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "icon_deselect": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon_lock": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "big_resource": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "play_in_rite_create": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "play_instant": {
+          "type": "bool",
+          "merge": "replace"
+        }
+      }
+    },
+    "css_size": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "xs": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "sm": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "md": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "lg": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "xl": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "xxl": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "id": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "items": {
+          "type": "array<object>",
+          "merge": "append"
+        },
+        "icon": {
+          "type": [
+            "array<null,string>",
+            "array<string>",
+            "string"
+          ],
+          "merge": "coerce"
+        }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "id": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "icon": {
+          "type": [
+            "array<array,null,string>",
+            "array<array,null>",
+            "array<array,string>",
+            "array<int>",
+            "array<null,string>",
+            "array<string>",
+            "string"
+          ],
+          "merge": "coerce"
+        }
+      }
+    },
     "no_prompt": {
       "type": "object",
       "merge": "merge",
       "fields": {
         "card": {
           "type": [
-            "array",
+            "array<int,string>",
             "int"
           ],
           "merge": "coerce"
@@ -246,6 +452,191 @@
         },
         "event_on": {
           "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "begin_guide": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "anim_type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "pos": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "is_show_ring": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "ring_pos": {
+          "type": [
+            "array<float,int>",
+            "array<int>"
+          ],
+          "merge": "coerce"
+        },
+        "anchors": {
+          "type": "array<array>",
+          "merge": "append"
+        },
+        "is_on_in_mobile": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "bind": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "mobile_properties": {
+          "type": "object",
+          "merge": "merge"
+        }
+      }
+    },
+    "mobile_properties": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "anim_type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "pos": {
+          "type": [
+            "array<float,int>",
+            "array<float>",
+            "array<int>"
+          ],
+          "merge": "coerce"
+        },
+        "ring_pos": {
+          "type": [
+            "array<float,int>",
+            "array<float>",
+            "array<int>"
+          ],
+          "merge": "coerce"
+        },
+        "anchors": {
+          "type": "array<array>",
+          "merge": "append"
+        }
+      }
+    },
+    "no_show": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "card": {
+          "type": [
+            "array<int,string>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "loot": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "choose": {
+          "_use_template": "action"
+        }
+      }
+    },
+    "slot": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "guid": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "condition": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "open_adsorb": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "is_key": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "is_empty": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "is_enemy": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "text": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "is_hide_bg": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "is_set_card_hide_bg": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "slot_bg": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "pos": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "scale": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "rotation_z": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "pops": {
+          "type": "array<object>",
+          "merge": "append"
+        }
+      }
+    },
+    "pos": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "x": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "y": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    },
+    "scale": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "x": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "y": {
+          "type": "float",
           "merge": "replace"
         }
       }

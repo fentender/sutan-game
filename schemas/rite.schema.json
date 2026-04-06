@@ -19,56 +19,126 @@
     "cards_slot": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "condition": {
-            "type": "object",
-            "merge": "merge",
-            "_use_template": "condition"
-          },
-          "guid": {
-            "type": "string",
-            "merge": "replace"
-          },
-          "is_empty": {
-            "type": "int",
-            "merge": "replace"
-          },
-          "is_enemy": {
-            "type": "int",
-            "merge": "replace"
-          },
-          "is_key": {
-            "type": "int",
-            "merge": "replace"
-          },
-          "open_adsorb": {
-            "type": "int",
-            "merge": "replace"
-          },
-          "pops": {
-            "type": "array<object>",
-            "merge": "smart_match",
-            "element": {
-              "action": {
-                "type": "object",
-                "merge": "merge",
-                "_use_template": "action"
-              },
-              "condition": {
-                "type": "object",
-                "merge": "merge",
-                "_use_template": "condition"
-              }
+      "fields": {
+        "s": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "condition": {
+              "type": "object",
+              "merge": "merge",
+              "_use_template": "condition"
             },
-            "match_strategy": "rite"
-          },
-          "text": {
-            "type": "string",
-            "merge": "replace"
+            "guid": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "is_empty": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_enemy": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "is_key": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "open_adsorb": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
           }
+        },
+        "s1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s10": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s11": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s12": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s13": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s14": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s15": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s16": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s17": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s6": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s7": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s8": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s9": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
         }
       }
     },

@@ -66,41 +66,41 @@
 
 ---
 
-## 阶段 2：generate_schemas 集成与修复（依赖阶段 1.2）
+## ~~阶段 2：generate_schemas 集成与修复（依赖阶段 1.2）~~ ✅ 已完成
 
-### 2.1 迁移到项目主体 [plans1 #7]
+### ~~2.1 迁移到项目主体 [plans1 #7]~~ ✅
 
 将 `scripts/generate_schemas.py` 迁移到 `src/core/schema_generator.py`。
+print 替换为 `diag.info/warn`，`generate_all` 增加 `progress_callback` 支持。
+`main.py` 启动时通过 QProgressDialog 自动检查并生成 schema。
+`scripts/generate_schemas.py` 已删除。
 
-程序启动时自动检查 `schemas/` 是否初始化，若未初始化则自动执行生成。
+### ~~2.2 修复 array\<float\> 重复 bug [plans1 #12]~~ ✅
 
-### 2.2 修复 array\<float\> 重复 bug [plans1 #12]
-
-`infer_type` 中 int+float 合并逻辑（第 157-159 行）：
-当 types 同时含 `"int"`、`"float"`、`"array<int>"` 时，集合操作可能产生重复的 `"array<float>"`。
-
+提取 `_collapse_int_float` 辅助函数，`infer_type` 和 `_infer_type_from_counts` 统一使用。
 用显式 discard/add 替代集合推导。
 
-### 2.3 多类型数组应记录所有类型 [plans1 #9]
+### ~~2.3 多类型数组应记录所有类型 [plans1 #9]~~ ✅
 
-`analyze_value_type`（第 78 行）数组含多种元素类型时只返回 `"array"`。
-应返回 `"array<int,string>"` 形式。同步更新 `schema_loader.py:184-197` 的类型解析。
+`analyze_value_type` 多类型分支返回 `"array<int,string>"` 形式。
+`schema_loader.py:_type_compatible` 适配多类型数组兼容性判断。
 
-### 2.4 移除 max_depth 限制 [plans1 #10]
+### ~~2.4 移除 max_depth 限制 [plans1 #10]~~ ✅
 
-`collect_field_info` 的 `max_depth=7`（第 126 行）无必要。移除，用已访问集合防无限递归。
+`collect_field_info` 改用 `_visited` 集合（基于 `id(obj)`）防无限递归。
 
-### 2.5 移除采样数限制 [plans1 #11]
+### ~~2.5 移除采样数限制 [plans1 #11]~~ ✅
 
-移除所有采样截断：
-- `collect_field_info:122-124`（sample_values 最多 3 个）
-- `analyze_single_file:333`（dictionary 最多采样 100 个条目）
-- 其它脚本中类似的限制
+移除 `sample_values` 3 个限制和 dictionary 100 条采样限制。
 
-### 2.6 加强列表类型检查 [plans1 #13]
+### ~~2.6 加强列表类型检查 [plans1 #13]~~ ✅
 
-`infer_merge_strategy:179` 见到 `isinstance(type_info, list)` 就返回 `"coerce"`。
-应验证列表中是否确实是合理的多类型组合，否则报错。
+新增 `_validate_type_combination`，检测标量+对象+数组异常组合并通过 `diag.warn` 报告。
+
+### 附加：diagnostics 增加日志级别
+
+`diagnostics.py` 增加 `info/error` 方法，消息存储为 `(level, msg)` 元组。
+`app.py` 适配 snapshot 返回值变化。GUI 面板级别筛选留待后续阶段。
 
 ---
 

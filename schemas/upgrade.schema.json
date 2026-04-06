@@ -65,7 +65,7 @@
         },
         "g.card": {
           "type": [
-            "array",
+            "array<int,string>",
             "int"
           ],
           "merge": "coerce"

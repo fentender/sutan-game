@@ -9,452 +9,77 @@
     "1": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "10": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "11": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "12": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "13": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "14": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "15": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "2": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "3": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "4": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "5": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "6": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "7": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "8": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     },
     "9": {
       "type": "object",
       "merge": "merge",
-      "fields": {
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
-        }
-      }
+      "_use_template": "music_entry"
     }
   }
 }

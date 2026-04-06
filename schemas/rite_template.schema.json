@@ -49,54 +49,91 @@
     "slots": {
       "type": "object",
       "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
-          "is_hide_bg": {
-            "type": "bool",
-            "merge": "replace"
-          },
-          "is_set_card_hide_bg": {
-            "type": "bool",
-            "merge": "replace"
-          },
-          "pos": {
-            "type": "object",
-            "merge": "merge",
-            "fields": {
-              "x": {
-                "type": "float",
-                "merge": "replace"
-              },
-              "y": {
-                "type": "float",
-                "merge": "replace"
-              }
-            }
-          },
-          "rotation_z": {
-            "type": "float",
-            "merge": "replace"
-          },
-          "scale": {
-            "type": "object",
-            "merge": "merge",
-            "fields": {
-              "x": {
-                "type": "float",
-                "merge": "replace"
-              },
-              "y": {
-                "type": "float",
-                "merge": "replace"
-              }
-            }
-          },
-          "slot_bg": {
-            "type": "string",
-            "merge": "replace"
-          }
+      "fields": {
+        "s1": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s10": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s11": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s12": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s13": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s14": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s15": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s16": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s17": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s2": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s3": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s4": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s5": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s6": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s7": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s8": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
+        },
+        "s9": {
+          "type": "object",
+          "merge": "merge",
+          "_use_template": "slot"
         }
       }
     },
