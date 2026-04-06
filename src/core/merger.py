@@ -616,6 +616,7 @@ def merge_file(
     mod_data_list: list[tuple[str, str, dict]],
     rel_path: str = "",
     schema: dict | None = None,
+    overrides_dir: Path | None = None,
 ) -> MergeResult:
     """
     合并单个文件。
@@ -625,6 +626,7 @@ def merge_file(
         mod_data_list: [(mod_id, mod_name, mod_json_data), ...] 按优先级排序
         rel_path: 文件相对路径（用于判断特殊文件）
         schema: 该文件对应的 schema 规则
+        overrides_dir: 用户 override 文件目录，存在时检查并加载用户编辑的合并结果
     """
     result = MergeResult()
     file_name = Path(rel_path).name if rel_path else ""
@@ -668,6 +670,12 @@ def merge_file(
             field_path = [root_key] if root_key else None
             current = deep_merge(current, mod_data, schema, field_path)
 
+        # 检查用户 override：如果存在则用 override 替换累积状态
+        if overrides_dir:
+            override_file = overrides_dir / mod_id / rel_path
+            if override_file.exists():
+                current = json.loads(override_file.read_text(encoding="utf-8"))
+
     result.merged_data = current
     return result
 
@@ -679,6 +687,8 @@ def merge_all_files(
     output_path: Path,
     schema_dir: Path | None = None,
     allow_deletions: bool = False,
+    cancel_check=None,
+    overrides_dir: Path | None = None,
 ) -> dict[str, MergeResult]:
     """
     合并所有文件。
@@ -689,6 +699,8 @@ def merge_all_files(
         output_path: 输出目录
         schema_dir: schema 规则文件目录
         allow_deletions: 是否允许删减（mod 中缺少的条目从结果中删除）
+        cancel_check: 可选的取消检查回调，调用时若已取消则抛出异常
+        overrides_dir: 用户 override 文件目录，存在时传递给 merge_file
     """
     diag.snapshot("merge")  # 清空上次的合并警告
 
@@ -699,6 +711,8 @@ def merge_all_files(
 
     results = {}
     for rel_path, mod_file_list in all_files.items():
+        if cancel_check:
+            cancel_check()
         # 加载游戏本体文件
         base_file = game_config_path / rel_path
         if base_file.exists():
@@ -730,7 +744,8 @@ def merge_all_files(
         schema = resolve_schema(rel_path, schemas) if schemas else None
 
         # 合并
-        merge_result = merge_file(base_data, mod_data_list, rel_path, schema=schema)
+        merge_result = merge_file(base_data, mod_data_list, rel_path,
+                                   schema=schema, overrides_dir=overrides_dir)
         results[rel_path] = merge_result
 
         # 输出

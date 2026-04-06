@@ -31,6 +31,9 @@ MERGED_OUTPUT_PATH = PROJECT_ROOT / "merged_output"
 # Schema 规则文件目录
 SCHEMA_DIR = PROJECT_ROOT / "schemas"
 
+# Mod 覆盖文件目录（用户手动编辑的合并结果）
+MOD_OVERRIDES_DIR = PROJECT_ROOT / "mod_overrides"
+
 # 合成 Mod 的 ID（放在 workshop 目录下）
 SYNTHETIC_MOD_ID = "0000000001"
 

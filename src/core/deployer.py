@@ -28,7 +28,8 @@ def generate_info_json(mod_names: list[str], output_path: Path):
 
 def copy_resources(
     mod_paths: list[tuple[str, Path]],
-    output_path: Path
+    output_path: Path,
+    cancel_check=None,
 ):
     """
     复制非 JSON 资源文件（图片等），按优先级顺序覆盖。
@@ -36,8 +37,11 @@ def copy_resources(
     参数:
         mod_paths: [(mod_name, mod_root_path), ...] 按优先级排序
         output_path: 输出目录
+        cancel_check: 可选的取消检查回调，调用时若已取消则抛出异常
     """
     for _, mod_path in mod_paths:
+        if cancel_check:
+            cancel_check()
         for f in mod_path.rglob("*"):
             if f.is_file() and f.suffix.lower() != '.json' and f.stem.lower() != 'preview':
                 rel = f.relative_to(mod_path)

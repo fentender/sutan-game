@@ -224,6 +224,7 @@ class ModListPanel(QWidget):
 
     def _on_toggle(self, mod_id: str, enabled: bool):
         self._enabled[mod_id] = enabled
+        self.order_changed.emit()
 
     def _on_item_moved(self, from_row: int, to_row: int):
         """拖拽排序后同步数据模型"""

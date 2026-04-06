@@ -9,15 +9,17 @@ from pathlib import Path
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTabWidget,
-    QTextEdit, QLabel, QSplitter, QWidget, QPushButton
+    QTextEdit, QLabel, QSplitter, QWidget, QPushButton,
+    QLineEdit, QMessageBox
 )
-from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QKeySequence, QShortcut
+from PySide6.QtCore import Qt, Signal
 
-from ..config import SCHEMA_DIR
-from ..core.json_parser import load_json
+from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
+from ..core.json_parser import load_json, strip_js_comments, strip_trailing_commas
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
+from .json_editor import CodeEditor, _format_with_comments
 
 _MONO_FONT = QFont("Consolas", 10)
 
@@ -46,7 +48,7 @@ class DiffDialog(QDialog):
         self._allow_deletions = allow_deletions
 
         # 预计算各级合并状态的 JSON 文本（轻量）
-        self._diff_pairs: list[tuple[str, str, str]] = []  # (mod_name, prev_text, curr_text)
+        self._diff_pairs: list[tuple[str, str, str, str]] = []  # (mod_id, mod_name, prev_text, curr_text)
         self._precompute_merge_states()
 
         # 懒加载标记：已填充 diff 的 tab 索引
@@ -65,6 +67,7 @@ class DiffDialog(QDialog):
 
     def _precompute_merge_states(self):
         """预计算逐级合并的 JSON 文本对，不涉及 UI 操作"""
+        self._diff_pairs.clear()
         base_file = self._game_config_path / self._rel_path
         base_data = load_json(base_file) if base_file.exists() else {}
 
@@ -76,7 +79,7 @@ class DiffDialog(QDialog):
         file_type = classify_json(base_data) if base_data else "config"
 
         current: dict = copy.deepcopy(base_data)
-        for _, mod_name, config_path in self._mod_configs:
+        for mod_id, mod_name, config_path in self._mod_configs:
             mod_file = config_path / self._rel_path
             if not mod_file.exists():
                 continue
@@ -106,7 +109,14 @@ class DiffDialog(QDialog):
                 current = deep_merge(current, delta, schema, field_path)  # type: ignore[assignment]
 
             curr_text = _format_json(current)
-            self._diff_pairs.append((mod_name, prev_text, curr_text))
+
+            # 检查是否存在用户 override
+            override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
+            if override_file.exists():
+                curr_text = override_file.read_text(encoding="utf-8")
+                current = json.loads(curr_text)
+
+            self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -118,6 +128,20 @@ class DiffDialog(QDialog):
         path_label.setFixedHeight(24)
         layout.addWidget(path_label)
 
+        # 搜索栏（默认隐藏）
+        self._search_bar = QLineEdit()
+        self._search_bar.setPlaceholderText(
+            "搜索... (Enter=下一个, Shift+Enter=上一个, Esc=关闭)")
+        self._search_bar.setVisible(False)
+        self._search_bar.returnPressed.connect(self._find_next)
+        layout.addWidget(self._search_bar)
+
+        QShortcut(QKeySequence("Ctrl+F"), self, self._toggle_search)
+        QShortcut(QKeySequence("Shift+Return"), self._search_bar,
+                  self._find_prev)
+        QShortcut(QKeySequence("Escape"), self._search_bar,
+                  self._close_search)
+
         if not self._diff_pairs:
             placeholder = QLabel("没有 Mod 修改此文件")
             placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -126,7 +150,7 @@ class DiffDialog(QDialog):
 
         self._tabs = QTabWidget()
         # 先创建所有 tab 的空壳
-        for idx, (mod_name, _, _) in enumerate(self._diff_pairs):
+        for idx, (_, mod_name, _, _) in enumerate(self._diff_pairs):
             tab, left_edit, right_edit, btn_prev, count_lbl, btn_next = self._create_empty_tab(mod_name, idx)
             self._tabs.addTab(tab, f"↔ {mod_name}")
             self._tab_edits.append((left_edit, right_edit))
@@ -174,6 +198,17 @@ class DiffDialog(QDialog):
 
         btn_prev.clicked.connect(lambda: self._goto_diff(tab_index, -1))
         btn_next.clicked.connect(lambda: self._goto_diff(tab_index, 1))
+
+        # 编辑和重置按钮
+        btn_edit = QPushButton("编辑合并结果")
+        btn_edit.setFixedWidth(100)
+        btn_edit.clicked.connect(lambda: self._edit_override(tab_index))
+        label_layout.addWidget(btn_edit)
+
+        btn_reset = QPushButton("重置为默认")
+        btn_reset.setFixedWidth(80)
+        btn_reset.clicked.connect(lambda: self._reset_override(tab_index))
+        label_layout.addWidget(btn_reset)
 
         vlayout.addLayout(label_layout)
 
@@ -226,7 +261,7 @@ class DiffDialog(QDialog):
             return
         self._loaded_tabs.add(index)
 
-        _, prev_text, curr_text = self._diff_pairs[index]
+        _, _, prev_text, curr_text = self._diff_pairs[index]
         left_edit, right_edit = self._tab_edits[index]
 
         left_lines = prev_text.splitlines()
@@ -276,6 +311,212 @@ class DiffDialog(QDialog):
             layout = doc.documentLayout()
             y = layout.blockBoundingRect(block).y()
             left_edit.verticalScrollBar().setValue(int(y))
+
+    def _toggle_search(self):
+        visible = not self._search_bar.isVisible()
+        self._search_bar.setVisible(visible)
+        if visible:
+            self._search_bar.setFocus()
+            self._search_bar.selectAll()
+
+    def _close_search(self):
+        self._search_bar.setVisible(False)
+
+    def _find_next(self):
+        text = self._search_bar.text()
+        if not text:
+            return
+        idx = self._tabs.currentIndex()
+        left_edit, right_edit = self._tab_edits[idx]
+        if not left_edit.find(text):
+            cursor = left_edit.textCursor()
+            cursor.movePosition(cursor.MoveOperation.Start)
+            left_edit.setTextCursor(cursor)
+            left_edit.find(text)
+        if not right_edit.find(text):
+            cursor = right_edit.textCursor()
+            cursor.movePosition(cursor.MoveOperation.Start)
+            right_edit.setTextCursor(cursor)
+            right_edit.find(text)
+
+    def _find_prev(self):
+        text = self._search_bar.text()
+        if not text:
+            return
+        from PySide6.QtGui import QTextDocument
+        idx = self._tabs.currentIndex()
+        left_edit, right_edit = self._tab_edits[idx]
+        left_edit.find(text, QTextDocument.FindFlag.FindBackward)
+        right_edit.find(text, QTextDocument.FindFlag.FindBackward)
+
+    def _edit_override(self, tab_index: int):
+        """弹出编辑器编辑当前 tab 的合并结果"""
+        mod_id, mod_name, _, curr_text = self._diff_pairs[tab_index]
+        dlg = OverrideEditorDialog(
+            curr_text, f"编辑合并结果 - {mod_name} - {self._rel_path}",
+            parent=self
+        )
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            edited_text = dlg.get_text()
+            override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
+            override_file.parent.mkdir(parents=True, exist_ok=True)
+            override_file.write_text(edited_text, encoding="utf-8")
+            self._refresh_all()
+
+    def _reset_override(self, tab_index: int):
+        """删除 override 文件并刷新"""
+        mod_id, mod_name, _, _ = self._diff_pairs[tab_index]
+        override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
+        if not override_file.exists():
+            QMessageBox.information(self, "提示", f"{mod_name} 没有自定义覆盖")
+            return
+        override_file.unlink()
+        # 清理空目录
+        if override_file.parent.exists() and not any(override_file.parent.iterdir()):
+            override_file.parent.rmdir()
+        self._refresh_all()
+
+    def _refresh_all(self):
+        """重新预计算并刷新所有 tab"""
+        current_tab = self._tabs.currentIndex()
+        self._precompute_merge_states()
+        self._loaded_tabs.clear()
+        # 重新填充 diff 内容（tab 壳已存在，只需刷新内容）
+        # 如果 diff_pairs 数量变了需要重建 tab，但通常 override 不影响数量
+        for i in range(len(self._diff_pairs)):
+            if i < len(self._tab_edits):
+                self._tab_diff_positions[i] = []
+                self._tab_current_idx[i] = -1
+        if current_tab < len(self._diff_pairs):
+            self._load_tab(current_tab)
+
+
+class OverrideEditorDialog(QDialog):
+    """合并结果编辑器，支持 Ctrl+F 搜索和 JSON 格式化"""
+
+    def __init__(self, text: str, title: str, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.resize(800, 600)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
+        self._build_ui(text)
+
+    def _build_ui(self, text: str):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(4)
+
+        # 错误提示条
+        self._error_bar = QLabel()
+        self._error_bar.setStyleSheet(
+            "background-color: #5a1a1a; color: #f99; padding: 4px 8px; font-weight: bold;"
+        )
+        self._error_bar.setFixedHeight(28)
+        self._error_bar.setVisible(False)
+        layout.addWidget(self._error_bar)
+
+        # 搜索栏（默认隐藏）
+        self._search_bar = QLineEdit()
+        self._search_bar.setPlaceholderText("搜索... (Enter=下一个, Shift+Enter=上一个, Esc=关闭)")
+        self._search_bar.setVisible(False)
+        self._search_bar.returnPressed.connect(self._find_next)
+        layout.addWidget(self._search_bar)
+
+        # 编辑区
+        self._editor = CodeEditor()
+        self._editor.setPlainText(text)
+        layout.addWidget(self._editor, 1)
+
+        # 快捷键
+        QShortcut(QKeySequence("Ctrl+F"), self, self._toggle_search)
+        QShortcut(QKeySequence("Shift+Return"), self._search_bar, self._find_prev)
+        QShortcut(QKeySequence("Escape"), self._search_bar, self._close_search)
+
+        # 底部按钮
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
+        btn_format = QPushButton("格式化")
+        btn_format.setStyleSheet("padding: 4px 16px;")
+        btn_format.clicked.connect(self._format)
+        btn_layout.addWidget(btn_format)
+
+        btn_save = QPushButton("保存")
+        btn_save.setStyleSheet("font-weight: bold; padding: 4px 16px;")
+        btn_save.clicked.connect(self._save)
+        btn_layout.addWidget(btn_save)
+
+        btn_cancel = QPushButton("取消")
+        btn_cancel.setStyleSheet("padding: 4px 16px;")
+        btn_cancel.clicked.connect(self.reject)
+        btn_layout.addWidget(btn_cancel)
+
+        layout.addLayout(btn_layout)
+
+    def get_text(self) -> str:
+        return self._editor.toPlainText()
+
+    def _toggle_search(self):
+        visible = not self._search_bar.isVisible()
+        self._search_bar.setVisible(visible)
+        if visible:
+            self._search_bar.setFocus()
+            self._search_bar.selectAll()
+
+    def _close_search(self):
+        self._search_bar.setVisible(False)
+        self._editor.setFocus()
+
+    def _find_next(self):
+        text = self._search_bar.text()
+        if text:
+            self._editor.find(text)
+
+    def _find_prev(self):
+        text = self._search_bar.text()
+        if text:
+            from PySide6.QtGui import QTextDocument
+            self._editor.find(text, QTextDocument.FindFlag.FindBackward)
+
+    def _detect_error(self) -> tuple[int | None, str]:
+        """检测 JSON 语法错误，返回 (行号, 错误消息) 或 (None, "")"""
+        text = self._editor.toPlainText()
+        cleaned = strip_trailing_commas(strip_js_comments(text))
+        try:
+            json.loads(cleaned)
+            return None, ""
+        except json.JSONDecodeError as e:
+            return e.lineno, e.msg
+
+    def _update_error_bar(self):
+        line, msg = self._detect_error()
+        if line is not None:
+            self._error_bar.setText(f"第 {line} 行: {msg}")
+            self._error_bar.setVisible(True)
+            self._editor.highlight_line(line, scroll_to=False)
+        else:
+            self._error_bar.setVisible(False)
+            self._editor.clear_highlights()
+
+    def _format(self):
+        text = self._editor.toPlainText()
+        formatted = _format_with_comments(text)
+        scroll_val = self._editor.verticalScrollBar().value()
+        self._editor.setPlainText(formatted)
+        self._editor.verticalScrollBar().setValue(scroll_val)
+        self._update_error_bar()
+
+    def _save(self):
+        """验证 JSON 后接受对话框"""
+        line, msg = self._detect_error()
+        if line is not None:
+            self._error_bar.setText(f"第 {line} 行: {msg}")
+            self._error_bar.setVisible(True)
+            self._editor.highlight_line(line)
+            QMessageBox.warning(self, "JSON 语法错误",
+                                f"第 {line} 行: {msg}\n请修正后再保存。")
+            return
+        self.accept()
 
 
 def _format_json(data: object) -> str:
