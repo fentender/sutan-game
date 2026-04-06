@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QLineEdit, QPushButton
 )
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 from ..core.conflict import FileOverrideInfo
 from ..core.schema_generator import SEP
@@ -16,6 +16,7 @@ from ..core.schema_generator import SEP
 
 class OverridePanel(QWidget):
     """覆盖详情面板"""
+    diff_requested = Signal(str)  # rel_path
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -103,21 +104,10 @@ class OverridePanel(QWidget):
         # 只响应文件级节点（顶层节点）
         if item.parent() is not None:
             return
-        if self._game_config_path is None or self._mod_configs is None:
-            return
         info: FileOverrideInfo = item.data(0, Qt.ItemDataRole.UserRole)
         if info is None:
             return
-
-        from .diff_dialog import DiffDialog
-        dlg = DiffDialog(
-            rel_path=info.rel_path,
-            game_config_path=self._game_config_path,
-            mod_configs=self._mod_configs,
-            allow_deletions=self._allow_deletions,
-            parent=self
-        )
-        dlg.exec()
+        self.diff_requested.emit(info.rel_path)
 
     def set_data(self, overrides: list[FileOverrideInfo],
                  game_config_path: Path = None,

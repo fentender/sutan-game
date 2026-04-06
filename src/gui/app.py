@@ -93,6 +93,15 @@ class AnalyzeWorker(QThread):
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.schema_dir = schema_dir
+        self._cancelled = threading.Event()
+
+    def cancel(self):
+        """请求取消"""
+        self._cancelled.set()
+
+    def _check_cancel(self):
+        if self._cancelled.is_set():
+            raise _MergeCancelled()
 
     def run(self):
         try:
@@ -101,9 +110,12 @@ class AnalyzeWorker(QThread):
                 self.game_config_path,
                 self.mod_configs,
                 schema_dir=self.schema_dir,
+                cancel_check=self._check_cancel,
             )
             parse_msgs = diag.snapshot("parse")
             self.finished.emit(overrides, parse_msgs)
+        except _MergeCancelled:
+            pass  # 静默退出
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
@@ -119,12 +131,19 @@ class MainWindow(QMainWindow):
         self.config = UserConfig.load()
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
+        self._pending_action = None  # 等待分析完成后执行的操作
+
+        # 防抖定时器：快速连续操作只触发一次分析
+        self._analyze_timer = QTimer()
+        self._analyze_timer.setSingleShot(True)
+        self._analyze_timer.setInterval(300)
+        self._analyze_timer.timeout.connect(self._analyze_conflicts)
 
         self._setup_menu()
         self._setup_ui()
         self._setup_statusbar()
         self._load_mods()
-        QTimer.singleShot(0, self._analyze_conflicts)
+        self._schedule_analyze()
 
     def _setup_menu(self):
         menubar = self.menuBar()
@@ -231,6 +250,7 @@ class MainWindow(QMainWindow):
         # 信号连接
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
         self.mod_list_panel.order_changed.connect(self._save_config)
+        self.override_panel.diff_requested.connect(self._open_diff)
 
     def _setup_statusbar(self):
         self.statusBar().showMessage("就绪")
@@ -300,6 +320,11 @@ class MainWindow(QMainWindow):
         self.config.mod_order = new_order
         self.config.enabled_mods = new_enabled
         self.config.save()
+        self._schedule_analyze()
+
+    def _schedule_analyze(self):
+        """防抖触发冲突分析（重置 300ms 定时器）"""
+        self._analyze_timer.start()
 
     def _invalidate_stale_overrides(self, old_ids: list[str],
                                      new_ids: list[str]):
@@ -343,8 +368,14 @@ class MainWindow(QMainWindow):
         ]
 
     def _analyze_conflicts(self):
-        """异步分析冲突"""
-        self._save_config()
+        """异步分析冲突（由防抖定时器触发）"""
+        # 取消正在进行的分析，等待线程退出（避免 QThread 被销毁时仍在运行）
+        if self._analyze_worker and self._analyze_worker.isRunning():
+            self._analyze_worker.finished.disconnect()
+            self._analyze_worker.error.disconnect()
+            self._analyze_worker.cancel()
+            self._analyze_worker.wait()
+
         mod_configs = self._get_mod_configs()
         if not mod_configs:
             self.override_panel.clear()
@@ -380,13 +411,42 @@ class MainWindow(QMainWindow):
             f"{conflict_count} 个存在冲突"
         )
 
+        # 执行挂起的操作
+        if self._pending_action:
+            action = self._pending_action
+            self._pending_action = None
+            action()
+
     def _on_analyze_error(self, error: str):
         self.progress_bar.setVisible(False)
         self.statusBar().showMessage(f"分析失败: {error}")
         self._log_message(ERROR, f"冲突分析失败: {error}")
 
+    def _open_diff(self, rel_path: str):
+        """打开 Diff 对比窗口（分析进行中则排队等待）"""
+        if self._analyze_worker and self._analyze_worker.isRunning():
+            self.statusBar().showMessage("等待冲突分析完成...")
+            self._pending_action = lambda: self._open_diff(rel_path)
+            return
+
+        mod_configs = self._get_mod_configs()
+        from .diff_dialog import DiffDialog
+        dlg = DiffDialog(
+            rel_path=rel_path,
+            game_config_path=self.config.game_config_path,
+            mod_configs=mod_configs,
+            allow_deletions=self.config.allow_deletions,
+            parent=self,
+        )
+        dlg.exec()
+
     def _execute_merge(self):
         """执行合并"""
+        if self._analyze_worker and self._analyze_worker.isRunning():
+            self.statusBar().showMessage("等待冲突分析完成...")
+            self._pending_action = self._execute_merge
+            return
+
         self._save_config()
         mod_configs = self._get_mod_configs()
         if not mod_configs:

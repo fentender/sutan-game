@@ -260,6 +260,7 @@ def analyze_all_overrides(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
     schema_dir: Path | None = None,
+    cancel_check=None,
 ) -> list[FileOverrideInfo]:
     """
     分析所有文件的覆盖情况。
@@ -268,7 +269,7 @@ def analyze_all_overrides(
         game_config_path: 游戏本体 config 目录
         mod_configs: [(mod_id, mod_name, mod_config_path), ...] 按优先级排序
         schema_dir: schema 规则文件目录
-
+        cancel_check: 可选的取消检查回调，调用时若已取消则抛出异常
     返回:
         FileOverrideInfo 列表
     """
@@ -277,6 +278,8 @@ def analyze_all_overrides(
 
     results = []
     for rel_path, mod_file_list in sorted(all_files.items()):
+        if cancel_check:
+            cancel_check()
         base_file = game_config_path / rel_path
         if base_file.exists():
             try:
