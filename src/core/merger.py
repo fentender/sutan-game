@@ -45,142 +45,85 @@ class MergeResult:
     new_entries: list[tuple[str, str, str]] = field(default_factory=list)  # (file, mod_name, description)
 
 
-def is_rite_settlement(items: list[dict]) -> bool:
-    """判断数组是否是 rite 风格的 settlement（含 condition / result_title 等字段）"""
-    if not items:
-        return False
-    sample = items[0]
-    return isinstance(sample, dict) and ('condition' in sample or 'result_title' in sample)
+# ==================== 统一数组元素匹配 ====================
 
-
-def is_event_settlement(items: list[dict]) -> bool:
-    """判断数组是否是 event 风格的 settlement（含 tips_text / action 等字段）"""
-    if not items:
-        return False
-    sample = items[0]
-    return isinstance(sample, dict) and 'action' in sample and 'condition' not in sample
-
-
-# ==================== Rite 风格匹配 ====================
-
-def find_matching_rite_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
+def find_matching_item(base_arr: list[dict], mod_item: dict,
+                       matched: set[int], match_keys: list[str]) -> int | None:
     """
-    在 rite 的 base 数组中查找与 mod_item 匹配的条目。
-    四级优先级依次尝试，第一个命中即返回。
+    按 match_keys 中所有字段精确匹配，全部相等才算匹配到。
+    返回 base_arr 中第一个匹配元素的索引，或 None。
+    （用于一对一场景，如 conflict 差异对比）
     """
-    mod_cond = mod_item.get('condition', {})
-
-    # 级别1: guid 精确匹配
-    mod_guid = mod_item.get('guid')
-    if mod_guid:
-        for i, base_item in enumerate(base_arr):
-            if i not in matched and base_item.get('guid') == mod_guid:
-                return i
-
-    # 级别2: condition 中的槽位引用匹配（s1.is, s2.is, s3.is 等）
-    slot_keys = [k for k in mod_cond if '.is' in k and k.split('.')[0].startswith('s')]
-    if slot_keys:
-        for i, base_item in enumerate(base_arr):
-            if i in matched:
-                continue
-            base_cond = base_item.get('condition', {})
-            if all(base_cond.get(k) == mod_cond[k] for k in slot_keys):
-                return i
-
-    # 级别3: condition 完整内容序列化匹配
-    if mod_cond:
-        mod_cond_str = json.dumps(mod_cond, sort_keys=True, ensure_ascii=False)
-        for i, base_item in enumerate(base_arr):
-            if i in matched:
-                continue
-            base_cond_str = json.dumps(
-                base_item.get('condition', {}), sort_keys=True, ensure_ascii=False
-            )
-            if base_cond_str == mod_cond_str:
-                return i
-
-    # 级别4: result_title + result_text 组合匹配
-    mod_title = mod_item.get('result_title', '')
-    mod_text = mod_item.get('result_text', '')
-    if mod_title or mod_text:
-        for i, base_item in enumerate(base_arr):
-            if i in matched:
-                continue
-            if (base_item.get('result_title', '') == mod_title and
-                    base_item.get('result_text', '') == mod_text):
-                return i
-
-    return None
-
-
-# ==================== Event 风格匹配 ====================
-
-def find_matching_event_item(base_arr: list[dict], mod_item: dict, matched: set[int]) -> int | None:
-    """
-    在 event 的 base 数组中查找与 mod_item 匹配的条目。
-    event settlement 结构: {tips_resource, tips_text, action}
-    """
-    mod_action = mod_item.get('action', {})
-
-    # 级别1: action 内容中的关键指令匹配（rite, event_on, prompt.id, option.id 等）
-    mod_keys = extract_action_keys(mod_action)
-    if mod_keys:
-        for i, base_item in enumerate(base_arr):
-            if i in matched:
-                continue
-            base_keys = extract_action_keys(base_item.get('action', {}))
-            if base_keys and base_keys == mod_keys:
-                return i
-
-    # 级别2: action 完整内容序列化匹配
-    if mod_action:
-        mod_str = json.dumps(mod_action, sort_keys=True, ensure_ascii=False)
-        for i, base_item in enumerate(base_arr):
-            if i in matched:
-                continue
-            base_str = json.dumps(base_item.get('action', {}), sort_keys=True, ensure_ascii=False)
-            if base_str == mod_str:
-                return i
-
-    return None
-
-
-def extract_action_keys(action: dict) -> set[str]:
-    """提取 action 中的关键标识（rite ID, event_on ID, prompt.id, option.id 等）"""
-    keys = set()
-    if not isinstance(action, dict):
-        return keys
-
-    if 'rite' in action:
-        keys.add(f"rite:{action['rite']}")
-    if 'event_on' in action:
-        val = action['event_on']
-        if isinstance(val, list):
-            for v in val:
-                keys.add(f"event_on:{v}")
-        else:
-            keys.add(f"event_on:{val}")
-    if isinstance(action.get('prompt'), dict) and 'id' in action['prompt']:
-        keys.add(f"prompt:{action['prompt']['id']}")
-    if isinstance(action.get('option'), dict) and 'id' in action['option']:
-        keys.add(f"option:{action['option']['id']}")
-    if isinstance(action.get('confirm'), dict) and 'id' in action['confirm']:
-        keys.add(f"confirm:{action['confirm']['id']}")
-
-    return keys
-
-
-def find_matching_tag_item(base_arr, mod_item, matched):
-    """按 tag 字段精确匹配"""
-    mod_tag = mod_item.get('tag')
-    if mod_tag is None:
-        return None
     for i, base_item in enumerate(base_arr):
         if i in matched:
             continue
-        if isinstance(base_item, dict) and base_item.get('tag') == mod_tag:
+        if all(
+            key in mod_item and key in base_item
+            and mod_item[key] == base_item[key]
+            for key in match_keys
+        ):
             return i
     return None
+
+
+def _item_similarity(a: dict, b: dict) -> float:
+    """计算两个 dict 的字符串相似度（0.0 ~ 1.0）"""
+    from difflib import SequenceMatcher
+    a_str = json.dumps(a, sort_keys=True, ensure_ascii=False)
+    b_str = json.dumps(b, sort_keys=True, ensure_ascii=False)
+    return SequenceMatcher(None, a_str, b_str).ratio()
+
+
+def _resolve_duplicates(
+    mod_items: list[tuple[int, dict]],
+    base_arr: list,
+    base_indices: list[int],
+) -> tuple[list[tuple[int, dict, int]], list[tuple[int, dict]]]:
+    """
+    多对多相似度匹配：mod 侧和 base 侧各有多个同 key 元素。
+    贪心策略：每次从所有 mod×base 配对中选相似度最高的一对，
+    双方移出待匹配池，重复直到 base 候选耗尽。
+
+    参数:
+        mod_items: [(mod 在 mod_arr 中的原始索引, mod_item), ...]
+        base_arr: result 数组的引用
+        base_indices: base 中候选元素的索引列表
+
+    返回:
+        matched_pairs: [(mod_orig_idx, mod_item, base_idx), ...]
+        unmatched_mod: [(mod_orig_idx, mod_item), ...] — 未匹配的 mod 元素（新增）
+    """
+    if not base_indices:
+        return [], list(mod_items)
+
+    remaining_mod = list(mod_items)
+    remaining_base = list(base_indices)
+    matched_pairs = []
+
+    while remaining_base and remaining_mod:
+        best_ratio = -1.0
+        best_mi = 0
+        best_bi = 0
+        for mi, (_, mod_item) in enumerate(remaining_mod):
+            for bi, base_idx in enumerate(remaining_base):
+                ratio = _item_similarity(mod_item, base_arr[base_idx])
+                if ratio > best_ratio:
+                    best_ratio = ratio
+                    best_mi = mi
+                    best_bi = bi
+        mod_orig_idx, mod_item = remaining_mod.pop(best_mi)
+        base_idx = remaining_base.pop(best_bi)
+        matched_pairs.append((mod_orig_idx, mod_item, base_idx))
+
+    return matched_pairs, remaining_mod
+
+
+def _get_key_vals(item: dict, match_keys: list[str]) -> tuple | None:
+    """提取 match_key 值元组，任一 key 缺失则返回 None"""
+    vals = tuple(item.get(k) for k in match_keys)
+    if any(v is None for v in vals):
+        return None
+    return vals
 
 
 # ==================== 通用数组合并 ====================
@@ -190,63 +133,149 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
                             element_path: list[str] | None,
                             game_base_arr: list | None = None) -> list:
     """
-    智能合并 settlement 类数组。
-    自动识别 rite 风格和 event 风格，使用对应的匹配策略。
+    智能合并 array<object> 数组。
+    从 schema 读取 match_key 指定匹配字段，按精确匹配合并。
+    同 key 多对多时用字符串相似度做全局最优配对。
     保持 base 顺序不变，匹配的条目原地合并，新增条目追加到末尾。
     若提供 game_base_arr，合并时只应用 mod 相对于游戏本体的变化字段。
     """
     result = copy.deepcopy(base_arr)
     matched = set()
 
-    # 优先从 schema 判断匹配策略
-    match_strategy = None
+    # 从 schema 读取 match_key
+    match_keys = None
     if schema and element_path:
-        field_def = get_field_def(schema, element_path)  # 获取数组字段本身的定义
+        field_def = get_field_def(schema, element_path)
         if field_def:
-            match_strategy = field_def.get("match_strategy")
+            match_keys = field_def.get("match_key")
 
-    if match_strategy == "event":
-        find_fn = find_matching_event_item
-    elif match_strategy == "rite":
-        find_fn = find_matching_rite_item
-    elif match_strategy == "tag":
-        find_fn = find_matching_tag_item
-    elif is_event_settlement(mod_arr) or is_event_settlement(base_arr):
-        find_fn = find_matching_event_item
-    else:
-        find_fn = find_matching_rite_item
+    if not match_keys:
+        raise ValueError(
+            f"smart_match 数组缺少 match_key 定义 (path: {element_path})"
+        )
 
-    to_remove = set()
+    # 有游戏本体参照时，按 match_key 建立索引（支持重复 key）
+    gb_index: dict[tuple, list[int]] = {}
+    if game_base_arr:
+        for gi, gb_item in enumerate(game_base_arr):
+            if isinstance(gb_item, dict):
+                kv = _get_key_vals(gb_item, match_keys)
+                if kv is not None:
+                    gb_index.setdefault(kv, []).append(gi)
+    gb_matched: set[int] = set()  # 已配对的 game_base 索引
+
+    # --- 第一阶段：按 match_key 值将 mod 元素分组 ---
+    mod_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
+    deleted_items: list[dict] = []
+    new_entry_items: list[dict] = []
     for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
             continue
-
-        # 删除标记：从结果中移除匹配元素
         if mod_item.get('_deleted'):
-            idx = find_fn(result, mod_item, matched)
-            if idx is not None:
-                to_remove.add(idx)
-                matched.add(idx)
+            deleted_items.append(mod_item)
             continue
-
-        # 有游戏本体参照：按位置对应（mod 是本体的拷贝，索引一一对应）
-        if game_base_arr and i < len(game_base_arr) and i < len(result):
-            gb_item = game_base_arr[i]
-            elem_delta = _recursive_delta(gb_item, mod_item)
-            if elem_delta is None:
-                matched.add(i)
-                continue  # 此元素相对游戏本体无变化
-            result[i] = deep_merge(result[i], elem_delta, schema, element_path)
-            matched.add(i)
+        if mod_item.get('_new_entry'):
+            # delta 阶段已确定为新增的元素，跳过 game_base 匹配，直接追加
+            clean = {k: v for k, v in mod_item.items() if k != '_new_entry'}
+            new_entry_items.append(clean)
             continue
+        kv = _get_key_vals(mod_item, match_keys)
+        mod_groups.setdefault(kv, []).append((i, mod_item))
 
-        # 无 game_base 或位置超出（mod 新增的元素）：用 mod 元素匹配
-        idx = find_fn(result, mod_item, matched)
+    # --- 处理删除标记 ---
+    to_remove = set()
+    for mod_item in deleted_items:
+        idx = find_matching_item(result, mod_item, matched, match_keys)
         if idx is not None:
-            result[idx] = deep_merge(result[idx], mod_item, schema, element_path)
+            to_remove.add(idx)
             matched.add(idx)
+
+    # --- 第二阶段：收集 result 中各 key 值对应的索引 ---
+    result_index: dict[tuple, list[int]] = {}
+    for ri, r_item in enumerate(result):
+        if isinstance(r_item, dict):
+            kv = _get_key_vals(r_item, match_keys)
+            if kv is not None:
+                result_index.setdefault(kv, []).append(ri)
+
+    # --- 第三阶段：逐组匹配并合并 ---
+    def _pick_best_res(mod_item: dict, candidates: list[int]) -> int | None:
+        """从 result 候选中选最佳匹配，返回索引并从 candidates 中移除"""
+        if not candidates:
+            return None
+        if len(candidates) == 1:
+            return candidates.pop(0)
+        # 多候选：用相似度
+        pairs, _ = _resolve_duplicates([(0, mod_item)], result, candidates)
+        if pairs:
+            idx = pairs[0][2]
+            candidates.remove(idx)
+            return idx
+        return None
+
+    def _apply_to_result(mod_item: dict, merge_data: dict,
+                         candidates: list[int]) -> None:
+        """将 merge_data 合并到 result 中最佳候选，或追加"""
+        res_idx = _pick_best_res(mod_item, candidates)
+        if res_idx is not None:
+            result[res_idx] = deep_merge(
+                result[res_idx], merge_data, schema, element_path
+            )
+            matched.add(res_idx)
         else:
             result.append(copy.deepcopy(mod_item))
+
+    for kv, mod_items in mod_groups.items():
+        if kv is None:
+            # match_key 缺失的 mod 元素直接追加
+            for _, mod_item in mod_items:
+                result.append(copy.deepcopy(mod_item))
+            continue
+
+        # 收集 result 中未匹配的同 key 候选
+        res_candidates = [ri for ri in result_index.get(kv, []) if ri not in matched]
+
+        # 有 game_base 参照：先与 game_base 配对算 delta
+        gb_candidates = [gi for gi in gb_index.get(kv, []) if gi not in gb_matched]
+        if game_base_arr and gb_candidates:
+            gb_pairs, gb_unmatched = _resolve_duplicates(
+                mod_items, game_base_arr, gb_candidates
+            )
+            for _, mod_item, gb_idx in gb_pairs:
+                gb_matched.add(gb_idx)
+                elem_delta = _recursive_delta(game_base_arr[gb_idx], mod_item)
+                if elem_delta is None:
+                    # 无变化，仅标记 result 对应元素已处理
+                    res_idx = _pick_best_res(mod_item, res_candidates)
+                    if res_idx is not None:
+                        matched.add(res_idx)
+                elif isinstance(elem_delta, dict):
+                    _apply_to_result(mod_item, elem_delta, res_candidates)
+
+            # gb_unmatched: game_base 中没有对应的 → mod 新增的元素
+            for _, mod_item in gb_unmatched:
+                _apply_to_result(mod_item, mod_item, res_candidates)
+            continue
+
+        # 无 game_base：mod 元素与 result 做全局最优配对
+        if res_candidates:
+            pairs, unmatched = _resolve_duplicates(
+                mod_items, result, res_candidates
+            )
+            for _, mod_item, res_idx in pairs:
+                result[res_idx] = deep_merge(
+                    result[res_idx], mod_item, schema, element_path
+                )
+                matched.add(res_idx)
+            for _, mod_item in unmatched:
+                result.append(copy.deepcopy(mod_item))
+        else:
+            for _, mod_item in mod_items:
+                result.append(copy.deepcopy(mod_item))
+
+    # 追加 delta 阶段标记的新增元素
+    for item in new_entry_items:
+        result.append(copy.deepcopy(item))
 
     # 移除标记删除的元素
     if to_remove:
@@ -414,7 +443,7 @@ def deep_merge(base: object, override: object,
             known_keys = set(current_def["fields"].keys())
         else:
             # 检查是否是字段列表层：每个 value 都是 field_def
-            meta_keys = {"type", "merge", "fields", "element", "match_strategy",
+            meta_keys = {"type", "merge", "fields", "element", "match_key",
                          "_template", "_use_template", "_templates"}
             field_candidates = {k for k in current_def if k not in meta_keys}
             if field_candidates and all(
@@ -525,32 +554,72 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
     """
     对象数组的元素级 delta（按 match_key 匹配）。
     每个 delta 元素只含变化字段 + match_key。
+    同 key 多对多时用相似度做全局最优配对。
     返回 None 表示无变化。
     """
-    base_map: dict = {item[match_key]: item
-                      for item in base_arr if match_key in item}
+    # base 按 key 分组（支持重复 key）
+    base_groups: dict = {}
+    for item in base_arr:
+        kv = item.get(match_key)
+        if kv is not None:
+            base_groups.setdefault(kv, []).append(item)
+
+    # mod 按 key 分组
+    mod_groups: dict = {}
+    mod_no_key: list[dict] = []
+    for item in mod_arr:
+        kv = item.get(match_key)
+        if kv is not None:
+            mod_groups.setdefault(kv, []).append(item)
+        else:
+            mod_no_key.append(item)
 
     delta_items: list[dict] = []
     seen_keys: set = set()
-    for mod_item in mod_arr:
-        kv = mod_item.get(match_key)
-        if kv is not None:
-            seen_keys.add(kv)
-        base_item = base_map.get(kv) if kv is not None else None
-        if base_item is not None:
-            elem_delta = _recursive_delta(base_item, mod_item, allow_deletions)
+
+    for kv, mod_items in mod_groups.items():
+        seen_keys.add(kv)
+        base_items = base_groups.get(kv, [])
+
+        if not base_items:
+            # 全部新增，标记 _new_entry 以防下游重复匹配 game_base
+            for mod_item in mod_items:
+                new_item = copy.deepcopy(mod_item)
+                new_item['_new_entry'] = True
+                delta_items.append(new_item)
+            continue
+
+        # 全局最优配对
+        mod_indexed = list(enumerate(mod_items))
+        base_indices = list(range(len(base_items)))
+        pairs, unmatched = _resolve_duplicates(
+            mod_indexed, base_items, base_indices
+        )
+
+        for _, mod_item, base_idx in pairs:
+            elem_delta = _recursive_delta(base_items[base_idx], mod_item, allow_deletions)
             if elem_delta is not None:
-                elem_delta[match_key] = kv  # 保留 key 用于合并匹配
+                elem_delta[match_key] = kv
                 delta_items.append(elem_delta)
-        else:
-            # 新增元素，完整保留
-            delta_items.append(copy.deepcopy(mod_item))
+
+        for _, mod_item in unmatched:
+            # mod 剩余的作为新增，标记 _new_entry
+            new_item = copy.deepcopy(mod_item)
+            new_item['_new_entry'] = True
+            delta_items.append(new_item)
+
+    # 无 key 的 mod 元素直接作为新增
+    for item in mod_no_key:
+        new_item = copy.deepcopy(item)
+        new_item['_new_entry'] = True
+        delta_items.append(new_item)
 
     # 标记删除的元素
     if allow_deletions:
-        for kv in base_map:
+        for kv, base_items in base_groups.items():
             if kv not in seen_keys:
-                delta_items.append({match_key: kv, '_deleted': True})
+                for _ in base_items:
+                    delta_items.append({match_key: kv, '_deleted': True})
 
     return delta_items if delta_items else None
 

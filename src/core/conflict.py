@@ -11,11 +11,7 @@ from .mod_scanner import collect_mod_files
 from .diagnostics import diag
 from .schema_generator import SEP
 from .schema_loader import load_schemas, resolve_schema, get_field_def, get_schema_root_key
-from .merger import (
-    find_matching_rite_item, find_matching_event_item,
-    find_matching_tag_item, is_event_settlement,
-    extract_action_keys,
-)
+from .merger import find_matching_item, _resolve_duplicates, _get_key_vals
 
 log = logging.getLogger(__name__)
 
@@ -53,69 +49,84 @@ class FileOverrideInfo:
 
 # ==================== 数组匹配辅助 ====================
 
-def _get_match_fn(match_strategy, base_arr, mod_arr):
-    """根据匹配策略返回匹配函数"""
-    if match_strategy == "event":
-        return find_matching_event_item
-    elif match_strategy == "tag":
-        return find_matching_tag_item
-    elif match_strategy == "rite":
-        return find_matching_rite_item
-    # fallback：自动检测
-    elif is_event_settlement(mod_arr) or is_event_settlement(base_arr):
-        return find_matching_event_item
-    else:
-        return find_matching_rite_item
-
-
-def _make_element_label(item, match_strategy):
+def _make_element_label(item, match_keys):
     """为数组元素生成可读标识"""
     if not isinstance(item, dict):
         return str(item)
-    if match_strategy == "tag":
-        return item.get("tag", "?")
-    if "guid" in item:
-        return f"guid={item['guid']}"
-    if "result_title" in item:
-        title = item["result_title"]
-        return title[:20] if len(title) > 20 else title
-    if "action" in item:
-        keys = extract_action_keys(item.get("action", {}))
-        if keys:
-            return next(iter(keys))
+    parts = []
+    for key in match_keys:
+        if key in item:
+            val_str = str(item[key])
+            if len(val_str) > 20:
+                val_str = val_str[:20] + "..."
+            parts.append(f"{key}={val_str}")
+    if parts:
+        return ", ".join(parts)
     return f"#{hash(json.dumps(item, sort_keys=True, ensure_ascii=False)) % 10000}"
 
 
 # ==================== 差异收集 ====================
 
 def _collect_smart_match_diffs(base_arr, mod_arr, path,
-                               match_strategy, schema, field_path):
-    """可匹配数组的原子化比较：按策略匹配元素后递归比较子字段"""
+                               match_keys, schema, field_path):
+    """可匹配数组的原子化比较：按 match_keys 精确匹配元素后递归比较子字段。
+    同 key 多对多时用字符串相似度做全局最优配对。"""
     diffs = []
-    find_fn = _get_match_fn(match_strategy, base_arr, mod_arr)
     matched_base = set()
 
-    for mod_item in mod_arr:
+    # 按 match_key 值分组 mod 元素
+    mod_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
+    for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
             continue
-        idx = find_fn(base_arr, mod_item, matched_base)
-        if idx is not None:
-            matched_base.add(idx)
-            elem_label = _make_element_label(mod_item, match_strategy)
+        kv = _get_key_vals(mod_item, match_keys)
+        mod_groups.setdefault(kv, []).append((i, mod_item))
+
+    # 按 match_key 值分组 base 元素
+    base_groups: dict[tuple, list[int]] = {}
+    for i, base_item in enumerate(base_arr):
+        if isinstance(base_item, dict):
+            kv = _get_key_vals(base_item, match_keys)
+            if kv is not None:
+                base_groups.setdefault(kv, []).append(i)
+
+    # 逐组配对
+    for kv, mod_items in mod_groups.items():
+        if kv is None:
+            for _, mod_item in mod_items:
+                elem_label = _make_element_label(mod_item, match_keys)
+                diffs.append((f"{path}[{elem_label}]", None, mod_item))
+            continue
+
+        base_candidates = [i for i in base_groups.get(kv, []) if i not in matched_base]
+
+        if not base_candidates:
+            # 全部新增
+            for _, mod_item in mod_items:
+                elem_label = _make_element_label(mod_item, match_keys)
+                diffs.append((f"{path}[{elem_label}]", None, mod_item))
+            continue
+
+        # 全局最优配对
+        pairs, unmatched = _resolve_duplicates(mod_items, base_arr, base_candidates)
+
+        for _, mod_item, base_idx in pairs:
+            matched_base.add(base_idx)
+            elem_label = _make_element_label(mod_item, match_keys)
             elem_path = f"{path}[{elem_label}]"
-            # 递归比较子字段（像 object 一样）
             diffs.extend(_collect_field_diffs(
-                base_arr[idx], mod_item, elem_path,
+                base_arr[base_idx], mod_item, elem_path,
                 schema, field_path
             ))
-        else:
-            elem_label = _make_element_label(mod_item, match_strategy)
+
+        for _, mod_item in unmatched:
+            elem_label = _make_element_label(mod_item, match_keys)
             diffs.append((f"{path}[{elem_label}]", None, mod_item))
 
     # base 中未匹配的 = 删除
     for i, base_item in enumerate(base_arr):
         if i not in matched_base:
-            elem_label = _make_element_label(base_item, match_strategy)
+            elem_label = _make_element_label(base_item, match_keys)
             diffs.append((f"{path}[{elem_label}]", base_item, None))
 
     return diffs
@@ -178,12 +189,12 @@ def _collect_field_diffs(
                     # 从 schema 判断数组合并策略
                     child_def = get_field_def(schema, child_path) if schema and child_path else None
                     merge_strategy = child_def.get("merge") if child_def else None
-                    match_strategy = child_def.get("match_strategy") if child_def else None
+                    match_keys = child_def.get("match_key") if child_def else None
 
-                    if merge_strategy == "smart_match":
+                    if merge_strategy == "smart_match" and match_keys:
                         diffs.extend(_collect_smart_match_diffs(
                             base[key], mod_data[key], path,
-                            match_strategy, schema, child_path
+                            match_keys, schema, child_path
                         ))
                     else:
                         diffs.extend(_collect_unmatched_array_diffs(

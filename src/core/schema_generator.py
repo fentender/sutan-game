@@ -25,17 +25,6 @@ ARR_MARKER = '[]'
 
 from ..config import SCHEMA_DIR
 
-# 已知的 smart_match 数组字段名 → 匹配策略：从 smart_match_fields.json 加载
-_SMART_MATCH_FILE = SCHEMA_DIR / "smart_match_fields.json"
-
-def _load_smart_match_fields():
-    import json as _json
-    if _SMART_MATCH_FILE.exists():
-        return _json.loads(_SMART_MATCH_FILE.read_text(encoding="utf-8"))
-    return {}
-
-KNOWN_SMART_MATCH_FIELDS = _load_smart_match_fields()
-
 # 字段模板等价映射：从 template_map.json 加载
 # exact: 精确匹配字段名 → 规范名
 # regex: 正则匹配字段名 → 规范名
@@ -188,6 +177,8 @@ def collect_field_info(obj, info, prefix="", _visited=None):
                 "has_action": False,
                 "has_result_title": False,
                 "has_tag": False,
+                "has_id": False,
+                "has_key": False,
                 "sample_values": [],
                 "count": 0,
                 "child_key_counts": {},
@@ -218,16 +209,20 @@ def collect_field_info(obj, info, prefix="", _visited=None):
                 item_type = get_type_str(item)
                 entry["array_elem_types"].add(item_type)
                 if isinstance(item, dict):
+                    if "id" in item:
+                        entry["has_id"] = True
                     if "guid" in item:
                         entry["has_guid"] = True
+                    if "tag" in item:
+                        entry["has_tag"] = True
+                    if "key" in item:
+                        entry["has_key"] = True
                     if "condition" in item:
                         entry["has_condition"] = True
                     if "action" in item:
                         entry["has_action"] = True
                     if "result_title" in item:
                         entry["has_result_title"] = True
-                    if "tag" in item:
-                        entry["has_tag"] = True
                     arr_path = f"{path}{SEP}{ARR_MARKER}"
                     collect_field_info(item, info, arr_path, _visited)
 
@@ -292,14 +287,26 @@ def _validate_type_combination(field_name, type_list):
         diag.warn("schema", f"字段 '{field_name}' 类型组合可疑（对象+数组）: {type_list}")
 
 
+def _detect_match_key(field_info) -> list[str] | None:
+    """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。
+    按 COMMON_MATCH_KEYS 优先级顺序返回第一个命中的字段。"""
+    from .merger import COMMON_MATCH_KEYS
+    for key in COMMON_MATCH_KEYS:
+        if field_info.get(f"has_{key}"):
+            return [key]
+    return None
+
+
 def infer_merge_strategy(field_name, type_info, field_info):
     """根据字段名、类型、结构信息推断合并策略"""
-    # 已知的 smart_match 字段（即使类型是联合类型也用 smart_match）
-    if field_name in KNOWN_SMART_MATCH_FIELDS:
-        return "smart_match"
-
-    # 联合类型 → coerce，但验证组合合理性
+    # 联合类型
     if isinstance(type_info, list):
+        # 联合类型含 array<object> 且有 match key → smart_match
+        if "array<object>" in type_info and _detect_match_key(field_info):
+            return "smart_match"
+        # 联合类型含 array<object> 但无 match key → append
+        if "array<object>" in type_info or "array" in type_info:
+            return "append"
         _validate_type_combination(field_name, type_info)
         return "coerce"
 
@@ -311,13 +318,9 @@ def infer_merge_strategy(field_name, type_info, field_info):
     if type_info == "object":
         return "merge"
 
-    # array<object> 特殊处理
+    # array<object>：有唯一标识字段则 smart_match，否则 append
     if type_info == "array<object>":
-        if field_info.get("has_guid") or field_info.get("has_condition") or field_info.get("has_result_title"):
-            return "smart_match"
-        if field_info.get("has_action") and not field_info.get("has_condition"):
-            return "smart_match"
-        if field_info.get("has_tag"):
+        if _detect_match_key(field_info):
             return "smart_match"
         return "append"
 
@@ -328,19 +331,9 @@ def infer_merge_strategy(field_name, type_info, field_info):
     return "replace"
 
 
-def infer_match_strategy(field_info, field_name=None):
-    """推断 smart_match 的匹配策略"""
-    # 根据数组元素特征自动检测
-    if field_info.get("has_condition") or field_info.get("has_result_title"):
-        return "rite"
-    if field_info.get("has_action") and not field_info.get("has_condition"):
-        return "event"
-    if field_info.get("has_tag"):
-        return "tag"
-    # 自动检测失败时，从配置映射兜底
-    if field_name and field_name in KNOWN_SMART_MATCH_FIELDS:
-        return KNOWN_SMART_MATCH_FIELDS[field_name]
-    return "rite"  # 默认
+def infer_match_key(field_info) -> list[str] | None:
+    """推断 smart_match 的匹配字段"""
+    return _detect_match_key(field_info)
 
 
 # 模板注册表：canonical_name → template_def（在 Pass 1 完成后填充）
@@ -358,6 +351,21 @@ def _infer_type_from_counts(type_counts):
     if len(types) == 1:
         return types.pop()
     return sorted(types)
+
+
+def _detect_match_key_from_global(canonical) -> list[str] | None:
+    """从 _global_field_info 检测 array<object> 元素中的唯一标识字段"""
+    if canonical not in _global_field_info:
+        return None
+    fi = _global_field_info[canonical]
+    elem_counts = fi.get("elem_child_key_counts", {})
+    if not elem_counts:
+        return None
+    from .merger import COMMON_MATCH_KEYS
+    for key in COMMON_MATCH_KEYS:
+        if key in elem_counts:
+            return [key]
+    return None
 
 
 def _build_element_from_global(arr_canonical):
@@ -392,17 +400,27 @@ def _build_field_from_counts(key, type_counts, self_name=None):
 
     # 推断合并策略
     if isinstance(type_val, list):
-        merge = "coerce"
+        # 联合类型含 array<object>：从全局信息检测 match_key
+        if "array<object>" in type_val or "array" in type_val:
+            mk = _detect_match_key_from_global(_canonical_field_name(key))
+            merge = "smart_match" if mk else "append"
+        else:
+            merge = "coerce"
     elif type_val == "object":
         merge = "merge"
+    elif type_val == "array<object>":
+        mk = _detect_match_key_from_global(_canonical_field_name(key))
+        merge = "smart_match" if mk else "append"
     elif isinstance(type_val, str) and type_val.startswith("array"):
-        merge = "smart_match" if key in KNOWN_SMART_MATCH_FIELDS else "append"
+        merge = "append"
     else:
         merge = "replace"
 
     field_def = {"type": type_val, "merge": merge}
     if merge == "smart_match":
-        field_def["match_strategy"] = KNOWN_SMART_MATCH_FIELDS[key]
+        mk = _detect_match_key_from_global(_canonical_field_name(key))
+        if mk:
+            field_def["match_key"] = mk
 
     # array<object> 字段递归构建 element
     if (type_val == "array<object>"
@@ -562,7 +580,12 @@ def build_field_def(path, info, all_info):
             diag.warn("schema", f"数组元素无字段信息: {arr_path.replace(SEP, ' → ')}")
 
         if merge == "smart_match":
-            result["match_strategy"] = infer_match_strategy(field_info, field_name=field_name)
+            mk = infer_match_key(field_info)
+            if mk:
+                result["match_key"] = mk
+            else:
+                # 无 match_key：降级为 append
+                result["merge"] = "append"
 
     return result
 

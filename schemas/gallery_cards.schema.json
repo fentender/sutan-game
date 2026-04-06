@@ -19,7 +19,7 @@
         "array",
         "array<object>"
       ],
-      "merge": "coerce",
+      "merge": "smart_match",
       "element": {
         "data": {
           "type": "array<object>",
@@ -38,7 +38,9 @@
               "merge": "replace"
             }
           },
-          "match_strategy": "rite"
+          "match_key": [
+            "guid"
+          ]
         },
         "guid": {
           "type": "string",
@@ -48,14 +50,17 @@
           "type": "string",
           "merge": "replace"
         }
-      }
+      },
+      "match_key": [
+        "guid"
+      ]
     },
     "resources": {
       "type": [
         "array",
         "array<object>"
       ],
-      "merge": "coerce",
+      "merge": "append",
       "element": {
         "pic_res": {
           "type": "string",

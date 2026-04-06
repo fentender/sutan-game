@@ -23,7 +23,7 @@
         "array",
         "array<string>"
       ],
-      "merge": "coerce"
+      "merge": "append"
     },
     "id": {
       "type": "int",
@@ -39,8 +39,7 @@
     },
     "pops": {
       "type": "array",
-      "merge": "smart_match",
-      "match_strategy": "rite"
+      "merge": "append"
     },
     "post_rite": {
       "type": "array<object>",
@@ -70,7 +69,9 @@
           "merge": "replace"
         }
       },
-      "match_strategy": "rite"
+      "match_key": [
+        "guid"
+      ]
     },
     "rare": {
       "type": "int",

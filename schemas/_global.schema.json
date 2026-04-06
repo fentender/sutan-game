@@ -290,8 +290,7 @@
         },
         "text_extra": {
           "type": "array<object>",
-          "merge": "smart_match",
-          "match_strategy": "rite",
+          "merge": "append",
           "element": {
             "condition": {
               "_use_template": "condition"
@@ -388,7 +387,9 @@
         "items": {
           "type": "array<object>",
           "merge": "smart_match",
-          "match_strategy": "tag",
+          "match_key": [
+            "tag"
+          ],
           "element": {
             "tag": {
               "type": "string",
@@ -612,8 +613,7 @@
         },
         "pops": {
           "type": "array<object>",
-          "merge": "smart_match",
-          "match_strategy": "rite",
+          "merge": "append",
           "element": {
             "action": {
               "_use_template": "action"

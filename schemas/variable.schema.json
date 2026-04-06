@@ -360,7 +360,7 @@
     },
     "contact": {
       "type": "array<object>",
-      "merge": "append",
+      "merge": "smart_match",
       "element": {
         "full": {
           "type": "bool",
@@ -374,7 +374,10 @@
           "type": "string",
           "merge": "replace"
         }
-      }
+      },
+      "match_key": [
+        "id"
+      ]
     },
     "default_language_code": {
       "type": "string",

@@ -133,7 +133,7 @@
     },
     "settlement": {
       "type": "array<object>",
-      "merge": "smart_match",
+      "merge": "append",
       "element": {
         "action": {
           "type": "object",
@@ -148,8 +148,7 @@
           "type": "string",
           "merge": "replace"
         }
-      },
-      "match_strategy": "event"
+      }
     },
     "start_trigger": {
       "type": "bool",

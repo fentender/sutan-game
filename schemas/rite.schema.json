@@ -225,7 +225,7 @@
         "array",
         "array<object>"
       ],
-      "merge": "coerce",
+      "merge": "append",
       "element": {
         "condition": {
           "type": "object",
@@ -341,7 +341,9 @@
           "merge": "replace"
         }
       },
-      "match_strategy": "rite"
+      "match_key": [
+        "guid"
+      ]
     },
     "settlement_extre": {
       "type": [
@@ -378,7 +380,9 @@
           "merge": "replace"
         }
       },
-      "match_strategy": "rite"
+      "match_key": [
+        "guid"
+      ]
     },
     "settlement_prior": {
       "type": [
@@ -415,14 +419,16 @@
           "merge": "replace"
         }
       },
-      "match_strategy": "rite"
+      "match_key": [
+        "guid"
+      ]
     },
     "tag_tips": {
       "type": [
         "array",
         "array<string>"
       ],
-      "merge": "coerce"
+      "merge": "append"
     },
     "tag_tips_up": {
       "type": "object",
@@ -451,7 +457,7 @@
         "array",
         "array<string>"
       ],
-      "merge": "coerce"
+      "merge": "append"
     },
     "type": {
       "type": "string",
@@ -466,7 +472,7 @@
         "array",
         "array<object>"
       ],
-      "merge": "smart_match",
+      "merge": "append",
       "element": {
         "action": {
           "type": "object",
@@ -491,8 +497,7 @@
           "type": "string",
           "merge": "replace"
         }
-      },
-      "match_strategy": "rite"
+      }
     }
   }
 }

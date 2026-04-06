@@ -28,7 +28,7 @@
     },
     "target": {
       "type": "array<object>",
-      "merge": "smart_match",
+      "merge": "append",
       "element": {
         "condition": {
           "type": "object",
@@ -43,8 +43,7 @@
           "type": "string",
           "merge": "replace"
         }
-      },
-      "match_strategy": "rite"
+      }
     },
     "text": {
       "type": "string",

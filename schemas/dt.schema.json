@@ -10,14 +10,14 @@
   "_fields": {
     "Item": {
       "type": "array<object>",
-      "merge": "smart_match",
+      "merge": "append",
       "element": {
         "Option": {
           "type": [
             "array",
             "array<object>"
           ],
-          "merge": "coerce",
+          "merge": "append",
           "element": {
             "action": {
               "type": "object",
@@ -59,8 +59,7 @@
           "type": "string",
           "merge": "replace"
         }
-      },
-      "match_strategy": "event"
+      }
     },
     "description": {
       "type": "string",

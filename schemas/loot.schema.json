@@ -38,7 +38,9 @@
           "merge": "replace"
         }
       },
-      "match_strategy": "rite"
+      "match_key": [
+        "id"
+      ]
     },
     "name": {
       "type": "string",
