@@ -291,7 +291,16 @@
         "text_extra": {
           "type": "array<object>",
           "merge": "smart_match",
-          "match_strategy": "rite"
+          "match_strategy": "rite",
+          "element": {
+            "condition": {
+              "_use_template": "condition"
+            },
+            "result_text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
         },
         "sub_name": {
           "type": "string",
@@ -379,7 +388,17 @@
         "items": {
           "type": "array<object>",
           "merge": "smart_match",
-          "match_strategy": "tag"
+          "match_strategy": "tag",
+          "element": {
+            "tag": {
+              "type": "string",
+              "merge": "replace"
+            },
+            "text": {
+              "type": "string",
+              "merge": "replace"
+            }
+          }
         },
         "icon": {
           "type": [
@@ -594,7 +613,15 @@
         "pops": {
           "type": "array<object>",
           "merge": "smart_match",
-          "match_strategy": "rite"
+          "match_strategy": "rite",
+          "element": {
+            "action": {
+              "_use_template": "action"
+            },
+            "condition": {
+              "_use_template": "condition"
+            }
+          }
         }
       }
     },

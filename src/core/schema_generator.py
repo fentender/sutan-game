@@ -73,6 +73,25 @@ def _canonical_field_name(field_name):
 _global_field_info = {}  # canonical_name → {child_keys, child_key_counts, child_key_types, count, paths}
 
 
+def _ensure_global_entry(canonical):
+    """确保 _global_field_info 中存在指定条目"""
+    if canonical not in _global_field_info:
+        _global_field_info[canonical] = {
+            "child_keys": set(),
+            "child_key_counts": {},
+            "child_key_types": {},
+            "elem_child_key_counts": {},
+            "elem_child_key_types": {},
+            "count": 0,
+            "paths": set(),
+        }
+    g = _global_field_info[canonical]
+    if "elem_child_key_counts" not in g:
+        g["elem_child_key_counts"] = {}
+        g["elem_child_key_types"] = {}
+    return g
+
+
 def _accumulate_global_info(info):
     """将单次 collect_field_info 结果累积到全局字段信息中（按规范字段名聚合）"""
     for path, entry in info.items():
@@ -80,15 +99,7 @@ def _accumulate_global_info(info):
             continue
         field_name = path.split(SEP)[-1]
         canonical = _canonical_field_name(field_name)
-        if canonical not in _global_field_info:
-            _global_field_info[canonical] = {
-                "child_keys": set(),
-                "child_key_counts": {},
-                "child_key_types": {},
-                "count": 0,
-                "paths": set(),
-            }
-        g = _global_field_info[canonical]
+        g = _ensure_global_entry(canonical)
         g["child_keys"].update(entry["child_keys"])
         g["count"] += entry["count"]
         g["paths"].add(path.replace(SEP, " → "))
@@ -99,6 +110,29 @@ def _accumulate_global_info(info):
                 g["child_key_types"][ck] = {}
             for t, tc in types.items():
                 g["child_key_types"][ck][t] = g["child_key_types"][ck].get(t, 0) + tc
+
+    # 收集 array<object> 字段的元素子字段信息
+    for path, entry in info.items():
+        parts = path.split(SEP)
+        for i in range(len(parts)):
+            if parts[i] != ARR_MARKER or i == 0:
+                continue
+            # parts[i-1] 是 array 字段名，检查 parts[i+1] 是否为直接子字段
+            if i + 1 != len(parts) - 1:
+                continue
+            arr_field = parts[i - 1]
+            child_key = parts[i + 1]
+            canonical = _canonical_field_name(arr_field)
+            g = _ensure_global_entry(canonical)
+            g["elem_child_key_counts"][child_key] = (
+                g["elem_child_key_counts"].get(child_key, 0) + entry["count"]
+            )
+            if child_key not in g["elem_child_key_types"]:
+                g["elem_child_key_types"][child_key] = {}
+            for t in entry["types"]:
+                g["elem_child_key_types"][child_key][t] = (
+                    g["elem_child_key_types"][child_key].get(t, 0) + entry["count"]
+                )
 
 
 # ==================== 类型分析 ====================
@@ -326,6 +360,60 @@ def _infer_type_from_counts(type_counts):
     return sorted(types)
 
 
+def _build_element_from_global(arr_canonical):
+    """从全局字段信息构建数组元素定义"""
+    if arr_canonical not in _global_field_info:
+        return None
+    fi = _global_field_info[arr_canonical]
+    elem_counts = fi.get("elem_child_key_counts", {})
+    elem_types = fi.get("elem_child_key_types", {})
+    if not elem_counts:
+        return None
+
+    element = {}
+    for key in sorted(elem_counts):
+        fd = _build_field_from_counts(key, elem_types.get(key, {}))
+        if fd is not None:
+            element[key] = fd
+    return element or None
+
+
+def _build_field_from_counts(key, type_counts, self_name=None):
+    """从 {type_str: count} 构建单个字段定义（供模板 fields 和 element 复用）"""
+    if classify_dsl_key(key):
+        return None
+
+    type_val = _infer_type_from_counts(type_counts)
+
+    # 检查模板引用（允许同名引用，但防止自引用）
+    canonical = _canonical_field_name(key)
+    if canonical in _templates_registry and canonical != self_name:
+        return {"_use_template": canonical}
+
+    # 推断合并策略
+    if isinstance(type_val, list):
+        merge = "coerce"
+    elif type_val == "object":
+        merge = "merge"
+    elif isinstance(type_val, str) and type_val.startswith("array"):
+        merge = "smart_match" if key in KNOWN_SMART_MATCH_FIELDS else "append"
+    else:
+        merge = "replace"
+
+    field_def = {"type": type_val, "merge": merge}
+    if merge == "smart_match":
+        field_def["match_strategy"] = KNOWN_SMART_MATCH_FIELDS[key]
+
+    # array<object> 字段递归构建 element
+    if (type_val == "array<object>"
+            or (isinstance(type_val, list) and "array<object>" in type_val)):
+        elem = _build_element_from_global(canonical)
+        if elem:
+            field_def["element"] = elem
+
+    return field_def
+
+
 def _build_template_from_field_info(fi, self_name=None):
     """从全局字段信息构建命名模板定义。
     self_name: 当前正在构建的模板名，防止自引用。
@@ -335,34 +423,9 @@ def _build_template_from_field_info(fi, self_name=None):
 
     fields = {}
     for key in sorted(key_counts, key=lambda k: -key_counts[k]):
-        # 跳过 DSL key（由全局兜底处理）
-        if classify_dsl_key(key):
-            continue
-
-        # 推断类型
-        types = key_types.get(key, {})
-        type_val = _infer_type_from_counts(types)
-
-        # 判断是否引用已知模板（允许同名引用，但防止自引用）
-        canonical = _canonical_field_name(key)
-        if canonical in _templates_registry and canonical != self_name:
-            fields[key] = {"_use_template": canonical}
-            continue
-
-        # 推断合并策略
-        if isinstance(type_val, list):
-            merge = "coerce"
-        elif type_val == "object":
-            merge = "merge"
-        elif isinstance(type_val, str) and type_val.startswith("array"):
-            merge = "smart_match" if key in KNOWN_SMART_MATCH_FIELDS else "append"
-        else:
-            merge = "replace"
-
-        field_def = {"type": type_val, "merge": merge}
-        if merge == "smart_match":
-            field_def["match_strategy"] = KNOWN_SMART_MATCH_FIELDS[key]
-        fields[key] = field_def
+        fd = _build_field_from_counts(key, key_types.get(key, {}), self_name=self_name)
+        if fd is not None:
+            fields[key] = fd
 
     result = {
         "type": "object",
