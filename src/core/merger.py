@@ -170,6 +170,19 @@ def _extract_action_keys(action: dict) -> set[str]:
     return keys
 
 
+def _find_matching_tag_item(base_arr, mod_item, matched):
+    """按 tag 字段精确匹配"""
+    mod_tag = mod_item.get('tag')
+    if mod_tag is None:
+        return None
+    for i, base_item in enumerate(base_arr):
+        if i in matched:
+            continue
+        if isinstance(base_item, dict) and base_item.get('tag') == mod_tag:
+            return i
+    return None
+
+
 # ==================== 通用数组合并 ====================
 
 def _merge_settlement_array(base_arr: list, mod_arr: list,
@@ -196,6 +209,8 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
         find_fn = _find_matching_event_item
     elif match_strategy == "rite":
         find_fn = _find_matching_rite_item
+    elif match_strategy == "tag":
+        find_fn = _find_matching_tag_item
     elif _is_event_settlement(mod_arr) or _is_event_settlement(base_arr):
         find_fn = _find_matching_event_item
     else:

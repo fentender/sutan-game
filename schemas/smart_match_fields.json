@@ -1,0 +1,9 @@
+{
+  "settlement": "rite",
+  "settlement_prior": "rite",
+  "settlement_extre": "rite",
+  "waiting_round_end_action": "rite",
+  "pops": "rite",
+  "text_extra": "rite",
+  "items": "tag"
+}

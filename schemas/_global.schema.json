@@ -52,8 +52,7 @@
           "merge": "replace"
         },
         "option": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "option"
         },
         "case:1": {
           "type": "object",
@@ -88,8 +87,7 @@
           "merge": "coerce"
         },
         "prompt": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "prompt"
         },
         "event_off": {
           "type": [
@@ -111,16 +109,14 @@
           "merge": "replace"
         },
         "option": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "option"
         },
         "coin": {
           "type": "int",
           "merge": "replace"
         },
         "no_show": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "no_show"
         },
         "loot": {
           "type": [
@@ -130,12 +126,10 @@
           "merge": "coerce"
         },
         "delay": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "delay"
         },
         "no_prompt": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "no_prompt"
         },
         "steam_achievement": {
           "type": "string",
@@ -153,8 +147,7 @@
           "_use_template": "condition"
         },
         "begin_guide": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "begin_guide"
         },
         "delay_off": {
           "type": "int",
@@ -247,8 +240,7 @@
           "merge": "replace"
         },
         "prompt": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "prompt"
         },
         "loot": {
           "type": "int",
@@ -298,7 +290,8 @@
         },
         "text_extra": {
           "type": "array<object>",
-          "merge": "append"
+          "merge": "smart_match",
+          "match_strategy": "rite"
         },
         "sub_name": {
           "type": "string",
@@ -385,7 +378,8 @@
         },
         "items": {
           "type": "array<object>",
-          "merge": "append"
+          "merge": "smart_match",
+          "match_strategy": "tag"
         },
         "icon": {
           "type": [
@@ -469,8 +463,7 @@
           "merge": "replace"
         },
         "pos": {
-          "type": "array<int>",
-          "merge": "append"
+          "_use_template": "pos"
         },
         "is_show_ring": {
           "type": "bool",
@@ -496,8 +489,7 @@
           "merge": "replace"
         },
         "mobile_properties": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "mobile_properties"
         }
       }
     },
@@ -510,12 +502,7 @@
           "merge": "replace"
         },
         "pos": {
-          "type": [
-            "array<float,int>",
-            "array<float>",
-            "array<int>"
-          ],
-          "merge": "coerce"
+          "_use_template": "pos"
         },
         "ring_pos": {
           "type": [
@@ -560,8 +547,7 @@
           "merge": "replace"
         },
         "condition": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "condition"
         },
         "open_adsorb": {
           "type": "int",
@@ -596,12 +582,10 @@
           "merge": "replace"
         },
         "pos": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "pos"
         },
         "scale": {
-          "type": "object",
-          "merge": "merge"
+          "_use_template": "scale"
         },
         "rotation_z": {
           "type": "float",
@@ -609,7 +593,8 @@
         },
         "pops": {
           "type": "array<object>",
-          "merge": "append"
+          "merge": "smart_match",
+          "match_strategy": "rite"
         }
       }
     },

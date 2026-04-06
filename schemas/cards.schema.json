@@ -39,7 +39,8 @@
     },
     "pops": {
       "type": "array",
-      "merge": "append"
+      "merge": "smart_match",
+      "match_strategy": "rite"
     },
     "post_rite": {
       "type": "array<object>",

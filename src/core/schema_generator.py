@@ -23,13 +23,18 @@ DYNAMIC_KEY_THRESHOLD = 100
 SEP = '\x01'
 ARR_MARKER = '[]'
 
-# 已知的 smart_match 数组字段名
-KNOWN_SMART_MATCH_FIELDS = {
-    'settlement', 'settlement_prior', 'settlement_extre',
-    'waiting_round_end_action',
-}
-
 from ..config import SCHEMA_DIR
+
+# 已知的 smart_match 数组字段名 → 匹配策略：从 smart_match_fields.json 加载
+_SMART_MATCH_FILE = SCHEMA_DIR / "smart_match_fields.json"
+
+def _load_smart_match_fields():
+    import json as _json
+    if _SMART_MATCH_FILE.exists():
+        return _json.loads(_SMART_MATCH_FILE.read_text(encoding="utf-8"))
+    return {}
+
+KNOWN_SMART_MATCH_FIELDS = _load_smart_match_fields()
 
 # 字段模板等价映射：从 template_map.json 加载
 # exact: 精确匹配字段名 → 规范名
@@ -148,6 +153,7 @@ def collect_field_info(obj, info, prefix="", _visited=None):
                 "has_condition": False,
                 "has_action": False,
                 "has_result_title": False,
+                "has_tag": False,
                 "sample_values": [],
                 "count": 0,
                 "child_key_counts": {},
@@ -186,6 +192,8 @@ def collect_field_info(obj, info, prefix="", _visited=None):
                         entry["has_action"] = True
                     if "result_title" in item:
                         entry["has_result_title"] = True
+                    if "tag" in item:
+                        entry["has_tag"] = True
                     arr_path = f"{path}{SEP}{ARR_MARKER}"
                     collect_field_info(item, info, arr_path, _visited)
 
@@ -275,6 +283,8 @@ def infer_merge_strategy(field_name, type_info, field_info):
             return "smart_match"
         if field_info.get("has_action") and not field_info.get("has_condition"):
             return "smart_match"
+        if field_info.get("has_tag"):
+            return "smart_match"
         return "append"
 
     # 其他 array → append
@@ -284,12 +294,18 @@ def infer_merge_strategy(field_name, type_info, field_info):
     return "replace"
 
 
-def infer_match_strategy(field_info):
+def infer_match_strategy(field_info, field_name=None):
     """推断 smart_match 的匹配策略"""
+    # 根据数组元素特征自动检测
     if field_info.get("has_condition") or field_info.get("has_result_title"):
         return "rite"
     if field_info.get("has_action") and not field_info.get("has_condition"):
         return "event"
+    if field_info.get("has_tag"):
+        return "tag"
+    # 自动检测失败时，从配置映射兜底
+    if field_name and field_name in KNOWN_SMART_MATCH_FIELDS:
+        return KNOWN_SMART_MATCH_FIELDS[field_name]
     return "rite"  # 默认
 
 
@@ -310,8 +326,10 @@ def _infer_type_from_counts(type_counts):
     return sorted(types)
 
 
-def _build_template_from_field_info(fi):
-    """从全局字段信息构建命名模板定义"""
+def _build_template_from_field_info(fi, self_name=None):
+    """从全局字段信息构建命名模板定义。
+    self_name: 当前正在构建的模板名，防止自引用。
+    """
     key_counts = fi["child_key_counts"]
     key_types = fi["child_key_types"]
 
@@ -325,9 +343,9 @@ def _build_template_from_field_info(fi):
         types = key_types.get(key, {})
         type_val = _infer_type_from_counts(types)
 
-        # 判断是否引用已知模板
+        # 判断是否引用已知模板（允许同名引用，但防止自引用）
         canonical = _canonical_field_name(key)
-        if canonical != key and canonical in _templates_registry:
+        if canonical in _templates_registry and canonical != self_name:
             fields[key] = {"_use_template": canonical}
             continue
 
@@ -337,11 +355,14 @@ def _build_template_from_field_info(fi):
         elif type_val == "object":
             merge = "merge"
         elif isinstance(type_val, str) and type_val.startswith("array"):
-            merge = "append"
+            merge = "smart_match" if key in KNOWN_SMART_MATCH_FIELDS else "append"
         else:
             merge = "replace"
 
-        fields[key] = {"type": type_val, "merge": merge}
+        field_def = {"type": type_val, "merge": merge}
+        if merge == "smart_match":
+            field_def["match_strategy"] = KNOWN_SMART_MATCH_FIELDS[key]
+        fields[key] = field_def
 
     result = {
         "type": "object",
@@ -356,12 +377,20 @@ def _build_template_from_field_info(fi):
 def _build_templates():
     """从 _global_field_info 自动发现并构建所有模板。
     判定规则：一个字段在多个不同路径中被复用（paths >= 2）且有子 key，即注册为模板。
+    两遍构建：第一遍注册所有模板名（占位），第二遍构建定义（此时所有模板名都可见，解决顺序依赖）。
     """
     global _templates_registry
     _templates_registry = {}
+    # 第一遍：注册所有模板名（占位）
+    template_names = []
     for name, fi in _global_field_info.items():
         if len(fi["child_keys"]) > 0 and len(fi["paths"]) >= 2:
-            _templates_registry[name] = _build_template_from_field_info(fi)
+            template_names.append(name)
+            _templates_registry[name] = None
+    # 第二遍：构建定义
+    for name in template_names:
+        _templates_registry[name] = _build_template_from_field_info(
+            _global_field_info[name], self_name=name)
     return _templates_registry
 
 
@@ -470,7 +499,7 @@ def build_field_def(path, info, all_info):
             diag.warn("schema", f"数组元素无字段信息: {arr_path.replace(SEP, ' → ')}")
 
         if merge == "smart_match":
-            result["match_strategy"] = infer_match_strategy(field_info)
+            result["match_strategy"] = infer_match_strategy(field_info, field_name=field_name)
 
     return result
 
