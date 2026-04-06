@@ -35,12 +35,12 @@
             "action": {
               "type": "object",
               "merge": "merge",
-              "dynamic_keys": true
+              "_use_template": "action"
             },
             "condition": {
               "type": "object",
               "merge": "merge",
-              "dynamic_keys": true
+              "_use_template": "condition"
             },
             "dt": {
               "type": "string",

@@ -11,6 +11,7 @@
 """
 import json
 import os
+import re
 import sys
 import argparse
 from pathlib import Path
@@ -21,30 +22,78 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.core.json_parser import load_json
 from src.core.type_utils import get_type_str, classify_json
+from src.core.dsl_patterns import classify_dsl_key
 
 DEFAULT_CONFIG_DIR = (
     r"D:\SteamLibrary\steamapps\common\Sultan's Game"
     r"\Sultan's Game_Data\StreamingAssets\config"
 )
 
-# 动态 key 阈值：子 key 数量超过此值判定为动态字典
-DYNAMIC_KEY_THRESHOLD = 30
+# 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典
+DYNAMIC_KEY_THRESHOLD = 100
 
 # 路径分隔符（内部使用，避免和 JSON key 中的点号冲突）
 SEP = '\x01'
 ARR_MARKER = '[]'
-
-# 已知的 DSL 动态 key 字段名（key 是 DSL 表达式，value 是基本类型）
-KNOWN_DYNAMIC_FIELDS = {
-    'condition', 'result', 'action', 'effect',
-    'tag', 'no_show', 'choose',
-}
 
 # 已知的 smart_match 数组字段名
 KNOWN_SMART_MATCH_FIELDS = {
     'settlement', 'settlement_prior', 'settlement_extre',
     'waiting_round_end_action',
 }
+
+# 字段模板等价映射：共享相同 DSL 模板的字段映射到规范名
+# any/all 内部 DSL 与 condition 相同；choose/no_prompt 等内部 DSL 与 action 相同
+FIELD_TEMPLATE_MAP = {
+    'any': 'condition',
+    'all': 'condition',
+    'result': 'action',
+    'choose': 'action',
+    'success': 'action',
+    'failed': 'action',
+}
+_CASE_OP_RE = re.compile(r'^case:op\d+$')
+
+
+def _canonical_field_name(field_name):
+    """获取字段的规范模板名（用于聚合等价字段）"""
+    if field_name in FIELD_TEMPLATE_MAP:
+        return FIELD_TEMPLATE_MAP[field_name]
+    if _CASE_OP_RE.match(field_name):
+        return 'action'
+    return field_name
+
+
+# 全局字段信息收集器（按规范字段名聚合，用于最终报告）
+_global_field_info = {}  # canonical_name → {child_keys, child_key_counts, child_key_types, count, paths}
+
+
+def _accumulate_global_info(info):
+    """将单次 collect_field_info 结果累积到全局字段信息中（按规范字段名聚合）"""
+    for path, entry in info.items():
+        if not entry.get("child_keys"):
+            continue
+        field_name = path.split(SEP)[-1]
+        canonical = _canonical_field_name(field_name)
+        if canonical not in _global_field_info:
+            _global_field_info[canonical] = {
+                "child_keys": set(),
+                "child_key_counts": {},
+                "child_key_types": {},
+                "count": 0,
+                "paths": set(),
+            }
+        g = _global_field_info[canonical]
+        g["child_keys"].update(entry["child_keys"])
+        g["count"] += entry["count"]
+        g["paths"].add(path.replace(SEP, " → "))
+        for ck, cnt in entry.get("child_key_counts", {}).items():
+            g["child_key_counts"][ck] = g["child_key_counts"].get(ck, 0) + cnt
+        for ck, types in entry.get("child_key_types", {}).items():
+            if ck not in g["child_key_types"]:
+                g["child_key_types"][ck] = {}
+            for t, tc in types.items():
+                g["child_key_types"][ck][t] = g["child_key_types"][ck].get(t, 0) + tc
 
 
 # ==================== 类型分析 ====================
@@ -95,6 +144,8 @@ def collect_field_info(obj, info, prefix="", max_depth=7):
                 "has_result_title": False,
                 "sample_values": [],
                 "count": 0,
+                "child_key_counts": {},
+                "child_key_types": {},  # {key_name: {type_str: count}}
             }
 
         entry = info[path]
@@ -112,6 +163,12 @@ def collect_field_info(obj, info, prefix="", max_depth=7):
 
         if vtype == "object":
             entry["child_keys"].update(v.keys())
+            for ck, cv in v.items():
+                entry["child_key_counts"][ck] = entry["child_key_counts"].get(ck, 0) + 1
+                cv_type = analyze_value_type(cv)
+                if ck not in entry["child_key_types"]:
+                    entry["child_key_types"][ck] = {}
+                entry["child_key_types"][ck][cv_type] = entry["child_key_types"][ck].get(cv_type, 0) + 1
             collect_field_info(v, info, path, max_depth)
 
         elif vtype == "array" and v:
@@ -195,11 +252,119 @@ def infer_match_strategy(field_info):
     return "rite"  # 默认
 
 
-def is_dynamic_keys(field_info, field_name=""):
-    """判断 object 是否为动态 key"""
-    if field_name in KNOWN_DYNAMIC_FIELDS:
-        return True
-    return len(field_info.get("child_keys", set())) > DYNAMIC_KEY_THRESHOLD
+# 模板注册表：canonical_name → template_def（在 Pass 1 完成后填充）
+_templates_registry = {}
+
+
+def _infer_type_from_counts(type_counts):
+    """从 {type_str: count} 推断 schema 类型"""
+    if not type_counts:
+        return "null"
+    types = set(type_counts.keys())
+    # int + float → float
+    if "int" in types and "float" in types:
+        types.discard("int")
+    types.discard("null")
+    if not types:
+        return "null"
+    if len(types) == 1:
+        return types.pop()
+    return sorted(types)
+
+
+def _build_template_from_field_info(fi):
+    """从全局字段信息构建命名模板定义"""
+    key_counts = fi["child_key_counts"]
+    key_types = fi["child_key_types"]
+
+    fields = {}
+    for key in sorted(key_counts, key=lambda k: -key_counts[k]):
+        # 跳过 DSL key（由全局兜底处理）
+        if classify_dsl_key(key):
+            continue
+
+        # 推断类型
+        types = key_types.get(key, {})
+        type_val = _infer_type_from_counts(types)
+
+        # 判断是否引用已知模板
+        canonical = _canonical_field_name(key)
+        if canonical != key and canonical in _global_field_info:
+            if len(_global_field_info[canonical]["child_keys"]) > DYNAMIC_KEY_THRESHOLD:
+                fields[key] = {"_use_template": canonical}
+                continue
+
+        # 当前 key 本身就是已知模板（如 condition 内的 condition 不会出现，但 action 内的 action 不会出现）
+        # 但同名字段自身不会递归出现在自己的 child_keys 中
+
+        # 推断合并策略
+        if isinstance(type_val, list):
+            merge = "coerce"
+        elif type_val == "object":
+            merge = "merge"
+        elif isinstance(type_val, str) and type_val.startswith("array"):
+            merge = "append"
+        else:
+            merge = "replace"
+
+        fields[key] = {"type": type_val, "merge": merge}
+
+    return {
+        "type": "object",
+        "merge": "merge",
+        "fields": fields,
+    }
+
+
+def _build_templates():
+    """从 _global_field_info 自动发现并构建所有模板"""
+    global _templates_registry
+    _templates_registry = {}
+    for name, fi in _global_field_info.items():
+        if len(fi["child_keys"]) > DYNAMIC_KEY_THRESHOLD:
+            _templates_registry[name] = _build_template_from_field_info(fi)
+    return _templates_registry
+
+
+def _build_dsl_rules():
+    """从所有模板的已分类 DSL key 聚合每个 DSL 组的类型信息，生成 _dsl_rules"""
+    # 聚合所有模板中 DSL key 的类型
+    group_types = {}  # group_name → {type_str: count}
+    for fi in _global_field_info.values():
+        if len(fi["child_keys"]) <= DYNAMIC_KEY_THRESHOLD:
+            continue
+        for key in fi["child_key_counts"]:
+            group = classify_dsl_key(key)
+            if not group:
+                continue
+            types = fi["child_key_types"].get(key, {})
+            if group not in group_types:
+                group_types[group] = {}
+            for t, tc in types.items():
+                group_types[group][t] = group_types[group].get(t, 0) + tc
+
+    dsl_rules = {}
+    for group_name, types in sorted(group_types.items()):
+        type_val = _infer_type_from_counts(types)
+
+        # object 类型的 DSL 组：检查是否映射到已知模板
+        if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
+            # case:opN → action 模板
+            if group_name == "case":
+                dsl_rules[group_name] = {"_use_template": "action"}
+                continue
+
+        # 普通 DSL 组
+        if isinstance(type_val, list):
+            merge = "coerce"
+        elif isinstance(type_val, str) and type_val.startswith("array"):
+            merge = "append"
+        else:
+            merge = "replace"
+        dsl_rules[group_name] = {"type": type_val, "merge": merge}
+
+    return dsl_rules
+
 
 
 def build_field_def(path, info, all_info):
@@ -214,8 +379,9 @@ def build_field_def(path, info, all_info):
 
     # object 处理
     if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
-        if is_dynamic_keys(field_info, field_name):
-            result["dynamic_keys"] = True
+        canonical = _canonical_field_name(field_name)
+        if canonical in _templates_registry:
+            result["_use_template"] = canonical
         else:
             # 固定 key object → 递归构建 fields
             fields = {}
@@ -275,48 +441,93 @@ def build_field_def(path, info, all_info):
 
 # ==================== 分析入口 ====================
 
-def analyze_single_file(filepath):
-    """分析单个根目录文件，返回 schema dict"""
+def _collect_file_info(filepath):
+    """收集单个根目录文件的字段信息（不构建 schema）。
+    返回 (file_type, info, data) 或 None。
+    """
     data = load_json(filepath)
+    if data is None:
+        return None
     file_type = classify_json(data)
     info = {}
 
     if file_type == "dictionary":
-        # 采样条目分析
         count = 0
-        for key, entry_val in data.items():
+        for _, entry_val in data.items():
             if isinstance(entry_val, dict):
                 collect_field_info(entry_val, info)
                 count += 1
                 if count >= 100:
                     break
 
-        # 检查整个文件是否是动态 key（无 id 的扁平字典）
+        # 检查是否扁平字典（无 id、所有 value 非 dict）
         top_keys = set(data.keys())
         if len(top_keys) > DYNAMIC_KEY_THRESHOLD:
-            # 检查是否所有 value 都是简单值（非 dict）
             sample_vals = [data[k] for k in list(data.keys())[:10]]
-            all_simple = all(not isinstance(v, dict) for v in sample_vals)
-            if all_simple:
-                file_type = "config"
+            if all(not isinstance(v, dict) for v in sample_vals):
+                file_type = "flat_dict"
                 info = {}
-                # 文件级 dynamic_key：key 是 ID，merger 使用默认 replace
-                return {
-                    "_meta": {
-                        "schema_version": 1,
-                        "file_type": "config",
-                        "description": Path(filepath).stem,
-                        "source": Path(filepath).name,
-                        "dynamic_keys": True,
-                    },
-                }
+    else:
+        collect_field_info(data, info)
 
-        # 构建 _entry schema
+    return file_type, info, data
+
+
+def _collect_dir_info(dirpath):
+    """收集子目录所有文件的字段信息（不构建 schema）。
+    返回 (file_type, info, file_count, total) 或 None。
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    files = sorted([f for f in os.listdir(dirpath) if f.endswith(".json")])
+    total = len(files)
+
+    def _load(fname):
+        return load_json(os.path.join(dirpath, fname))
+
+    with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
+        results = list(pool.map(_load, files))
+
+    info = {}
+    file_count = 0
+    file_type = None
+
+    for data in results:
+        if data is None:
+            continue
+        file_count += 1
+        if file_type is None:
+            file_type = classify_json(data)
+        if file_type in ("entity", "config"):
+            collect_field_info(data, info)
+        elif file_type == "dictionary":
+            for _, entry_val in data.items():
+                if isinstance(entry_val, dict):
+                    collect_field_info(entry_val, info)
+
+    if not info:
+        return None
+    return file_type, info, file_count, total
+
+
+def _build_single_file_schema(filepath, file_type, info):
+    """从已收集的字段信息构建单个文件的 schema"""
+    if file_type == "flat_dict":
+        return {
+            "_meta": {
+                "schema_version": 1,
+                "file_type": "config",
+                "description": Path(filepath).stem,
+                "source": Path(filepath).name,
+                "top_level_dsl": True,
+            },
+        }
+
+    if file_type == "dictionary":
         entry_schema = {}
         for key in sorted(info.keys()):
-            if SEP not in key:  # 只取顶层字段
+            if SEP not in key:
                 entry_schema[key] = build_field_def(key, info[key], info)
-
         return {
             "_meta": {
                 "schema_version": 1,
@@ -327,8 +538,7 @@ def analyze_single_file(filepath):
             "_entry": entry_schema,
         }
 
-    elif file_type == "entity":
-        collect_field_info(data, info)
+    if file_type == "entity":
         fields_schema = {}
         for key in sorted(info.keys()):
             if SEP not in key:
@@ -343,75 +553,36 @@ def analyze_single_file(filepath):
             "_fields": fields_schema,
         }
 
-    else:  # config
-        collect_field_info(data, info)
-
-        # 检查是否动态 key config
-        top_child_keys = {k for k in info if SEP not in k}
-        if len(top_child_keys) > DYNAMIC_KEY_THRESHOLD:
-            # 文件级 dynamic_key：merger 使用默认 replace
-            return {
-                "_meta": {
-                    "schema_version": 1,
-                    "file_type": "config",
-                    "description": Path(filepath).stem,
-                    "source": Path(filepath).name,
-                    "dynamic_keys": True,
-                },
-            }
-
-        fields_schema = {}
-        for key in sorted(info.keys()):
-            if SEP not in key:
-                fields_schema[key] = build_field_def(key, info[key], info)
+    # config
+    top_child_keys = {k for k in info if SEP not in k}
+    if len(top_child_keys) > DYNAMIC_KEY_THRESHOLD:
         return {
             "_meta": {
                 "schema_version": 1,
                 "file_type": "config",
                 "description": Path(filepath).stem,
                 "source": Path(filepath).name,
+                "top_level_dsl": True,
             },
-            "_fields": fields_schema,
         }
 
+    fields_schema = {}
+    for key in sorted(info.keys()):
+        if SEP not in key:
+            fields_schema[key] = build_field_def(key, info[key], info)
+    return {
+        "_meta": {
+            "schema_version": 1,
+            "file_type": "config",
+            "description": Path(filepath).stem,
+            "source": Path(filepath).name,
+        },
+        "_fields": fields_schema,
+    }
 
-def analyze_directory(dirpath):
-    """分析子目录所有文件，返回 schema dict。多线程并行读取加速。"""
-    from concurrent.futures import ThreadPoolExecutor
 
-    files = sorted([f for f in os.listdir(dirpath) if f.endswith(".json")])
-    total = len(files)
-
-    # 多线程并行读取 JSON 文件
-    def _load(fname):
-        filepath = os.path.join(dirpath, fname)
-        return load_json(filepath)
-
-    with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
-        results = list(pool.map(_load, files))
-
-    info = {}
-    file_count = 0
-    file_type = None
-
-    for data in results:
-        if data is None:
-            continue
-        file_count += 1
-
-        if file_type is None:
-            file_type = classify_json(data)
-
-        if file_type == "entity" or file_type == "config":
-            collect_field_info(data, info)
-        elif file_type == "dictionary":
-            for key, entry_val in data.items():
-                if isinstance(entry_val, dict):
-                    collect_field_info(entry_val, info)
-
-    if not info:
-        return None
-
+def _build_dir_schema(dirpath, file_type, info, file_count, total):
+    """从已收集的字段信息构建子目录的 schema"""
     dirname = Path(dirpath).name
     schema_key = "_fields" if file_type in ("entity", "config") else "_entry"
 
@@ -435,24 +606,188 @@ def analyze_directory(dirpath):
 
 # ==================== 主入口 ====================
 
+def _format_types(types_dict):
+    """将 {type_str: count} 格式化为可读字符串，如 'string(120) int(3)'"""
+    if not types_dict:
+        return ""
+    parts = sorted(types_dict.items(), key=lambda x: x[1], reverse=True)
+    return "  ".join(f"{t}({c})" for t, c in parts)
+
+
+def _write_dsl_report(log_path):
+    """基于 _global_field_info 生成 DSL 模式分类报告"""
+    # 筛选 child_keys > 阈值的字段（聚合后）
+    report_fields = {
+        name: info for name, info in _global_field_info.items()
+        if len(info["child_keys"]) > DYNAMIC_KEY_THRESHOLD
+    }
+
+    if not report_fields:
+        print("无字段超过聚合阈值，跳过报告")
+        return
+
+    lines = ["=" * 60, " DSL Key 模式分类报告", "=" * 60, ""]
+
+    idx = 0
+    for field_name, fi in sorted(report_fields.items(), key=lambda x: -len(x[1]["child_keys"])):
+        idx += 1
+        total_obj = fi["count"]
+        total_unique = len(fi["child_keys"])
+        key_counts = fi["child_key_counts"]
+        key_types = fi["child_key_types"]
+
+        # 将所有 key 按 DSL 模式分类
+        classified = {}   # group_name → [(key, count)]
+        unclassified = []  # [(key, count)]
+        for k, cnt in key_counts.items():
+            group = classify_dsl_key(k)
+            if group:
+                classified.setdefault(group, []).append((k, cnt))
+            else:
+                unclassified.append((k, cnt))
+
+        # 统计
+        classified_key_count = sum(len(v) for v in classified.values())
+        classified_total_occ = sum(cnt for grp in classified.values() for _, cnt in grp)
+        unclassified_total_occ = sum(cnt for _, cnt in unclassified)
+
+        lines.append(f"[{idx}] 字段名: {field_name}")
+        lines.append(f"    出现路径数: {len(fi['paths'])}")
+        lines.append(f"    该 object 总出现次数: {total_obj}")
+        lines.append(f"    不同 key 总数: {total_unique}")
+        lines.append(f"    已分类 DSL key: {classified_key_count} 个 ({classified_total_occ} 次出现)")
+        lines.append(f"    未分类 key: {len(unclassified)} 个 ({unclassified_total_occ} 次出现)")
+        lines.append("")
+
+        # 输出已分类的 DSL 模式组
+        if classified:
+            lines.append(f"    ── 已分类 DSL 模式 ──")
+            for group_name, keys in sorted(classified.items(), key=lambda x: -sum(c for _, c in x[1])):
+                group_total = sum(c for _, c in keys)
+                group_ratio = group_total / total_obj * 100 if total_obj > 0 else 0
+                lines.append(f"    [{group_name}] {len(keys)} 个 key, 共 {group_total} 次 ({group_ratio:.1f}%)")
+                # 展示该组出现次数最多的前 5 个 key 作为示例
+                top_keys = sorted(keys, key=lambda x: x[1], reverse=True)[:5]
+                for k, cnt in top_keys:
+                    ratio = cnt / total_obj * 100 if total_obj > 0 else 0
+                    types_info = _format_types(key_types.get(k, {}))
+                    lines.append(f"      例: {k:40s} {cnt:>5d}次 ({ratio:>5.1f}%)  {types_info}")
+                if len(keys) > 5:
+                    lines.append(f"      ... 及其余 {len(keys) - 5} 个")
+            lines.append("")
+
+        # 输出未分类的 key（全部列出）
+        if unclassified:
+            lines.append(f"    ── 未分类 key ({len(unclassified)} 个) ──")
+            for k, cnt in sorted(unclassified, key=lambda x: x[1], reverse=True):
+                ratio = cnt / total_obj * 100 if total_obj > 0 else 0
+                types_info = _format_types(key_types.get(k, {}))
+                lines.append(f"      {k:40s} : {cnt:>5d}次 ({ratio:>5.1f}%)  {types_info}")
+            lines.append("")
+
+        # 出现路径列表
+        lines.append(f"    出现路径列表:")
+        for p in sorted(fi["paths"]):
+            lines.append(f"      - {p}")
+        lines.append("")
+        lines.append("-" * 60)
+        lines.append("")
+
+    # 汇总
+    lines.append("=" * 60)
+    lines.append(" 汇总")
+    lines.append("=" * 60)
+    total_all_keys = sum(len(fi["child_keys"]) for fi in report_fields.values())
+    total_classified = 0
+    total_unclassified = 0
+    for fi in report_fields.values():
+        for k in fi["child_key_counts"]:
+            if classify_dsl_key(k):
+                total_classified += 1
+            else:
+                total_unclassified += 1
+    lines.append(f"报告字段数: {len(report_fields)}")
+    lines.append(f"总 key 数（去重）: {total_all_keys}")
+    lines.append(f"已分类: {total_classified}")
+    lines.append(f"未分类: {total_unclassified}")
+    if total_all_keys > 0:
+        lines.append(f"分类覆盖率: {total_classified / (total_classified + total_unclassified) * 100:.1f}%")
+
+    log_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"DSL 模式分类报告已写入: {log_path}")
+
+
 def generate_all(config_dir, output_dir):
-    """生成所有 schema 文件"""
+    """生成所有 schema 文件（两遍处理：先收集字段信息，再构建 schema）"""
     config_path = Path(config_dir)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    generated = []
+    # ==================== Pass 1: 收集所有字段信息 ====================
+    print("=== Pass 1: 收集字段信息 ===")
 
-    # 根目录文件
     root_files = sorted([
         f for f in os.listdir(config_path)
         if f.endswith(".json") and os.path.isfile(config_path / f)
     ])
+    subdirs = sorted([
+        d for d in os.listdir(config_path)
+        if os.path.isdir(config_path / d)
+    ])
 
+    # 收集根目录文件信息
+    file_infos = {}  # fname → (file_type, info, data)
     for fname in root_files:
         filepath = config_path / fname
-        print(f"分析: {fname} ...", end=" ")
-        schema = analyze_single_file(str(filepath))
+        result = _collect_file_info(str(filepath))
+        if result:
+            file_infos[fname] = result
+            _accumulate_global_info(result[1])  # result[1] = info
+            print(f"  收集: {fname}")
+
+    # 收集子目录信息
+    dir_infos = {}  # dirname → (file_type, info, file_count, total)
+    for subdir in subdirs:
+        dirpath = config_path / subdir
+        result = _collect_dir_info(str(dirpath))
+        if result:
+            dir_infos[subdir] = result
+            _accumulate_global_info(result[1])  # result[1] = info
+            print(f"  收集: {subdir}/")
+
+    # 构建模板注册表和 DSL 规则
+    _build_templates()
+    dsl_rules = _build_dsl_rules()
+    print(f"\n自动发现的模板: {sorted(_templates_registry.keys())}")
+    for name, tpl in _templates_registry.items():
+        n_fields = len(tpl.get("fields", {}))
+        print(f"  {name}: {n_fields} 个固定 key")
+    print(f"DSL 规则: {len(dsl_rules)} 组")
+
+    # 写入全局模板文件
+    global_schema = {
+        "_templates": _templates_registry,
+        "_dsl_rules": dsl_rules,
+    }
+    global_file = output_path / "_global.schema.json"
+    global_file.write_text(
+        json.dumps(global_schema, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print(f"全局模板 → _global.schema.json")
+
+    # ==================== Pass 2: 构建 schema ====================
+    print("\n=== Pass 2: 构建 schema ===")
+
+    generated = []
+
+    for fname in root_files:
+        if fname not in file_infos:
+            continue
+        filepath = config_path / fname
+        file_type, info, _data = file_infos[fname]
+        print(f"构建: {fname} ...", end=" ")
+        schema = _build_single_file_schema(str(filepath), file_type, info)
         if schema:
             out_name = f"{Path(fname).stem}.schema.json"
             out_file = output_path / out_name
@@ -463,18 +798,15 @@ def generate_all(config_dir, output_dir):
             print(f"→ {out_name}")
             generated.append(out_name)
         else:
-            print("跳过（无法分析）")
-
-    # 子目录
-    subdirs = sorted([
-        d for d in os.listdir(config_path)
-        if os.path.isdir(config_path / d)
-    ])
+            print("跳过")
 
     for subdir in subdirs:
+        if subdir not in dir_infos:
+            continue
         dirpath = config_path / subdir
-        print(f"分析: {subdir}/ ...", end=" ")
-        schema = analyze_directory(str(dirpath))
+        file_type, info, file_count, total = dir_infos[subdir]
+        print(f"构建: {subdir}/ ...", end=" ")
+        schema = _build_dir_schema(str(dirpath), file_type, info, file_count, total)
         if schema:
             out_name = f"{subdir}.schema.json"
             out_file = output_path / out_name
@@ -485,9 +817,13 @@ def generate_all(config_dir, output_dir):
             print(f"→ {out_name}")
             generated.append(out_name)
         else:
-            print("跳过（无文件）")
+            print("跳过")
 
-    print(f"\n共生成 {len(generated)} 个 schema 文件到 {output_path}")
+    print(f"\n共生成 {len(generated)} 个 schema 文件 + 1 个全局模板到 {output_path}")
+
+    # ==================== 生成 DSL 模式分类报告 ====================
+    log_path = PROJECT_ROOT / "dynamic_key_report.log"
+    _write_dsl_report(log_path)
 
     return generated
 

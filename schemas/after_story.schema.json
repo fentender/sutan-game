@@ -15,7 +15,7 @@
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "key": {
           "type": "string",

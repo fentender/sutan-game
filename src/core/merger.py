@@ -7,6 +7,7 @@ import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .dsl_patterns import classify_dsl_key
 from .json_parser import load_json, dump_json
 from .schema_loader import (
     load_schemas, resolve_schema, get_field_def,
@@ -362,26 +363,28 @@ def deep_merge(base: object, override: object,
     if current_def and isinstance(current_def, dict):
         # 收集 schema 中已知的字段名
         known_keys = set()
-        is_dynamic = current_def.get("dynamic_keys", False)
 
-        if not is_dynamic:
-            # current_def 可能是 _entry/_fields 层（直接包含字段定义），
-            # 也可能是某个 object 字段的定义（通过 fields 包含子字段）
-            if "fields" in current_def:
-                known_keys = set(current_def["fields"].keys())
-            else:
-                # 检查是否是字段列表层：每个 value 都是 field_def
-                meta_keys = {"type", "merge", "dynamic_keys", "fields", "element", "match_strategy"}
-                field_candidates = {k for k in current_def if k not in meta_keys}
-                if field_candidates and all(
-                    isinstance(current_def[k], dict) and "type" in current_def[k]
-                    for k in field_candidates
-                ):
-                    known_keys = field_candidates
+        # current_def 可能是 _entry/_fields 层（直接包含字段定义），
+        # 也可能是某个 object 字段的定义（通过 fields 包含子字段）
+        if "fields" in current_def:
+            known_keys = set(current_def["fields"].keys())
+        else:
+            # 检查是否是字段列表层：每个 value 都是 field_def
+            meta_keys = {"type", "merge", "fields", "element", "match_strategy",
+                         "_template", "_use_template", "_templates"}
+            field_candidates = {k for k in current_def if k not in meta_keys}
+            if field_candidates and all(
+                isinstance(current_def[k], dict) and ("type" in current_def[k] or "_use_template" in current_def[k])
+                for k in field_candidates
+            ):
+                known_keys = field_candidates
 
         if known_keys:
             for key in override:
                 if key not in known_keys:
+                    # 全局 DSL 模式兜底：匹配 DSL pattern 的 key 不发警告
+                    if classify_dsl_key(key):
+                        continue
                     msg = f"未知字段 '{key}'，schema 中未定义"
                     diag.warn("merge", msg)
 

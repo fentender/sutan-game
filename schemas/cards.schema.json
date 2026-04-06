@@ -44,12 +44,12 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "guid": {
           "type": "string",
@@ -58,7 +58,7 @@
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "result_text": {
           "type": "string",
@@ -81,7 +81,252 @@
     "tag": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true
+      "fields": {
+        "不满": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "专属": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "主角": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "体魄": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "反对": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "受伤": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "可堆叠": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "命运的羁绊": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "哲瓦德": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "女性": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "奴隶": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "妓女": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "妻子": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "密教徒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "将领": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "小偷": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "已拥有": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "已装备": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "异国商人": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "弓箭": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "影响力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "思潮": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "恶名": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "情报": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "战斗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "扎齐伊": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "支持": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "智慧": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "未鉴定": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "梅姬": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "正教的信徒": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "武器": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "污名": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "法图娜": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "消耗品": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "淫具": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "激情": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "热娜": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "爱书人": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "生存": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "男性": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "盖斯": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "社交": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "纯色材质": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "苏丹": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "苏丹专属": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "苏丹的近卫": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "装备": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "装备商人": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "贵族": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "身价": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "部队": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "重投": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "金币": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "银趴绝缘者": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "隐匿": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "食物": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "魅力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "魔力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "黑暗知识": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "黑街居民": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
     },
     "text": {
       "type": "string",

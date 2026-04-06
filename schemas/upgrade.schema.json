@@ -9,7 +9,7 @@
     "condition": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true
+      "_use_template": "condition"
     },
     "cost": {
       "type": "int",
@@ -18,7 +18,111 @@
     "effect": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true
+      "fields": {
+        "counter+7000343": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "counter+7000658": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "counter+7000730": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "counter+7100007": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "counter+7100008": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000369+体魄": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000369+战斗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000370+生存": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000370+隐匿": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000371+社交": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.2000371+魅力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.card": {
+          "type": [
+            "array",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "g.change": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "g.coin": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+体魄": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+战斗": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+智慧": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+生存": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+社交": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+隐匿": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "g.主角+魅力": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "global_counter=7200176": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "global_counter=7200177": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "global_counter=7230001": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "sudan_card": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
     },
     "icon": {
       "type": "string",

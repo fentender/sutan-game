@@ -3,7 +3,828 @@
     "schema_version": 1,
     "file_type": "config",
     "description": "variable",
-    "source": "variable.json",
-    "dynamic_keys": true
+    "source": "variable.json"
+  },
+  "_fields": {
+    "CARD_TAG_CANNOT_ADD_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "CARD_TAG_CAN_ADD_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "CARD_TAG_NEGATIVE_VALUE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "CARD_TAG_POSITIVE_VALUE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "CARD_TAG_ZERO_VALUE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_LEAVE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_FORMAT_RED": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_LAST": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_LAST_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_NOMAL": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_NOMAL_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_RED": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_RED_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_RED_TODAY": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_RED_TODAY_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_TODAY": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_NUMBER_TODAY_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "MAIN_UI_TITLE_SUDAN_IN_RITE_NUMBER_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "NEXT_DAY": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "NEXT_DAY_HOVER": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "OVER_PROMPT_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "OVER_STORY_TITLE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "OVER_UI_LOGO": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "PRESTIGE_CHANGE_NEGATIVE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "PRESTIGE_CHANGE_POSITIVE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "PROMPT_RESULT_SEPERATOR": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "QUEST_FAVOUR_TEXT_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "QUEST_FAVOUR_TEXT_FORMAT_MOBILE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "REDRAW_NOTICE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "REDRAW_NOTICE_NUMBER_NAME": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_OPEN_TIPS_CONTENT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_TIPS_TEXT_CONTENT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_TIPS_TEXT_FOOT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_TIPS_TEXT_HEADER": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_TIPS_TEXT_ICON": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_PANEL_TITLE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_RESULT_DICE_COUNT_PROMPT_GOLD_PLUS_COUNT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_DICE_TEXT_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_DICE_WAITING": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_DICE_WAITING_Gamepad": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_NORMAL_WAITING": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_NORMAL_WAITING_Gamepad": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_TEXT_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "RITE_SETTLEMENT_RESULT_TITLE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "SETTLEMENT_CURRENT_DICE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "SETTLEMENT_NEED_ATTRIBUTE": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "START_NOTICE_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "START_UI_LOGO": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "START_UI_START_GAME_BUTTON_BG": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "STORY_TARGET_ITEM_FINISH_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "STORY_TARGET_ITEM_UNFINISH_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "STORY_TARGET_ITEM_UNFINISH_NO_NUMBER_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "USER_ARCHIVE_ITEM_DESC_FORMAT": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "all_auto_classify_tags": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "athor_auto_classify_tag": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "auto_classify": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "auto_classify_bag_tags": {
+      "type": "array<array>",
+      "merge": "append"
+    },
+    "begin_guide_sprites": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "Arrow": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "ArrowLeft": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "ArrowRight": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "ArrowUp": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "MouseDrag": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "MouseDrag_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "MouseLeftClick": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "MouseLeftClick_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "MouseRightClick": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "MouseRightClick_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "MouseRightClick_Touch": {
+          "type": "array",
+          "merge": "append"
+        },
+        "MouseWheel": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "MouseWheel_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "TouchClick": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "TouchClick_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "TouchSwipeLeftRight": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "TouchSwipeLeftRight_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        },
+        "TouchSwipeUpDown": {
+          "type": "array<string>",
+          "merge": "append"
+        },
+        "TouchSwipeUpDown_Gamepad": {
+          "type": "array",
+          "merge": "append"
+        }
+      }
+    },
+    "buff": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "card_state_icon": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "cursed": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "hurt": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sacrifices": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sick": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "traces_of_desire": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "configVersion": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "contact": {
+      "type": "array<object>",
+      "merge": "append",
+      "element": {
+        "full": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "id": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "url": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "default_language_code": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "fade_in_transition_time": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "Armageddon": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Default": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "DestroySudanCard": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "DrawSudanCard": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "MainGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "MakerTeam": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "OverGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Settlement": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "StartGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_DrawSudanCard": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_MainGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_Settlement": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    },
+    "fade_out_transition_time": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "Armageddon": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "Default": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "DestroySudanCard": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "DrawSudanCard": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "MainGame": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "MakerTeam": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "OverGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Settlement": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "StartGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_DrawSudanCard": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_MainGame": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "Tutorial_Settlement": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    },
+    "gain": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "gallery_card_show_items": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "gallery_card_type": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "harmonious_replacer": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "cards/2000500": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2000513": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2000770": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2000772": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2000851": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2000852": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2010001": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2010002": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2010003": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "cards/2010004": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "full/1_sudan_1": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "full/1_sudan_1_2": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "full/1_sudan_4_2": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_2": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_3": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_4": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_5": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_6": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_1_7": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_4_4": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_4_5": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_4_6": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sudan_big/1_sudan_4_7": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "hover_pop_show_delay": {
+      "type": "float",
+      "merge": "replace"
+    },
+    "language_code_map": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "Chinese": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "ChineseSimplified": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "ChineseTraditional": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "English": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "Japanese": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "Unknown": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "english": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "japanese": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "schinese": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "tchinese": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "music_transition_time": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "pop_show_time": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "result_text_auto_play_rate": {
+      "type": "float",
+      "merge": "replace"
+    },
+    "result_text_play_rate": {
+      "type": "float",
+      "merge": "replace"
+    },
+    "settle_card_bad_state": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "show_gallery": {
+      "type": "bool",
+      "merge": "replace"
+    },
+    "show_note_type": {
+      "type": "array<array>",
+      "merge": "append"
+    },
+    "slide/1-1": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "slide/1-2": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "slide/1-3": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "slide/1-4": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "special_counters": {
+      "type": "array<int>",
+      "merge": "append"
+    },
+    "support_font_size": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "FONT_SIZE_LG": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "FONT_SIZE_MD": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "FONT_SIZE_SM": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "FONT_SIZE_XL": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "FONT_SIZE_XS": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "support_fullScreen": {
+      "type": "array<string>",
+      "merge": "append"
+    },
+    "support_language": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "en": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "ja": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "zhCN": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "zhTW": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "support_resolution": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "1280x720": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "1280x800": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "1600x900": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "1920x1080": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "2560x1440": {
+          "type": "array<int>",
+          "merge": "append"
+        },
+        "800x600": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "target_fps": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "text_link": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "steam_workshop_legal_agreement": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "ui_size": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "lg": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "md": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "sm": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "xl": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "xs": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "xxl": {
+          "type": "float",
+          "merge": "replace"
+        }
+      }
+    }
   }
 }

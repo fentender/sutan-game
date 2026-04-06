@@ -5,12 +5,17 @@ import json
 import logging
 from pathlib import Path
 
+from .dsl_patterns import classify_dsl_key
 from .type_utils import get_type_str
 
 log = logging.getLogger(__name__)
 
 # 缓存的 schemas：{pattern: schema_dict}
 _schemas: dict[str, dict] = {}
+
+# 全局模板和 DSL 规则（从 _global.schema.json 加载）
+_global_templates: dict[str, dict] = {}
+_global_dsl_rules: dict[str, dict] = {}
 
 
 def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
@@ -22,7 +27,7 @@ def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
         - "cards.json" → 精确匹配根文件
         - "rite/" → 匹配 rite/ 目录下所有文件
     """
-    global _schemas
+    global _schemas, _global_templates, _global_dsl_rules
     schema_dir = Path(schema_dir)
     schemas = {}
 
@@ -30,7 +35,17 @@ def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
         log.warning(f"schema 目录不存在: {schema_dir}")
         return schemas
 
+    # 加载全局模板文件
+    global_file = schema_dir / "_global.schema.json"
+    if global_file.exists():
+        global_data = json.loads(global_file.read_text(encoding="utf-8"))
+        _global_templates = global_data.get("_templates", {})
+        _global_dsl_rules = global_data.get("_dsl_rules", {})
+        log.info(f"已加载全局模板 {len(_global_templates)} 个, DSL 规则 {len(_global_dsl_rules)} 组")
+
     for schema_file in schema_dir.glob("*.schema.json"):
+        if schema_file.name == "_global.schema.json":
+            continue
         raw = schema_file.read_text(encoding="utf-8")
         schema = json.loads(raw)
         meta = schema.get("_meta", {})
@@ -75,6 +90,11 @@ def resolve_schema(rel_path: str, schemas: dict[str, dict] | None = None) -> dic
     return None
 
 
+def _resolve_template(template_name: str) -> dict | None:
+    """从全局模板中解析命名模板"""
+    return _global_templates.get(template_name)
+
+
 def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
     """
     在 schema 树中查找字段定义。
@@ -85,8 +105,10 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
     导航逻辑：
     - 遇到 "_entry" / "_fields" → 直接取对应的 dict
     - 遇到有 "fields" 的节点 → 进入 fields
-    - 遇到 dynamic_keys → 返回 None（DSL 字段统一使用默认 replace 策略）
+    - 遇到 "_use_template" → 解析命名模板后继续导航
+    - 遇到有 "_template" 的节点 → 回退到模板继续导航
     - 遇到有 "element" 的节点 → 进入 element（用于数组元素的字段）
+    - key 匹配 DSL 模式 → 返回默认 replace 定义
     """
     if not field_path or not schema:
         return None
@@ -96,6 +118,13 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
         if current is None:
             return None
 
+        # 处理 _use_template 引用：先解析为实际模板定义
+        if isinstance(current, dict) and "_use_template" in current:
+            resolved = _resolve_template(current["_use_template"])
+            if resolved is None:
+                return None
+            current = resolved
+
         # 顶层导航：_entry / _fields
         if segment in ("_entry", "_fields"):
             current = current.get(segment)
@@ -103,14 +132,13 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
 
         # 在当前层级查找 segment
         if isinstance(current, dict):
-            # 优先在 fields 子结构中查找（避免与 schema 元数据 key 冲突）
+            # 优先在 fields 子结构中查找
             if "fields" in current and isinstance(current["fields"], dict):
                 if segment in current["fields"]:
                     current = current["fields"][segment]
                     continue
 
             # 同类子结构模板（如 cards_slot 的 s1-s18 共享同一模板）
-            # fields 未命中时，用 _template 继续导航
             if "_template" in current:
                 current = current["_template"]
                 continue
@@ -121,11 +149,17 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
                     current = current["element"][segment]
                     continue
 
-            # 动态 key 处理：当前层标记了 dynamic_keys
-            # DSL 字段（condition/action/result 等）的 key 是动态表达式，
-            # value 为基本类型，使用默认 replace 策略
-            if current.get("dynamic_keys"):
-                return None
+            # 全局 DSL 模式兜底：key 匹配 DSL pattern → 从 _dsl_rules 读取规则
+            group = classify_dsl_key(segment)
+            if group:
+                rule = _global_dsl_rules.get(group)
+                if rule:
+                    if "_use_template" in rule:
+                        resolved = _resolve_template(rule["_use_template"])
+                        if resolved:
+                            return resolved
+                    return rule
+                return {"type": None, "merge": "replace"}
 
             # 回退：直接在当前层级查找
             if segment in current:
@@ -134,6 +168,12 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
 
             # 找不到
             return None
+
+    # 最终结果也可能是 _use_template 引用
+    if isinstance(current, dict) and "_use_template" in current:
+        resolved = _resolve_template(current["_use_template"])
+        if resolved is not None:
+            return resolved
 
     return current
 

@@ -22,7 +22,7 @@
             "action": {
               "type": "object",
               "merge": "merge",
-              "dynamic_keys": true
+              "_use_template": "action"
             },
             "option_Jump_condition": {
               "type": "object",
@@ -41,7 +41,7 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "direct_id": {
           "type": "string",

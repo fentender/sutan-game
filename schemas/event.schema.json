@@ -19,7 +19,7 @@
     "condition": {
       "type": "object",
       "merge": "merge",
-      "dynamic_keys": true
+      "_use_template": "condition"
     },
     "id": {
       "type": "int",
@@ -138,7 +138,7 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "tips_resource": {
           "type": "string",

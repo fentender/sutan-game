@@ -3,7 +3,2002 @@
     "schema_version": 1,
     "file_type": "config",
     "description": "textstyle",
-    "source": "textstyle.json",
-    "dynamic_keys": true
+    "source": "textstyle.json"
+  },
+  "_fields": {
+    "@BIG_BUTTON": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@BIG_BUTTON_AUTO_SIZE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@BIG_BUTTON_HALF": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@BIG_BUTTON_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@BUTTON": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@BUTTON_AUTO_SIZE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_DESC": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_DESC_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_NAME": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_NAME_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_RARE_TEXT_FORMAT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_INFO_TAG_FIXED_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_INFO_TAG_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@CARD_INFO_TAG_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_INFO_TAG_TITLE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_INFO_TYPE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_INFO_TYPE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_SUDAN_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@CARD_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@EXECUTION_DAY_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GALLERY_CARD_INFO_PLOT_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GALLERY_CARD_INFO_PLOT_TITLE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@GALLERY_CARD_INFO_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GALLERY_CARD_INFO_TEXT_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GALLERY_CARD_TYPE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GALLERY_CARD_TYPE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@GUIDE_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@HELP_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@MAIN_BODY": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@MAIN_BODY_AUTO_SIZE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@MAIN_BODY_AUTO_SIZE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@MAIN_BODY_HALF": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@MAIN_BODY_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@NOTE_ITEM_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OPTION_ITEM_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OPTION_ITEM_TEXT_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OVER_RECORD_SUB_NAME": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OVER_RECORD_SUB_NAME_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OVER_SUBTITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@OVER_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@POP_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@PRESITGE_COUNT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "characterSpacing": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@PRESTIGE_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@PROMPT_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@PROMPT_TEXT_AUTO_SIZE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@PROMPT_TEXT_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_PANEL_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "characterSpacing": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_PANEL_TITLE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "characterSpacing": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_SETTLEMENT_POP_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_SETTLEMENT_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_TITLE_BLACK": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_TITLE_BLACK_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@RITE_TITLE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "material": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@SETTING_OPTION_ITEM": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@SETTING_OPTION_ITEM_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@SETTING_OPTION_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@SETTING_OPTION_TITLE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TAG_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TIPS_FORMAT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TIPS_FORMAT_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H1": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H1_HALF": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H1_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H2": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H2_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "lineSpacing": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H3": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TITLE_H3_AUTO_SIZE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@TITLE_H3_AUTO_SIZE_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "enableAutoSize": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sizeRange": {
+          "type": "array<int>",
+          "merge": "append"
+        }
+      }
+    },
+    "@TITLE_H3_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@TOGGLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "@WIZARD_BODY": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@WIZARD_BODY_MOBILE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@WIZARD_OPTION_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "@WIZARD_TEXT": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "ADD_TO_WISHLIST": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "characterSpacing": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "NEXT_DAY": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "isRightToLeftText": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "size": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "PROMPT_CHANGE_NAME_INPUT_PLACEHOLDER": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    },
+    "PROMPT_CHANGE_NAME_TITLE": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "css_size": {
+          "type": "object",
+          "merge": "merge",
+          "fields": {
+            "lg": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "md": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "sm": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xl": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xs": {
+              "type": "int",
+              "merge": "replace"
+            },
+            "xxl": {
+              "type": "int",
+              "merge": "replace"
+            }
+          }
+        },
+        "font": {
+          "type": "string",
+          "merge": "replace"
+        }
+      }
+    }
   }
 }

@@ -4,6 +4,6 @@
     "file_type": "config",
     "description": "sfx_npc_role_dub",
     "source": "sfx_npc_role_dub.json",
-    "dynamic_keys": true
+    "top_level_dsl": true
   }
 }

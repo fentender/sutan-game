@@ -26,7 +26,7 @@
           "condition": {
             "type": "object",
             "merge": "merge",
-            "dynamic_keys": true
+            "_use_template": "condition"
           },
           "guid": {
             "type": "string",
@@ -55,12 +55,12 @@
               "action": {
                 "type": "object",
                 "merge": "merge",
-                "dynamic_keys": true
+                "_use_template": "action"
               },
               "condition": {
                 "type": "object",
                 "merge": "merge",
-                "dynamic_keys": true
+                "_use_template": "condition"
               }
             },
             "match_strategy": "rite"
@@ -160,7 +160,7 @@
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "tips": {
           "type": "string",
@@ -246,12 +246,12 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "guid": {
           "type": "string",
@@ -260,7 +260,7 @@
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "result_text": {
           "type": "string",
@@ -283,12 +283,12 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "guid": {
           "type": "string",
@@ -297,7 +297,7 @@
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "result_text": {
           "type": "string",
@@ -320,12 +320,12 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "guid": {
           "type": "string",
@@ -334,7 +334,7 @@
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "result_text": {
           "type": "string",
@@ -401,17 +401,17 @@
         "action": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "condition": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "condition"
         },
         "result": {
           "type": "object",
           "merge": "merge",
-          "dynamic_keys": true
+          "_use_template": "action"
         },
         "result_text": {
           "type": "string",

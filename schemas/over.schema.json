@@ -4,6 +4,6 @@
     "file_type": "config",
     "description": "over",
     "source": "over.json",
-    "dynamic_keys": true
+    "top_level_dsl": true
   }
 }

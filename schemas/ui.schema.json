@@ -4,6 +4,6 @@
     "file_type": "config",
     "description": "ui",
     "source": "ui.json",
-    "dynamic_keys": true
+    "top_level_dsl": true
   }
 }

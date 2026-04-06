@@ -1,0 +1,360 @@
+{
+  "_templates": {
+    "condition": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "type": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "any": {
+          "_use_template": "condition"
+        },
+        "is": {
+          "type": [
+            "int",
+            "string"
+          ],
+          "merge": "coerce"
+        },
+        "all": {
+          "_use_template": "condition"
+        },
+        "rite": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "unlock_upgrade": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "rare": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "round": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "is_rite": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "change_name": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "difficulty": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "option": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "case:1": {
+          "type": "object",
+          "merge": "merge"
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "event_on": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "card": {
+          "type": [
+            "array",
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "rite": {
+          "type": [
+            "int",
+            "string"
+          ],
+          "merge": "coerce"
+        },
+        "prompt": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "event_off": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "choose": {
+          "_use_template": "action"
+        },
+        "success": {
+          "_use_template": "action"
+        },
+        "over": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "option": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "coin": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "no_show": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "loot": {
+          "type": [
+            "array<int>",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "delay": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "no_prompt": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "steam_achievement": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "debug": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "failed": {
+          "_use_template": "action"
+        },
+        "all": {
+          "_use_template": "condition"
+        },
+        "begin_guide": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "delay_off": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_box": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "enable_auto_gen_sudan_card": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "change_desk_bg": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "sleep": {
+          "type": "float",
+          "merge": "replace"
+        },
+        "change_name": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "slide": {
+          "type": "string",
+          "merge": "replace"
+        },
+        "magic_sudan": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "hand_card_refresh": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_story": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_prestige": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "change_location_icon": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_deadline": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "close_helpbtn": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "confirm": {
+          "type": "object",
+          "merge": "merge"
+        },
+        "difficulty": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    },
+    "no_prompt": {
+      "type": "object",
+      "merge": "merge",
+      "fields": {
+        "card": {
+          "type": [
+            "array",
+            "int"
+          ],
+          "merge": "coerce"
+        },
+        "event_off": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "enable_auto_gen_sudan_card": {
+          "type": "bool",
+          "merge": "replace"
+        },
+        "rite": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "delay_off": {
+          "type": "int",
+          "merge": "replace"
+        },
+        "event_on": {
+          "type": "int",
+          "merge": "replace"
+        }
+      }
+    }
+  },
+  "_dsl_rules": {
+    "attr_cmp": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "case": {
+      "_use_template": "action"
+    },
+    "change_card": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "clean": {
+      "type": [
+        "array<int>",
+        "int"
+      ],
+      "merge": "coerce"
+    },
+    "cost": {
+      "type": [
+        "array<int>",
+        "int"
+      ],
+      "merge": "coerce"
+    },
+    "counter": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "entity_op": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "focus": {
+      "type": "array<int>",
+      "merge": "append"
+    },
+    "formula": {
+      "type": [
+        "array<int>",
+        "int"
+      ],
+      "merge": "coerce"
+    },
+    "have": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "loot_dsl": {
+      "type": [
+        "array<int>",
+        "int"
+      ],
+      "merge": "coerce"
+    },
+    "negated": {
+      "type": [
+        "int",
+        "string"
+      ],
+      "merge": "coerce"
+    },
+    "pop": {
+      "type": "string",
+      "merge": "replace"
+    },
+    "rare": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "slot": {
+      "type": [
+        "array<string>",
+        "int",
+        "string"
+      ],
+      "merge": "coerce"
+    },
+    "sudan_pool": {
+      "type": "int",
+      "merge": "replace"
+    },
+    "table": {
+      "type": [
+        "array<string>",
+        "int",
+        "string"
+      ],
+      "merge": "coerce"
+    },
+    "tag_check": {
+      "type": [
+        "int",
+        "string"
+      ],
+      "merge": "coerce"
+    },
+    "total": {
+      "type": [
+        "int",
+        "string"
+      ],
+      "merge": "coerce"
+    }
+  }
+}
