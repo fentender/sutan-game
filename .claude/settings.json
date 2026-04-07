@@ -18,7 +18,18 @@
       "Bash(wc -l d:/Games/SuDanGame/src/core/*.py d:/Games/SuDanGame/src/gui/*.py)",
       "Bash(python -m tests.test_runner)",
       "Bash(grep -v \"^$\")",
-      "Bash(python -m tests.test_runner perf)"
+      "Bash(python -m tests.test_runner perf)",
+      "Read(//c/Users/Lenovo/.claude/**)",
+      "Bash(xxd)",
+      "Bash(python3 -c ':*)",
+      "Bash(python -m tests.test_runner unit)",
+      "mcp__thinking__sequentialthinking",
+      "WebSearch",
+      "WebFetch(domain:pypi.org)",
+      "Bash(pip show:*)",
+      "Bash(python -c \"from rapidfuzz.distance import Indel; help\\(Indel.opcodes\\)\")",
+      "Bash(python -c \"import Levenshtein; print\\(dir\\(Levenshtein\\)\\)\")",
+      "Bash(pip install:*)"
     ]
   }
 }

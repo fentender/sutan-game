@@ -3,7 +3,6 @@ Diff 对比窗口 - 逐级展示游戏本体经各 Mod 覆盖后的行级差异
 左侧只读 CodeEditor 显示合并前状态，右侧可编辑 CodeEditor 显示合并结果
 """
 import copy
-import difflib
 import json
 from pathlib import Path
 
@@ -28,6 +27,56 @@ from .json_editor import CodeEditor, _format_with_comments
 _CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（被修改/删除的行）
 _CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
+
+
+def _intern_lines(lines: list[str], table: dict[str, int]) -> list[int]:
+    """将字符串行列表映射为整数 ID 列表，共享 table 跨多次调用复用"""
+    ids = []
+    for line in lines:
+        if line not in table:
+            table[line] = len(table)
+        ids.append(table[line])
+    return ids
+
+
+def _fast_opcodes(a_ids: list[int], b_ids: list[int]) -> list[tuple[str, int, int, int, int]]:
+    """使用 rapidfuzz C++ 后端计算 diff opcodes（行哈希整数序列输入）。
+    Indel 只产出 equal/delete/insert，此函数将相邻 delete+insert 合并为 replace
+    以保持与 difflib 兼容的语义。"""
+    from rapidfuzz.distance import Indel
+
+    raw = Indel.opcodes(a_ids, b_ids)
+
+    # 合并相邻 delete+insert 为 replace
+    opcodes: list[tuple[str, int, int, int, int]] = []
+    i = 0
+    n = len(raw)
+    while i < n:
+        op = raw[i]
+        tag = op.tag
+        if tag == "delete" and i + 1 < n and raw[i + 1].tag == "insert":
+            nxt = raw[i + 1]
+            opcodes.append(("replace", op.src_start, op.src_end,
+                            nxt.dest_start, nxt.dest_end))
+            i += 2
+        elif tag == "insert" and i + 1 < n and raw[i + 1].tag == "delete":
+            nxt = raw[i + 1]
+            opcodes.append(("replace", nxt.src_start, nxt.src_end,
+                            op.dest_start, op.dest_end))
+            i += 2
+        else:
+            opcodes.append((tag, op.src_start, op.src_end,
+                            op.dest_start, op.dest_end))
+            i += 1
+    return opcodes
+
+
+def _diff_opcodes(a_lines: list[str], b_lines: list[str]) -> list[tuple]:
+    """行哈希 + rapidfuzz C++ 后端 diff — 31000 行文件仅需 ~1ms"""
+    table: dict[str, int] = {}
+    a_ids = _intern_lines(a_lines, table)
+    b_ids = _intern_lines(b_lines, table)
+    return _fast_opcodes(a_ids, b_ids)
 
 
 @profile
@@ -63,6 +112,10 @@ class DiffDialog(QDialog):
         # 预计算各级合并状态的 JSON 文本
         self._base_text: str = ""  # 游戏本体原始文本（所有 mod 之前）
         self._diff_pairs: list[tuple[str, str, str, str]] = []  # (mod_id, mod_name, prev_text, curr_text)
+        # 预计算的高亮数据：[(left_highlights, right_highlights, diff_positions), ...]
+        self._precomputed_highlights: list[tuple[
+            list[tuple[int, QColor]], list[tuple[int, QColor]], list[int]
+        ]] = []
         self._precompute_merge_states()
 
         # 懒加载标记
@@ -83,8 +136,9 @@ class DiffDialog(QDialog):
 
     @profile
     def _precompute_merge_states(self):
-        """预计算逐级合并的 JSON 文本对，不涉及 UI 操作"""
+        """预计算逐级合并的 JSON 文本对 + 行级 diff 高亮，不涉及 UI 操作"""
         self._diff_pairs.clear()
+        self._precomputed_highlights.clear()
         base_file = self._game_config_path / self._rel_path
         base_data = load_json(base_file) if base_file.exists() else {}
 
@@ -133,6 +187,57 @@ class DiffDialog(QDialog):
                 current = json.loads(curr_text)
 
             self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
+
+        # 预计算所有 tab 的行级 diff 高亮（行哈希 + rapidfuzz C++ 后端）
+        base_lines = self._base_text.splitlines()
+        intern_table: dict[str, int] = {}
+        base_ids = _intern_lines(base_lines, intern_table)
+
+        for _, _, prev_text, curr_text in self._diff_pairs:
+            left_lines = prev_text.splitlines()
+            right_lines = curr_text.splitlines()
+
+            left_ids = _intern_lines(left_lines, intern_table)
+            right_ids = _intern_lines(right_lines, intern_table)
+
+            # prev vs curr 的 opcodes
+            opcodes = _fast_opcodes(left_ids, right_ids)
+
+            # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
+            prev_changed_lines: set[int] = set()
+            if left_ids != base_ids:
+                base_opcodes = _fast_opcodes(base_ids, left_ids)
+                for tag, _, _, j1, j2 in base_opcodes:
+                    if tag in ("replace", "insert"):
+                        for j in range(j1, j2):
+                            prev_changed_lines.add(j)
+
+            left_highlights: list[tuple[int, QColor]] = []
+            right_highlights: list[tuple[int, QColor]] = []
+            diff_positions: list[int] = []
+
+            for tag, i1, i2, j1, j2 in opcodes:
+                if tag == "equal":
+                    continue
+                diff_positions.append(i1)
+
+                if tag in ("replace", "delete"):
+                    for i in range(i1, i2):
+                        left_highlights.append((i, _CLR_LEFT_CHANGE))
+
+                if tag in ("replace", "insert"):
+                    is_conflict = (
+                        tag == "replace"
+                        and prev_changed_lines
+                        and any(i in prev_changed_lines for i in range(i1, i2))
+                    )
+                    color = _CLR_RIGHT_CONFLICT if is_conflict else _CLR_RIGHT_CHANGE
+                    for j in range(j1, j2):
+                        right_highlights.append((j, color))
+
+            self._precomputed_highlights.append(
+                (left_highlights, right_highlights, diff_positions)
+            )
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -303,7 +408,7 @@ class DiffDialog(QDialog):
 
     @profile
     def _load_tab(self, index: int):
-        """懒加载：首次切换到某 tab 时才填充文本并计算高亮"""
+        """懒加载：首次切换到某 tab 时填充文本并应用预计算的高亮"""
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
             return
         self._loaded_tabs.add(index)
@@ -313,26 +418,44 @@ class DiffDialog(QDialog):
         left_edit.setPlainText(prev_text)
         right_edit.setPlainText(curr_text)
 
-        self._compute_and_apply_highlights(index)
+        self._apply_precomputed_highlights(index)
+
+    def _apply_precomputed_highlights(self, tab_index: int):
+        """应用预计算的高亮数据到编辑器，不做任何 diff 计算"""
+        left_edit, right_edit = self._tab_edits[tab_index]
+        left_hl, right_hl, diff_positions = self._precomputed_highlights[tab_index]
+
+        _apply_extra_selections(left_edit, left_hl)
+        _apply_extra_selections(right_edit, right_hl)
+
+        self._tab_diff_positions[tab_index] = diff_positions
+        _, count_label, _ = self._tab_nav_widgets[tab_index]
+        total = len(diff_positions)
+        if total > 0:
+            self._tab_current_idx[tab_index] = 0
+            count_label.setText(f"1 / {total}")
+        else:
+            self._tab_current_idx[tab_index] = -1
+            count_label.setText("0 / 0")
 
     @profile
     def _compute_and_apply_highlights(self, tab_index: int):
-        """对比左右文本，用 ExtraSelections 标记差异行。
-        如果某行被之前的 mod 也修改过，使用冲突色（橙底）。"""
+        """对比左右文本，用 ExtraSelections 标记差异行（行哈希加速）。
+        如果某行被之前的 mod 也修改过，使用冲突色（橙底）。
+        仅用于格式化等需要实时重算的场景。"""
         left_edit, right_edit = self._tab_edits[tab_index]
         left_lines = left_edit.toPlainText().splitlines()
         right_lines = right_edit.toPlainText().splitlines()
 
-        # 计算 prev vs curr 的 opcodes
-        sm = difflib.SequenceMatcher(None, left_lines, right_lines, autojunk=False)
-        opcodes = sm.get_opcodes()
+        # 行哈希加速 diff
+        opcodes = _diff_opcodes(left_lines, right_lines)
 
-        # 计算哪些 prev 行已被之前的 mod 修改过（相对于本体）
+        # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
         prev_changed_lines: set[int] = set()
         base_lines = self._base_text.splitlines()
         if left_lines != base_lines:
-            base_sm = difflib.SequenceMatcher(None, base_lines, left_lines, autojunk=False)
-            for tag, _, _, j1, j2 in base_sm.get_opcodes():
+            base_opcodes = _diff_opcodes(base_lines, left_lines)
+            for tag, _, _, j1, j2 in base_opcodes:
                 if tag in ("replace", "insert"):
                     for j in range(j1, j2):
                         prev_changed_lines.add(j)

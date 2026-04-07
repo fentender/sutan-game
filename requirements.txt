@@ -1,1 +1,2 @@
 PySide6>=6.5.0
+rapidfuzz>=3.0.0
