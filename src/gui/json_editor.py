@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import (
     QFont, QColor, QTextCursor, QPainter, QTextFormat, QTextBlockUserData
 )
-from PySide6.QtCore import Qt, QRect, QSize
+from PySide6.QtCore import Qt, QRect, QSize, QMimeData
 
 from ..core.json_parser import strip_js_comments, strip_trailing_commas
 
@@ -145,6 +145,9 @@ class CodeEditor(QPlainTextEdit):
         self.updateRequest.connect(self._update_line_number_area)
         self._update_line_number_width()
 
+        # 填充行背景色（与 diff_dialog._CLR_PADDING 一致）
+        self._padding_color = QColor(30, 30, 30)
+
     def line_number_area_width(self) -> int:
         digits = max(1, len(str(self.blockCount())))
         return 8 + self.fontMetrics().horizontalAdvance("9") * (digits + 1)
@@ -164,6 +167,33 @@ class CodeEditor(QPlainTextEdit):
         super().resizeEvent(event)
         cr = self.contentsRect()
         self._line_number_area.setGeometry(QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
+
+    def paintEvent(self, event):
+        """先正常绘制，再用填充行背景色覆盖选区高亮，使填充行不显示选中状态"""
+        super().paintEvent(event)
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return
+        # 仅在存在 diff 填充行时才做额外绘制
+        block = self.firstVisibleBlock()
+        if not block.isValid():
+            return
+        painter = QPainter(self.viewport())
+        offset = self.contentOffset()
+        while block.isValid():
+            geom = self.blockBoundingGeometry(block).translated(offset)
+            if geom.top() > event.rect().bottom():
+                break
+            if geom.bottom() >= event.rect().top():
+                data = block.userData()
+                if isinstance(data, _DiffBlockData) and data.real_line is None:
+                    painter.fillRect(
+                        0, round(geom.top()),
+                        self.viewport().width(), round(geom.height()),
+                        self._padding_color
+                    )
+            block = block.next()
+        painter.end()
 
     def paint_line_numbers(self, event):
         painter = QPainter(self._line_number_area)
@@ -221,6 +251,40 @@ class CodeEditor(QPlainTextEdit):
 
     def clear_highlights(self):
         self.setExtraSelections([])
+
+    def createMimeDataFromSelection(self) -> QMimeData:
+        """复制时自动剥离 diff 填充行"""
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return super().createMimeDataFromSelection()
+
+        doc = self.document()
+        start_block = doc.findBlock(cursor.selectionStart())
+        end_block = doc.findBlock(cursor.selectionEnd())
+
+        # 选区内没有 diff 标记则走默认逻辑
+        has_diff_data = False
+        block = start_block
+        while block.isValid() and block.blockNumber() <= end_block.blockNumber():
+            if isinstance(block.userData(), _DiffBlockData):
+                has_diff_data = True
+                break
+            block = block.next()
+        if not has_diff_data:
+            return super().createMimeDataFromSelection()
+
+        # 提取选区内真实行（跳过填充行）
+        lines = []
+        block = start_block
+        while block.isValid() and block.blockNumber() <= end_block.blockNumber():
+            data = block.userData()
+            if not isinstance(data, _DiffBlockData) or data.real_line is not None:
+                lines.append(block.text())
+            block = block.next()
+
+        mime = QMimeData()
+        mime.setText('\n'.join(lines))
+        return mime
 
 
 class JsonEditorDialog(QDialog):

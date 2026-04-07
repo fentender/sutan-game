@@ -34,7 +34,8 @@
       "Bash(python -m tests)",
       "Bash(xargs grep:*)",
       "Bash(python -c \"import py_compile; py_compile.compile\\('src/gui/json_editor.py', doraise=True\\); py_compile.compile\\('src/gui/diff_dialog.py', doraise=True\\); print\\('OK'\\)\")",
-      "Bash(python -m src.main)"
+      "Bash(python -m src.main)",
+      "Bash(python -c \"import py_compile; py_compile.compile\\('src/gui/json_editor.py', doraise=True\\); print\\('OK'\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans"

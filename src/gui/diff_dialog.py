@@ -222,6 +222,8 @@ class DiffDialog(QDialog):
         ]] = []
         # 预计算的 opcodes，供 _load_tab() 构建填充文本时复用
         self._precomputed_opcodes: list[list[tuple]] = []
+        # 各 tab 是否包含冲突行
+        self._tab_has_conflict: list[bool] = []
         self._precompute_merge_states()
 
         # 懒加载标记
@@ -350,6 +352,9 @@ class DiffDialog(QDialog):
             self._precomputed_highlights.append(
                 (left_highlights, right_highlights, diff_positions)
             )
+            self._tab_has_conflict.append(
+                any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
+            )
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -386,6 +391,8 @@ class DiffDialog(QDialog):
             tab, left_edit, right_edit, error_bar, btn_prev, count_lbl, btn_next = (
                 self._create_empty_tab(mod_name, idx))
             self._tabs.addTab(tab, f"↔ {mod_name}")
+            if self._tab_has_conflict[idx]:
+                self._tabs.tabBar().setTabTextColor(idx, QColor(255, 180, 50))
             self._tab_edits.append((left_edit, right_edit))
             self._tab_error_bars.append(error_bar)
             self._tab_diff_positions.append([])
@@ -647,6 +654,14 @@ class DiffDialog(QDialog):
 
         _apply_extra_selections(left_edit, left_highlights)
         _apply_extra_selections(right_edit, right_highlights)
+
+        # 同步更新 tab 冲突标记颜色
+        has_conflict = any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
+        self._tab_has_conflict[tab_index] = has_conflict
+        self._tabs.tabBar().setTabTextColor(
+            tab_index,
+            QColor(255, 180, 50) if has_conflict else QColor(0, 0, 0, 0)
+        )
 
         self._tab_diff_positions[tab_index] = diff_positions
         _, count_label, _ = self._tab_nav_widgets[tab_index]
