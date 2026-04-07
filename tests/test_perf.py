@@ -110,6 +110,70 @@ def perf_resolve_duplicates():
     assert_true(len(pairs) == 50, f"应匹配 50 对，实际 {len(pairs)}")
 
 
+def perf_diff_dialog_tab_load():
+    """DiffDialog 打开 + 首次 tab 切换性能（无头 Qt）"""
+    import os
+    game_config, workshop = _require_real_data()
+    from src.core.mod_scanner import scan_all_mods
+    from src.core.conflict import analyze_all_overrides
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+
+    # 挑选最坏情况：被最多 mod 同时修改、且字段 override 数最多的文件
+    overrides = analyze_all_overrides(game_config, mod_configs, schema_dir=SCHEMA_DIR)
+    candidates = [o for o in overrides if len(o.mod_chain) >= 2]
+    if not candidates:
+        skip("没有多 mod 同时修改的文件")
+    candidates.sort(key=lambda o: (len(o.mod_chain), len(o.field_overrides)), reverse=True)
+    target = candidates[0]
+    log.info("    目标文件 %s (%d mods, %d field overrides)",
+             target.rel_path, len(target.mod_chain), len(target.field_overrides))
+
+    # 对应的 mod_configs 子集（按原顺序保留修改过此文件的 mod）
+    target_mods = [
+        (mid, mname, path) for (mid, mname, path) in mod_configs
+        if mname in target.mod_chain
+    ]
+
+    # 无头 Qt
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    try:
+        from PySide6.QtWidgets import QApplication
+    except ImportError:
+        skip("PySide6 不可用")
+    app = QApplication.instance() or QApplication([])
+
+    from src.gui.diff_dialog import DiffDialog
+
+    start = time.perf_counter()
+    dialog = DiffDialog(target.rel_path, game_config, target_mods)
+    construct_elapsed = time.perf_counter() - start
+    log.info("    DiffDialog 构造（含 precompute + tab 0 加载）%.3fs", construct_elapsed)
+
+    tab_count = len(dialog._diff_pairs)
+    if tab_count <= 1:
+        log.info("    仅 1 个 tab，无后续切换")
+        dialog.deleteLater()
+        app.processEvents()
+        return
+
+    tab_times = []
+    for i in range(1, tab_count):
+        t0 = time.perf_counter()
+        dialog._load_tab(i)
+        tab_times.append(time.perf_counter() - t0)
+    total_tab = sum(tab_times)
+    avg_tab = total_tab / len(tab_times)
+    log.info("    首次加载 %d 个后续 tab：总 %.3fs / 平均 %.3fs / 最慢 %.3fs",
+             len(tab_times), total_tab, avg_tab, max(tab_times))
+
+    dialog.deleteLater()
+    app.processEvents()
+
+
 def perf_merge_all():
     """完整合并流程性能"""
     import tempfile
@@ -149,6 +213,7 @@ def run_all(result: TestResult):
         ("perf_deep_merge_large", perf_deep_merge_large),
         ("perf_resolve_duplicates", perf_resolve_duplicates),
         ("perf_merge_all", perf_merge_all),
+        ("perf_diff_dialog_tab_load", perf_diff_dialog_tab_load),
     ]
     for name, func in tests:
         run_test(name, func, result)

@@ -30,6 +30,7 @@ _CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
 
 
+@profile
 def _apply_extra_selections(editor: CodeEditor,
                             highlights: list[tuple[int, QColor]]):
     """对 CodeEditor 应用行级背景高亮"""
@@ -300,6 +301,7 @@ class DiffDialog(QDialog):
     def _on_tab_changed(self, index: int):
         self._load_tab(index)
 
+    @profile
     def _load_tab(self, index: int):
         """懒加载：首次切换到某 tab 时才填充文本并计算高亮"""
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
@@ -313,6 +315,7 @@ class DiffDialog(QDialog):
 
         self._compute_and_apply_highlights(index)
 
+    @profile
     def _compute_and_apply_highlights(self, tab_index: int):
         """对比左右文本，用 ExtraSelections 标记差异行。
         如果某行被之前的 mod 也修改过，使用冲突色（橙底）。"""
