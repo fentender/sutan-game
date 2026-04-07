@@ -58,26 +58,46 @@ def resolve_duplicates(
     if not base_indices:
         return [], list(mod_items)
 
-    remaining_mod = list(mod_items)
-    remaining_base = list(base_indices)
+    # 预序列化所有元素，避免重复 json.dumps
+    mod_strs = [
+        json.dumps(item, sort_keys=True, ensure_ascii=False)
+        for _, item in mod_items
+    ]
+    base_strs = {
+        bi: json.dumps(base_arr[bi], sort_keys=True, ensure_ascii=False)
+        for bi in base_indices
+    }
+
+    # 预计算完整相似度矩阵
+    matrix: dict[tuple[int, int], float] = {}
+    for mi in range(len(mod_items)):
+        for bi_idx, bi in enumerate(base_indices):
+            matrix[(mi, bi_idx)] = SequenceMatcher(
+                None, mod_strs[mi], base_strs[bi]
+            ).ratio()
+
+    remaining_mod = set(range(len(mod_items)))
+    remaining_base = set(range(len(base_indices)))
     matched_pairs = []
 
     while remaining_base and remaining_mod:
         best_ratio = -1.0
         best_mi = 0
         best_bi = 0
-        for mi, (_, mod_item) in enumerate(remaining_mod):
-            for bi, base_idx in enumerate(remaining_base):
-                ratio = item_similarity(mod_item, base_arr[base_idx])
+        for mi in remaining_mod:
+            for bi in remaining_base:
+                ratio = matrix[(mi, bi)]
                 if ratio > best_ratio:
                     best_ratio = ratio
                     best_mi = mi
                     best_bi = bi
-        mod_orig_idx, mod_item = remaining_mod.pop(best_mi)
-        base_idx = remaining_base.pop(best_bi)
-        matched_pairs.append((mod_orig_idx, mod_item, base_idx))
+        remaining_mod.discard(best_mi)
+        remaining_base.discard(best_bi)
+        mod_orig_idx, mod_item = mod_items[best_mi]
+        matched_pairs.append((mod_orig_idx, mod_item, base_indices[best_bi]))
 
-    return matched_pairs, remaining_mod
+    unmatched = [(mod_items[mi][0], mod_items[mi][1]) for mi in sorted(remaining_mod)]
+    return matched_pairs, unmatched
 
 
 def get_key_vals(item: dict, match_keys: list[str]) -> tuple | None:

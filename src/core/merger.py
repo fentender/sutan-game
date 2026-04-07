@@ -270,7 +270,8 @@ def _append_array(base_arr: list, override_arr: list,
 @profile
 def deep_merge(base: object, override: object,
                schema: dict | None,
-               field_path: list[str] | None) -> object:
+               field_path: list[str] | None,
+               _in_place: bool = False) -> object:
     """
     递归深度合并，由 schema 驱动合并策略。
 
@@ -279,16 +280,17 @@ def deep_merge(base: object, override: object,
         override: 覆盖数据（mod 的 delta）
         schema: schema 规则字典
         field_path: 当前字段路径（用于查找 schema 定义）
+        _in_place: 内部参数，为 True 时直接修改 base 而不做 deepcopy（递归调用时使用）
     """
     if not isinstance(base, dict) or not isinstance(override, dict):
-        return copy.deepcopy(override)
+        return override if _in_place else copy.deepcopy(override)
 
     # 查找当前层的 schema 定义
     current_def = None
     if schema and field_path:
         current_def = get_field_def(schema, field_path)
 
-    result = copy.deepcopy(base)
+    result = base if _in_place else copy.deepcopy(base)
 
     for key, value in override.items():
         if value is _DELETED:
@@ -302,10 +304,11 @@ def deep_merge(base: object, override: object,
 
         if key in result:
             result[key] = _apply_merge_strategy(
-                merge_strategy, result[key], value, schema, child_path
+                merge_strategy, result[key], value, schema, child_path,
+                _in_place=True
             )
         else:
-            result[key] = copy.deepcopy(value)
+            result[key] = value if _in_place else copy.deepcopy(value)
 
     # 未知 key 警告：检查 override 中的 key 是否在 schema 中有定义
     if current_def and isinstance(current_def, dict):
@@ -362,45 +365,56 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
 
 
 def _apply_merge_strategy(strategy: str, base_val, override_val,
-                          schema: dict | None, child_path: list[str] | None) -> object:
+                          schema: dict | None, child_path: list[str] | None,
+                          _in_place: bool = False) -> object:
     """根据合并策略执行合并"""
     if strategy == "replace":
-        return copy.deepcopy(override_val)
+        return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "merge":
         if isinstance(base_val, dict) and isinstance(override_val, dict):
-            return deep_merge(base_val, override_val, schema, child_path)
-        return copy.deepcopy(override_val)
+            return deep_merge(base_val, override_val, schema, child_path, _in_place=_in_place)
+        return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "append":
         if isinstance(base_val, list) and isinstance(override_val, list):
             return _append_array(base_val, override_val, schema, child_path)
-        return copy.deepcopy(override_val)
+        return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "smart_match":
         if isinstance(base_val, list) and isinstance(override_val, list):
             return _merge_settlement_array(base_val, override_val, schema, child_path)
-        return copy.deepcopy(override_val)
+        return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "coerce":
         return _coerce_and_merge_array(base_val, override_val)
 
     else:
-        return copy.deepcopy(override_val)
+        return override_val if _in_place else copy.deepcopy(override_val)
 
 
 @profile
 def compute_mod_delta(base_data: dict, mod_data: dict,
-                      file_type: str, allow_deletions: bool = False) -> dict:
+                      file_type: str, allow_deletions: bool = False,
+                      schema: dict | None = None,
+                      root_key: str | None = None) -> dict:
     """
     计算 mod 相对于游戏本体的实际差异。
 
     只提取 mod 真正修改的部分，忽略与本体完全相同的内容。
     对 dictionary 类型文件按条目级 + 字段级递归 diff，
     对 entity/config 类型文件按字段级递归 diff。
+
+    schema 和 root_key 用于让 _recursive_delta 识别 smart_match 数组的 match_key，
+    避免自动检测失败时产出无标记的 delta。
     """
+    field_path = [root_key] if root_key else None
+
     if not base_data:
-        return mod_data  # 本体无此文件，全部是新增
+        # 本体无此文件，全部是新增
+        # 仍需走 _recursive_delta 以便 smart_match 数组产出带标记的 delta
+        result = _recursive_delta({}, mod_data, allow_deletions, schema, field_path)
+        return result if result is not None else mod_data
 
     if file_type == "dictionary":
         delta = {}
@@ -408,7 +422,8 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
             if key not in base_data:
                 delta[key] = mod_val  # 新增条目
             else:
-                sub = _recursive_delta(base_data[key], mod_val, allow_deletions)
+                sub = _recursive_delta(base_data[key], mod_val, allow_deletions,
+                                       schema, field_path)
                 if sub is not None:
                     delta[key] = sub  # 有变化的条目（只含变化字段）
         if allow_deletions:
@@ -418,12 +433,14 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
         return delta
     else:
         # entity/config：递归提取变化字段
-        result = _recursive_delta(base_data, mod_data, allow_deletions)
+        result = _recursive_delta(base_data, mod_data, allow_deletions,
+                                  schema, field_path)
         return result if result is not None else {}
 
 
 def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
-                        match_key: str, allow_deletions: bool = False) -> list[dict] | None:
+                        match_key: str, allow_deletions: bool = False,
+                        schema=None, field_path=None) -> list[dict] | None:
     """
     对象数组的元素级 delta（按 match_key 匹配）。
     每个 delta 元素只含变化字段 + match_key。
@@ -470,7 +487,8 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
         )
 
         for _, mod_item, base_idx in pairs:
-            elem_delta = _recursive_delta(base_items[base_idx], mod_item, allow_deletions)
+            elem_delta = _recursive_delta(base_items[base_idx], mod_item, allow_deletions,
+                                                schema, field_path)
             if elem_delta is not None:
                 elem_delta[match_key] = kv
                 elem_delta['_delta'] = True
@@ -498,15 +516,24 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
     return delta_items if delta_items else None
 
 
-def _recursive_delta(base, mod, allow_deletions=False):
+def _recursive_delta(base, mod, allow_deletions=False,
+                     schema=None, field_path=None):
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
     if isinstance(base, dict) and isinstance(mod, dict):
         delta = {}
         for key, mod_val in mod.items():
+            child_path = field_path + [key] if field_path is not None else None
             if key not in base:
-                delta[key] = copy.deepcopy(mod_val)
+                # 新增字段：如果是 smart_match 数组仍需走 delta 标记逻辑
+                if isinstance(mod_val, list) and schema and child_path:
+                    sub = _recursive_delta([], mod_val, allow_deletions,
+                                           schema, child_path)
+                    delta[key] = sub if sub is not None else copy.deepcopy(mod_val)
+                else:
+                    delta[key] = copy.deepcopy(mod_val)
             else:
-                sub = _recursive_delta(base[key], mod_val, allow_deletions)
+                sub = _recursive_delta(base[key], mod_val, allow_deletions,
+                                       schema, child_path)
                 if sub is not None:
                     delta[key] = sub
         if allow_deletions:
@@ -516,13 +543,24 @@ def _recursive_delta(base, mod, allow_deletions=False):
         return delta if delta else None
 
     if isinstance(base, list) and isinstance(mod, list):
+        # 从 schema 查询 smart_match 的 match_key
+        schema_match_key = None
+        if schema and field_path:
+            field_def = get_field_def(schema, field_path)
+            if field_def and field_def.get("merge") == "smart_match":
+                mk = field_def.get("match_key")
+                if mk:
+                    schema_match_key = mk[0]
+
         # 对象数组：按 key 匹配做元素级 delta
-        if (base and mod
-                and all(isinstance(x, dict) for x in base)
-                and all(isinstance(x, dict) for x in mod)):
-            match_key = find_array_match_key(base)
+        if (mod and all(isinstance(x, dict) for x in mod)
+                and (not base or all(isinstance(x, dict) for x in base))):
+            match_key = schema_match_key
+            if not match_key and base:
+                match_key = find_array_match_key(base)
             if match_key:
-                return _object_array_delta(base, mod, match_key, allow_deletions)
+                return _object_array_delta(base, mod, match_key, allow_deletions,
+                                           schema, field_path)
 
         # 无法匹配或非对象数组：原子比较
         if base == mod:
@@ -649,7 +687,13 @@ def merge_all_files(
         # 加载游戏本体文件
         base_file = game_config_path / rel_path
         if base_file.exists():
-            base_data = load_json(base_file)
+            try:
+                base_data = load_json(base_file)
+            except json.JSONDecodeError as e:
+                msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
+                log.warning(msg)
+                diag.warn("merge", msg)
+                continue
         else:
             diag.info("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
@@ -657,24 +701,32 @@ def merge_all_files(
         # 确定文件类型（用于 delta 计算）
         file_type = classify_json(base_data) if base_data else "config"
 
+        # 查找 schema（delta 计算需要 schema 的 match_key 信息）
+        schema = resolve_schema(rel_path, schemas) if schemas else None
+        root_key = get_schema_root_key(schema) if schema else None
+
         # 加载各 mod 的数据，计算 delta（只保留实际修改的部分）
         mod_data_list = []
         for mod_id, mod_name, mod_file in mod_file_list:
-            mod_data = load_json(mod_file)
+            try:
+                mod_data = load_json(mod_file)
+            except json.JSONDecodeError as e:
+                msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
+                log.warning(msg)
+                diag.warn("merge", msg)
+                continue
 
             # tag.json name 匹配验证（需在 delta 计算前用原始数据验证）
             if rel_path == "tag.json" and base_data:
                 _validate_tag_names(base_data, [(mod_id, mod_name, mod_data)])
 
-            delta = compute_mod_delta(base_data, mod_data, file_type, allow_deletions)
+            delta = compute_mod_delta(base_data, mod_data, file_type, allow_deletions,
+                                      schema=schema, root_key=root_key)
             if delta:
                 mod_data_list.append((mod_id, mod_name, delta))
 
         if not mod_data_list:
             continue
-
-        # 查找 schema
-        schema = resolve_schema(rel_path, schemas) if schemas else None
 
         # 合并
         merge_result = merge_file(base_data, mod_data_list, rel_path,

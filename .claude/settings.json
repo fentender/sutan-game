@@ -14,7 +14,10 @@
       "Bash(python -c \"from src.core.merger import merge_all_files, _merge_settlement_array, _classify_delta_items, _strip_marker; print\\('导入成功'\\)\")",
       "Bash(python -c ':*)",
       "Bash(python -m tests.test_runner --func)",
-      "Bash(python -m tests.test_runner --perf)"
+      "Bash(python -m tests.test_runner --perf)",
+      "Bash(wc -l d:/Games/SuDanGame/src/core/*.py d:/Games/SuDanGame/src/gui/*.py)",
+      "Bash(python -m tests.test_runner)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

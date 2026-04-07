@@ -1,6 +1,7 @@
 """
 JSON 解析器 - 处理带有 JS 风格注释和尾随逗号的 JSON 文件
 """
+import copy
 import json
 import logging
 import re
@@ -11,38 +12,20 @@ log = logging.getLogger(__name__)
 from .diagnostics import diag
 from .profiler import profile
 
+# JSON 解析缓存：(路径, mtime) → 解析结果
+_json_cache: dict[tuple[str, float], dict] = {}
+
+
+# 正则：匹配双引号字符串（含转义）或 // 注释
+_COMMENT_RE = re.compile(r'"(?:[^"\\]|\\.)*"|//.*$', re.MULTILINE)
+
 
 def strip_js_comments(text: str) -> str:
-    """逐行剥离 // 注释，保留字符串内的 //"""
-    result = []
-    for line in text.split('\n'):
-        new_line = []
-        in_string = False
-        escape = False
-        i = 0
-        while i < len(line):
-            ch = line[i]
-            if escape:
-                new_line.append(ch)
-                escape = False
-                i += 1
-                continue
-            if ch == '\\' and in_string:
-                new_line.append(ch)
-                escape = True
-                i += 1
-                continue
-            if ch == '"':
-                in_string = not in_string
-                new_line.append(ch)
-                i += 1
-                continue
-            if not in_string and ch == '/' and i + 1 < len(line) and line[i + 1] == '/':
-                break
-            new_line.append(ch)
-            i += 1
-        result.append(''.join(new_line))
-    return '\n'.join(result)
+    """用正则剥离 // 注释，保留字符串内的 //"""
+    def _replacer(m: re.Match) -> str:
+        s = m.group()
+        return s if s.startswith('"') else ''
+    return _COMMENT_RE.sub(_replacer, text)
 
 
 def strip_trailing_commas(text: str) -> str:
@@ -53,8 +36,14 @@ def strip_trailing_commas(text: str) -> str:
 
 @profile
 def load_json(file_path: str | Path) -> dict:
-    """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告"""
+    """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告。
+    内置 (路径, mtime) 缓存，返回 deepcopy 防止调用方修改缓存。"""
     path = Path(file_path)
+    mtime = path.stat().st_mtime
+    cache_key = (str(path), mtime)
+    if cache_key in _json_cache:
+        return copy.deepcopy(_json_cache[cache_key])
+
     raw_bytes = path.read_bytes()
     abnormal_fixes = []
 
@@ -78,13 +67,21 @@ def load_json(file_path: str | Path) -> dict:
         diag.warn("parse", msg)
 
     try:
-        return json.loads(cleaned)
+        result = json.loads(cleaned)
     except json.JSONDecodeError as e:
         raise json.JSONDecodeError(
             f"{path}: {e.msg}",
             e.doc,
             e.pos,
         ) from None
+
+    _json_cache[cache_key] = result
+    return copy.deepcopy(result)
+
+
+def clear_json_cache():
+    """清空 JSON 解析缓存"""
+    _json_cache.clear()
 
 
 def dump_json(data: dict, file_path: str | Path):

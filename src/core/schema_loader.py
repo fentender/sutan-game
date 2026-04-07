@@ -18,6 +18,9 @@ _schemas: dict[str, dict] = {}
 _global_templates: dict[str, dict] = {}
 _global_dsl_rules: dict[str, dict] = {}
 
+# get_field_def 查询缓存：(schema_id, field_path_tuple) → result
+_field_def_cache: dict[tuple[int, tuple[str, ...]], dict | None] = {}
+
 
 @profile
 def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
@@ -29,7 +32,8 @@ def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
         - "cards.json" → 精确匹配根文件
         - "rite/" → 匹配 rite/ 目录下所有文件
     """
-    global _schemas, _global_templates, _global_dsl_rules
+    global _schemas, _global_templates, _global_dsl_rules, _field_def_cache
+    _field_def_cache.clear()
     schema_dir = Path(schema_dir)
     schemas = {}
 
@@ -115,6 +119,21 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
     if not field_path or not schema:
         return None
 
+    cache_key = (id(schema), tuple(field_path))
+    cached = _field_def_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    # None 可能是缓存的"未找到"结果，用 sentinel 区分
+    if cache_key in _field_def_cache:
+        return None
+
+    result = _get_field_def_uncached(schema, field_path)
+    _field_def_cache[cache_key] = result
+    return result
+
+
+def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
+    """get_field_def 的无缓存内部实现"""
     current = schema
     for segment in field_path:
         if current is None:
