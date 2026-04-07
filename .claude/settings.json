@@ -29,7 +29,9 @@
       "Bash(pip show:*)",
       "Bash(python -c \"from rapidfuzz.distance import Indel; help\\(Indel.opcodes\\)\")",
       "Bash(python -c \"import Levenshtein; print\\(dir\\(Levenshtein\\)\\)\")",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(python -c \"from src.config import UserConfig; from src.core.conflict import analyze_all_overrides; from src.core.merger import merge_all_files, compute_mod_delta, deep_merge; from src.gui.workers import AnalyzeWorker, MergeWorker; print\\('所有导入成功'\\)\")",
+      "Bash(python -m tests)"
     ]
   }
 }

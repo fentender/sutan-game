@@ -50,6 +50,9 @@ class UserConfig:
     enabled_mods: list[str] = field(default_factory=list)
     # 是否允许删减（mod 中缺少的条目从合并结果中删除）
     allow_deletions: bool = False
+    # 数组追加模式：对没有 smart_match 的 array<object> 使用追加策略
+    # False（默认）= 整体替换，避免重复；True = 逐元素比较追加
+    array_append_mode: bool = False
     # 是否启用性能评估（启用后记录各函数执行时间，输出到日志）
     enable_profiler: bool = False
 

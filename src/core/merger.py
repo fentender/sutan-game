@@ -215,6 +215,11 @@ def find_array_match_key(arr: list) -> str | None:
     return None
 
 
+def _is_object_array(arr: list) -> bool:
+    """判断是否是对象数组"""
+    return bool(arr) and all(isinstance(x, dict) for x in arr)
+
+
 def _append_array(base_arr: list, override_arr: list,
                   schema: dict | None = None,
                   child_path: list[str] | None = None) -> list:
@@ -271,7 +276,8 @@ def _append_array(base_arr: list, override_arr: list,
 def deep_merge(base: object, override: object,
                schema: dict | None,
                field_path: list[str] | None,
-               _in_place: bool = False) -> object:
+               _in_place: bool = False,
+               array_append_mode: bool = False) -> object:
     """
     递归深度合并，由 schema 驱动合并策略。
 
@@ -305,7 +311,8 @@ def deep_merge(base: object, override: object,
         if key in result:
             result[key] = _apply_merge_strategy(
                 merge_strategy, result[key], value, schema, child_path,
-                _in_place=True
+                _in_place=True,
+                array_append_mode=array_append_mode
             )
         else:
             result[key] = value if _in_place else copy.deepcopy(value)
@@ -366,18 +373,23 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
 
 def _apply_merge_strategy(strategy: str, base_val, override_val,
                           schema: dict | None, child_path: list[str] | None,
-                          _in_place: bool = False) -> object:
+                          _in_place: bool = False,
+                          array_append_mode: bool = False) -> object:
     """根据合并策略执行合并"""
     if strategy == "replace":
         return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "merge":
         if isinstance(base_val, dict) and isinstance(override_val, dict):
-            return deep_merge(base_val, override_val, schema, child_path, _in_place=_in_place)
+            return deep_merge(base_val, override_val, schema, child_path,
+                              _in_place=_in_place,
+                              array_append_mode=array_append_mode)
         return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "append":
         if isinstance(base_val, list) and isinstance(override_val, list):
+            if not array_append_mode and _is_object_array(override_val):
+                return override_val if _in_place else copy.deepcopy(override_val)
             return _append_array(base_val, override_val, schema, child_path)
         return override_val if _in_place else copy.deepcopy(override_val)
 
@@ -397,7 +409,8 @@ def _apply_merge_strategy(strategy: str, base_val, override_val,
 def compute_mod_delta(base_data: dict, mod_data: dict,
                       file_type: str, allow_deletions: bool = False,
                       schema: dict | None = None,
-                      root_key: str | None = None) -> dict:
+                      root_key: str | None = None,
+                      array_append_mode: bool = False) -> dict:
     """
     计算 mod 相对于游戏本体的实际差异。
 
@@ -413,7 +426,8 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
     if not base_data:
         # 本体无此文件，全部是新增
         # 仍需走 _recursive_delta 以便 smart_match 数组产出带标记的 delta
-        result = _recursive_delta({}, mod_data, allow_deletions, schema, field_path)
+        result = _recursive_delta({}, mod_data, allow_deletions, schema, field_path,
+                                   array_append_mode=array_append_mode)
         return result if result is not None else mod_data
 
     if file_type == "dictionary":
@@ -423,7 +437,8 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
                 delta[key] = mod_val  # 新增条目
             else:
                 sub = _recursive_delta(base_data[key], mod_val, allow_deletions,
-                                       schema, field_path)
+                                       schema, field_path,
+                                       array_append_mode=array_append_mode)
                 if sub is not None:
                     delta[key] = sub  # 有变化的条目（只含变化字段）
         if allow_deletions:
@@ -434,13 +449,15 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
     else:
         # entity/config：递归提取变化字段
         result = _recursive_delta(base_data, mod_data, allow_deletions,
-                                  schema, field_path)
+                                  schema, field_path,
+                                  array_append_mode=array_append_mode)
         return result if result is not None else {}
 
 
 def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
                         match_key: str, allow_deletions: bool = False,
-                        schema=None, field_path=None) -> list[dict] | None:
+                        schema=None, field_path=None,
+                        array_append_mode: bool = False) -> list[dict] | None:
     """
     对象数组的元素级 delta（按 match_key 匹配）。
     每个 delta 元素只含变化字段 + match_key。
@@ -488,7 +505,8 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
 
         for _, mod_item, base_idx in pairs:
             elem_delta = _recursive_delta(base_items[base_idx], mod_item, allow_deletions,
-                                                schema, field_path)
+                                                schema, field_path,
+                                                array_append_mode=array_append_mode)
             if elem_delta is not None:
                 elem_delta[match_key] = kv
                 elem_delta['_delta'] = True
@@ -517,7 +535,8 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
 
 
 def _recursive_delta(base, mod, allow_deletions=False,
-                     schema=None, field_path=None):
+                     schema=None, field_path=None,
+                     array_append_mode=False):
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
     if isinstance(base, dict) and isinstance(mod, dict):
         delta = {}
@@ -527,13 +546,15 @@ def _recursive_delta(base, mod, allow_deletions=False,
                 # 新增字段：如果是 smart_match 数组仍需走 delta 标记逻辑
                 if isinstance(mod_val, list) and schema and child_path:
                     sub = _recursive_delta([], mod_val, allow_deletions,
-                                           schema, child_path)
+                                           schema, child_path,
+                                           array_append_mode=array_append_mode)
                     delta[key] = sub if sub is not None else copy.deepcopy(mod_val)
                 else:
                     delta[key] = copy.deepcopy(mod_val)
             else:
                 sub = _recursive_delta(base[key], mod_val, allow_deletions,
-                                       schema, child_path)
+                                       schema, child_path,
+                                       array_append_mode=array_append_mode)
                 if sub is not None:
                     delta[key] = sub
         if allow_deletions:
@@ -556,11 +577,12 @@ def _recursive_delta(base, mod, allow_deletions=False,
         if (mod and all(isinstance(x, dict) for x in mod)
                 and (not base or all(isinstance(x, dict) for x in base))):
             match_key = schema_match_key
-            if not match_key and base:
+            if not match_key and base and array_append_mode:
                 match_key = find_array_match_key(base)
             if match_key:
                 return _object_array_delta(base, mod, match_key, allow_deletions,
-                                           schema, field_path)
+                                           schema, field_path,
+                                           array_append_mode=array_append_mode)
 
         # 无法匹配或非对象数组：原子比较
         if base == mod:
@@ -587,6 +609,7 @@ def merge_file(
     rel_path: str = "",
     schema: dict | None = None,
     overrides_dir: Path | None = None,
+    array_append_mode: bool = False,
 ) -> MergeResult:
     """
     合并单个文件。
@@ -631,14 +654,16 @@ def merge_file(
                     continue
                 if key in current:
                     field_path = [root_key] if root_key else None
-                    current[key] = deep_merge(current[key], value, schema, field_path)
+                    current[key] = deep_merge(current[key], value, schema, field_path,
+                                              array_append_mode=array_append_mode)
                 else:
                     current[key] = copy.deepcopy(value)
                     result.new_entries.append(("", mod_name, f"新增 key: {key}"))
         else:
             # 实体型和配置型
             field_path = [root_key] if root_key else None
-            current = deep_merge(current, mod_data, schema, field_path)
+            current = deep_merge(current, mod_data, schema, field_path,
+                                 array_append_mode=array_append_mode)
 
         # 检查用户 override：如果存在则用 override 替换累积状态
         if overrides_dir:
@@ -660,6 +685,7 @@ def merge_all_files(
     allow_deletions: bool = False,
     cancel_check=None,
     overrides_dir: Path | None = None,
+    array_append_mode: bool = False,
 ) -> dict[str, MergeResult]:
     """
     合并所有文件。
@@ -721,7 +747,8 @@ def merge_all_files(
                 _validate_tag_names(base_data, [(mod_id, mod_name, mod_data)])
 
             delta = compute_mod_delta(base_data, mod_data, file_type, allow_deletions,
-                                      schema=schema, root_key=root_key)
+                                      schema=schema, root_key=root_key,
+                                      array_append_mode=array_append_mode)
             if delta:
                 mod_data_list.append((mod_id, mod_name, delta))
 
@@ -730,7 +757,8 @@ def merge_all_files(
 
         # 合并
         merge_result = merge_file(base_data, mod_data_list, rel_path,
-                                   schema=schema, overrides_dir=overrides_dir)
+                                   schema=schema, overrides_dir=overrides_dir,
+                                   array_append_mode=array_append_mode)
         results[rel_path] = merge_result
 
         # 输出

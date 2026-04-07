@@ -69,7 +69,8 @@ def _make_element_label(item, match_keys):
 # ==================== 差异收集 ====================
 
 def _collect_smart_match_diffs(base_arr, mod_arr, path,
-                               match_keys, schema, field_path):
+                               match_keys, schema, field_path,
+                               array_append_mode=False):
     """可匹配数组的原子化比较：按 match_keys 精确匹配元素后递归比较子字段。
     同 key 多对多时用字符串相似度做全局最优配对。"""
     diffs = []
@@ -117,7 +118,8 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
             elem_path = f"{path}[{elem_label}]"
             diffs.extend(_collect_field_diffs(
                 base_arr[base_idx], mod_item, elem_path,
-                schema, field_path
+                schema, field_path,
+                array_append_mode=array_append_mode
             ))
 
         for _, mod_item in unmatched:
@@ -161,7 +163,8 @@ def _collect_unmatched_array_diffs(base_arr, mod_arr, path):
 @profile
 def _collect_field_diffs(
     base: object, mod_data: object, prefix: str = "",
-    schema: dict | None = None, field_path: list[str] | None = None
+    schema: dict | None = None, field_path: list[str] | None = None,
+    array_append_mode: bool = False,
 ) -> list[tuple[str, object, object]]:
     """
     收集 mod 相对于 base 的字段差异。
@@ -185,7 +188,8 @@ def _collect_field_diffs(
                 if isinstance(base[key], dict) and isinstance(mod_data[key], dict):
                     diffs.extend(_collect_field_diffs(
                         base[key], mod_data[key], path,
-                        schema, child_path
+                        schema, child_path,
+                        array_append_mode=array_append_mode
                     ))
                 elif isinstance(base[key], list) and isinstance(mod_data[key], list):
                     # 从 schema 判断数组合并策略
@@ -196,12 +200,15 @@ def _collect_field_diffs(
                     if merge_strategy == "smart_match" and match_keys:
                         diffs.extend(_collect_smart_match_diffs(
                             base[key], mod_data[key], path,
-                            match_keys, schema, child_path
+                            match_keys, schema, child_path,
+                            array_append_mode=array_append_mode
                         ))
-                    else:
+                    elif array_append_mode:
                         diffs.extend(_collect_unmatched_array_diffs(
                             base[key], mod_data[key], path
                         ))
+                    elif base[key] != mod_data[key]:
+                        diffs.append((path, base[key], mod_data[key]))
                 elif base[key] != mod_data[key]:
                     diffs.append((path, base[key], mod_data[key]))
             elif key in base and key not in mod_data:
@@ -216,6 +223,7 @@ def analyze_file_overrides(
     mod_data_list: list[tuple[str, str, dict]],
     schema: dict | None = None,
     field_path: list[str] | None = None,
+    array_append_mode: bool = False,
 ) -> FileOverrideInfo:
     """
     分析单个文件的覆盖情况。
@@ -235,7 +243,8 @@ def analyze_file_overrides(
 
     for _, mod_name, mod_data in mod_data_list:
         diffs = _collect_field_diffs(base_data, mod_data,
-                                     schema=schema, field_path=field_path)
+                                     schema=schema, field_path=field_path,
+                                     array_append_mode=array_append_mode)
         for fp, base_val, mod_val in diffs:
             if base_val is None:
                 info.new_entries.append((mod_name, f"新增: {fp}"))
@@ -264,6 +273,7 @@ def analyze_all_overrides(
     mod_configs: list[tuple[str, str, Path]],
     schema_dir: Path | None = None,
     cancel_check=None,
+    array_append_mode: bool = False,
 ) -> list[FileOverrideInfo]:
     """
     分析所有文件的覆盖情况。
@@ -311,7 +321,8 @@ def analyze_all_overrides(
         schema_path = [root_key] if root_key else None
 
         info = analyze_file_overrides(rel_path, base_data, mod_data_list,
-                                       schema=schema, field_path=schema_path)
+                                       schema=schema, field_path=schema_path,
+                                       array_append_mode=array_append_mode)
         results.append(info)
 
     return results
