@@ -58,6 +58,11 @@ def resolve_duplicates(
     if not base_indices:
         return [], list(mod_items)
 
+    # 短路 1：1×1 直接配对，无需相似度计算
+    if len(mod_items) == 1 and len(base_indices) == 1:
+        mod_orig_idx, mod_item = mod_items[0]
+        return [(mod_orig_idx, mod_item, base_indices[0])], []
+
     # 预序列化所有元素，避免重复 json.dumps
     mod_strs = [
         json.dumps(item, sort_keys=True, ensure_ascii=False)
@@ -68,13 +73,33 @@ def resolve_duplicates(
         for bi in base_indices
     }
 
-    # 预计算完整相似度矩阵
+    # 短路 2：单个 mod 元素，对每个 base 候选取相似度最大者，跳过矩阵+贪心循环
+    if len(mod_items) == 1:
+        mod_str = mod_strs[0]
+        best_bi = base_indices[0]
+        best_ratio = -1.0
+        for bi in base_indices:
+            base_str = base_strs[bi]
+            if base_str == mod_str:
+                best_bi = bi
+                break
+            ratio = SequenceMatcher(None, mod_str, base_str).ratio()
+            if ratio > best_ratio:
+                best_ratio = ratio
+                best_bi = bi
+        mod_orig_idx, mod_item = mod_items[0]
+        return [(mod_orig_idx, mod_item, best_bi)], []
+
+    # 预计算完整相似度矩阵；完全相等直接给 1.0 跳过 SequenceMatcher
     matrix: dict[tuple[int, int], float] = {}
     for mi in range(len(mod_items)):
+        ms = mod_strs[mi]
         for bi_idx, bi in enumerate(base_indices):
-            matrix[(mi, bi_idx)] = SequenceMatcher(
-                None, mod_strs[mi], base_strs[bi]
-            ).ratio()
+            bs = base_strs[bi]
+            if ms == bs:
+                matrix[(mi, bi_idx)] = 1.0
+            else:
+                matrix[(mi, bi_idx)] = SequenceMatcher(None, ms, bs).ratio()
 
     remaining_mod = set(range(len(mod_items)))
     remaining_base = set(range(len(base_indices)))

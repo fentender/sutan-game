@@ -174,7 +174,7 @@ def _collect_field_diffs(
     diffs = []
 
     if isinstance(base, dict) and isinstance(mod_data, dict):
-        all_keys = set(list(base.keys()) + list(mod_data.keys()))
+        all_keys = base.keys() | mod_data.keys()
         for key in all_keys:
             path = f"{prefix}{SEP}{key}" if prefix else key
             child_path = field_path + [key] if field_path else None
@@ -286,7 +286,7 @@ def analyze_all_overrides(
         base_file = game_config_path / rel_path
         if base_file.exists():
             try:
-                base_data = load_json(base_file)
+                base_data = load_json(base_file, readonly=True)
             except json.JSONDecodeError as e:
                 msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)
@@ -299,7 +299,7 @@ def analyze_all_overrides(
         mod_data_list = []
         for mod_id, mod_name, mod_file in mod_file_list:
             try:
-                mod_data_list.append((mod_id, mod_name, load_json(mod_file)))
+                mod_data_list.append((mod_id, mod_name, load_json(mod_file, readonly=True)))
             except json.JSONDecodeError as e:
                 msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)

@@ -35,14 +35,18 @@ def strip_trailing_commas(text: str) -> str:
 
 
 @profile
-def load_json(file_path: str | Path) -> dict:
+def load_json(file_path: str | Path, readonly: bool = False) -> dict:
     """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告。
-    内置 (路径, mtime) 缓存，返回 deepcopy 防止调用方修改缓存。"""
+    内置 (路径, mtime) 缓存。
+
+    readonly=True 时直接返回缓存引用，调用方必须保证不修改返回值；
+    默认 False 返回 deepcopy。"""
     path = Path(file_path)
     mtime = path.stat().st_mtime
     cache_key = (str(path), mtime)
     if cache_key in _json_cache:
-        return copy.deepcopy(_json_cache[cache_key])
+        cached = _json_cache[cache_key]
+        return cached if readonly else copy.deepcopy(cached)
 
     raw_bytes = path.read_bytes()
     abnormal_fixes = []
@@ -76,7 +80,7 @@ def load_json(file_path: str | Path) -> dict:
         ) from None
 
     _json_cache[cache_key] = result
-    return copy.deepcopy(result)
+    return result if readonly else copy.deepcopy(result)
 
 
 def clear_json_cache():

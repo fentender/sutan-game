@@ -17,7 +17,8 @@
       "Bash(python -m tests.test_runner --perf)",
       "Bash(wc -l d:/Games/SuDanGame/src/core/*.py d:/Games/SuDanGame/src/gui/*.py)",
       "Bash(python -m tests.test_runner)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(python -m tests.test_runner perf)"
     ]
   }
 }
