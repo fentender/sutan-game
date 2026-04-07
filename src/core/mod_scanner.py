@@ -11,6 +11,7 @@ from .json_parser import load_json
 log = logging.getLogger(__name__)
 
 from .diagnostics import diag
+from .profiler import profile
 
 
 @dataclass
@@ -99,6 +100,7 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
     return info
 
 
+@profile
 def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> list[ModInfo]:
     """扫描 workshop 目录下所有 mod"""
     if exclude_ids is None:
@@ -122,6 +124,7 @@ def normalize_rel_path(path: Path, base: Path) -> str:
     return str(path.relative_to(base)).replace("\\", "/")
 
 
+@profile
 def collect_mod_files(
     mod_configs: list[tuple[str, str, Path]]
 ) -> dict[str, list[tuple[str, str, Path]]]:
@@ -144,10 +147,3 @@ def collect_mod_files(
                 all_files[rel] = []
             all_files[rel].append((mod_id, mod_name, json_file))
     return all_files
-    for entry in sorted(workshop_path.iterdir()):
-        if entry.is_dir() and entry.name not in exclude_ids:
-            mod = scan_single_mod(entry)
-            if mod:
-                mods.append(mod)
-
-    return mods

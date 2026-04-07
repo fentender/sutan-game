@@ -7,32 +7,10 @@
 import sys
 
 from PySide6.QtWidgets import QApplication, QProgressDialog
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt
 
 from .config import UserConfig, SCHEMA_DIR
-
-
-class _SchemaWorker(QThread):
-    """后台 schema 生成线程"""
-    progress = Signal(int, int, str)  # current, total, name
-    finished = Signal()
-    error = Signal(str)
-
-    def __init__(self, config_dir, schema_dir):
-        super().__init__()
-        self.config_dir = config_dir
-        self.schema_dir = schema_dir
-
-    def run(self):
-        try:
-            from .core.schema_generator import generate_all
-            generate_all(
-                str(self.config_dir), str(self.schema_dir),
-                progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
-            )
-            self.finished.emit()
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+from .gui.workers import SchemaWorker
 
 
 def _ensure_schemas_with_ui(config_dir, schema_dir):
@@ -46,7 +24,7 @@ def _ensure_schemas_with_ui(config_dir, schema_dir):
     dlg.setMinimumDuration(0)
     dlg.setValue(0)
 
-    worker = _SchemaWorker(config_dir, schema_dir)
+    worker = SchemaWorker(config_dir, schema_dir)
 
     def _on_progress(current, total, name):
         if total > 0:
@@ -73,13 +51,26 @@ def main():
     app.setStyle("Fusion")
 
     config = UserConfig.load()
+
+    # 按配置启用性能评估
+    if config.enable_profiler:
+        from .core import profiler
+        profiler.enable()
+
     _ensure_schemas_with_ui(config.game_config_path, SCHEMA_DIR)
 
     from .gui.app import MainWindow
     window = MainWindow()
     window.show()
 
-    sys.exit(app.exec())
+    exit_code = app.exec()
+
+    # 程序退出时输出性能报告
+    if config.enable_profiler:
+        from .core import profiler
+        profiler.log_report()
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

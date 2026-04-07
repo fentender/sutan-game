@@ -9,6 +9,7 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 from .diagnostics import diag
+from .profiler import profile
 
 
 def strip_js_comments(text: str) -> str:
@@ -50,6 +51,7 @@ def strip_trailing_commas(text: str) -> str:
     return re.sub(r',(\s*[}\]])', r'\1', text)
 
 
+@profile
 def load_json(file_path: str | Path) -> dict:
     """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告"""
     path = Path(file_path)

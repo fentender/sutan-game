@@ -21,6 +21,7 @@ from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
 from ..core.json_parser import load_json, strip_js_comments, strip_trailing_commas
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
+from ..core.profiler import profile
 from .json_editor import CodeEditor, _format_with_comments
 
 # diff 行高亮背景色
@@ -79,6 +80,7 @@ class DiffDialog(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
         self._build_ui()
 
+    @profile
     def _precompute_merge_states(self):
         """预计算逐级合并的 JSON 文本对，不涉及 UI 操作"""
         self._diff_pairs.clear()

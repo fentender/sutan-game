@@ -1,123 +1,26 @@
 """
 主窗口 - 串联所有 GUI 面板和核心逻辑
 """
-import re
 import shutil
-import threading
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QSplitter, QMessageBox, QProgressBar,
-    QFileDialog, QListWidget, QListWidgetItem, QCheckBox
+    QFileDialog, QCheckBox
 )
-from PySide6.QtGui import QColor
-from PySide6.QtCore import Qt, QThread, Signal, QTimer
+from PySide6.QtCore import Qt, QTimer
 
 from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR, MOD_OVERRIDES_DIR
 from ..core.mod_scanner import scan_all_mods
-from ..core.merger import merge_all_files
 from ..core.diagnostics import diag, INFO, WARNING, ERROR
-from ..core.conflict import analyze_all_overrides
-from ..core.deployer import generate_info_json, copy_resources
+from ..core.deployer import generate_info_json
+from ..core.override_utils import invalidate_stale_overrides
 from .mod_list import ModListPanel
 from .mod_detail import ModDetailPanel
 from .override_panel import OverridePanel
-
-# 日志项存储级别的自定义角色
-_LEVEL_ROLE = Qt.ItemDataRole.UserRole + 1
-
-
-class _MergeCancelled(Exception):
-    """合并被用户取消"""
-    pass
-
-
-class MergeWorker(QThread):
-    """后台合并线程"""
-    finished = Signal(dict, list)  # 合并结果, 警告列表
-    error = Signal(str)
-    progress = Signal(str)
-
-    def __init__(self, game_config_path, mod_configs, output_path, mod_paths,
-                 allow_deletions=False):
-        super().__init__()
-        self.game_config_path = game_config_path
-        self.mod_configs = mod_configs
-        self.output_path = output_path
-        self.mod_paths = mod_paths
-        self.allow_deletions = allow_deletions
-        self._cancelled = threading.Event()
-
-    def cancel(self):
-        """请求取消"""
-        self._cancelled.set()
-
-    def _check_cancel(self):
-        """检查取消标志，已取消则抛出异常"""
-        if self._cancelled.is_set():
-            raise _MergeCancelled()
-
-    def run(self):
-        try:
-            self.progress.emit("正在合并 JSON 文件...")
-            results = merge_all_files(
-                self.game_config_path,
-                self.mod_configs,
-                self.output_path / "config",
-                schema_dir=SCHEMA_DIR,
-                allow_deletions=self.allow_deletions,
-                cancel_check=self._check_cancel,
-                overrides_dir=MOD_OVERRIDES_DIR,
-            )
-            self._check_cancel()
-            # 在工作线程内快照警告，避免跨线程竞态
-            warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
-            self.progress.emit("正在复制资源文件...")
-            copy_resources(self.mod_paths, self.output_path,
-                           cancel_check=self._check_cancel)
-            self.finished.emit(results, warnings_snapshot)
-        except _MergeCancelled:
-            pass  # 静默退出
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
-
-
-class AnalyzeWorker(QThread):
-    """后台冲突分析线程"""
-    finished = Signal(list, list)  # overrides, parse_messages
-    error = Signal(str)
-
-    def __init__(self, game_config_path, mod_configs, schema_dir):
-        super().__init__()
-        self.game_config_path = game_config_path
-        self.mod_configs = mod_configs
-        self.schema_dir = schema_dir
-        self._cancelled = threading.Event()
-
-    def cancel(self):
-        """请求取消"""
-        self._cancelled.set()
-
-    def _check_cancel(self):
-        if self._cancelled.is_set():
-            raise _MergeCancelled()
-
-    def run(self):
-        try:
-            diag.snapshot("parse")
-            overrides = analyze_all_overrides(
-                self.game_config_path,
-                self.mod_configs,
-                schema_dir=self.schema_dir,
-                cancel_check=self._check_cancel,
-            )
-            parse_msgs = diag.snapshot("parse")
-            self.finished.emit(overrides, parse_msgs)
-        except _MergeCancelled:
-            pass  # 静默退出
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+from .log_panel import LogPanel, prefix_mod_title
+from .workers import MergeWorker, AnalyzeWorker
 
 
 class MainWindow(QMainWindow):
@@ -201,51 +104,10 @@ class MainWindow(QMainWindow):
 
         main_layout.addLayout(btn_layout)
 
-        # 错误日志面板
-        self._error_panel = QWidget()
-        self._error_panel.setVisible(False)
-        error_panel_layout = QVBoxLayout(self._error_panel)
-        error_panel_layout.setContentsMargins(0, 0, 0, 0)
-        error_panel_layout.setSpacing(0)
-
-        error_header = QHBoxLayout()
-        error_header.setContentsMargins(4, 2, 4, 2)
-        error_label = QLabel("日志")
-        error_label.setStyleSheet("font-size: 12px; color: #aaa;")
-        error_header.addWidget(error_label)
-
-        # 日志级别筛选按钮
-        self._log_filter_buttons: dict[str, QPushButton] = {}
-        for label, mode in [("全部", "all"), ("信息", INFO), ("警告", WARNING), ("错误", ERROR)]:
-            btn = QPushButton(label)
-            btn.setCheckable(True)
-            btn.setFixedWidth(40)
-            btn.setStyleSheet("font-size: 11px; padding: 0;")
-            btn.clicked.connect(lambda _, m=mode: self._set_log_filter(m))
-            error_header.addWidget(btn)
-            self._log_filter_buttons[mode] = btn
-        self._log_filter_buttons["all"].setChecked(True)
-        self._log_filter_mode = "all"
-
-        error_header.addStretch()
-        btn_clear_log = QPushButton("清理")
-        btn_clear_log.setFixedSize(40, 20)
-        btn_clear_log.setStyleSheet("font-size: 11px; padding: 0;")
-        btn_clear_log.clicked.connect(self._clear_error_log)
-        error_header.addWidget(btn_clear_log)
-        error_panel_layout.addLayout(error_header)
-
-        self.error_log = QListWidget()
-        self.error_log.setMaximumHeight(120)
-        self.error_log.setStyleSheet(
-            "QListWidget { font-family: Consolas, monospace; font-size: 12px; }"
-            "QListWidget::item { padding: 3px 4px;"
-            "  border-bottom: 1px solid #444; }"
-        )
-        self.error_log.itemDoubleClicked.connect(self._on_error_double_clicked)
-        self._error_count = 0
-        error_panel_layout.addWidget(self.error_log)
-        main_layout.addWidget(self._error_panel)
+        # 日志面板
+        self.log_panel = LogPanel()
+        self.log_panel.file_open_requested.connect(self._open_json_editor)
+        main_layout.addWidget(self.log_panel)
 
         # 信号连接
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
@@ -296,7 +158,8 @@ class MainWindow(QMainWindow):
         # 汇总所有错误和警告，添加 mod 名称前缀
         all_messages = diag.snapshot("scan", "parse")
         self._show_messages([
-            (level, self._prefix_mod_title(msg)) for level, msg in all_messages
+            (level, prefix_mod_title(msg, self._mod_name_map))
+            for level, msg in all_messages
         ])
 
     def _on_allow_deletions_changed(self, checked: bool):
@@ -314,8 +177,15 @@ class MainWindow(QMainWindow):
         new_enabled_set = set(new_enabled)
         new_enabled_ordered = [mid for mid in new_order
                                if mid in new_enabled_set]
-        self._invalidate_stale_overrides(old_enabled_ordered,
-                                         new_enabled_ordered)
+        deleted_ids = invalidate_stale_overrides(
+            MOD_OVERRIDES_DIR, old_enabled_ordered, new_enabled_ordered
+        )
+        if deleted_ids:
+            names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
+            self._log_message(
+                INFO,
+                f"Mod 排序/启用变化，已清理失效的覆盖编辑: {names}"
+            )
 
         self.config.mod_order = new_order
         self.config.enabled_mods = new_enabled
@@ -325,39 +195,6 @@ class MainWindow(QMainWindow):
     def _schedule_analyze(self):
         """防抖触发冲突分析（重置 300ms 定时器）"""
         self._analyze_timer.start()
-
-    def _invalidate_stale_overrides(self, old_ids: list[str],
-                                     new_ids: list[str]):
-        """排序或启用状态变化时，删除失效的 override 文件"""
-        if not MOD_OVERRIDES_DIR.exists():
-            return
-
-        # 找到第一个不同的位置
-        min_len = min(len(old_ids), len(new_ids))
-        diverge = min_len
-        for i in range(min_len):
-            if old_ids[i] != new_ids[i]:
-                diverge = i
-                break
-
-        # 收集受影响的 mod ID（变化点及之后的所有 mod）
-        stale_ids = set(old_ids[diverge:]) | set(new_ids[diverge:])
-        if not stale_ids:
-            return
-
-        deleted = []
-        for mod_id in stale_ids:
-            override_dir = MOD_OVERRIDES_DIR / mod_id
-            if override_dir.exists():
-                shutil.rmtree(override_dir)
-                deleted.append(self._mod_name_map.get(mod_id, mod_id))
-
-        if deleted:
-            names = "、".join(deleted)
-            self._log_message(
-                INFO,
-                f"Mod 排序/启用变化，已清理失效的覆盖编辑: {names}"
-            )
 
     def _get_mod_configs(self) -> list[tuple[str, str, Path]]:
         """获取启用的 mod 配置路径列表"""
@@ -402,7 +239,7 @@ class MainWindow(QMainWindow):
         )
         if parse_msgs:
             self._show_messages([
-                (level, self._prefix_mod_title(msg))
+                (level, prefix_mod_title(msg, self._mod_name_map))
                 for level, msg in parse_msgs
             ])
         conflict_count = sum(1 for o in overrides if o.has_conflict)
@@ -508,7 +345,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(msg)
         # 展示合并过程中的警告（通过信号从工作线程传递，避免竞态）
         for w in warnings:
-            self._log_message(WARNING, self._prefix_mod_title(w))
+            self._log_message(WARNING, prefix_mod_title(w, self._mod_name_map))
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
     def _on_merge_error(self, error: str):
@@ -551,101 +388,30 @@ class MainWindow(QMainWindow):
             self.config.save()
             self._load_mods()
 
-    def _prefix_mod_title(self, msg: str) -> str:
-        """尝试从消息中提取 mod_id，查找对应 mod 名称并添加前缀"""
-        name_map = getattr(self, '_mod_name_map', {})
-        if not name_map:
-            return msg
-
-        # 已含 mod 名称的消息不重复添加
-        if re.search(r'Mod \[.+?\]', msg):
-            return msg
-
-        # "Mod {mod_id}: ..." 格式（scan_errors）
-        match = re.match(r'Mod (\d+):', msg)
-        if match:
-            name = name_map.get(match.group(1))
-            if name:
-                return f"【{name}】{msg}"
-            return msg
-
-        # 路径中提取 mod_id（workshop 目录结构）
-        match = re.search(r'[/\\](\d{5,})[/\\]config[/\\]', msg)
-        if match:
-            name = name_map.get(match.group(1))
-            if name:
-                return f"【{name}】{msg}"
-
-        return msg
-
     def _show_messages(self, messages: list[tuple[str, str]]):
         """显示或隐藏日志面板，messages 为 [(level, msg), ...]"""
-        self.error_log.clear()
-        self._error_count = 0
-        if messages:
-            for level, msg in messages:
-                self._log_message(level, msg)
-        else:
-            self._error_panel.setVisible(False)
+        self.log_panel.show_messages(messages)
 
     def _log_message(self, level: str, msg: str):
-        """追加一条日志到面板，按级别着色"""
-        self._error_count += 1
-        item = QListWidgetItem(f"[{self._error_count}] {msg}")
-        item.setData(_LEVEL_ROLE, level)
-        # 按级别着色
-        if level == ERROR:
-            item.setForeground(QColor(238, 136, 136))
-        elif level == WARNING:
-            item.setForeground(QColor(238, 200, 100))
-        else:
-            item.setForeground(QColor(180, 180, 180))
-        # 从消息中提取文件路径
-        match = re.search(r'([A-Za-z]:\\[^:]+\.json|/[^:]+\.json)', msg)
-        if match:
-            item.setData(Qt.ItemDataRole.UserRole, match.group(1))
-        self.error_log.addItem(item)
-        self._error_panel.setVisible(True)
-        self._apply_log_filter_to_item(item)
+        """追加一条日志到面板"""
+        self.log_panel.log_message(level, msg)
 
-    def _set_log_filter(self, mode: str):
-        """切换日志级别筛选"""
-        self._log_filter_mode = mode
-        for m, btn in self._log_filter_buttons.items():
-            btn.setChecked(m == mode)
-        for i in range(self.error_log.count()):
-            item = self.error_log.item(i)
-            self._apply_log_filter_to_item(item)
-
-    def _apply_log_filter_to_item(self, item: QListWidgetItem):
-        """根据当前筛选模式显示/隐藏日志项"""
-        if self._log_filter_mode == "all":
-            item.setHidden(False)
-        else:
-            item.setHidden(item.data(_LEVEL_ROLE) != self._log_filter_mode)
-
-    def _clear_error_log(self):
-        """清理错误日志"""
-        self.error_log.clear()
-        self._error_count = 0
-        self._error_panel.setVisible(False)
-
-    def _on_error_double_clicked(self, item: QListWidgetItem):
-        """双击错误日志条目，打开文件编辑器"""
-        file_path = item.data(Qt.ItemDataRole.UserRole)
-        if not file_path:
-            return
+    def _open_json_editor(self, file_path: str):
+        """打开 JSON 编辑器（由日志面板双击触发）"""
         path = Path(file_path)
         if not path.exists():
             QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
             return
-
         from .json_editor import JsonEditorDialog
         dlg = JsonEditorDialog(path, parent=self)
         dlg.exec()
 
     def closeEvent(self, event):
         """关闭窗口时协作式等待工作线程结束"""
+        self._analyze_timer.stop()
+        if self._analyze_worker is not None and self._analyze_worker.isRunning():
+            self._analyze_worker.cancel()
+            self._analyze_worker.wait(5000)
         if self._worker is not None and self._worker.isRunning():
             self._worker.cancel()
             self._worker.wait(5000)

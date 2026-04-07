@@ -7,7 +7,9 @@ import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .array_match import find_matching_item, resolve_duplicates, get_key_vals
 from .dsl_patterns import classify_dsl_key
+from .profiler import profile
 from .json_parser import load_json, dump_json
 from .schema_loader import (
     load_schemas, resolve_schema, get_field_def,
@@ -45,117 +47,20 @@ class MergeResult:
     new_entries: list[tuple[str, str, str]] = field(default_factory=list)  # (file, mod_name, description)
 
 
-# ==================== 统一数组元素匹配 ====================
-
-def find_matching_item(base_arr: list[dict], mod_item: dict,
-                       matched: set[int], match_keys: list[str]) -> int | None:
-    """
-    按 match_keys 中所有字段精确匹配，全部相等才算匹配到。
-    返回 base_arr 中第一个匹配元素的索引，或 None。
-    （用于一对一场景，如 conflict 差异对比）
-    """
-    for i, base_item in enumerate(base_arr):
-        if i in matched:
-            continue
-        if all(
-            key in mod_item and key in base_item
-            and mod_item[key] == base_item[key]
-            for key in match_keys
-        ):
-            return i
-    return None
-
-
-def _item_similarity(a: dict, b: dict) -> float:
-    """计算两个 dict 的字符串相似度（0.0 ~ 1.0）"""
-    from difflib import SequenceMatcher
-    a_str = json.dumps(a, sort_keys=True, ensure_ascii=False)
-    b_str = json.dumps(b, sort_keys=True, ensure_ascii=False)
-    return SequenceMatcher(None, a_str, b_str).ratio()
-
-
-def _resolve_duplicates(
-    mod_items: list[tuple[int, dict]],
-    base_arr: list,
-    base_indices: list[int],
-) -> tuple[list[tuple[int, dict, int]], list[tuple[int, dict]]]:
-    """
-    多对多相似度匹配：mod 侧和 base 侧各有多个同 key 元素。
-    贪心策略：每次从所有 mod×base 配对中选相似度最高的一对，
-    双方移出待匹配池，重复直到 base 候选耗尽。
-
-    参数:
-        mod_items: [(mod 在 mod_arr 中的原始索引, mod_item), ...]
-        base_arr: result 数组的引用
-        base_indices: base 中候选元素的索引列表
-
-    返回:
-        matched_pairs: [(mod_orig_idx, mod_item, base_idx), ...]
-        unmatched_mod: [(mod_orig_idx, mod_item), ...] — 未匹配的 mod 元素（新增）
-    """
-    if not base_indices:
-        return [], list(mod_items)
-
-    remaining_mod = list(mod_items)
-    remaining_base = list(base_indices)
-    matched_pairs = []
-
-    while remaining_base and remaining_mod:
-        best_ratio = -1.0
-        best_mi = 0
-        best_bi = 0
-        for mi, (_, mod_item) in enumerate(remaining_mod):
-            for bi, base_idx in enumerate(remaining_base):
-                ratio = _item_similarity(mod_item, base_arr[base_idx])
-                if ratio > best_ratio:
-                    best_ratio = ratio
-                    best_mi = mi
-                    best_bi = bi
-        mod_orig_idx, mod_item = remaining_mod.pop(best_mi)
-        base_idx = remaining_base.pop(best_bi)
-        matched_pairs.append((mod_orig_idx, mod_item, base_idx))
-
-    return matched_pairs, remaining_mod
-
-
-def _get_key_vals(item: dict, match_keys: list[str]) -> tuple | None:
-    """提取 match_key 值元组，任一 key 缺失则返回 None"""
-    vals = tuple(item.get(k) for k in match_keys)
-    if any(v is None for v in vals):
-        return None
-    return vals
-
-
 # ==================== 通用数组合并 ====================
 
-def _merge_settlement_array(base_arr: list, mod_arr: list,
-                            schema: dict | None,
-                            element_path: list[str] | None) -> list:
+def _strip_marker(item: dict, marker: str) -> dict:
+    """移除 delta 标记字段，返回清理后的副本"""
+    return {k: v for k, v in item.items() if k != marker}
+
+
+def _classify_delta_items(
+    mod_arr: list, context: str = ""
+) -> tuple[list[dict], list[dict], list[dict]]:
     """
-    智能合并 array<object> 数组。
-    mod_arr 必须是经过 _object_array_delta 产出的 delta 数组，
-    每个元素必须带有 _delta / _new_entry / _deleted 标记。
-
-    处理规则：
-      _delta:     按 match_key 找到 result 中的对应元素，deep_merge 应用变化
-      _new_entry: 直接追加到 result 末尾
-      _deleted:   从 result 中移除对应元素
+    按 _delta / _new_entry / _deleted 标记分类 delta 数组元素。
+    返回 (delta_items, new_entry_items, deleted_items)。
     """
-    result = copy.deepcopy(base_arr)
-
-    # 从 schema 读取 match_key
-    match_keys = None
-    if schema and element_path:
-        field_def = get_field_def(schema, element_path)
-        if field_def:
-            match_keys = field_def.get("match_key")
-
-    if not match_keys:
-        raise ValueError(
-            f"smart_match 数组缺少 match_key 定义 (path: {element_path})"
-        )
-
-    # --- 按标记分类 ---
     delta_items: list[dict] = []
     new_entry_items: list[dict] = []
     deleted_items: list[dict] = []
@@ -171,11 +76,81 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             delta_items.append(mod_item)
         else:
             raise ValueError(
-                f"smart_match 数组收到未标记的元素（缺少 _delta/_new_entry/_deleted），"
-                f"match_keys={match_keys}, 元素 keys={list(mod_item.keys())}"
+                f"{context}收到未标记的元素（缺少 _delta/_new_entry/_deleted），"
+                f"元素 keys={list(mod_item.keys())}"
             )
 
-    # --- 处理删除 ---
+    return delta_items, new_entry_items, deleted_items
+
+
+def _apply_deltas_to_result(
+    result: list, delta_items: list[dict], match_keys: list[str],
+    matched: set[int], schema: dict | None, element_path: list[str] | None,
+) -> None:
+    """将 delta 元素按 match_key 匹配到 result 并 deep_merge，原地修改 result。"""
+    # 建立 result 索引
+    result_index: dict[tuple, list[int]] = {}
+    for ri, r_item in enumerate(result):
+        if isinstance(r_item, dict):
+            kv = get_key_vals(r_item, match_keys)
+            if kv is not None:
+                result_index.setdefault(kv, []).append(ri)
+
+    # 按 key 分组 delta 元素
+    delta_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
+    for i, item in enumerate(delta_items):
+        kv = get_key_vals(item, match_keys)
+        delta_groups.setdefault(kv, []).append((i, item))
+
+    for kv, items in delta_groups.items():
+        if kv is None:
+            for _, item in items:
+                result.append(_strip_marker(item, '_delta'))
+            continue
+
+        res_candidates = [ri for ri in result_index.get(kv, []) if ri not in matched]
+
+        if res_candidates:
+            pairs, unmatched = resolve_duplicates(items, result, res_candidates)
+            for _, mod_item, res_idx in pairs:
+                clean = _strip_marker(mod_item, '_delta')
+                result[res_idx] = deep_merge(result[res_idx], clean, schema, element_path)
+                matched.add(res_idx)
+            for _, mod_item in unmatched:
+                result.append(_strip_marker(mod_item, '_delta'))
+        else:
+            for _, item in items:
+                result.append(_strip_marker(item, '_delta'))
+
+
+@profile
+def _merge_settlement_array(base_arr: list, mod_arr: list,
+                            schema: dict | None,
+                            element_path: list[str] | None) -> list:
+    """
+    智能合并 array<object> 数组。
+    mod_arr 必须是经过 _object_array_delta 产出的 delta 数组，
+    每个元素必须带有 _delta / _new_entry / _deleted 标记。
+    """
+    result = copy.deepcopy(base_arr)
+
+    # 从 schema 读取 match_key
+    match_keys = None
+    if schema and element_path:
+        field_def = get_field_def(schema, element_path)
+        if field_def:
+            match_keys = field_def.get("match_key")
+
+    if not match_keys:
+        raise ValueError(
+            f"smart_match 数组缺少 match_key 定义 (path: {element_path})"
+        )
+
+    delta_items, new_entry_items, deleted_items = _classify_delta_items(
+        mod_arr, context=f"smart_match 数组 (match_keys={match_keys}) "
+    )
+
+    # 处理删除
     matched = set()
     to_remove = set()
     for mod_item in deleted_items:
@@ -184,51 +159,15 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
             to_remove.add(idx)
             matched.add(idx)
 
-    # --- 建立 result 索引 ---
-    result_index: dict[tuple, list[int]] = {}
-    for ri, r_item in enumerate(result):
-        if isinstance(r_item, dict):
-            kv = _get_key_vals(r_item, match_keys)
-            if kv is not None:
-                result_index.setdefault(kv, []).append(ri)
+    # 应用 delta
+    _apply_deltas_to_result(result, delta_items, match_keys,
+                            matched, schema, element_path)
 
-    # --- 按 key 分组 delta 元素并合并 ---
-    delta_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
-    for i, item in enumerate(delta_items):
-        kv = _get_key_vals(item, match_keys)
-        delta_groups.setdefault(kv, []).append((i, item))
-
-    for kv, items in delta_groups.items():
-        if kv is None:
-            # match_key 缺失，无法匹配，追加
-            for _, item in items:
-                clean = {k: v for k, v in item.items() if k != '_delta'}
-                result.append(clean)
-            continue
-
-        res_candidates = [ri for ri in result_index.get(kv, []) if ri not in matched]
-
-        if res_candidates:
-            pairs, unmatched = _resolve_duplicates(items, result, res_candidates)
-            for _, mod_item, res_idx in pairs:
-                # 清除标记后合并变化字段
-                clean = {k: v for k, v in mod_item.items() if k != '_delta'}
-                result[res_idx] = deep_merge(result[res_idx], clean, schema, element_path)
-                matched.add(res_idx)
-            for _, mod_item in unmatched:
-                clean = {k: v for k, v in mod_item.items() if k != '_delta'}
-                result.append(clean)
-        else:
-            for _, item in items:
-                clean = {k: v for k, v in item.items() if k != '_delta'}
-                result.append(clean)
-
-    # --- 追加新增元素 ---
+    # 追加新增元素
     for item in new_entry_items:
-        clean = {k: v for k, v in item.items() if k != '_new_entry'}
-        result.append(copy.deepcopy(clean))
+        result.append(copy.deepcopy(_strip_marker(item, '_new_entry')))
 
-    # --- 移除删除元素 ---
+    # 移除删除元素
     if to_remove:
         result = [item for i, item in enumerate(result) if i not in to_remove]
 
@@ -295,39 +234,29 @@ def _append_array(base_arr: list, override_arr: list,
                 if kv is not None:
                     key_index[kv] = i
 
+            delta_items, new_entry_items, deleted_items = _classify_delta_items(
+                override_arr, context=f"append 对象数组 (match_key={match_key}) "
+            )
+
             to_remove = set()
-            for item in override_arr:
-                if not isinstance(item, dict):
-                    continue
+            for item in deleted_items:
+                kv = item.get(match_key)
+                idx = key_index.get(kv) if kv is not None else None
+                if idx is not None:
+                    to_remove.add(idx)
 
-                if item.get('_deleted'):
-                    kv = item.get(match_key)
-                    idx = key_index.get(kv) if kv is not None else None
-                    if idx is not None:
-                        to_remove.add(idx)
-                    continue
+            for item in new_entry_items:
+                result.append(copy.deepcopy(_strip_marker(item, '_new_entry')))
 
-                if item.get('_new_entry'):
-                    clean = {k: v for k, v in item.items() if k != '_new_entry'}
-                    result.append(copy.deepcopy(clean))
-                    continue
+            for item in delta_items:
+                clean = _strip_marker(item, '_delta')
+                kv = item.get(match_key)
+                idx = key_index.get(kv) if kv is not None else None
+                if idx is not None:
+                    result[idx] = deep_merge(result[idx], clean, schema, child_path)
+                else:
+                    result.append(clean)
 
-                if item.get('_delta'):
-                    clean = {k: v for k, v in item.items() if k != '_delta'}
-                    kv = item.get(match_key)
-                    idx = key_index.get(kv) if kv is not None else None
-                    if idx is not None:
-                        result[idx] = deep_merge(result[idx], clean, schema, child_path)
-                    else:
-                        result.append(clean)
-                    continue
-
-                raise ValueError(
-                    f"append 对象数组收到未标记的元素（缺少 _delta/_new_entry/_deleted），"
-                    f"match_key={match_key}, 元素 keys={list(item.keys())}"
-                )
-
-            # 移除标记删除的元素
             if to_remove:
                 result = [r for i, r in enumerate(result) if i not in to_remove]
             return result
@@ -338,6 +267,7 @@ def _append_array(base_arr: list, override_arr: list,
     return result
 
 
+@profile
 def deep_merge(base: object, override: object,
                schema: dict | None,
                field_path: list[str] | None) -> object:
@@ -459,6 +389,7 @@ def _apply_merge_strategy(strategy: str, base_val, override_val,
         return copy.deepcopy(override_val)
 
 
+@profile
 def compute_mod_delta(base_data: dict, mod_data: dict,
                       file_type: str, allow_deletions: bool = False) -> dict:
     """
@@ -534,7 +465,7 @@ def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
         # 全局最优配对
         mod_indexed = list(enumerate(mod_items))
         base_indices = list(range(len(base_items)))
-        pairs, unmatched = _resolve_duplicates(
+        pairs, unmatched = resolve_duplicates(
             mod_indexed, base_items, base_indices
         )
 
@@ -611,6 +542,7 @@ def _recursive_delta(base, mod, allow_deletions=False):
 
 
 
+@profile
 def merge_file(
     base_data: dict,
     mod_data_list: list[tuple[str, str, dict]],
@@ -681,6 +613,7 @@ def merge_file(
 
 
 
+@profile
 def merge_all_files(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],

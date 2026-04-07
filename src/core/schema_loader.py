@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 
 from .dsl_patterns import classify_dsl_key
+from .profiler import profile
 from .type_utils import get_type_str
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ _global_templates: dict[str, dict] = {}
 _global_dsl_rules: dict[str, dict] = {}
 
 
+@profile
 def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
     """
     加载 schema 目录下的所有 .schema.json 文件。

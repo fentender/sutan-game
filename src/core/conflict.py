@@ -11,7 +11,8 @@ from .mod_scanner import collect_mod_files
 from .diagnostics import diag
 from .schema_generator import SEP
 from .schema_loader import load_schemas, resolve_schema, get_field_def, get_schema_root_key
-from .merger import find_matching_item, _resolve_duplicates, _get_key_vals
+from .array_match import find_matching_item, resolve_duplicates, get_key_vals
+from .profiler import profile
 
 log = logging.getLogger(__name__)
 
@@ -79,14 +80,14 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
     for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
             continue
-        kv = _get_key_vals(mod_item, match_keys)
+        kv = get_key_vals(mod_item, match_keys)
         mod_groups.setdefault(kv, []).append((i, mod_item))
 
     # 按 match_key 值分组 base 元素
     base_groups: dict[tuple, list[int]] = {}
     for i, base_item in enumerate(base_arr):
         if isinstance(base_item, dict):
-            kv = _get_key_vals(base_item, match_keys)
+            kv = get_key_vals(base_item, match_keys)
             if kv is not None:
                 base_groups.setdefault(kv, []).append(i)
 
@@ -108,7 +109,7 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
             continue
 
         # 全局最优配对
-        pairs, unmatched = _resolve_duplicates(mod_items, base_arr, base_candidates)
+        pairs, unmatched = resolve_duplicates(mod_items, base_arr, base_candidates)
 
         for _, mod_item, base_idx in pairs:
             matched_base.add(base_idx)
@@ -157,6 +158,7 @@ def _collect_unmatched_array_diffs(base_arr, mod_arr, path):
     return diffs
 
 
+@profile
 def _collect_field_diffs(
     base: object, mod_data: object, prefix: str = "",
     schema: dict | None = None, field_path: list[str] | None = None
@@ -256,6 +258,7 @@ def analyze_file_overrides(
     return info
 
 
+@profile
 def analyze_all_overrides(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
