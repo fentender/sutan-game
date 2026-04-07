@@ -1,0 +1,47 @@
+{
+    "id": 5370004,
+    "text": "艾薇拉的援助",
+    "is_replay": 0,
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "counter.7000060>=": 3,
+        "hand_have.2021010.rare": 2,
+        "hand_have.2020001.内心的善意": 5
+    },
+    "settlement": [
+        {
+            "action": {
+                "option": {
+                    "id": "p_5370004_01",
+                    "text": "在你对着手中的苏丹卡发愁时，艾薇拉却不知从哪里把她那小脑袋探了过来。\n“哥哥，如果你想不出什么好办法的话，我可以帮忙哦。”",
+                    "icon": "cards/2020001",
+                    "items": [
+                        {
+                            "text": "你真的有办法？",
+                            "tag": "op1"
+                        },
+                        {
+                            "text": "我还没玩够呢！",
+                            "tag": "op2"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "rite": 5110003,
+                    "prompt": {
+                        "id": "53170004_option_1",
+                        "text": "艾薇拉的魔法可以帮助你任意折断一张苏丹卡。",
+                        "icon": "cards/2020001"
+                    }
+                },
+                "event_off": 5370004
+            }
+        }
+    ]
+}

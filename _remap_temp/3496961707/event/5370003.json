@@ -1,0 +1,44 @@
+{
+    "id": 5370003,
+    "text": "哈基艾哈气了",
+    "is_replay": 1,
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "hand_have.2020001": 99,
+        "hand_have.2000123": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "option": {
+                    "id": "p_5370003_01",
+                    "text": "不知道为什么，艾薇拉在看到那个女孩的第一眼就流露出了耐人寻味的目光，而鲁梅拉也总是下意识的回避她的目光……",
+                    "icon": "cards/2020001",
+                    "items": [
+                        {
+                            "text": "你看出了什么？",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "rite": 5110002
+                },
+                "prompt": {
+                    "id": "5110002_option_1",
+                    "text": "“你捡回来一个不得了的家伙呢。”艾薇拉冷冰冰地说道\n<size=+10><font=\"Title SDF\"><b>“不过这个家里有我一个就够了”。</b></font></size>",
+                    "icon": "cards/2020001"
+                },
+                "event_off": 5370003
+            }
+        }
+    ]
+}

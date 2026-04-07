@@ -1,0 +1,185 @@
+{
+    "id": 5120007,
+    "name": "改头换面",
+    "text": "影岚可以几乎以假乱真地扮演一个人，只不过扮演地越久，他便陷得越深。",
+    "tips": "",
+    "mapping_id": 8001155,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "黑街:[2,5]",
+    "icon": "rite_3",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "请注意，皮偶的使用是一次性的。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "s2": 1
+            },
+            "result_title": "",
+            "result_text": "你看到影岚将那具人皮从匣子中取出，随后将它披在身上，伴随着令人毛骨悚然地收缩与形变，你看到[s1.name]又一次活生生地站在你面前。",
+            "result": {
+                "s2+易容": 1,
+                "s1+s2": 1,
+                "s1-皮偶": 1,
+                "s1+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s4": 1
+            },
+            "result_title": "",
+            "result_text": "你看到影岚将那具人皮从匣子中取出，随后将它披在身上，伴随着令人毛骨悚然地收缩与形变，你看到[s1.name]又一次活生生地站在你面前。",
+            "result": {
+                "s4+易容": 1,
+                "s3+s4": 1,
+                "s3-皮偶": 1,
+                "s3+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s6": 1
+            },
+            "result_title": "",
+            "result_text": "你看到影岚将那具人皮从匣子中取出，随后将它披在身上，伴随着令人毛骨悚然地收缩与形变，你看到[s1.name]又一次活生生地站在你面前。",
+            "result": {
+                "s6+易容": 1,
+                "s5+s6": 1,
+                "s5-皮偶": 1,
+                "s5+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s8": 1
+            },
+            "result_title": "",
+            "result_text": "你看到影岚将那具人皮从匣子中取出，随后将它披在身上，伴随着令人毛骨悚然地收缩与形变，你看到[s1.name]又一次活生生地站在你面前。",
+            "result": {
+                "s8+易容": 1,
+                "s7+s8": 1,
+                "s7-皮偶": 1,
+                "s7+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "event_on": 5380006,
+                "event_off": 5380006
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s2": {
+            "condition": {
+                "s1": 1,
+                "is": 2030001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s3": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s4": {
+            "condition": {
+                "s3": 1,
+                "is": 2030001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s5": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s6": {
+            "condition": {
+                "s5": 1,
+                "is": 2030001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s7": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        },
+        "s8": {
+            "condition": {
+                "s7": 1,
+                "is": 2030001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": ""
+        }
+    }
+}

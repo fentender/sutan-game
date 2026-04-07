@@ -1,0 +1,41 @@
+{
+    "id": 5370006,
+    "text": "稚嫩的另一面",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 0
+    },
+    "condition": {
+        "table_have.主角": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "option": {
+                    "id": "p_5370006_01",
+                    "text": "她来了。",
+                    "icon": "cards/2020001",
+                    "items": [
+                        {
+                            "text": "唏，可以和解吗？",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "card": 2021003
+                },
+                "prompt": {
+                    "id": "5370006_option_1",
+                    "text": "深红的野兽向你亮出了利刃。\n<size=+10><font=\"Title SDF\"><b>“有时候，愚钝才是人生之福，哥哥。”</b></font></size>",
+                    "icon": "cards/2020001"
+                },
+                "rite": 5110005
+            }
+        }
+    ]
+}

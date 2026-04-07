@@ -1,0 +1,150 @@
+{
+    "id": 5110007,
+    "name": "无所不应",
+    "text": "艾薇拉讨厌一个不完美的故事，或者说，不按照她的想法进行的故事。",
+    "tips": "",
+    "mapping_id": 8001002,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[5,12]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "让你的追随者去和这个小恶魔谈谈吧，她会乐意提供帮助的。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {
+                "is": 2000013,
+                "counter.7910101=": 0
+            },
+            "result_title": "我将给予你复仇的利刃",
+            "result_text": "尽管有所迟疑，在流浪剑客眼中，复仇的怒火还是战胜了对未知的警惕。\n“我要掀翻那暴君的统治。”他如此说道“我需要。”",
+            "result": {
+                "clean.s1": 1,
+                "clean.s2": 1,
+                "counter=7910002": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "is": 2000054,
+                "counter.7910102=": 0
+            },
+            "result_title": "哲巴尔拒绝了这次馈赠",
+            "result_text": "“冒险的意义可从来不是结果，我享受的是战胜挫折的过程。”将军爽朗的笑道，随后礼貌却又坚决地离席，看样子他不太喜欢和艾薇拉待在一起。",
+            "result": {
+                "clean.s1": 1,
+                "clean.s2": 1,
+                "counter=7910002": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "is": 2000292,
+                "counter.7910102=": 0
+            },
+            "result_title": "我希望她过的幸福",
+            "result_text": "蒙面战士支支吾吾半天之后憋出来的一句神龟发言给艾薇拉整无语了。\n“其实你可以直接许愿……”艾薇拉提醒道，但是赛里曼坚定的拒绝了，他不希望让这份情感建立在一个虚妄的谎言上面。\n最后艾薇拉什么也没干，但是“发自内心地祝福”了萨尔达尼妃。",
+            "result": {
+                "clean.s1": 1,
+                "clean.s2": 1,
+                "counter=7910102": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "is": 2000064,
+                "counter.7910103=": 0
+            },
+            "result_title": "我希望她过的幸福",
+            "result_text": "蒙面战士支支吾吾半天之后憋出来的一句神龟发言给艾薇拉整无语了。\n“其实你可以直接许愿……”艾薇拉提醒道，但是赛里曼坚定的拒绝了，他不希望让这份情感建立在一个虚妄的谎言上面。\n最后艾薇拉什么也没干，但是“发自内心地祝福”了萨尔达尼妃。",
+            "result": {
+                "clean.s1": 1,
+                "clean.s2": 1,
+                "counter=7910103": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s2.生命之水": 1,
+                "counter.7910004=": 0
+            },
+            "result_title": "干杯！达瓦里氏",
+            "result_text": "虽然玛希尔始终坚持这东西的用处是一种药物，但是从某种角度看，这东西其实也是人间佳酿。\n你看着艾薇拉抱着瓶子在那里吨吨吨喝个不停，然后在半醉半醒的状态说了一大串你听不懂的语言，还拉着你一起唱“英特纳雄耐尔”。",
+            "result": {
+                "clean.s1": 1,
+                "counter=7910004": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "counter.7910005=": 0,
+                "s2.乙太=": 1
+            },
+            "result_title": "水至清则无鱼",
+            "result_text": "艾薇拉端着那杯盛满了乙太的杯子，荧蓝色的液体如同蓝色的宝石。\n“真令人怀念……”艾薇拉将杯子放在眼前，清澈的双眼穿过那纯净的精粹，流露出一丝不易察觉的沧桑。",
+            "result": {
+                "clean.s1": 1,
+                "2020001+魔力": 2,
+                "counter=7910005": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "any": {
+                    "counter.7910001=": 1,
+                    "counter.7910002=": 1,
+                    "counter.7910003=": 2,
+                    "counter.7910004=": 1,
+                    "counter.7910005=": 1
+                }
+            },
+            "result_title": "",
+            "result_text": "这个套路不再起作用了，你最好想个别的招数。",
+            "result": {},
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "艾薇拉必须到场"
+        },
+        "s2": {
+            "condition": {
+                "any": {
+                    "is": 2000057
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "心有所求的追随者"
+        }
+    }
+}

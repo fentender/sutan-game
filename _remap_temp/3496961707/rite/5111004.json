@@ -1,0 +1,101 @@
+{
+    "id": 5111004,
+    "name": "凡夫之勇",
+    "text": "你的身体在浪潮中支离破碎，这是拒绝一位神明的代价。",
+    "tips": "",
+    "mapping_id": 8001332,
+    "once_new": 1,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "野外:9",
+    "icon": "rite_19",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "能对抗一位神明的，只有与祂同样级别的存在。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "!s2": 1
+            },
+            "result_title": "",
+            "result_text": "那毁灭的浪潮淹没了你的身躯，但却未能击碎你的意志，你如同一块礁石，任凭深红之王如何攻讦与诱导都不为所动，直到最后，你都没有向祂低头。",
+            "result": {},
+            "action": {
+                "over": 2020004
+            }
+        },
+        {
+            "condition": {
+                "s2.正神的面容": 1
+            },
+            "result_title": "澄澈之火",
+            "result_text": "就在这危急关头，一团璨金的火焰在你胸膛燃起——纯净者的光辉驱离了那灾厄的浪潮。\n那位傲居苍穹之上的神主以你为锚点，毫无保留地将审判的权威投向那深红的天幕，在一声毁天灭地的巨响之后，你的视野里只剩下一片空白……",
+            "result": {},
+            "action": {
+                "event_on": 5371008
+            }
+        },
+        {
+            "condition": {
+                "s2.邪神的面容": 1
+            },
+            "result_title": "秽壤与浊浪",
+            "result_text": "就在这危急关头，一根滑腻的触手自地板下方破出，它灵活地将你卷起，随后整片神殿的开始崩塌，灰黑的泥浆从那些古老的石砖中渗透出来。\n你并不清楚这场对决的结果，那根触手直接将你拖入了混沌的泥沼，你最后的记忆定格在密神那诡异的笑声中……",
+            "result": {},
+            "action": {
+                "event_on": 5371008
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "item",
+                "is": 2021056
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "终焉之神"
+        },
+        "s2": {
+            "condition": {
+                "any": {
+                    "all": {
+                        "type": "item",
+                        "邪神的面容": 1,
+                        "rare>=": 3
+                    }
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "向你的神明祈祷吧"
+        },
+        "s3": {
+            "condition": {
+                "type": "char",
+                "受选者": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "它在渴望着你为它献上祭品"
+        }
+    }
+}

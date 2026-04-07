@@ -1,0 +1,72 @@
+{
+    "id": 5110001,
+    "name": "就吃你家大米了",
+    "text": "依照神圣的契约与盟誓，艾薇拉要求你定期给她投喂奶油蛋糕，不过相比她带来的贡献，这点小钱不算什么……",
+    "tips": "",
+    "mapping_id": 8001077,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 1,
+    "location": "自宅:[2,12]",
+    "icon": "rite_18",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "s2": 3
+            },
+            "result_title": "应许的奶与蜜",
+            "result_text": "艾薇拉心满意足地接受了你的奉献，然后随手折了一架纸飞机送给你。",
+            "result": {
+                "card": 2021009,
+                "clean.s2": 3
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!s2": 3
+            },
+            "result_title": "养不起了",
+            "result_text": "你实在是拿不出钱了，艾薇拉有点失落，但还是善解人意地使用魔法给了你一些救济——所以她为什么不自己去买蛋糕吃？",
+            "result": {
+                "金币": 5
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2020001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "奶油蛋糕的忠实粉丝"
+        },
+        "s2": {
+            "condition": {
+                "type": "item",
+                "cost.金币": 3
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "小钱而已……"
+        }
+    }
+}

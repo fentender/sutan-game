@@ -1,0 +1,672 @@
+{
+    "id": 5110031,
+    "name": "安息之所",
+    "text": "这是一场超越了时间的战斗，在一方完全倒下之前，战斗不会结束。",
+    "tips": "",
+    "mapping_id": 8001016,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "结局:6",
+    "type": "END",
+    "icon": "rite_ex_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+        "tips": [
+            "战斗",
+            "体魄"
+        ],
+        "type": "fight_result"
+    },
+    "tips_text": [
+        "这是最后的战斗了，大概",
+        "只有少数人可以介入这场命运的决战"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+        "r1": {
+            "text": "维持住屏障，迎接深红浪潮的冲击。",
+            "type": "fight_result",
+            "type_tips": "屏障维系者的体魄与魔力属性为你提供保护骰子，除此之外每个协同防护的成员都能额外提供骰子。",
+            "low_target": 16,
+            "low_target_tips": "你至少需要16点成功才能成功。"
+        },
+        "r2": {
+            "text": "抓住机会，发起攻击！。",
+            "type": "fight_result",
+            "type_tips": "对应攻击者的体魄与魔力属性为你提供进攻骰子。",
+            "low_target": 12,
+            "low_target_tips": "你至少需要12点成功才能发挥最大威力。"
+        },
+        "r3": {
+            "text": "抓住机会，发起攻击！。",
+            "type": "fight_result",
+            "type_tips": "对应攻击者的体魄与魔力属性为你提供进攻骰子。",
+            "low_target": 12,
+            "low_target_tips": "你至少需要12点成功才能发挥最大威力。"
+        },
+        "r4": {
+            "text": "抓住机会，发起攻击！。",
+            "type": "fight_result",
+            "type_tips": "对应攻击者的体魄与魔力属性为你提供进攻骰子。",
+            "low_target": 12,
+            "low_target_tips": "你至少需要12点成功才能发挥最大威力。"
+        },
+        "r5": {
+            "text": "抓住机会，发起攻击！。",
+            "type": "fight_result",
+            "type_tips": "对应攻击者的体魄与魔力属性为你提供进攻骰子。",
+            "low_target": 12,
+            "low_target_tips": "你至少需要12点成功才能发挥最大威力。"
+        }
+    },
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "鎏金加护": 1
+            },
+            "result_title": "鎏金加护",
+            "result_text": "黄金岁月的回响帮助你度过了一次难关，没有人因此受伤。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "鎏金加护<": 1,
+                "r1:(s14.体魄+s14.魔力)*2-（s1.魔力）/2-s2.书页*5-s14.裂隙*14+协力防护*15<": [
+                    16,
+                    5
+                ]
+            },
+            "result_title": "屏障破碎",
+            "result_text": "伊洛尼斯鼓动起浩大的魔力浪潮，冲击着屏障。即便[s14.name]尽力维持，但是依旧没有能够完全抵挡。",
+            "result": {
+                "s6-烛火": 15,
+                "s8-烛火": 15,
+                "s10-烛火": 15,
+                "s12-烛火": 15,
+                "s14-烛火": 25,
+                "choose": {
+                    "s6+裂隙": 1,
+                    "s8+裂隙": 1,
+                    "s10+裂隙": 1,
+                    "s12+裂隙": 1,
+                    "s14+裂隙": 1
+                },
+                "s14+裂隙": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "鎏金加护<": 1,
+                "r1:(s14.体魄+s14.魔力)*2-（s1.魔力）/2-s2.书页*5-s14.裂隙*14+协力防护*15>=": [
+                    16,
+                    5
+                ]
+            },
+            "result_title": "屏障屹立不倒",
+            "result_text": "伊洛尼斯鼓动起浩大的魔力浪潮，冲击着屏障。但是在[s14.name]尽力维持之下，这次攻击被成功化解。",
+            "result": {
+                "s14+裂隙": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "群星祝福": 1,
+                "s7.凛冽攻势": 1
+            },
+            "result_title": "",
+            "result_text": "群星指引着[s6.name]发动强力一击，取得了极好的成效！",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "群星祝福": 1,
+                "s9.凛冽攻势": 1
+            },
+            "result_title": "",
+            "result_text": "群星指引着[s8.name]发动强力一击，取得了极好的成效！",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "群星祝福": 1,
+                "s11.凛冽攻势": 1
+            },
+            "result_title": "",
+            "result_text": "群星指引着[s10.name]发动强力一击，取得了极好的成效！",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "群星祝福": 1,
+                "s13.凛冽攻势": 1
+            },
+            "result_title": "",
+            "result_text": "群星指引着[s12.name]发动强力一击，取得了极好的成效！",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s7.凛冽攻势": 1,
+                "r2:30*(s6.体魄+s6.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4<": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s6.name]尝试把握伊洛尼斯的破绽发起突袭，但是失败了，仅仅造成寥寥无几的伤害。",
+            "result": {
+                "s1-支点": 5
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s7.凛冽攻势": 1,
+                "r2:30*(s6.体魄+s6.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4>=": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s6.name]成功找到进攻的时机，给伊洛尼斯造成了切实的伤害。",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s9.凛冽攻势": 1,
+                "r3:30*(s8.体魄+s8.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4<": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s8.name]尝试把握伊洛尼斯的破绽发起突袭，但是失败了，仅仅造成寥寥无几的伤害。",
+            "result": {
+                "s1-支点": 5
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s9.凛冽攻势": 1,
+                "r3:30*(s8.体魄+s8.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4>=": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s8.name]成功找到进攻的时机，给伊洛尼斯造成了切实的伤害。",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s11.凛冽攻势": 1,
+                "r4:30*(s10.体魄+s10.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4<": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s10.name]尝试把握伊洛尼斯的破绽发起突袭，但是失败了，仅仅造成寥寥无几的伤害。",
+            "result": {
+                "s1-支点": 5
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s11.凛冽攻势": 1,
+                "r4:30*(s10.体魄+s10.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4>=": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s10.name]成功找到进攻的时机，给伊洛尼斯造成了切实的伤害。",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s13.凛冽攻势": 1,
+                "r5:30*(s12.体魄+s11.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4<": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s12.name]尝试把握伊洛尼斯的破绽发起突袭，但是失败了，仅仅造成寥寥无几的伤害。",
+            "result": {
+                "s1-支点": 5
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!群星祝福": 1,
+                "s13.凛冽攻势": 1,
+                "r5:30*(s12.体魄+s11.魔力)/s1.体魄+12+协助进攻*10-s2.书页*4>=": [
+                    12,
+                    5
+                ]
+            },
+            "result_title": "",
+            "result_text": "[s12.name]成功找到进攻的时机，给伊洛尼斯造成了切实的伤害。",
+            "result": {
+                "s1-支点": 18
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!s7": 1
+            },
+            "result_title": "",
+            "result_text": "[s6.name]没有参与到战斗，因此可以趁机恢复自身的烛火值。",
+            "result": {
+                "s6+烛火": 8
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!s9": 1
+            },
+            "result_title": "",
+            "result_text": "[s8.name]没有参与到战斗，因此可以趁机恢复自身的烛火值。",
+            "result": {
+                "s8+烛火": 8
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!s11": 1
+            },
+            "result_title": "",
+            "result_text": "[s10.name]没有参与到战斗，因此可以趁机恢复自身的烛火值。",
+            "result": {
+                "s10+烛火": 8
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "!s13": 1
+            },
+            "result_title": "",
+            "result_text": "[s12.name]没有参与到战斗，因此可以趁机恢复自身的烛火值。",
+            "result": {
+                "s12+烛火": 8
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s7.is": 2021029
+            },
+            "result_title": "",
+            "result_text": "[s6.name]已经摆脱了裂隙的影响。",
+            "result": {
+                "s6=裂隙": 0
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s9.is": 2021029
+            },
+            "result_title": "",
+            "result_text": "[s8.name]已经摆脱了裂隙的影响。",
+            "result": {
+                "s8=裂隙": 0
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s11.is": 2021029
+            },
+            "result_title": "",
+            "result_text": "[s10.name]已经摆脱了裂隙的影响。",
+            "result": {
+                "s10=裂隙": 0
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s13.is": 2021029
+            },
+            "result_title": "",
+            "result_text": "[s12.name]已经摆脱了裂隙的影响。",
+            "result": {
+                "s12=裂隙": 0
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s5.权柄已激活": 1,
+                "f:s6.烛火-s6.裂隙*10<": 1
+            },
+            "result_title": "",
+            "result_text": "[s6.name]的身体终于承受不住裂隙的压迫，在湮灭的刀锋下炸裂开来。",
+            "result": {
+                "clean.s6": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s5.权柄已激活": 1,
+                "f:s8.烛火-s8.裂隙*10<": 1
+            },
+            "result_title": "",
+            "result_text": "[s8.name]的身体终于承受不住裂隙的压迫，在湮灭的刀锋下炸裂开来。",
+            "result": {
+                "clean.s8": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s5.权柄已激活": 1,
+                "f:s10.烛火-s10.裂隙*10<": 1
+            },
+            "result_title": "",
+            "result_text": "[s10.name]的身体终于承受不住裂隙的压迫，在湮灭的刀锋下炸裂开来。",
+            "result": {
+                "clean.s10": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s5.权柄已激活": 1,
+                "f:s12.烛火-s12.裂隙*10<": 1
+            },
+            "result_title": "",
+            "result_text": "[s12.name]的身体终于承受不住裂隙的压迫，在湮灭的刀锋下炸裂开来。",
+            "result": {
+                "clean.s12": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s1.支点<": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "event_on": 5370048
+            }
+        },
+        {
+            "condition": {
+                "烛火<": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "over": 2900003
+            }
+        },
+        {
+            "condition": {
+                "s3.权柄已激活<": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "rite": 5110031
+            }
+        },
+        {
+            "condition": {
+                "s3.权柄已激活": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "choose": {
+                    "rite": 5110033
+                }
+            }
+        },
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "choose": {
+                    "card": 2021029
+                }
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2020010
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "伊洛尼斯，深红的君主，末日的实相"
+        },
+        "s2": {
+            "condition": {
+                "type": "item",
+                "is": 2021030
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "神之权柄"
+        },
+        "s3": {
+            "condition": {
+                "type": "item",
+                "is": 2021031
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "神之权柄"
+        },
+        "s4": {
+            "condition": {
+                "type": "item",
+                "is": 2021032
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "神之权柄"
+        },
+        "s5": {
+            "condition": {
+                "type": "item",
+                "is": 2021033
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "神之权柄"
+        },
+        "s6": {
+            "condition": {
+                "type": "char",
+                "烛火": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "挑战者"
+        },
+        "s7": {
+            "condition": {
+                "s6": 1,
+                "type": "item",
+                "any": {
+                    "回响": 1,
+                    "协力防护": 1,
+                    "凛冽攻势": 1,
+                    "协助进攻": 1
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你希望使用怎样的策略，或者特殊的回响"
+        },
+        "s8": {
+            "condition": {
+                "type": "char",
+                "烛火": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "挑战者"
+        },
+        "s9": {
+            "condition": {
+                "s8": 1,
+                "type": "item",
+                "any": {
+                    "回响": 1,
+                    "协力防护": 1,
+                    "凛冽攻势": 1,
+                    "协助进攻": 1
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你希望使用怎样的策略，或者特殊的回响"
+        },
+        "s10": {
+            "condition": {
+                "type": "char",
+                "烛火": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "挑战者"
+        },
+        "s11": {
+            "condition": {
+                "s10": 1,
+                "type": "item",
+                "any": {
+                    "回响": 1,
+                    "协力防护": 1,
+                    "凛冽攻势": 1,
+                    "协助进攻": 1
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你希望使用怎样的策略，或者特殊的回响"
+        },
+        "s12": {
+            "condition": {
+                "type": "char",
+                "烛火": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "挑战者"
+        },
+        "s13": {
+            "condition": {
+                "s12": 1,
+                "type": "item",
+                "any": {
+                    "回响": 1,
+                    "协力防护": 1,
+                    "凛冽攻势": 1,
+                    "协助进攻": 1
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你希望使用怎样的策略，或者特殊的回响"
+        },
+        "s14": {
+            "condition": {
+                "type": "char",
+                "烛火": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "屏障的维系者，将直接承受伊洛尼斯的攻击"
+        }
+    }
+}

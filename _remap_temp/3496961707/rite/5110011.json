@@ -1,0 +1,189 @@
+{
+    "id": 5110011,
+    "name": "偷天换日",
+    "text": "当你走进辉煌的宫殿中，你看到艾薇拉高坐在苏丹王座之上，笑盈盈地指挥宫廷侍卫给她拿来最新鲜的葡萄。",
+    "tips": "",
+    "mapping_id": 8001001,
+    "once_new": 1,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 1,
+    "location": "宫廷:1",
+    "icon": "rite_14",
+    "tag_tips": [
+        "反对",
+        "支持",
+        "倦怠"
+    ],
+    "tag_tips_up": {
+        "tips": [
+            "反对",
+            "支持",
+            "倦怠"
+        ],
+        "type": "normal_result"
+    },
+    "tips_text": [
+        "可以根据宫廷中【支持】与【反对】的数量来决定是否要派人上朝",
+        "反对与支持都来自随机上朝的臣子和妃子，尽量与人搞好关系吧",
+        "谗言积累到三个会产生苏丹的残酷任务",
+        "访问宫廷可以得到一些情报",
+        "当苏丹厌倦后，朝会会暂时停止，获得休息的时机"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {},
+            "result_title": "一场闹剧",
+            "result_text": "艾薇拉在朝堂上有模有样地发号施令，下达了很多新的政令以及指示。\n“近卫一定要有近卫标”、“老婆的不满一定要有老婆”……\n这样合理中带着抽象的政令被书记官仔仔细细地记录下来，你感觉整个宫殿都有点太亮了。",
+            "result": {
+                "clean.s6": 1,
+                "card": [
+                    2021004,
+                    "已拥有+1"
+                ],
+                "counter=7000055": 1
+            },
+            "action": {
+                "table.2000024=上朝": 1,
+                "rite": 5110008
+            }
+        }
+    ],
+    "settlement_extre": [
+        {
+            "condition": {
+                "s5": 1,
+                "s7.金币": 3
+            },
+            "result_title": "苏丹很满意你的奉献",
+            "result_text": "艾薇拉当众夸奖了你，然后兴高采烈地将那三枚金币揣进了自己兜里。",
+            "result": {
+                "clean.s7": 3,
+                "counter+7100003": 1
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "item",
+                "cost.谗言": [
+                    1,
+                    999
+                ]
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "如不加干涉，谗言将在君王的耳畔滋生……"
+        },
+        "s2": {
+            "condition": {
+                "is": 2020001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "伟大的艾薇拉"
+        },
+        "s3": {
+            "condition": {
+                "any": {
+                    "is": 2000173,
+                    "all": {
+                        "被覆者": 1,
+                        "苏丹的玩偶": 1
+                    }
+                },
+                "!选妃标记": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "被苏丹带到宫廷之上，未必是一种恩宠"
+        },
+        "s4": {
+            "condition": {
+                "type": "char",
+                "贵族": 1,
+                "!is": 2000292,
+                "!决斗标记": 1,
+                "!主角": 1,
+                "!妻子": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "今天在朝堂上发言的贵族",
+            "pops": [
+                {
+                    "condition": {
+                        "s4.is": 2000352,
+                        "s4.追随者": 1
+                    },
+                    "action": {
+                        "choose": {
+                            "pop.5001001_s4_27.self": "什么时候才可以回家……"
+                        }
+                    }
+                }
+            ]
+        },
+        "s5": {
+            "condition": {
+                "type": "char",
+                "主角": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你必须亲自前往……或者干脆不来。",
+            "pops": [
+                {
+                    "condition": {},
+                    "action": {
+                        "choose": {
+                            "pop.5001001_s5_23.self": "艾薇拉你是认真的!？"
+                        }
+                    }
+                }
+            ]
+        },
+        "s6": {
+            "condition": {
+                "type": "sudan",
+                "征服": 1,
+                "rare": 4
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "艾薇拉同意为你折断这张征服卡……"
+        },
+        "s7": {
+            "condition": {
+                "type": "item",
+                "cost.金币": 3
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "请向伟大的苏丹呈上三枚金币，这将会用于苏丹陛下散朝之后去购买奶油蛋糕。"
+        }
+    }
+}

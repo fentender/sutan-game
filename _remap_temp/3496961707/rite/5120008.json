@@ -1,0 +1,52 @@
+{
+    "id": 5120008,
+    "name": "褪去伪装",
+    "text": "扮演的太久，往往会忘记自己。",
+    "tips": "",
+    "mapping_id": 8001347,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "黑街:[2,5]",
+    "icon": "rite_3",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "请注意，皮偶的使用是一次性的。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "s1~equip": 2030001,
+                "clean.s1": 1
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "易容": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": ""
+        }
+    }
+}

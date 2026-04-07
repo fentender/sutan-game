@@ -1,0 +1,30 @@
+{
+    "id": 5370046,
+    "text": "浩劫-结算",
+    "is_replay": 1,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "table_have.2900004.支点>=": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "table.2900004-支点": 1,
+                "choose": {
+                    "table.2020010+魔力": 1,
+                    "table.2020010+魅力": 1,
+                    "table.2020010+战斗": 1
+                },
+                "table.2020010+支点": 1,
+                "event_off": 5370046,
+                "event_on": 5370046
+            }
+        }
+    ]
+}

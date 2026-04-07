@@ -1,0 +1,72 @@
+{
+    "id": 5090000,
+    "name": "觐见苏丹",
+    "text": "既然已经答应了柳泠烟，你决定去试探一下苏丹对分享藏书阁这件事的看法。或许，你得带上一点小礼物……",
+    "tips": "",
+    "mapping_id": 8001524,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "宫廷:[2,6]",
+    "icon": "rite_16",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你至少需要5枚金币，才能吸引苏丹的注意。",
+        "你的权势不能小于3点，否则说话不够有份量"
+    ],
+    "open_conditions": [
+        {
+            "condition": {
+                "counter.7100003>=": 3
+            },
+            "tips": "你的权势不能小于3点。"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "金币": 1
+            },
+            "result_title": "你恭敬地将“礼物”献给了苏丹",
+            "result_text": "苏丹摩挲着你献上的金币，露出了玩味的笑容。“平常可不见你如此主动来见我。说吧，有什么事？”\n你委婉地编造出你对异域历史的兴趣，以及你对那些虚无缥缈的传说的向往，试图让苏丹信服你才是那个要去藏书阁的人。苏丹听后大笑着说：“你的冒险还是不够有趣，想想别的吧，比如你手头的苏丹卡该怎么用？不过，这些金币我就收下了。”随后便打发你走了。\n看来，你的礼物不足以让苏丹为你打开他自家书房的大门。你为自己的天真而感到一丝后悔。",
+            "result": {},
+            "action": {
+                "event_on": 5390001
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "主角": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你必须亲自觐见苏丹"
+        },
+        "s2": {
+            "condition": {
+                "type": "item",
+                "cost.金币": 5
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你至少需要5枚金币，才能吸引苏丹的注意"
+        }
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "id": 5110012,
+    "name": "落入陷阱的羔羊",
+    "text": "你可以诱骗一名追随者并趁机绑架对方。",
+    "tips": "",
+    "mapping_id": 8000160,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "野外:[1,6]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "被绑架的对象不能是艾薇拉或者主角。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "[s1.name]怎么也不会想到你的这次指派实际上是个陷阱，艾薇拉毫不费力地抓住了这只无辜且愚蠢的羊羔。\n“这下我们有新玩具了。”她如此说道。",
+            "result": {
+                "s1+equip": 2021011,
+                "total.2020001+毁灭的欲望": 1,
+                "total.2020001+魔力": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "!主角": 1,
+                "!is": 2020001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "你所中意的猎物"
+        }
+    }
+}

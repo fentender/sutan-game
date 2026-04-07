@@ -1,0 +1,75 @@
+{
+    "id": 5111009,
+    "name": "坠星",
+    "text": "群星的馈赠只能由特定的人领取。",
+    "tips": "",
+    "mapping_id": 8001049,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "上城区:[2,12]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "只有特定的追随者可以拿起这柄武器，人世间行走的星灵，或是受到群星庇护的流浪王子"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {
+                "s2.is": 2000013
+            },
+            "result_title": "他是群星簇拥的王子",
+            "result_text": "[s2.name]接过了那柄长枪，萤蓝的星辉照亮了他的侧颜，将那些岁月雕琢的伤痕轻轻抹掉。群星共同呼唤他的名字：\n“——希尔希纳，高原的孩子，群星的宠儿……拿上它，以守护的名义战斗……”\n",
+            "result": {
+                "s2+s1": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s2.is": 2000123
+            },
+            "result_title": "她是坠入人间的晨星",
+            "result_text": "那柄武器很自然地接受了鲁梅拉，尽管她并不擅长战斗，但是一种源自本能的亲切让她成功驾驭了这星灵的赠与。\n她将履行那古老的誓约，代替她那位走入歧途的长兄，驱逐觊觎人间的灾厄。",
+            "result": {
+                "s2+s1": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021061
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "艾琳娜的坠星"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "any": {
+                    "is": 2000123
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "穿上装备的角色,鲁梅拉，或者希尔希纳"
+        }
+    }
+}

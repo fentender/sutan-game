@@ -1,0 +1,3174 @@
+{
+    "2020000": {
+        "id": 2020000,
+        "name": "艾薇拉",
+        "title": "余烬中重生的寻梦之人",
+        "text": "伴随着那场",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020000",
+        "tag": {
+            "社交": 1,
+            "魅力": 1,
+            "智慧": 1,
+            "战斗": 1,
+            "魔力": 1,
+            "女性": 1,
+            "命运的羁绊": 1,
+            "支持": 1,
+            "贵族": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020001": {
+        "id": 2020001,
+        "name": "艾薇拉",
+        "title": "闯入游戏的乐子之神",
+        "text": "来路不明的未知存在，伪装成你的妹妹，除你之外任何人都没有察觉到异常，爱吃奶油蛋糕，不喜欢劳动，不喜欢读书，擅长全自动闯祸。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": [
+            "cards/2020001",
+            "cards/2020001_red",
+            "cards/2020001_white",
+            "cards/2020001_god",
+            "cards/2020001_black",
+            "cards/2020001_pro",
+            "cards/2020001_white_pro",
+            "cards/2020001_red_pro",
+            "cards/2020001_god_pro",
+            "cards/2020001_black_pro"
+        ],
+        "tag": {
+            "社交": 1,
+            "魅力": 1,
+            "智慧": 1,
+            "战斗": 1,
+            "魔力": 1,
+            "内心的善意": 1,
+            "毁灭的欲望": 1,
+            "女性": 1,
+            "支持": 1,
+            "贵族": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "any": {
+                        "纵欲": 1,
+                        "奢靡": 1,
+                        "杀戮": 1,
+                        "征服": 1
+                    }
+                },
+                "result_text": "艾薇拉越来越喜欢这个游戏了。",
+                "result": {
+                    "self+毁灭的欲望": 1,
+                    "self+魔力": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "f:男性+女性>=": 2,
+                    "纵欲<": 1,
+                    "奢靡<": 1,
+                    "杀戮<": 1,
+                    "征服<": 1,
+                    "!is_rite": 5006534
+                },
+                "result_text": "艾薇拉对人类的理解更进一步。",
+                "result": {
+                    "self+内心的善意": 1,
+                    "self+魔力": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "any": {
+                        "is_rite": 5006534
+                    }
+                },
+                "result_text": "不爱看书的女孩朝你做了一个鬼脸。\n艾薇拉不想把时间浪费在学习上面,你也无法通过任何方式增长她除魔力之外的属性。",
+                "result": {
+                    "self-内心的善意": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2020666": {
+        "id": 2020666,
+        "name": "厄乌拉",
+        "title": "阅世者",
+        "text": "最开始，她只是把这一切当作无所事事中的取乐，然而现在，这位神明真正地坐到了桌前。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": [
+            "cards/2020001_0",
+            "cards/2020001_3",
+            "cards/2020001_2"
+        ],
+        "tag": {
+            "社交": 6,
+            "魅力": 9,
+            "智慧": 6,
+            "战斗": 9,
+            "魔力": 27,
+            "女性": 1,
+            "命运的羁绊": 1,
+            "支持": 1,
+            "贵族": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020002": {
+        "id": 2020002,
+        "name": "渴悦灵",
+        "title": "欲望化身",
+        "text": "我欲穿花寻路，直入白云深处，浩气展虹霓。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2000536",
+        "tag": {
+            "魅力": 6,
+            "社交": 6,
+            "智慧": 2,
+            "隐匿": 4,
+            "女性": 1,
+            "激情": 1,
+            "支持": 1,
+            "奴隶": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2900002": {
+        "id": 2900002,
+        "name": "赤骸卫",
+        "title": "杀戮化身",
+        "text": "昔上世之亡主，以罪为在人，故日杀僇而不止，以至於亡而不悟",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2000201",
+        "tag": {
+            "体魄": 8,
+            "战斗": 5,
+            "生存": 5,
+            "装备": 1,
+            "坐骑": 1,
+            "驯兽": 1,
+            "已装备": 1,
+            "银趴绝缘者": 1,
+            "动物": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2020004": {
+        "id": 2020004,
+        "name": "幽咽军",
+        "title": "征服化身",
+        "text": "普天之下，莫非王土；率土之滨，莫非王臣。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2000376",
+        "tag": {
+            "部队": 1,
+            "战斗": 12,
+            "智慧": 10,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021001": {
+        "id": 2021001,
+        "name": "星灵屠戮者",
+        "title": "武器",
+        "text": "在古老的年代，这柄刀锋以及它的主人是群星不敢言说的禁忌。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2000733",
+        "tag": {
+            "战斗": 7,
+            "魔力": 9,
+            "装备": 1,
+            "武器": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021002": {
+        "id": 2021002,
+        "name": "支离破碎的尸体",
+        "title": "亡魂",
+        "text": "看到这些被开膛破肚的尸体，人们不禁发问，谁会是下一个？",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2000499",
+        "tag": {
+            "冤魂": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021003": {
+        "id": 2021003,
+        "name": "深红帷幕",
+        "title": "稚嫩背后的真相",
+        "text": "在古老的年代，深红的天幕遮蔽苍穹，地上的生命与流转的星辰都要臣服于深红地海的主宰。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2000717",
+        "tag": {
+            "魔力": 999,
+            "邪神的面容": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021004": {
+        "id": 2021004,
+        "name": "债务",
+        "title": "证据",
+        "text": "神明从不无私，更别说欠下艾薇拉大人的恩情一辈子也还不完。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2001145",
+        "tag": {
+            "智慧": -3,
+            "社交": -3,
+            "已拥有": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021005": {
+        "id": 2021005,
+        "name": "深红恩典",
+        "title": "与神的誓约",
+        "text": "使用凡人与神明的血液共同写就的誓约，是终局的序章，是末日的预言。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021005",
+        "tag": {
+            "魔力": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021006": {
+        "id": 2021006,
+        "name": "叙事者",
+        "title": "武器",
+        "text": "在古老的年代，这柄刀锋以及它的主人是群星不敢言说的禁忌。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021006",
+        "tag": {
+            "智慧": 3,
+            "战斗": 7,
+            "魔力": 2,
+            "装备": 1,
+            "武器": 1,
+            "混沌造物": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021007": {
+        "id": 2021007,
+        "name": "笔录官",
+        "title": "武器",
+        "text": "在古老的年代，这柄刀锋以及它的主人是群星不敢言说的禁忌。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021007",
+        "tag": {
+            "社交": 3,
+            "魅力": 7,
+            "魔力": 2,
+            "装备": 1,
+            "武器": 1,
+            "混沌造物": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021009": {
+        "id": 2021009,
+        "name": "纸飞机",
+        "title": "神赐之物",
+        "text": "艾薇拉所折叠的纸飞机，材料是你办公桌上某份重要公文，不过那并不重要，因为她不是第一次这么干了——关键的时候可以发挥意想不到的效果。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2021009",
+        "tag": {
+            "消耗品": 1,
+            "可堆叠": 1,
+            "重投": 9,
+            "已拥有": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021010": {
+        "id": 2021010,
+        "name": "深红契约",
+        "title": "与神的约定",
+        "text": "古老的羊皮纸上乱涂乱画着几项条款，主要的内容集中在餐饮标准上，不过这至少说明，你得到了一位神明的关注。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021010",
+        "tag": {
+            "魔力": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2900003": {
+        "id": 2900003,
+        "name": "深红倒影",
+        "title": "侵入精神的梦魇",
+        "text": "一个幽影，一个被抛弃的亡魂，一个徘徊在你思维中的不灭梦魇，在夜深人静之时，她会为你诉说那些不可言喻的历史。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020005",
+        "tag": {
+            "已拥有": 1,
+            "金色文字": 1,
+            "魔力": 5,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2020005": {
+        "id": 2020005,
+        "name": "未知的少女",
+        "title": "牺牲者",
+        "text": "你不认识她，也不明白艾薇拉为什么会对她展现出那样的敌意，但是从她的身上，你嗅到了熟悉的味道。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020005",
+        "tag": {
+            "社交": 4,
+            "魅力": 6,
+            "智慧": 10,
+            "战斗": 1,
+            "魔力": 2,
+            "深红之偶": 1,
+            "女性": 1,
+            "支持": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021011": {
+        "id": 2021011,
+        "name": "咒言",
+        "title": "特殊",
+        "text": "艾薇拉的魔法可以让受害者失去行动能力，成为任你摆布的玩具。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021011",
+        "tag": {
+            "深红之偶": 1,
+            "追随者": -1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021012": {
+        "id": 2021012,
+        "name": "深红之花",
+        "title": "特殊",
+        "text": "盛开在地表的诡异花朵，昭示末日的降临，存在时为厄乌拉提供全方位的增益。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021012",
+        "tag": {
+            "深红之花": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021013": {
+        "id": 2021013,
+        "name": "猎群",
+        "title": "",
+        "text": "这些怪物追寻着毁灭，渴望着吞噬所见的一切。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021013",
+        "tag": {
+            "部队": 1,
+            "战斗": 6,
+            "猎群": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021014": {
+        "id": 2021014,
+        "name": "猎群",
+        "title": "",
+        "text": "这些怪物追寻着毁灭，渴望着吞噬所见的一切。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2021014",
+        "tag": {
+            "部队": 1,
+            "战斗": 18,
+            "猎群": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021015": {
+        "id": 2021015,
+        "name": "猎群",
+        "title": "",
+        "text": "这些怪物追寻着毁灭，渴望着吞噬所见的一切。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2021015",
+        "tag": {
+            "部队": 1,
+            "战斗": 12,
+            "猎群": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021017": {
+        "id": 2021017,
+        "name": "终焉锚点",
+        "title": "锚点",
+        "text": "历史断层与现实世界的交汇点，也是猎群进入现实世界的媒介。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021017",
+        "tag": {
+            "锚点": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021016": {
+        "id": 2021016,
+        "name": "迈向终焉的螺旋",
+        "title": "末日计时",
+        "text": "当七重螺旋走向终结，深红君王将会从茧中苏醒。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021016",
+        "tag": {
+            "可堆叠": 1,
+            "终末螺旋": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021018": {
+        "id": 2021018,
+        "name": "盘结的荆棘",
+        "title": "守护之物",
+        "text": "与其说是荆棘，这些扭曲的藤曼更像是相互纠缠的蛇，想要冲破它们的阻碍可不是简单的事情。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021018",
+        "tag": {
+            "战斗": 11,
+            "可堆叠": 1,
+            "守护之物": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2900004": {
+        "id": 2900004,
+        "name": "深红之茧",
+        "title": "蜕变的神明",
+        "text": "深红之茧会不断汲取花中的养分茁壮自身。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2900003",
+        "tag": {
+            "支点": 100,
+            "深红之茧": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2020010": {
+        "id": 2020010,
+        "name": "深红君主",
+        "title": "新生的神明",
+        "text": "。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020010",
+        "tag": {
+            "深红之茧": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {},
+                "result_text": "",
+                "result": {},
+                "action": {}
+            }
+        ]
+    },
+    "2020011": {
+        "id": 2020011,
+        "name": "尤戴蒙娜",
+        "title": "命运编织者",
+        "text": "伟大的上层叙事者在这世界中的延展，执行他的意志，书写他所期待的故事。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020011",
+        "tag": {
+            "魅力": 10,
+            "社交": 10,
+            "智慧": 10,
+            "隐匿": 10,
+            "魔力": 10,
+            "战斗": 10,
+            "体魄": 10,
+            "生存": 10,
+            "女性": 1,
+            "激情": 1,
+            "支持": 1,
+            "部队": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 0
+    },
+    "2020012": {
+        "id": 2020012,
+        "name": "苏丹",
+        "title": "战士王",
+        "text": "血雨洗净了长久盘结在这位君王心中的阴翳，无论结局如何，这位勇士将与你一同面对，他不惧死亡，他蔑视死亡。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2000024",
+        "tag": {
+            "体魄": 36,
+            "战斗": 31,
+            "烛火": 100,
+            "男性": 1,
+            "贵族": 1,
+            "苏丹专属": 1,
+            "苏丹": 1,
+            "追随者": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020013": {
+        "id": 2020013,
+        "name": "纯净化身",
+        "title": "神的载体",
+        "text": "炙热的火焰包裹着这具原名为伊曼的躯壳，圣光在其周身不断翻涌，一切深红孽物必须得到净化，这是纯净者昭示的最终判罚，不容轻蔑，不容拒绝。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020013",
+        "tag": {
+            "体魄": 23,
+            "战斗": 23,
+            "魔力": 33,
+            "智慧": 26,
+            "男性": 1,
+            "烛火": 100,
+            "正神的面容": 1,
+            "深度": 4,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020014": {
+        "id": 2020014,
+        "name": "造物意志",
+        "title": "神的载体",
+        "text": "两道长长的泪痕印刻在拜铃耶的脸上，那是创造之神的血泪，祂因这满目疮痍的世界而哭泣……悲伤成为了驱使这位神明的源动力，祂誓要让罪魁祸首付出血淋淋的代偿。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020014",
+        "tag": {
+            "烛火": 100,
+            "魅力": 33,
+            "智慧": 33,
+            "隐匿": 37,
+            "黑暗知识": 1,
+            "女性": 1,
+            "邪神的面容": 1,
+            "深度": 4
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020015": {
+        "id": 2020015,
+        "name": "高原的圣主",
+        "title": "光之战士",
+        "text": "祂是指北星的化身，而此时此刻，在世间最需要祂的光芒之时，圣主应召而来，即便岁月使他光辉不在，这位崇高的战士依旧遵循那古老的誓约，抵挡在灭世浪潮的第一线。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2001025",
+        "tag": {
+            "烛火": 100,
+            "魔力": 15,
+            "战斗": 20,
+            "体魄": 15,
+            "智慧": 23,
+            "魅力": 19
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2020016": {
+        "id": 2020016,
+        "name": "影岚",
+        "title": "楚狂人",
+        "text": "一位身着东方服饰的癫狂戏子，以画皮为能，以杀戮为生。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020016",
+        "tag": {
+            "体魄": 6,
+            "战斗": 6,
+            "隐匿": 5,
+            "男性": 1,
+            "智慧": 2,
+            "社交": -8,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {},
+                "result_text": "",
+                "result": {
+                    "s14+烛火": 12,
+                    "s6+烛火": 8,
+                    "s8+烛火": 8,
+                    "s10+烛火": 8,
+                    "s12+烛火": 8
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021019": {
+        "id": 2021019,
+        "name": "猎群计数器",
+        "title": "",
+        "text": "计数器。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021015",
+        "tag": {
+            "猎群计数": 1,
+            "可堆叠": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021020": {
+        "id": 2021020,
+        "name": "赤诚之心",
+        "title": "特殊",
+        "text": "此刻，你能感觉到自己的胸膛中有另一颗心脏正在跳动，而同一个母亲所诞生的两个兄弟，便以这种方式融为一体。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021020",
+        "tag": {
+            "烛火": 100,
+            "装备": 1,
+            "已拥有": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021021": {
+        "id": 2021021,
+        "name": "界旅魔女的游记",
+        "title": "符号",
+        "text": "拉维妮娅自诞生起就在各个世界留下了自己的足迹，然而她从未在笔记上留下任何痕迹，仿佛这漫长的旅途从未有什么值得留恋。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021021",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021022": {
+        "id": 2021022,
+        "name": "阅世者的羽毛笔",
+        "title": "符号",
+        "text": "戏谑人间的厄乌拉热衷于为故事书写一个她喜欢的结局，她掌控一切却又在其中中迷失，直到她自己也逐渐成了那些荒诞故事中的角色。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021022",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021023": {
+        "id": 2021023,
+        "name": "千疮篡王的权杖",
+        "title": "符号",
+        "text": "无论在哪一个世界，罗伊斯都配不上王的气量，但是他却总是能通过他熟悉的手段“偷”来权柄，而其他人也会因此将他称作“伟大的陛下”。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021023",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021024": {
+        "id": 2021024,
+        "name": "无相君的剔骨刃",
+        "title": "符号",
+        "text": "相比其他的“同胞”，影岚始终行走在阴影之中，他拼尽全力演绎一个又一个人物，或许在那一张张面具之下，他也早就忘记了自己原本的模样。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021024",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2021025": {
+        "id": 2021025,
+        "name": "不尽回响\n生命",
+        "title": "回响",
+        "text": "来自众生的呼唤能够给对应角色恢复一定数量的烛火。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021025",
+        "tag": {
+            "回响": 1,
+            "消耗品": 1,
+            "可堆叠": 1,
+            "已拥有": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {},
+                "result_text": "",
+                "result": {
+                    "total.烛火+烛火": 10
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021026": {
+        "id": 2021026,
+        "name": "不尽回响\n鎏金",
+        "title": "回响",
+        "text": "黄金时代所遗留的记忆能够完美抵御一次攻击。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021026",
+        "tag": {
+            "鎏金加护": 1,
+            "回响": 1,
+            "消耗品": 1,
+            "可堆叠": 1,
+            "已拥有": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021027": {
+        "id": 2021027,
+        "name": "不尽回响\n群星",
+        "title": "回响",
+        "text": "群星的祝福能够让角色在本回合判定中获得额外的数值加成。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021027",
+        "tag": {
+            "群星祝福": 1,
+            "协助进攻": 1,
+            "回响": 1,
+            "消耗品": 1,
+            "可堆叠": 1,
+            "已拥有": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021028": {
+        "id": 2021028,
+        "name": "不尽回响\n凋零",
+        "title": "回响",
+        "text": "末日的死寂之声能够无视判定直接额外造成一次高额伤害，但也会反噬自身。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021028",
+        "tag": {
+            "凛冽攻势": 1,
+            "回响": 1,
+            "消耗品": 1,
+            "可堆叠": 1,
+            "已拥有": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {},
+                "result_text": "",
+                "result": {
+                    "s1-支点": 50,
+                    "total.烛火-烛火": 9
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021029": {
+        "id": 2021029,
+        "name": "不尽回响\n牺牲",
+        "title": "回响",
+        "text": "怀揣牺牲的勇气可以净化角色的身上的裂隙效果。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021029",
+        "tag": {
+            "回响": 1,
+            "消耗品": 1,
+            "可堆叠": 1,
+            "已拥有": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021030": {
+        "id": 2021030,
+        "name": "神之权柄\n记录",
+        "title": "权柄",
+        "text": "随着战斗的持续，伊洛尼斯将会通过记录的权柄在战斗中获得更多的优势。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021021",
+        "tag": {
+            "权柄已激活": 1,
+            "书页": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {},
+                "result_text": "伊洛尼斯正在记录这场战斗",
+                "result": {
+                    "self+书页": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021031": {
+        "id": 2021031,
+        "name": "神之权柄\n编纂",
+        "title": "权柄",
+        "text": "伊洛尼斯可能会随时改写规则来让你措手不及，同时会随机给角色附加裂隙。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021022",
+        "tag": {
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "书页=": 2
+                },
+                "result_text": "已唤醒“权柄：编纂”",
+                "result": {
+                    "self+权柄已激活": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s6": 1,
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "s6+裂隙": 1,
+                        "counter+7910097": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s8": 1,
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "s8+裂隙": 1,
+                        "counter+7910097": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s10": 1,
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s10+裂隙": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s12": 1,
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s12+裂隙": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s14": 1,
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s14+裂隙": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "书页": 2
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "table.clean.回响": 1,
+                        "counter+7910097": 1
+                    }
+                }
+            }
+        ]
+    },
+    "2021032": {
+        "id": 2021032,
+        "name": "神之权柄\n篡夺",
+        "title": "权柄",
+        "text": "伊洛尼斯开始夺取你所依仗的东西，可能是某项能力，或者是手中的底牌。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021023",
+        "tag": {
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "书页=": 4
+                },
+                "result_text": "已唤醒“权柄：篡夺”",
+                "result": {
+                    "self+权柄已激活": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s6": 1,
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "s6+equip": 2021036,
+                        "counter+7910097": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s8": 1,
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "s8+equip": 2021036,
+                        "counter+7910097": 1
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s10": 1,
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s10+equip": 2021036
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s12": 1,
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s12+equip": 2021036
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "s14": 1,
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "counter+7910097": 1,
+                        "s14+equip": 2021036
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "书页": 4
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "choose": {
+                        "table.clean.回响": 1,
+                        "counter+7910097": 1
+                    }
+                }
+            }
+        ]
+    },
+    "2021033": {
+        "id": 2021033,
+        "name": "神之权柄\n湮灭",
+        "title": "权柄",
+        "text": "湮灭的权柄将会让伊洛尼斯获得更为激进的进攻手段，一旦某个角色身上积累的裂隙与自身损失的烛火值达到某个临界，那么将会直接被斩杀。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021024",
+        "tag": {
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "书页=": 7
+                },
+                "result_text": "已唤醒“权柄：湮灭”",
+                "result": {
+                    "self+权柄已激活": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021034": {
+        "id": 2021034,
+        "name": "协力防护",
+        "title": "战术",
+        "text": "本回合该角色停止攻击，协助维持屏障。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021034",
+        "tag": {
+            "协力防护": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021035": {
+        "id": 2021035,
+        "name": "凛冽攻势",
+        "title": "战术",
+        "text": "该角色将会在本回合发起攻击。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021035",
+        "tag": {
+            "凛冽攻势": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021036": {
+        "id": 2021036,
+        "name": "千疮之咒",
+        "title": "诅咒",
+        "text": "千疮之咒会持续削弱角色的属性。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021036",
+        "tag": {
+            "千疮之咒": 3
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "self.千疮之咒": 1
+                },
+                "result_text": "",
+                "result": {
+                    "self-千疮之咒": 1
+                },
+                "action": {
+                    "choose": {
+                        "self-魔力": 5,
+                        "self-战斗": 5,
+                        "self-魅力": 5,
+                        "self-智慧": 5,
+                        "self-体魄": 5,
+                        "self-隐匿": 5
+                    }
+                }
+            },
+            {
+                "condition": {
+                    "!self.千疮之咒": 1
+                },
+                "result_text": "",
+                "result": {
+                    "parent-烛火": 5,
+                    "clean.self": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021037": {
+        "id": 2021037,
+        "name": "协助进攻",
+        "title": "战术",
+        "text": "该角色将会在本回合协助他人发动攻击。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021037",
+        "tag": {
+            "协助进攻": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021038": {
+        "id": 2021038,
+        "name": "枯竭锚点",
+        "title": "残迹",
+        "text": "摧毁一座锚点之后残留的失活实体。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021038",
+        "tag": {
+            "已催毁锚点": 1,
+            "已拥有": 1,
+            "可堆叠": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 0
+    },
+    "2020030": {
+        "id": 2020030,
+        "name": "欧菲莉亚",
+        "title": "受困于梦的游鱼",
+        "text": "一位来自归墟之海的少女，拉维妮娅的小跟班，只要留心观察，你就能看出她非人的本质以及那些对人类拙劣的模仿，不过同样的，你也能看到，她真的想要扮演好这个角色。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020030",
+        "tag": {
+            "体魄": 6,
+            "战斗": 1,
+            "生存": 4,
+            "女性": 1,
+            "智慧": 5,
+            "社交": -1,
+            "魅力": 3,
+            "魔力": 1,
+            "支持": 1,
+            "追随者": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "读物": 1
+                },
+                "result_text": "欧菲莉亚吃透了这本书……无论是象征意义还是物理意义。",
+                "result": {
+                    "self+创作力": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "any": {
+                        "is_rite": 5000732
+                    }
+                },
+                "result_text": "与玛希尔的合作使得少女受益良多。",
+                "result": {
+                    "self+创作力": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2020031": {
+        "id": 2020031,
+        "name": "拉维妮娅",
+        "title": "来自异乡的魔女",
+        "text": "在对人性与生命的思考上，拉维妮娅比其他几位兄弟姐妹走的更远，在她的身上，你也能更多地感受到一种——平凡的气质。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020031",
+        "tag": {
+            "体魄": 1,
+            "战斗": 1,
+            "生存": 1,
+            "女性": 1,
+            "智慧": 8,
+            "社交": 5,
+            "魅力": 3,
+            "支持": 1,
+            "追随者": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020032": {
+        "id": 2020032,
+        "name": "罗伊斯",
+        "title": "窃夺命运的诡谲篡王",
+        "text": "一个虚假的身份，一个虚假的贵胄头衔，一个虚假的故事，凡是罗伊斯想得到的，他就能有办法将其握在手中。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2020032",
+        "tag": {
+            "体魄": 3,
+            "战斗": 2,
+            "生存": 2,
+            "男性": 1,
+            "智慧": 4,
+            "隐匿": 8,
+            "支持": 1,
+            "贵族": 1,
+            "追随者": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2020033": {
+        "id": 2020033,
+        "name": "殃",
+        "title": "集群的泡影",
+        "text": "继承了“集群”权柄的双生子，占据两个身体却是统一的灵魂，是几人之中最早遭到侵染的一位，她将辅佐你的使命，为深红之王的回归铺平道路。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2020033",
+        "tag": {
+            "战斗": 6,
+            "女性": 1,
+            "智慧": 4,
+            "隐匿": 9,
+            "魔力": 13,
+            "追随者": 1,
+            "混沌造物": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1
+    },
+    "2021040": {
+        "id": 2021040,
+        "name": "拉维妮娅指示器",
+        "title": "",
+        "text": "",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2000000",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021041": {
+        "id": 2021041,
+        "name": "破损的星空之镜",
+        "title": "损坏的奇珍",
+        "text": "某个小毕登的大胆行动弄坏了这件奇珍——但从这件事情你可以得知，艾薇拉不是无所不能的。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2000380",
+        "tag": {
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021042": {
+        "id": 2021042,
+        "name": "奥秘之眼",
+        "title": "奇珍",
+        "text": "在拉维妮娅的维修与改良之下，这件奇珍的效果得到加强，它现在将会以更快的速度记录天象变化。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021042",
+        "tag": {
+            "奇珍": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021043": {
+        "id": 2021043,
+        "name": "古旧的罗盘",
+        "title": "遗物",
+        "text": "它指引着你前往那遗落的远方，去寻找那座失落的王城。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2021043",
+        "tag": {
+            "混沌造物": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "is_rite": 5000002,
+                    "!rite": 5111003
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "event_on": 5371006
+                }
+            }
+        ]
+    },
+    "2021048": {
+        "id": 2021048,
+        "name": "混沌",
+        "title": "亵渎的石板",
+        "text": "创世之初一瞬，当虚无还在学习如何成为存在，伊洛尼斯便已在深红的的涡流中孕育。祂是历史与终焉的集合，是归墟之海的君主，在那些被造物主遗落的残墟废土之中，影影绰绰藏着祂尚未睁眼的模样。那些星轨刻痕本应织成祂的诞生颂歌，却在触到月光石的前一刻骤然断裂 —— 仿佛那是造物主在创世之书上悬而未决的逗号，暗示着这场起源从一开始就藏着犹豫。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021048",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021049": {
+        "id": 2021049,
+        "name": "猎群",
+        "title": "亵渎的石板",
+        "text": "珍珠母的光辉里浮沉着千万个世界的尸骸。深红的天幕笼罩着天空与海洋，正从世界的伤口里吸吮生命，那是终焉之神降临的先兆；彩色褪尽的城邦居民，保持着举杯欢庆的姿态，却早已是祂掌心的尘埃。无数扭曲怪诞的邪物从虚空的裂口涌入现实，它们深红之王的猎群，为祂掠夺最宝贵的生命精粹，为祂降临的道路铺满繁花。金箔数字在边缘计数着湮灭的时刻，却在最后几行被生生扯断 —— 连记录终焉的文字，都恐惧成为被记录的一部分。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021049",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021050": {
+        "id": 2021050,
+        "name": "狩神",
+        "title": "亵渎的石板",
+        "text": "十二尊神像从星云中站起时，赤玛瑙眼珠里还凝着初生的警惕。塑造者的陶轮沾着混沌的陶土，征服者的断剑嵌着第一滴神血，全知者的书卷翻开在「警告」一页，而伊洛尼斯则不闻不问……沉默的众神与终焉的君主相隔星海对峙，那些古老的星灵则张开罗网，与造物者的眷臣一同拉开这场恢弘狩猎的序幕。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021050",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021051": {
+        "id": 2021051,
+        "name": "峥嵘",
+        "title": "亵渎的石板",
+        "text": "神战爆发的震波至今还在石缝里轰鸣。碎星的棱角能划破指尖，众神武器的刻痕深及永恒：辉煌的光芒中浮动浩大的审判之焰，深黑的剑刃上浮现出亿万个祈祷的人脸。终焉之神的反击是道灰白的洪流，卷走神像的下半身，断口打磨得如同镜面 —— 祂故意留下这光滑的伤痕，好让众神看清自己恐惧的模样。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021051",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021052": {
+        "id": 2021052,
+        "name": "背叛",
+        "title": "亵渎的石板",
+        "text": "银灰长发的女神背对着我们，手中燃烧的羽毛笔正滴落黑色灰烬，那是被篡改的命运。脚下散落的卷轴碎片里，藏着被反复涂抹的真相：阅世者率先背弃了她的主体，随后是记录的长卷、篡夺的权杖、湮灭的刀锋……深红之王庞大的阴影四分五裂，集群的颂歌为祂唱响罹难的悼词。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021052",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021053": {
+        "id": 2021053,
+        "name": "解离",
+        "title": "亵渎的石板",
+        "text": "最终，星神的锐锋贯穿了那深红的帷幕，净化的火焰涤荡混沌的阴影，伊洛尼斯败落于至高天，祂的碎片如流星坠落，却被织满「人性」的金网接住。爱与恐惧在网格里发光，将终焉的碎片温柔地驯化 —— 创造之神的仁慈，原是最锋利的枷锁。“他们会有自己的名字，他们的存在会成为封锁终焉的锁链。”",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021053",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021054": {
+        "id": 2021054,
+        "name": "长眠",
+        "title": "亵渎的石板",
+        "text": "金箔星空下，归墟之神的残躯正沉入灰色云海，无数只手在推搡，却有一只悄悄在祂掌心塞了颗种子。最上方云层里，那双银蓝眼眸属于记录者，悲伤漫过瞳孔 —— 她知道这不是陨落，而是一场漫长的蛰伏。那些指甲刮痕下的草稿不会说谎：祂从未离去，伊洛尼斯将会在归墟之海静待岁月蹉跎，等候那个归来的时机。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021054",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021055": {
+        "id": 2021055,
+        "name": "残迹",
+        "title": "亵渎的石板",
+        "text": "最后一座壁画是一片混沌虚无，一只眼睛在那风暴的中心，祂已苏醒，祂在呼唤，祂将归来……",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021055",
+        "tag": {
+            "混沌造物": 1,
+            "亵渎石板": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021056": {
+        "id": 2021056,
+        "name": "终焉之神",
+        "title": "神的面容",
+        "text": "祂昔在、祂今在、祂永在，谁也无法从终焉的浩劫中逃脱。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021056",
+        "tag": {
+            "支点": 20,
+            "混沌造物": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021057": {
+        "id": 2021057,
+        "name": "深红帷幕",
+        "title": "神的倒影",
+        "text": "归墟之海的雾先于终焉之神抵达，黏腻留绀红痕，织成帷幕裹住世界，即便是神明与群星也被遮挡住视线。\n天沉酱色，日如血浸棉絮，内无生机，生灵战栗。自祂离去，大幕收起，吞世界入归墟。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021057",
+        "tag": {
+            "混沌造物": 1,
+            "金色文字": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021058": {
+        "id": 2021058,
+        "name": "玲珑之心",
+        "title": "临别的祝福",
+        "text": "艾薇拉留给你的一件礼物，无论故事最终走向何方，她都祝福你能够有一个幸福的结局。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021058",
+        "tag": {
+            "混沌造物": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021059": {
+        "id": 2021059,
+        "name": "贾罕南与摩提尤",
+        "title": "武器",
+        "text": "断头刀的锈迹里沉睡着嘶吼，斩马刀的锋刃总凝着未干的暗红。​\n它们会在午夜舔舐使用者的指缝，用血腥味织成锁链。若三日不闻哀嚎，刀柄便会渗出腐骨般的粘液，顺着手臂爬向心脏 —— 先啃食良知，再嚼碎骨肉，最后从咽喉钻出时，携带者早已成了两柄刀的新鞘。​\n腐化之神从不赐予力量，只出借饥饿。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021059",
+        "tag": {
+            "战斗": 10,
+            "魔力": 9,
+            "猎神兵器1": 1,
+            "装备": 1,
+            "已拥有": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "!已装备": 1,
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5111008
+                }
+            }
+        ]
+    },
+    "2021060": {
+        "id": 2021060,
+        "name": "阿特摩尼",
+        "title": "武器",
+        "text": "弓弦震颤时，天光会漏下一缕神罚。​\n第一箭撕裂皮肉，伤口涌出的不是血，是被净化的凡俗罪垢；第二箭引燃骨血，纯净之火不焚衣物，只啃噬灵魂里盘桓的欲望；第三箭射穿心脏时，受击者会看见自己毕生的污秽在烈焰中结晶，随后连灰都不剩。​\n这柄弓从不怜悯 —— 神祇的纯净，本就是最凛冽的审判。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021060",
+        "tag": {
+            "战斗": 10,
+            "魔力": 9,
+            "猎神兵器2": 1,
+            "装备": 1,
+            "已拥有": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "!已装备": 1,
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5111007
+                }
+            },
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1
+                },
+                "result_text": "",
+                "result": {
+                    "self+阿特摩尼计数": 1
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1,
+                    "阿特摩尼计数=": 0
+                },
+                "result_text": "",
+                "result": {
+                    "parent+equip": 2000098
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1,
+                    "阿特摩尼计数=": 1
+                },
+                "result_text": "",
+                "result": {
+                    "parent-体魄": 8,
+                    "parent-魅力": 5
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1,
+                    "阿特摩尼计数=": 2
+                },
+                "result_text": "",
+                "result": {
+                    "clean.parent": 1,
+                    "self=阿特摩尼计数": 0
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021061": {
+        "id": 2021061,
+        "name": "艾琳娜的坠星",
+        "title": "武器",
+        "text": "枪身缠绕的星屑总在黎明前褪色，像谁未说完的祈愿。\n挥舞它时会听见星轨断裂的脆响，有时是敌人的哀嚎，有时是使用者骨血里渗出的寒意。传说握住这柄枪的人，瞳孔里会慢慢浮起坠落的那片夜空：千万星辰同时熄灭，只有枪尖的微光，在重复她最后的坠落。它从不渴求胜利，只在寻找下一个愿意被星光拖入深渊的人。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021061",
+        "tag": {
+            "战斗": 10,
+            "魔力": 9,
+            "装备": 1,
+            "猎神兵器3": 1,
+            "已拥有": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021062": {
+        "id": 2021062,
+        "name": "烬寂嗟叹",
+        "title": "武器",
+        "text": "它不渴求杀戮，只擅长终结。刺向敌人时，锋刃不会流血，只会让伤口处的皮肉、骨骼、甚至魂魄都像被晨雾卷走般消融，只留下一小撮与剑身同源的灰烬。可使用者总会在午夜听见低语，那是终焉之神残留在剑里的意志，正一点点抽走他们的 “存在”：先是忘记昨天吃过什么，再是想不起自己的名字，最后连 “活着” 这件事本身，都会变得像握住一团即将散尽的烟。\n毕竟，由终焉之骸凝成的剑，最擅长的，从来不是夺取生命，而是让一切归于祂陨落时的那种 —— 永恒的寂静。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021062",
+        "tag": {
+            "战斗": 10,
+            "魔力": 9,
+            "装备": 1,
+            "武器": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021063": {
+        "id": 2021063,
+        "name": "嗜血欲望：饥渴",
+        "title": "",
+        "text": "这东西渴求着血，如果不能及时满足它的欲望，那么使用它的人便会是下一个受害者。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021063",
+        "tag": {
+            "战斗": 5,
+            "智慧": -5,
+            "嗜血欲望：饥渴": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 4,
+        "vanish": {
+            "table.clean.嗜血欲望：杀戮": 1
+        },
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1
+                },
+                "result_text": "",
+                "result": {
+                    "parent+equip": 2021064,
+                    "clean.self": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021064": {
+        "id": 2021064,
+        "name": "嗜血欲望：满足",
+        "title": "",
+        "text": "这武器刚刚尝过鲜血，嗜血欲望得到满足。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021064",
+        "tag": {
+            "嗜血欲望：满足": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 3,
+        "vanish": {
+            "total.2021059+equip": 2021063
+        },
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "!is_rite": 5000002,
+                    "tag_tips.战斗": 1
+                },
+                "result_text": "",
+                "result": {
+                    "parent+equip": 2021064,
+                    "clean.self": 1
+                },
+                "action": {}
+            }
+        ]
+    },
+    "2021065": {
+        "id": 2021065,
+        "name": "神陨战旗",
+        "title": "旗帜",
+        "text": "这是一面见证了弑神伟业的旗帜，你可以将它作为一件饰品装备到追随者身上。\n剩下的半幅布面上，神明的血早已干涸成绀色的痂。不是凡血的暗红，是掺着星屑的沉紫，凝固的纹路像极了祂陨落前最后一眼望见的、崩解的星轨。指尖拂过血迹时会触到细微的凸起，像是血痂下还藏着未散的神性，在无人的夜里轻轻震颤，像濒死者最后的叹息。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021065",
+        "tag": {
+            "战斗": 10,
+            "魔力": 9,
+            "装备": 1,
+            "饰品": 1,
+            "纯色材质": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021067": {
+        "id": 2021067,
+        "name": "往昔之影",
+        "title": "纸飞机与奶油蛋糕的主宰",
+        "text": "这是你们最初相逢的样子。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021067",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021068": {
+        "id": 2021068,
+        "name": "往昔之影",
+        "title": "人性的樊笼",
+        "text": "为你书写的结局，却没留下自己的位置。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021068",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021069": {
+        "id": 2021069,
+        "name": "往昔之影",
+        "title": "如归墟君临",
+        "text": "无所不能的神祇，是否还会记得舌尖的甜美。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021069",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021070": {
+        "id": 2021070,
+        "name": "往昔之影",
+        "title": "余烬中重生的寻梦者",
+        "text": "由历史的灰烬组成的冠冕，记录你们共同弑神的伟业。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021070",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021071": {
+        "id": 2021071,
+        "name": "往昔之影",
+        "title": "至仁至善的深红君王",
+        "text": "你们在无数个轮回相遇，但她永远享受每一次的重逢。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021071",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021072": {
+        "id": 2021072,
+        "name": "往昔之影",
+        "title": "阅世者",
+        "text": "最初她只把这一切当作游戏，但是现在她也成为这场游戏的一员。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021072",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021073": {
+        "id": 2021073,
+        "name": "往昔之影",
+        "title": "披着羊皮的狼",
+        "text": "她越发享受这场荒唐的闹剧，享受那些无辜的鲜血。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021073",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021074": {
+        "id": 2021074,
+        "name": "往昔之影",
+        "title": "噬人心魄的恶孽",
+        "text": "她是一面镜子，你在其中所见的丑陋，都是自身满盈的恶业。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021074",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021075": {
+        "id": 2021075,
+        "name": "往昔之影",
+        "title": "纯净之花",
+        "text": "爱会改变一个人，也会造就一个人。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021075",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021076": {
+        "id": 2021076,
+        "name": "往昔之影",
+        "title": "永不凋敝的白英",
+        "text": "她深沉地爱着世间的一切，特别是你。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2021076",
+        "tag": {
+            "已拥有": 1,
+            "往昔之影": 1,
+            "描边": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021077": {
+        "id": 2021077,
+        "name": "攻略书",
+        "title": "指南",
+        "text": "《乐子神的人类观察计划》内置攻略，可以拖入俺寻思查看。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021077",
+        "tag": {
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "event_on": 5372000
+                }
+            }
+        ]
+    },
+    "2021078": {
+        "id": 2021078,
+        "name": "众我",
+        "title": "",
+        "text": "",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021076",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2021079": {
+        "id": 2021079,
+        "name": "一点疯狂",
+        "title": "",
+        "text": "",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2021077",
+        "tag": {
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "card": [
+                        2000326,
+                        "已拥有+1"
+                    ]
+                }
+            }
+        ]
+    },
+    "2030001": {
+        "id": 2030001,
+        "name": "影岚",
+        "title": "楚狂人",
+        "text": "一位身着东方服饰的癫狂戏子，以画皮为能，以杀戮为生。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2030001",
+        "tag": {
+            "体魄": 6,
+            "战斗": 6,
+            "隐匿": 5,
+            "男性": 1,
+            "智慧": 2,
+            "社交": -8
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [
+            "武器",
+            "服装",
+            "饰品"
+        ],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "!易容": 1,
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5120004
+                }
+            },
+            {
+                "condition": {
+                    "易容": 1,
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5120008
+                }
+            }
+        ]
+    },
+    "2031001": {
+        "id": 2031001,
+        "name": "杀戮",
+        "title": "苏丹卡",
+        "text": "来自艾薇拉仿制的青铜苏丹卡，纯添加无天然全公害，九九新自用款，最重要的是——没有保质期。",
+        "pops": [],
+        "card_favour": "",
+        "type": "sudan",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2010002",
+        "destroy_resources": [
+            "sudan_big/1_sudan_1",
+            "sudan_big/1_sudan_1_2",
+            "sudan_big/1_sudan_1_3",
+            "sudan_big/1_sudan_1_4",
+            "sudan_big/1_sudan_1_5",
+            "sudan_big/1_sudan_1_6",
+            "sudan_big/1_sudan_1_7"
+        ],
+        "tag": {
+            "杀戮": 1,
+            "战斗": 2,
+            "命运点": 2,
+            "苏丹卡": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030002": {
+        "id": 2030002,
+        "name": "西域胡商",
+        "title": "商人",
+        "text": "行走在异国他乡的漫漫黄沙中，没有点本事和见识是不行的。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2030002",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030003": {
+        "id": 2030003,
+        "name": "西域胡商",
+        "title": "商人",
+        "text": "行走在异国他乡的漫漫黄沙中，没有点本事和见识是不行的。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2030003",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030004": {
+        "id": 2030004,
+        "name": "商队头领",
+        "title": "商人",
+        "text": "行走在异国他乡的漫漫黄沙中，没有点本事和见识是不行的。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2030004",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030005": {
+        "id": 2030005,
+        "name": "行脚艺人",
+        "title": "商人",
+        "text": "行走在异国他乡的漫漫黄沙中，没有点本事和见识是不行的。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2030005",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030006": {
+        "id": 2030006,
+        "name": "富商",
+        "title": "凑热闹的本地商贾。",
+        "text": "一个喜欢凑热闹的粮食商人，在本地有不错的名声。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 2,
+        "resource": "cards/2030006",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2030007": {
+        "id": 2030007,
+        "name": "护卫",
+        "title": "路人甲。",
+        "text": "我是阳光开朗大男孩。",
+        "pops": [],
+        "card_favour": "",
+        "type": "char",
+        "tips": "",
+        "rare": 1,
+        "resource": "cards/2030007",
+        "tag": {},
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2031002": {
+        "id": 2031002,
+        "name": "替身符纸",
+        "title": "纸人",
+        "text": "影岚用自己的刀所裁剪出的纸人，与其对视有着勾心夺魄的力量，可以通过仪式变换成你的一位追随者，时间结束后将会销毁，你可以将其放进“俺寻思”里面进行使用。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2031002",
+        "destroy_resources": [],
+        "tag": {
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5120003
+                }
+            }
+        ]
+    },
+    "2031003": {
+        "id": 2031003,
+        "name": "买命钱",
+        "title": "信物",
+        "text": "一孔不知铸造于何年何月的铜钱，上面的刻痕记录了岁月的更迭。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 4,
+        "resource": "cards/2031003",
+        "destroy_resources": [],
+        "tag": {
+            "饰品": 1,
+            "装备": 1,
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "s1": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s1.主角": 1,
+                    "any": {
+                        "s1.男性": 1,
+                        "s1.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s1+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s2": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s2.主角": 1,
+                    "any": {
+                        "s2.男性": 1,
+                        "s2.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s2+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s3": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s3.主角": 1,
+                    "any": {
+                        "s3.男性": 1,
+                        "s3.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s3+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s4": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s4.主角": 1,
+                    "any": {
+                        "s4.男性": 1,
+                        "s4.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s3+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s5": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s5.主角": 1,
+                    "any": {
+                        "s5.男性": 1,
+                        "s5.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s5+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s6": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s6.主角": 1,
+                    "any": {
+                        "s6.男性": 1,
+                        "s6.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s6+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s7": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s7.主角": 1,
+                    "any": {
+                        "s7.男性": 1,
+                        "s7.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s7+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s8": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s8.主角": 1,
+                    "any": {
+                        "s8.男性": 1,
+                        "s8.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s8+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s9": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s9.主角": 1,
+                    "any": {
+                        "s9.男性": 1,
+                        "s9.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s9+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s10": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s10.主角": 1,
+                    "any": {
+                        "s10.男性": 1,
+                        "s10.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s10+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s11": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s11.主角": 1,
+                    "any": {
+                        "s11.男性": 1,
+                        "s11.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s11+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "s12": 1,
+                    "!怪物": 1,
+                    "!部队": 1,
+                    "!苏丹": 1,
+                    "parent.主角": 1,
+                    "!s12.主角": 1,
+                    "any": {
+                        "s12.男性": 1,
+                        "s12.女性": 1
+                    }
+                },
+                "result_text": "古旧的钱币上映射出下一个受害者的影子",
+                "result": {
+                    "s12+equip": 2031006
+                },
+                "action": {}
+            },
+            {
+                "condition": {
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {},
+                "action": {
+                    "rite": 5120005
+                }
+            }
+        ]
+    },
+    "2031004": {
+        "id": 2031004,
+        "name": "替身符纸",
+        "title": "纸人",
+        "text": "影岚用自己的刀所裁剪出的纸人，与其对视有着勾心夺魄的力量，可以通过仪式变换成你的一位追随者，时间结束后将会销毁，你可以将其放进“俺寻思”里面进行使用。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2031002",
+        "destroy_resources": [],
+        "tag": {
+            "销毁": -1
+        },
+        "card_vanishing": 7,
+        "vanish": {
+            "event_on": 5380004
+        },
+        "equips": [],
+        "is_only": 1
+    },
+    "2031005": {
+        "id": 2031005,
+        "name": "失魂",
+        "title": "状态",
+        "text": "此人被抽离了魂魄，此时正处在虚弱状态。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2031005",
+        "destroy_resources": [],
+        "tag": {
+            "失魂": 1
+        },
+        "card_vanishing": 7,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2031006": {
+        "id": 2031006,
+        "name": "杀劫",
+        "title": "杀劫",
+        "text": "只要你一声令下，影岚就会取走此人的性命……用他自己的方式。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2031005",
+        "destroy_resources": [],
+        "tag": {
+            "杀劫": 1
+        },
+        "card_vanishing": 3,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1
+    },
+    "2031007": {
+        "id": 2031007,
+        "name": "皮偶匣",
+        "title": "收纳容器",
+        "text": "收纳皮偶所使用的匣子。",
+        "pops": [],
+        "card_favour": "",
+        "type": "item",
+        "tips": "",
+        "rare": 3,
+        "resource": "cards/2031006",
+        "destroy_resources": [],
+        "tag": {
+            "已拥有": 1
+        },
+        "card_vanishing": 0,
+        "vanish": {},
+        "equips": [],
+        "is_only": 1,
+        "post_rite": [
+            {
+                "condition": {
+                    "is_rite": 5000002
+                },
+                "result_text": "",
+                "result": {
+                    "self~equip": "皮偶",
+                    "clean.self": 1
+                },
+                "action": {
+                    "rite": 5120007
+                }
+            }
+        ]
+    }
+}

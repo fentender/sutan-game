@@ -1,0 +1,28 @@
+{
+    "id": 5370033,
+    "text": "浩劫-结算",
+    "is_replay": 1,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "table_have.猎群>=": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "card": [
+                    2021012,
+                    "数量+3"
+                ],
+                "table.clean.猎群": 1,
+                "event_off": 5370033,
+                "event_on": 5370033
+            }
+        }
+    ]
+}

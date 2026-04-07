@@ -1,0 +1,246 @@
+{
+    "id": 5120001,
+    "name": "远道而来的商旅",
+    "text": "一支来自东方的商队来到了这座沐浴苏丹恩典的城市，他们会在这里停留一段时间。",
+    "tips": "",
+    "mapping_id": 8001288,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 7,
+    "waiting_round_end_action": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {
+                "prompt": {
+                    "id": "5120001_prompt_01",
+                    "text": "你没有去凑热闹，而有传言说闹出了人命，一个素有善名的富商死在了冲突里，凶手是个疯疯癫癫的家伙……你没有过多在意，毕竟对于你来说，多想想办法怎么折卡才是正事。",
+                    "icon": "cards/2030001"
+                }
+            }
+        }
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "商业区:[10,19]",
+    "icon": "rite_8",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你自己大概逛不出什么名堂，还是陪着专业人士来吧"
+    ],
+    "open_conditions": [
+        {
+            "condition": {
+                "any": {
+                    "s1": 1,
+                    "s2": 1
+                },
+                "tips": "总要有个人来吧"
+            }
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "热闹非凡的集市",
+            "result_text": "集市在朝阳初升时真正活了过来。诱人的乳香与商队的龙井茶叶在空气里纠缠，穿灯笼裤的舞者被绸缎摊前的孔雀蓝吸引，旋转的裙摆扫过摆着丝绸的木架。一个苏丹御用的匠人捧着镶嵌宝石的铜壶来换绣着云纹的荷包，商队头领笑着往他手心塞了颗从长安带来的桂花糖，看那琥珀色的糖块在对方黝黑的掌心里慢慢融化。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "妻子": 1,
+                "金币<": 5
+            },
+            "result_title": "没有钱是万万不能的",
+            "result_text": "[s8.name]看上了一匹精致的丝绸，对方的报价不算贵，但还是超出了你给的预算，这使得[s8.name]有些生气。",
+            "result": {},
+            "action": {
+                "card": 2000083
+            }
+        },
+        {
+            "condition": {
+                "妻子": 1,
+                "金币": 5,
+                "金币<": 10
+            },
+            "result_title": "这面料抵得上等重的黄金",
+            "result_text": "[s8.name]从胡商那里购买了一匹最上等的丝绸，而且价钱低的离谱。",
+            "result": {},
+            "action": {
+                "card": [
+                    2000697,
+                    "已拥有+1"
+                ]
+            }
+        },
+        {
+            "condition": {
+                "妻子": 1,
+                "金币": 10
+            },
+            "result_title": "买买买！",
+            "result_text": "[s8.name]从胡商那里购买了一匹最上等的丝绸，而剩下的钱甚至还能再添置一瓶顶级的香料，[s8.name]感觉自己前所未有的快乐。",
+            "result": {
+                "card": [
+                    2000695,
+                    "已拥有+1"
+                ]
+            },
+            "action": {
+                "table.clean.不满": 1
+            }
+        },
+        {
+            "condition": {
+                "!妻子": 1,
+                "主角": 1
+            },
+            "result_title": "好男人就得管住手",
+            "result_text": "琳琅满目的各种商品看花了你的狗眼，你不清楚这些东西里哪些是物美价廉，哪些是专坑大傻逼的陷阱，于是出于一个男人朴素的解决方案，你决定只逛逛就算了。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "妻子": 1,
+                "主角": 1
+            },
+            "result_title": "独属于男人的无奈",
+            "result_text": "琳琅满目的各种商品看花了你的狗眼，你看到[s8.name]如同蝴蝶采蜜一样在各个摊位之间穿行，而你只能干看着，对着那些看起来很不错但又不清楚实际价值乃至用处的商品沉思点头，尽量让自己表现得不是那么尴尬。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "主角": 1
+            },
+            "result_title": "怪人",
+            "result_text": "不知不觉间，你离开了人群最密集的区域，在集市的边角，有几个艺人在表演各自的绝活，而你看到在一辆大车旁，一个青年正靠在车轮边独自喝着酒，他身上穿着由各色线条以及玉石纺织而成的艳丽服饰，显得格外惹眼。你思索了一番，最后还是没有上前搭话，又转身朝其他地方逛去了。",
+            "result": {
+                "s10+妄": 1
+            },
+            "action": {
+                "event_on": 5380002
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2030002
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "西域胡商"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "主角": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "这是个不错的放松机会。"
+        },
+        "s3": {
+            "condition": {
+                "is": 2030007
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "他叫路人甲"
+        },
+        "s4": {
+            "condition": {
+                "is": 2030006
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "本地富商"
+        },
+        "s5": {
+            "condition": {
+                "is": 2030005
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "行脚艺人"
+        },
+        "s6": {
+            "condition": {
+                "is": 2030004
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "商队头领"
+        },
+        "s7": {
+            "condition": {
+                "type": "item",
+                "cost.金币": [
+                    1,
+                    10
+                ]
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "来消费，总得带钱吧"
+        },
+        "s8": {
+            "condition": {
+                "type": "char",
+                "妻子": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "也许妻子会有想要购买的东西"
+        },
+        "s9": {
+            "condition": {
+                "is": 2030003
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "西域胡商"
+        },
+        "s10": {
+            "condition": {
+                "is": 2030001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "身穿奇怪服饰的青年"
+        }
+    }
+}

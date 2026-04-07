@@ -1,0 +1,187 @@
+{
+    "id": 5120006,
+    "name": "揭皮剜骨",
+    "text": "影岚带回了那些刀下亡魂的尸骸，确保这些皮囊可以……物尽其用。",
+    "tips": "",
+    "mapping_id": 8001269,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "黑街:[1,9]",
+    "icon": "rite_21",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你可以以此折断一张杀戮卡，不过这也意味着你要承担这一罪责。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "!杀戮": 1
+            },
+            "result_title": "",
+            "result_text": "你看着影岚熟练地切开那些受害者地身体，有条不紊地将内脏陈列在一旁，紧接着用那柄泛着幽绿色光芒的短刀剔除一根根骨头。\n你感觉他不像一个屠夫，而是一个裁缝，因为屠夫尚且知道自己刀下分割的是鲜活的生命，而影岚只是将他们当作某些……材料。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "杀戮": 1,
+                "s1.rare": 4
+            },
+            "result_title": "",
+            "result_text": "为了消除这张金色杀戮卡，你大张旗鼓地将那些剥好的人皮挂在自己家的门前展示，并且向其他人详细讲解那骇人听闻的制作细节，这一举动几乎引爆了世人对于你的恐惧，街头巷尾都在传扬着“剥皮匠[player.name]的传言……”\n毫无疑问，苏丹对这一次的节目很满意，甚至专程来参观了你的藏品。\n“这可真是一个天才的创举！”苏丹对一旁的影岚称赞道，不过你注意到，苏丹一直将手指防止着那枚魔力戒指上，与影岚也保持了足够的距离。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "杀戮": 1,
+                "s1.rare<": 4
+            },
+            "result_title": "",
+            "result_text": "你高调地将这些“战利品”公之于众，几乎所有人都认同这一行为值得抵消一张杀戮卡，与此同时，你的名字也开始出现在妈妈吓唬孩子的警告里，和那些山妖精怪、食人猛兽以及苏丹并驾齐驱。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "s2": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "no_show": {
+                    "s2-equip_slot": "animal_handling",
+                    "s6+s2": 1,
+                    "s2-equip": 2031006
+                }
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s3": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "no_show": {
+                    "s3-equip_slot": "animal_handling",
+                    "s6+s3": 1,
+                    "s3-equip": 2031006
+                }
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s4": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "no_show": {
+                    "s4-equip_slot": "animal_handling",
+                    "s6+s4": 1,
+                    "s4-equip": 2031006
+                }
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s5": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "no_show": {
+                    "s5-equip_slot": "animal_handling",
+                    "s6+s5": 1,
+                    "s5-equip": 2031006
+                }
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "sudan",
+                "杀戮": 1,
+                "f:皮偶-s1.rare>=": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你可以展览你的战利品，从而消除一张杀戮卡。"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "被剔除骨头与内脏的空壳。"
+        },
+        "s3": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "被剔除骨头与内脏的空壳。"
+        },
+        "s4": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "被剔除骨头与内脏的空壳。"
+        },
+        "s5": {
+            "condition": {
+                "type": "char",
+                "皮偶": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "被剔除骨头与内脏的空壳。"
+        },
+        "s6": {
+            "condition": {
+                "type": "item",
+                "is": 2031007
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "收纳容器。"
+        }
+    }
+}

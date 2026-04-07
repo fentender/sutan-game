@@ -1,0 +1,158 @@
+{
+    "id": 5110029,
+    "name": "命运的指引",
+    "text": "在赤红色的天空下，你借助圣主的光辉点燃了一座火炬，这将指引更多的人与你会合。",
+    "tips": "",
+    "mapping_id": 8001319,
+    "once_new": 1,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "商业区:12",
+    "type": "END",
+    "icon": "rite_ex_2",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "不论你们先前是怎样的关系，但在此时此刻，想要活下来就得团结在一起。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {
+                "any": {
+                    "s1": 1,
+                    "s2": 1,
+                    "s3": 1,
+                    "s4": 1
+                }
+            },
+            "result_title": "你的旗帜",
+            "result_text": "那些还活着的人穿过还在燃烧的城市，你所燃起的火炬不仅照亮了方向，也指明了众人心中的希望。",
+            "result": {
+                "counter+7910099": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "counter.7910099=": 3
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "event_on": 5370042
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s1": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "s1+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s2": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "s2+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s3": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "s3+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s4": 1
+            },
+            "result_title": "",
+            "result_text": "",
+            "result": {
+                "s4+追随者": 1
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "!追随者": 1,
+                "!is": 2020001,
+                "!食客": 1,
+                "!主角": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "前来会合的人"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "!追随者": 1,
+                "!is": 2020001,
+                "!食客": 1,
+                "!主角": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "前来会合的人"
+        },
+        "s3": {
+            "condition": {
+                "type": "char",
+                "!追随者": 1,
+                "!is": 2020001,
+                "!食客": 1,
+                "!主角": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "前来会合的人"
+        },
+        "s4": {
+            "condition": {
+                "type": "char",
+                "!追随者": 1,
+                "!is": 2020001,
+                "!食客": 1,
+                "!主角": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "前来会合的人"
+        }
+    }
+}

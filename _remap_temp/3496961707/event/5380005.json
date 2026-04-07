@@ -1,0 +1,38 @@
+{
+    "id": 5380005,
+    "text": "剥皮揭骨-判定",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {},
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "table.杀劫+遗世": 1,
+                "table.杀劫+皮偶": 1,
+                "table.杀劫=爱书人": 0,
+                "table.杀劫=苏丹的近卫": 0,
+                "table.杀劫=密教徒": 0,
+                "table.杀劫=贵族": 0,
+                "table.杀劫=奴隶": 0,
+                "table.杀劫=法图娜": 0,
+                "table.杀劫=扎齐伊": 0,
+                "table.杀劫=妓女": 0,
+                "table.杀劫=反对": 0,
+                "table.杀劫=支持": 0,
+                "table.杀劫=宰相": 0,
+                "table.杀劫=质子": 0,
+                "table.杀劫=正教的信徒": 0,
+                "table.杀劫=命运的羁绊": 0,
+                "table.杀劫-杀劫": 1,
+                "event_on": 5380006,
+                "event_off": 5380006
+            }
+        }
+    ]
+}

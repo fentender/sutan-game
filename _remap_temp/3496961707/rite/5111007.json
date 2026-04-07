@@ -1,0 +1,61 @@
+{
+    "id": 5111007,
+    "name": "净世三罚",
+    "text": "选择一个合适的人来领受纯净者的神恩。",
+    "tips": "",
+    "mapping_id": 8001528,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "神殿区:[2,12]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "阿特摩尼是纯净之神审判的火焰，凡人使用时射出第一箭会受伤，第二箭会被火焰灼烧，第三箭会当场殒命。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "弓弦震颤时，天光会漏下一缕神罚。​\n第一箭撕裂皮肉，伤口涌出的不是血，是被净化的凡俗罪垢；第二箭引燃骨血，纯净之火不焚衣物，只啃噬灵魂里盘桓的欲望；第三箭射穿心脏时，受击者会看见自己毕生的污秽在烈焰中结晶，随后连灰都不剩。​\n这柄弓从不怜悯 —— 神祇的纯净，本就是最凛冽的审判。",
+            "result": {
+                "s2+s1": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021060
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "阿特摩尼"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "!密教徒": 1,
+                "!is": 2000461
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "穿上装备的角色,不能是密教徒，最好也不是主角"
+        }
+    }
+}

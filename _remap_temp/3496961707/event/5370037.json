@@ -1,0 +1,26 @@
+{
+    "id": 5370037,
+    "text": "浩劫-结算关闭",
+    "is_replay": 1,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "table_have.深红之花<": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "card": [
+                    2021012,
+                    "数量+33"
+                ],
+                "event_off": 5370037
+            }
+        }
+    ]
+}

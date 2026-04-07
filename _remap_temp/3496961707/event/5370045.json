@@ -1,0 +1,22 @@
+{
+    "id": 5370045,
+    "text": "跨越虚界之门2",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "table_have.深红之茧.支点<": 333
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "over": 2020001
+            }
+        }
+    ]
+}

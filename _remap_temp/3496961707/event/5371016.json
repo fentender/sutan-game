@@ -1,0 +1,42 @@
+{
+    "id": 5371016,
+    "text": "白英花-启动",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "hand_have.2020001": 1,
+        "table_have.2020001.毁灭的欲望<": 10,
+        "table_have.2020001.内心的善意": 10
+    },
+    "settlement": [
+        {
+            "action": {
+                "option": {
+                    "id": "p_5371016_01",
+                    "text": "你发现最近的艾薇拉有了一些改变，虽然说不出具体哪里不一样了，但是你总感觉她越来越像是一个“人”。",
+                    "icon": "cards/2020001_white",
+                    "items": [
+                        {
+                            "text": "可能是因为眼睛看上去没有那么吓人了吧",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "table.2020001=图片": 2,
+                    "global_counter=7921075": 1
+                },
+                "prompt": {
+                    "id": "5371016_option_1",
+                    "text": "或许是书房里的那几本书真的有净化心灵的作用。如果她不去拿它们叠纸飞机的话。",
+                    "icon": "cards/2020001_white"
+                },
+                "event_off": 5371016
+            }
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "id": 5370007,
+    "text": "第一个牺牲者",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {},
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "card": 2021002,
+                "prompt": {
+                    "id": "5370007_prompt_01",
+                    "text": "一具尸体在上城区被发现，整个人像是被野兽撕扯，你突然回想起这已经不是第一次发生这种事情……但为什么之前没有注意到呢？。"
+                },
+                "rite": 5110004
+            }
+        }
+    ]
+}

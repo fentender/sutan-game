@@ -1,0 +1,62 @@
+{
+    "id": 5111008,
+    "name": "蚀骨双餮",
+    "text": "选择一个合适的人来领受混沌之王的神恩。",
+    "tips": "",
+    "mapping_id": 8001533,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "黑街:[2,12]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "一柄断头刀和一柄斩马刀，这两柄武器会不断驱使使用者去杀戮，如果不能满足它们对鲜血的渴求那么它们就会吞食掉使用者。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "断头刀的锈迹里沉睡着嘶吼，斩马刀的锋刃总凝着未干的暗红。​\n它们会在午夜舔舐使用者的指缝，用血腥味织成锁链。若三日不闻哀嚎，刀柄便会渗出腐骨般的粘液，顺着手臂爬向心脏 —— 先啃食良知，再嚼碎骨肉，最后从咽喉钻出时，携带者早已成了两柄刀的新鞘。​\n腐化之神从不赐予力量，只出借饥饿。",
+            "result": {
+                "s1+equip": 2021063,
+                "s2+s1": 1,
+                "s2+嗜血欲望：杀戮": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021059
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "贾罕南与摩提尤"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "!is": 2000461
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "穿上装备的角色,最好不要是主角"
+        }
+    }
+}

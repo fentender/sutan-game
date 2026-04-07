@@ -1,0 +1,29 @@
+{
+    "id": 5390001,
+    "text": "柳泠烟·如何开口前置",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "table_have.2900001.追随者": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "success": {
+                    "event_off": 5390001,
+                    "prompt": {
+                        "id": "5390001_prompt_01",
+                        "text": "该怎么开口呢？\n柳泠烟那双亮得惊人的眼睛里，满是对古籍的执着与期待，每一次望向你，都像是在无声催促。\n可苏丹拒绝的话语犹在耳畔，要如何将这结果说出口，才不至于彻底浇灭她眼中的光？心底的不忍像潮水般漫上来，几乎要将你的决心淹没。",
+                        "icon": "cards/2900001"
+                    }
+                }
+            }
+        }
+    ]
+}

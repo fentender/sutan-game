@@ -1,0 +1,28 @@
+{
+    "id": 5370014,
+    "text": "债务报警机制",
+    "is_replay": 0,
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "have.2021004": 4
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5370014_prompt_221",
+                    "text": "如果债务清偿不够及时，会助长艾薇拉毁灭欲望的成长。",
+                    "icon": "cards/2020001"
+                }
+            }
+        }
+    ]
+}

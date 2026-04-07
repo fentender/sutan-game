@@ -1,0 +1,39 @@
+{
+    "id": 5371009,
+    "text": "告别",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": true,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {},
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "option": {
+                    "id": "p_5371009_01",
+                    "text": "为了逃避那注定到来的命运，他们决定再次踏上新的旅程。\n临行之际，艾薇拉将一朵如水晶般璀璨的花送到你的手中，并留下了属于她的祝福。\n“无论这个故事最后会以怎样的结局收尾，我希望它有一个好的结局……”",
+                    "icon": [
+                        "cards/2000001",
+                        "",
+                        "cards/2020001"
+                    ],
+                    "items": [
+                        {
+                            "text": "……谢谢。",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "table.clean.2020032": 1,
+                "table.clean.2020031": 1,
+                "table.clean.2030001": 1,
+                "table.clean.2020001": 1,
+                "card": 2021058
+            }
+        }
+    ]
+}

@@ -1,0 +1,167 @@
+{
+    "id": 5110003,
+    "name": "如春雪般消融",
+    "text": "艾薇拉主动提出要帮助你解决那些让你头疼不已的黄金苏丹卡，以此来证明自己不是完全白吃饭的。",
+    "tips": "",
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,10]",
+    "icon": "rite_9",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你可以借助艾薇拉的力量销毁任意一张黄金苏丹卡",
+        "放入不同种类的苏丹卡会得到不同的回应"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "condition": {
+                "s1.rare<": 4
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。",
+            "result": {
+                "clean.s1": 1
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        },
+        {
+            "condition": {
+                "s1.rare=": 4,
+                "s1.纵欲": 1
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。\n第二天，一位绝美的女子将你唤醒，她称呼你为主人，渴求你的爱抚。",
+            "result": {
+                "clean.s1": 1,
+                "card": [
+                    2020002,
+                    "已拥有+1"
+                ]
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        },
+        {
+            "condition": {
+                "s1.rare=": 4,
+                "s1.杀戮": 1
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。\n第二天，一匹鬃毛赤红的神驹出现在你的马厩里，任何将领看见他都难以转移自己的目光。",
+            "result": {
+                "clean.s1": 1,
+                "card": [
+                    2900002,
+                    "已拥有+1"
+                ]
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        },
+        {
+            "condition": {
+                "s1.rare=": 4,
+                "s1.征服": 1
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。\n第二天，一支陌生的军旅包围了你的家宅，当你颤颤巍巍地走出家门询问他们来意之时，他们全都就地跪拜，向你宣誓效忠。",
+            "result": {
+                "clean.s1": 1,
+                "card": [
+                    2020004,
+                    "已拥有+1"
+                ]
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        },
+        {
+            "condition": {
+                "counter.7000006=": 1,
+                "s1.rare=": 4,
+                "s1.奢靡": 1
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。\n第二天，一阵浓郁的香气将你唤醒，睁开眼，你发现餐桌上摆放着两盘稀世佳肴。",
+            "result": {
+                "card": 2001006,
+                "clean.s1": 1
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        },
+        {
+            "condition": {
+                "counter.7000006<": 1,
+                "s1.rare=": 4,
+                "s1.奢靡": 1
+            },
+            "result_title": "它在少女手中消逝了",
+            "result_text": "艾薇拉将[s1.name]捧在手里，下一秒，那刀枪不入的卡片开始软化，然后悄无声息地融解消散，那些守护它的魔法试图反抗，但是仅仅像是在大海之中翻起一朵无关痛痒的浪花。\n第二天，在你醒来的时候，发现自己的房屋变得如同宫殿般气派，仿佛人间奇迹。",
+            "result": {
+                "counter+7000006": 1,
+                "clean.s1": 1,
+                "card": 2000533,
+                "global_counter=7200124": 1
+            },
+            "action": {
+                "event_on": 5370009
+            }
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "sudan"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "放入苏丹卡",
+            "pops": [
+                {
+                    "condition": {},
+                    "action": {
+                        "pop.5110003_s1_01.self": "<i>（震动）这邪恶的造物在恐惧</i>"
+                    }
+                }
+            ]
+        },
+        "s2": {
+            "condition": {
+                "is": 2020001
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你热心肠的好妹妹",
+            "pops": [
+                {
+                    "condition": {},
+                    "action": {
+                        "pop.5110003_s1_02.self": "<i>“交给我吧！“</i>"
+                    }
+                }
+            ]
+        }
+    }
+}

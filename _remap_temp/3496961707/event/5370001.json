@@ -1,0 +1,48 @@
+{
+    "id": 5370001,
+    "text": "意料之外的家庭成员",
+    "is_replay": 0,
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "hand_have.2020001": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "option": {
+                    "id": "p_5370001_01",
+                    "text": "一位未知的神秘存在来到了你的身旁并伪装成了你的表妹，周围所有人都没有察觉哪怕一丝一毫的不对，而只有你知道自己压根不存在什么表亲。",
+                    "icon": "cards/2020001",
+                    "items": [
+                        {
+                            "text": "你是个什么东西？",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "card": 2021009,
+                    "counter=7910001": 0
+                },
+                "prompt": {
+                    "id": "5310281_option_1",
+                    "text": "不要管那么多闲事。\n<size=+10><font=\"Title SDF\"><b>没准她只是想找一户好人家蹭饭。</b></font></size>",
+                    "icon": "cards/2020001"
+                },
+                "event_on": 5371016,
+                "event_off": 5370001,
+                "no_prompt": {
+                    "card": 2021005
+                }
+            }
+        }
+    ]
+}

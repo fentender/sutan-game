@@ -1,0 +1,70 @@
+{
+    "id": 5120005,
+    "name": "阎王贴",
+    "text": "目标已经确定，影岚将会在未来三天对所有已标记的目标展开暗杀。",
+    "tips": "",
+    "mapping_id": 8001105,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[1,9]",
+    "icon": "rite_8",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "目标不会直接死去，影岚对他们会有特殊的处理方式。"
+    ],
+    "open_conditions": [
+        {
+            "condition": {
+                "s1": 1,
+                "s2": 1
+            },
+            "tips": ""
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "你不需要考虑影岚是否能够胜任这项任务，只要目标进入公众的死角，那么死亡的刀锋就会如期而至。",
+            "result": {},
+            "action": {
+                "event_on": 5380005,
+                "event_off": 5380005
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "type": "char",
+                "is": 2030001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 1,
+            "text": "影岚"
+        },
+        "s2": {
+            "condition": {
+                "is": 2031003
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "买命钱"
+        }
+    }
+}

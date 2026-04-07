@@ -1,0 +1,69 @@
+{
+    "id": 5110013,
+    "name": "噩梦缠身",
+    "text": "在你最虚弱的时候，一个幽灵进入了你的意识。",
+    "tips": "",
+    "mapping_id": 8001208,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[1,6]",
+    "icon": "rite_4",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "一个支点已被建立，这是祂在此世的第一缕痕迹。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "梦噬",
+            "result_text": "在夜晚深沉的噩梦中，你感觉自沉入了一片深红的海洋，那些海流包裹着你的思维，撕扯着你的理性，将你一点一点拉向无光的深渊……\n就在虚无完全吞没你之前，你看到了一个身影，她的五官隐匿在混沌的光影之下，像是一具无魂的空壳，就在你即将迷失之际，她向你伸出一只手。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "那只手拉住了你，但并没有使你脱离那恐怖的涡流。相反，在接触到你的一瞬间，她的整个身体如同泡沫一样破碎，融入你的头脑……\n“……冷啊……”\n那声音没有源头，像从骨髓里渗出来的潮湿低语，又像星辰坍缩时最后一声呜咽。它不辨男女，不似语言，却精准地钻进你的意识深处，带着碾过亿万年时光的磨损感 ——\n下一刻，你彻底失去了身体的掌控，向着无穷深处不断的下坠、下坠、下坠——之后，你就醒了。",
+            "result": {
+                "clean.s2": 1,
+                "s1+支点": 5
+            },
+            "action": {
+                "event_on": 5370025
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2900003
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "迷离的幻象……亦或天降的灾殃"
+        },
+        "s2": {
+            "condition": {
+                "is": 2000326
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "疯狂"
+        }
+    }
+}

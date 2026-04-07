@@ -35,7 +35,11 @@
       "Bash(xargs grep:*)",
       "Bash(python -c \"import py_compile; py_compile.compile\\('src/gui/json_editor.py', doraise=True\\); py_compile.compile\\('src/gui/diff_dialog.py', doraise=True\\); print\\('OK'\\)\")",
       "Bash(python -m src.main)",
-      "Bash(python -c \"import py_compile; py_compile.compile\\('src/gui/json_editor.py', doraise=True\\); print\\('OK'\\)\")"
+      "Bash(python -c \"import py_compile; py_compile.compile\\('src/gui/json_editor.py', doraise=True\\); print\\('OK'\\)\")",
+      "Bash(wc -l after_story/*.json)",
+      "Bash([ -f \"d:/SteamLibrary/steamapps/workshop/content/3117820/$mod/config/cards.json\" ])",
+      "Bash(python -c \"from src.core.id_remapper import remap_mod_configs; print\\('import ok'\\)\")",
+      "Bash(python -c \"from src.gui.diff_dialog import DiffDialog; print\\('import ok'\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans"

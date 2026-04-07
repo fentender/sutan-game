@@ -1,0 +1,52 @@
+{
+    "id": 5111002,
+    "name": "天文台",
+    "text": "改良之后的天象仪就像一只眺望天空的眼睛，它窥破了混沌的迷雾，能够看清那无垠天幕背后的真实。",
+    "tips": "",
+    "mapping_id": 8001068,
+    "once_new": 0,
+    "round_number": 3,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 1,
+    "location": "奇珍:8",
+    "type": "TREASURE",
+    "icon": "rite_5000131",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "3天后会获得观测后的天象"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "勾勒命运",
+            "result_text": "奥秘之眼的轮盘缓缓转动，一颗又一颗晨星的运行被它所捕获，最终这一切都被衷实地刻录，成为铜板上蚀刻出的又一圈年轮。",
+            "result": {
+                "loot.已拥有+1": 6000100
+            },
+            "action": {
+                "rite": 5111002
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021042
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "天象仪"
+        }
+    }
+}

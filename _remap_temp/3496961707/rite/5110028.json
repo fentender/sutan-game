@@ -1,0 +1,211 @@
+{
+    "id": 5110028,
+    "name": "万物沉沦之所",
+    "text": "灰白的光影笼罩了一切，现实已经破碎，无穷无尽的岁月被揉碎掺杂在一起，而在那混乱堆砌的废墟与遗迹当中，终焉的神明等待你的到来。",
+    "tips": "",
+    "mapping_id": 8001535,
+    "once_new": 1,
+    "round_number": 0,
+    "waiting_round": 0,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "宫廷:1",
+    "type": "END",
+    "icon": "end_rite_0",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "烛火是自由行动的基础，一旦身上的烛火归零，那么角色将被直接斩杀。",
+        "伊洛尼斯会不断尝试剥夺角色的某一项能力，并且在战斗中随机消除角色身上的装备。",
+        "必须有人维持屏障，而一旦战斗开始那么这个人将无法更换。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "直面终焉",
+            "result_text": "伊洛尼斯高踞于王座之上，祂的身体在时间的乱流中不断发生着改变，然而你可以看到，那双眼睛洞悉着一切，四团光芒在祂的周身环绕，那是终焉化身们残留的遗物，亦或者说，那就是他们的混沌本质。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "any": {
+                    "s2": 1,
+                    "s4": 1,
+                    "s6": 1,
+                    "s8": 1
+                }
+            },
+            "result_title": "你并非孤身一人！",
+            "result_text": "伴随着虚无门扉再一次扭曲，其他人也已赶赴这最后的战场。",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {
+                "s2": 1
+            },
+            "result_title": "",
+            "result_text": "苏丹狂笑着，他如今站在人间任何一位帝王都未踏足的领域，挑战任何一名战士从未直面的敌手，这场战斗他梦寐以求。他张开双手，以最癫狂的方式向那终结一切的神明报上了自己的名讳。",
+            "result": {
+                "s2+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s8": 1
+            },
+            "result_title": "",
+            "result_text": "圣主那变幻不定的身体闪烁着赤红的光彩，祂直视深红之王，手中长枪裹挟着雷霆与星光，声音如同滚雷轰然作响。“你不该踏足现实的国度，世界总有终焉之日，但如今为时尚早！”。",
+            "result": {
+                "s8+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s4": 1
+            },
+            "result_title": "",
+            "result_text": "“吾将赐你净化，”纯净之神借由伊曼之口宣誓道，双眸中火焰越发旺盛，如同一轮烈日升起在这满目灰败的神国之内“连同你那无尽的罪业，一同投入永燃烈焰的火炉。”",
+            "result": {
+                "s4+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {
+                "s6": 1
+            },
+            "result_title": "",
+            "result_text": "创造之神阴森的笑声中带着无尽的嘲弄，祂看的比其他人更清楚，在终焉之神无情无念的外壳之下，由祂所赋予的那些人性依旧在如毒血一般流淌，四个被强行统合的意识还没有完全听命于所谓的主体，这将会是一个足以致命的破绽。",
+            "result": {
+                "s6+追随者": 1
+            },
+            "action": {}
+        },
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "你感受着胸膛中那颗跳动的心脏，两份被命运分开的生命再次重归于一体，你从来没有感受过如此强盛的斗志，此时不再有任何人值得你低头，即便是一位复苏的古神。",
+            "result": {
+                "s9+equip": 2000915
+            },
+            "action": {
+                "event_on": 5370047,
+                "rite": 5110031
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2021021
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "“界旅魔女”拉维妮娅"
+        },
+        "s2": {
+            "condition": {
+                "is": 2020012
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "求战的人之王"
+        },
+        "s3": {
+            "condition": {
+                "is": 2021022
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "“阅世者”厄乌拉"
+        },
+        "s4": {
+            "condition": {
+                "is": 2020013
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "狂怒的审判者"
+        },
+        "s5": {
+            "condition": {
+                "is": 2021023
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "“千疮篡王”罗伊斯"
+        },
+        "s6": {
+            "condition": {
+                "is": 2020014
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "哀恸的创造神"
+        },
+        "s7": {
+            "condition": {
+                "is": 2021024
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "“无相君”影岚"
+        },
+        "s8": {
+            "condition": {
+                "is": 2020015
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "光辉的北辰星"
+        },
+        "s9": {
+            "condition": {
+                "is": 2000001,
+                "烛火>=": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "命定的主人公"
+        },
+        "s10": {
+            "condition": {
+                "is": 2020010
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "伊洛尼斯回收了祂散落的权柄，而你则准备直面这位终焉神明。"
+        }
+    }
+}

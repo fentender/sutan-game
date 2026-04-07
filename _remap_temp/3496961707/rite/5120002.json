@@ -1,0 +1,70 @@
+{
+    "id": 5120002,
+    "name": "需要我为你杀人吗？",
+    "text": "一个杀手找上了你，希望用自己的手段为你效劳，这听起来没什么不可接受的，特别是他现在位于你十步之内。",
+    "tips": "",
+    "mapping_id": 8001064,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[1,9]",
+    "icon": "rite_8",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你就从了吧。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [],
+    "settlement_extre": [
+        {
+            "condition": {},
+            "result_title": "这就是苏丹的游戏带给我的福报",
+            "result_text": "在这一刻你想了很多，这样一个强大的杀手无疑会为你带来极好的助力，那些让你夜不能寐的杀戮卡也不再会是难题，可是，你，[player.name]真的会为了在苏丹那扭曲人性的游戏中存活下来而放弃自己为人的操守吗？你向来是一个正直善良的人，一个具有崇高品质的人，是在苏丹迷失之际唯一跳出来制止他的人，如果此时你选择接纳这样一个视人命如草芥的疯子，你的灵魂还会是纯粹的吗，那些被世人歌颂的美德是否会离你远去，你的妻子，你的朋友们该如何审视这样的你……你是一个在生死面前就会放弃底线的人吗？",
+            "result": {},
+            "action": {}
+        },
+        {
+            "condition": {},
+            "result_title": "你别说，还真是",
+            "result_text": "你笑着转过身，热情地回应了这位神秘刺客的自荐，并热心地询问对方是否需要自己支付某些报酬，或者提供其他方面的帮助……\n无论如何，你获得了一个强大的帮手，这使得你在这场诡谲的游戏中又多了几分把握。",
+            "result": {
+                "s1+追随者": 1
+            },
+            "action": {
+                "card": 2031003
+            }
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "condition": {
+                "is": 2030001
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 1,
+            "text": "岚"
+        },
+        "s2": {
+            "condition": {
+                "type": "char",
+                "主角": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你似乎没有什么拒绝的理由，也没有拒绝的勇气。"
+        }
+    }
+}

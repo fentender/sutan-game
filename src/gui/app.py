@@ -16,6 +16,7 @@ from ..core.mod_scanner import scan_all_mods
 from ..core.diagnostics import diag, INFO, WARNING, ERROR
 from ..core.deployer import generate_info_json
 from ..core.override_utils import invalidate_stale_overrides
+from ..core.id_remapper import remap_mod_configs
 from .mod_list import ModListPanel
 from .mod_detail import ModDetailPanel
 from .override_panel import OverridePanel
@@ -35,6 +36,11 @@ class MainWindow(QMainWindow):
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
         self._pending_action = None  # 等待分析完成后执行的操作
+
+        # ID 重分配缓存：remap 只在 _analyze_conflicts 中做一次，
+        # 结果供 AnalyzeWorker / DiffDialog / MergeWorker 共用
+        self._remapped_configs: list[tuple[str, str, Path]] | None = None
+        self._remap_temp_dir: Path | None = None
 
         # 防抖定时器：快速连续操作只触发一次分析
         self._analyze_timer = QTimer()
@@ -220,6 +226,10 @@ class MainWindow(QMainWindow):
 
     def _analyze_conflicts(self):
         """异步分析冲突（由防抖定时器触发）"""
+        # 合并期间不重新分析（避免清理正在使用的 remap 临时目录）
+        if self._worker and self._worker.isRunning():
+            return
+
         # 取消正在进行的分析，等待线程退出（避免 QThread 被销毁时仍在运行）
         if self._analyze_worker and self._analyze_worker.isRunning():
             self._analyze_worker.finished.disconnect()
@@ -229,16 +239,35 @@ class MainWindow(QMainWindow):
 
         mod_configs = self._get_mod_configs()
         if not mod_configs:
+            self._cleanup_remap()
             self.override_panel.clear()
             self.statusBar().showMessage("没有启用的 Mod")
             return
+
+        # ID 冲突检测与重分配（同步执行，通常很快）
+        self._cleanup_remap()
+        diag.snapshot("remap")
+        remap_temp = MOD_OVERRIDES_DIR.parent / "_remap_temp"
+        remapped, remap_msgs = remap_mod_configs(
+            self.config.game_config_path, mod_configs, remap_temp,
+        )
+        self._remapped_configs = remapped
+        self._remap_temp_dir = remap_temp
+
+        # 展示 remap 日志
+        remap_messages = diag.snapshot("remap")
+        if remap_messages:
+            self._show_messages([
+                (level, prefix_mod_title(msg, self._mod_name_map))
+                for level, msg in remap_messages
+            ])
 
         self.statusBar().showMessage("正在分析覆盖情况...")
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
         self._analyze_worker = AnalyzeWorker(
-            self.config.game_config_path, mod_configs, SCHEMA_DIR,
+            self.config.game_config_path, self._remapped_configs, SCHEMA_DIR,
             array_append_mode=self.config.array_append_mode,
         )
         self._analyze_worker.finished.connect(self._on_analyze_finished)
@@ -247,9 +276,9 @@ class MainWindow(QMainWindow):
 
     def _on_analyze_finished(self, overrides, parse_msgs):
         self.progress_bar.setVisible(False)
-        mod_configs = self._get_mod_configs()
         self.override_panel.set_data(
-            overrides, self.config.game_config_path, mod_configs,
+            overrides, self.config.game_config_path,
+            self._remapped_configs or self._get_mod_configs(),
             allow_deletions=self.config.allow_deletions
         )
         if parse_msgs:
@@ -281,12 +310,11 @@ class MainWindow(QMainWindow):
             self._pending_action = lambda: self._open_diff(rel_path)
             return
 
-        mod_configs = self._get_mod_configs()
         from .diff_dialog import DiffDialog
         dlg = DiffDialog(
             rel_path=rel_path,
             game_config_path=self.config.game_config_path,
-            mod_configs=mod_configs,
+            mod_configs=self._remapped_configs or self._get_mod_configs(),
             allow_deletions=self.config.allow_deletions,
             array_append_mode=self.config.array_append_mode,
             parent=self,
@@ -301,7 +329,7 @@ class MainWindow(QMainWindow):
             return
 
         self._save_config()
-        mod_configs = self._get_mod_configs()
+        mod_configs = self._remapped_configs or self._get_mod_configs()
         if not mod_configs:
             QMessageBox.information(self, "提示", "没有启用的 Mod")
             return
@@ -423,6 +451,13 @@ class MainWindow(QMainWindow):
         dlg = JsonEditorDialog(path, parent=self)
         dlg.exec()
 
+    def _cleanup_remap(self):
+        """清理上一次 remap 产生的临时目录"""
+        if self._remap_temp_dir and self._remap_temp_dir.exists():
+            shutil.rmtree(self._remap_temp_dir, ignore_errors=True)
+        self._remap_temp_dir = None
+        self._remapped_configs = None
+
     def closeEvent(self, event):
         """关闭窗口时协作式等待工作线程结束"""
         self._analyze_timer.stop()
@@ -432,4 +467,5 @@ class MainWindow(QMainWindow):
         if self._worker is not None and self._worker.isRunning():
             self._worker.cancel()
             self._worker.wait(5000)
+        self._cleanup_remap()
         event.accept()

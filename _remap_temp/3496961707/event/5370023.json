@@ -1,0 +1,45 @@
+{
+    "id": 5370023,
+    "text": "深红梦魇",
+    "is_replay": 0,
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "hand_have.2000326": 1,
+        "hand_have.2020001": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "option": {
+                    "id": "p_5370023_01",
+                    "text": "你承受着那疯狂所产生的苦痛，在夜半时分，你辗转不眠，脑袋里像是有无数的秃鹫在啃食你的思绪，在你眼中一切都被扭曲成混沌的光影，随后又变成滚滚的海浪冲刷你的身体。",
+                    "icon": "cards/2000001",
+                    "items": [
+                        {
+                            "text": "（尖叫、挣扎、扭曲地爬行）",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "card": 2900003,
+                    "rite": 5110013,
+                    "event_off": 5370023
+                },
+                "prompt": {
+                    "id": "5370023_option_1",
+                    "text": "此时此刻，在寂寥的天穹中，一颗深红的晨星诡异地闪烁，在你不经意间，一个幽灵进入了你的脑海。",
+                    "icon": "cards/2000001"
+                }
+            }
+        }
+    ]
+}

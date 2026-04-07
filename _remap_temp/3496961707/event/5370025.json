@@ -1,0 +1,23 @@
+{
+    "id": 5370025,
+    "text": "拉拉辛",
+    "is_replay": 1,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "round_begin_ba": 1
+    },
+    "condition": {
+        "hand_have.2000326": 1,
+        "hand_have.2900003": 1
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite": 5110034
+            }
+        }
+    ]
+}
