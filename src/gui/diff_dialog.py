@@ -21,12 +21,13 @@ from ..core.json_parser import load_json, strip_js_comments, strip_trailing_comm
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
 from ..core.profiler import profile
-from .json_editor import CodeEditor, _format_with_comments
+from .json_editor import CodeEditor, _format_with_comments, _DiffBlockData
 
 # diff 行高亮背景色
 _CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（被修改/删除的行）
 _CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
+_CLR_PADDING = QColor(30, 30, 30)         # 填充行背景（略深于编辑器背景）
 
 
 def _intern_lines(lines: list[str], table: dict[str, int]) -> list[int]:
@@ -79,6 +80,106 @@ def _diff_opcodes(a_lines: list[str], b_lines: list[str]) -> list[tuple]:
     return _fast_opcodes(a_ids, b_ids)
 
 
+def _build_padded_texts(
+    left_lines: list[str],
+    right_lines: list[str],
+    opcodes: list[tuple[str, int, int, int, int]]
+) -> tuple[
+    list[str], list[str],
+    list[int | None], list[int | None],
+    dict[int, int], dict[int, int]
+]:
+    """根据 opcodes 在行数少的一侧插入空行，使两侧总行数一致。
+
+    返回:
+        padded_left, padded_right: 填充后的行列表
+        left_map, right_map: padded_index → 原始行号(0-based)|None
+        left_o2p, right_o2p: 原始行号 → padded_index
+    """
+    padded_left: list[str] = []
+    padded_right: list[str] = []
+    left_map: list[int | None] = []
+    right_map: list[int | None] = []
+    left_o2p: dict[int, int] = {}
+    right_o2p: dict[int, int] = {}
+
+    for tag, i1, i2, j1, j2 in opcodes:
+        left_count = i2 - i1
+        right_count = j2 - j1
+
+        if tag == "equal":
+            for k in range(left_count):
+                idx = len(padded_left)
+                left_o2p[i1 + k] = idx
+                right_o2p[j1 + k] = idx
+                padded_left.append(left_lines[i1 + k])
+                padded_right.append(right_lines[j1 + k])
+                left_map.append(i1 + k)
+                right_map.append(j1 + k)
+
+        elif tag == "insert":
+            for k in range(right_count):
+                idx = len(padded_left)
+                right_o2p[j1 + k] = idx
+                padded_left.append("")
+                padded_right.append(right_lines[j1 + k])
+                left_map.append(None)
+                right_map.append(j1 + k)
+
+        elif tag == "delete":
+            for k in range(left_count):
+                idx = len(padded_left)
+                left_o2p[i1 + k] = idx
+                padded_left.append(left_lines[i1 + k])
+                padded_right.append("")
+                left_map.append(i1 + k)
+                right_map.append(None)
+
+        elif tag == "replace":
+            max_count = max(left_count, right_count)
+            for k in range(max_count):
+                idx = len(padded_left)
+                if k < left_count:
+                    left_o2p[i1 + k] = idx
+                    padded_left.append(left_lines[i1 + k])
+                    left_map.append(i1 + k)
+                else:
+                    padded_left.append("")
+                    left_map.append(None)
+                if k < right_count:
+                    right_o2p[j1 + k] = idx
+                    padded_right.append(right_lines[j1 + k])
+                    right_map.append(j1 + k)
+                else:
+                    padded_right.append("")
+                    right_map.append(None)
+
+    assert len(padded_left) == len(padded_right)
+    return padded_left, padded_right, left_map, right_map, left_o2p, right_o2p
+
+
+def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]):
+    """为编辑器的每个 block 设置 _DiffBlockData"""
+    block = editor.document().begin()
+    for real_line in line_map:
+        if not block.isValid():
+            break
+        block.setUserData(_DiffBlockData(real_line))
+        block = block.next()
+
+
+def _get_real_text(editor: CodeEditor) -> str:
+    """从编辑器中提取非填充行文本（剥离填充行）"""
+    lines = []
+    block = editor.document().begin()
+    while block.isValid():
+        data = block.userData()
+        if not isinstance(data, _DiffBlockData) or data.real_line is not None:
+            lines.append(block.text())
+        block = block.next()
+    return '\n'.join(lines)
+
+
 @profile
 def _apply_extra_selections(editor: CodeEditor,
                             highlights: list[tuple[int, QColor]]):
@@ -119,6 +220,8 @@ class DiffDialog(QDialog):
         self._precomputed_highlights: list[tuple[
             list[tuple[int, QColor]], list[tuple[int, QColor]], list[int]
         ]] = []
+        # 预计算的 opcodes，供 _load_tab() 构建填充文本时复用
+        self._precomputed_opcodes: list[list[tuple]] = []
         self._precompute_merge_states()
 
         # 懒加载标记
@@ -142,6 +245,7 @@ class DiffDialog(QDialog):
         """预计算逐级合并的 JSON 文本对 + 行级 diff 高亮，不涉及 UI 操作"""
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
+        self._precomputed_opcodes.clear()
         base_file = self._game_config_path / self._rel_path
         base_data = load_json(base_file) if base_file.exists() else {}
 
@@ -209,6 +313,7 @@ class DiffDialog(QDialog):
 
             # prev vs curr 的 opcodes
             opcodes = _fast_opcodes(left_ids, right_ids)
+            self._precomputed_opcodes.append(opcodes)
 
             # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
             prev_changed_lines: set[int] = set()
@@ -375,20 +480,14 @@ class DiffDialog(QDialog):
             if syncing[0]:
                 return
             syncing[0] = True
-            src_max = left_edit.verticalScrollBar().maximum()
-            dst_max = right_edit.verticalScrollBar().maximum()
-            if src_max > 0 and dst_max > 0:
-                right_edit.verticalScrollBar().setValue(int(val / src_max * dst_max))
+            right_edit.verticalScrollBar().setValue(val)
             syncing[0] = False
 
         def sync_vertical_rl(val):
             if syncing[0]:
                 return
             syncing[0] = True
-            src_max = right_edit.verticalScrollBar().maximum()
-            dst_max = left_edit.verticalScrollBar().maximum()
-            if src_max > 0 and dst_max > 0:
-                left_edit.verticalScrollBar().setValue(int(val / src_max * dst_max))
+            left_edit.verticalScrollBar().setValue(val)
             syncing[0] = False
 
         def sync_horizontal_lr(val):
@@ -415,29 +514,59 @@ class DiffDialog(QDialog):
 
     @profile
     def _load_tab(self, index: int):
-        """懒加载：首次切换到某 tab 时填充文本并应用预计算的高亮"""
+        """懒加载：首次切换到某 tab 时构建填充文本并应用高亮"""
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
             return
         self._loaded_tabs.add(index)
 
         _, _, prev_text, curr_text = self._diff_pairs[index]
         left_edit, right_edit = self._tab_edits[index]
-        left_edit.setPlainText(prev_text)
-        right_edit.setPlainText(curr_text)
 
-        self._apply_precomputed_highlights(index)
+        left_lines = prev_text.splitlines()
+        right_lines = curr_text.splitlines()
+        opcodes = self._precomputed_opcodes[index]
 
-    def _apply_precomputed_highlights(self, tab_index: int):
-        """应用预计算的高亮数据到编辑器，不做任何 diff 计算"""
+        (padded_left, padded_right,
+         left_map, right_map,
+         left_o2p, right_o2p) = _build_padded_texts(left_lines, right_lines, opcodes)
+
+        left_edit.setPlainText('\n'.join(padded_left))
+        right_edit.setPlainText('\n'.join(padded_right))
+
+        _apply_block_userdata(left_edit, left_map)
+        _apply_block_userdata(right_edit, right_map)
+
+        self._apply_precomputed_highlights(index, left_o2p, right_o2p, left_map, right_map)
+
+    def _apply_precomputed_highlights(self, tab_index: int,
+                                       left_o2p: dict[int, int],
+                                       right_o2p: dict[int, int],
+                                       left_map: list[int | None],
+                                       right_map: list[int | None]):
+        """应用预计算的高亮数据到编辑器，将原始行号翻译为填充后 block 号"""
         left_edit, right_edit = self._tab_edits[tab_index]
         left_hl, right_hl, diff_positions = self._precomputed_highlights[tab_index]
 
-        _apply_extra_selections(left_edit, left_hl)
-        _apply_extra_selections(right_edit, right_hl)
+        # 翻译高亮行号到填充后 block 号
+        translated_left_hl = [(left_o2p[ln], color) for ln, color in left_hl if ln in left_o2p]
+        translated_right_hl = [(right_o2p[ln], color) for ln, color in right_hl if ln in right_o2p]
 
-        self._tab_diff_positions[tab_index] = diff_positions
+        # 为填充行添加背景高亮
+        for idx, real_line in enumerate(left_map):
+            if real_line is None:
+                translated_left_hl.append((idx, _CLR_PADDING))
+        for idx, real_line in enumerate(right_map):
+            if real_line is None:
+                translated_right_hl.append((idx, _CLR_PADDING))
+
+        _apply_extra_selections(left_edit, translated_left_hl)
+        _apply_extra_selections(right_edit, translated_right_hl)
+
+        # 翻译 diff 导航位置
+        translated_positions = [left_o2p[p] for p in diff_positions if p in left_o2p]
+        self._tab_diff_positions[tab_index] = translated_positions
         _, count_label, _ = self._tab_nav_widgets[tab_index]
-        total = len(diff_positions)
+        total = len(translated_positions)
         if total > 0:
             self._tab_current_idx[tab_index] = 0
             count_label.setText(f"1 / {total}")
@@ -446,22 +575,37 @@ class DiffDialog(QDialog):
             count_label.setText("0 / 0")
 
     @profile
-    def _compute_and_apply_highlights(self, tab_index: int):
-        """对比左右文本，用 ExtraSelections 标记差异行（行哈希加速）。
-        如果某行被之前的 mod 也修改过，使用冲突色（橙底）。
+    def _compute_and_apply_highlights(self, tab_index: int,
+                                       left_map: list[int | None],
+                                       right_map: list[int | None]):
+        """对比左右真实文本，计算差异高亮并翻译到填充后 block 号。
         仅用于格式化等需要实时重算的场景。"""
         left_edit, right_edit = self._tab_edits[tab_index]
-        left_lines = left_edit.toPlainText().splitlines()
-        right_lines = right_edit.toPlainText().splitlines()
+
+        # 提取真实行（跳过填充行）
+        left_real = [left_edit.document().findBlockByNumber(i).text()
+                     for i, r in enumerate(left_map) if r is not None]
+        right_real = [right_edit.document().findBlockByNumber(i).text()
+                      for i, r in enumerate(right_map) if r is not None]
+
+        # 构建原始行号 → 填充后 block 号映射
+        left_o2p: dict[int, int] = {}
+        right_o2p: dict[int, int] = {}
+        for padded_idx, real_line in enumerate(left_map):
+            if real_line is not None:
+                left_o2p[real_line] = padded_idx
+        for padded_idx, real_line in enumerate(right_map):
+            if real_line is not None:
+                right_o2p[real_line] = padded_idx
 
         # 行哈希加速 diff
-        opcodes = _diff_opcodes(left_lines, right_lines)
+        opcodes = _diff_opcodes(left_real, right_real)
 
         # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
         prev_changed_lines: set[int] = set()
         base_lines = self._base_text.splitlines()
-        if left_lines != base_lines:
-            base_opcodes = _diff_opcodes(base_lines, left_lines)
+        if left_real != base_lines:
+            base_opcodes = _diff_opcodes(base_lines, left_real)
             for tag, _, _, j1, j2 in base_opcodes:
                 if tag in ("replace", "insert"):
                     for j in range(j1, j2):
@@ -469,19 +613,20 @@ class DiffDialog(QDialog):
 
         left_highlights: list[tuple[int, QColor]] = []
         right_highlights: list[tuple[int, QColor]] = []
-        diff_positions_left: list[int] = []
+        diff_positions: list[int] = []
 
         for tag, i1, i2, j1, j2 in opcodes:
             if tag == "equal":
                 continue
-            diff_positions_left.append(i1)
+            if i1 in left_o2p:
+                diff_positions.append(left_o2p[i1])
 
             if tag in ("replace", "delete"):
                 for i in range(i1, i2):
-                    left_highlights.append((i, _CLR_LEFT_CHANGE))
+                    if i in left_o2p:
+                        left_highlights.append((left_o2p[i], _CLR_LEFT_CHANGE))
 
             if tag in ("replace", "insert"):
-                # 判断是否冲突：replace 且左侧行已被之前的 mod 修改过
                 is_conflict = (
                     tag == "replace"
                     and prev_changed_lines
@@ -489,14 +634,23 @@ class DiffDialog(QDialog):
                 )
                 color = _CLR_RIGHT_CONFLICT if is_conflict else _CLR_RIGHT_CHANGE
                 for j in range(j1, j2):
-                    right_highlights.append((j, color))
+                    if j in right_o2p:
+                        right_highlights.append((right_o2p[j], color))
+
+        # 为填充行添加背景高亮
+        for idx, real_line in enumerate(left_map):
+            if real_line is None:
+                left_highlights.append((idx, _CLR_PADDING))
+        for idx, real_line in enumerate(right_map):
+            if real_line is None:
+                right_highlights.append((idx, _CLR_PADDING))
 
         _apply_extra_selections(left_edit, left_highlights)
         _apply_extra_selections(right_edit, right_highlights)
 
-        self._tab_diff_positions[tab_index] = diff_positions_left
+        self._tab_diff_positions[tab_index] = diff_positions
         _, count_label, _ = self._tab_nav_widgets[tab_index]
-        total = len(diff_positions_left)
+        total = len(diff_positions)
         if total > 0:
             self._tab_current_idx[tab_index] = 0
             count_label.setText(f"1 / {total}")
@@ -571,7 +725,7 @@ class DiffDialog(QDialog):
     def _save_override(self, tab_index: int):
         """验证 JSON 后保存为 override 文件"""
         right_edit = self._tab_edits[tab_index][1]
-        text = right_edit.toPlainText()
+        text = _get_real_text(right_edit)
         error_bar = self._tab_error_bars[tab_index]
 
         # JSON 验证
@@ -597,14 +751,32 @@ class DiffDialog(QDialog):
         self._refresh_all()
 
     def _format_override(self, tab_index: int):
-        """格式化右侧文本并更新高亮"""
-        right_edit = self._tab_edits[tab_index][1]
-        text = right_edit.toPlainText()
+        """格式化右侧文本，重建填充对齐并更新高亮"""
+        left_edit, right_edit = self._tab_edits[tab_index]
+
+        # 提取真实文本并格式化
+        text = _get_real_text(right_edit)
         formatted = _format_with_comments(text)
+
+        # 重新计算 diff + 填充
+        _, _, prev_text, _ = self._diff_pairs[tab_index]
+        left_lines = prev_text.splitlines()
+        right_lines = formatted.splitlines()
+        opcodes = _diff_opcodes(left_lines, right_lines)
+
+        (padded_left, padded_right,
+         left_map, right_map,
+         _, _) = _build_padded_texts(left_lines, right_lines, opcodes)
+
         scroll_val = right_edit.verticalScrollBar().value()
-        right_edit.setPlainText(formatted)
+        left_edit.setPlainText('\n'.join(padded_left))
+        right_edit.setPlainText('\n'.join(padded_right))
         right_edit.verticalScrollBar().setValue(scroll_val)
-        self._compute_and_apply_highlights(tab_index)
+
+        _apply_block_userdata(left_edit, left_map)
+        _apply_block_userdata(right_edit, right_map)
+
+        self._compute_and_apply_highlights(tab_index, left_map, right_map)
 
     def _reset_override(self, tab_index: int):
         """删除 override 文件并刷新"""

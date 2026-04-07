@@ -8,7 +8,9 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPlainTextEdit, QTextEdit,
     QLabel, QPushButton, QMessageBox, QWidget
 )
-from PySide6.QtGui import QFont, QColor, QTextCursor, QPainter, QTextFormat
+from PySide6.QtGui import (
+    QFont, QColor, QTextCursor, QPainter, QTextFormat, QTextBlockUserData
+)
 from PySide6.QtCore import Qt, QRect, QSize
 
 from ..core.json_parser import strip_js_comments, strip_trailing_commas
@@ -108,6 +110,13 @@ def _format_with_comments(text: str) -> str:
     return '\n'.join(result) + '\n'
 
 
+class _DiffBlockData(QTextBlockUserData):
+    """Diff 模式下的 block 元数据，用于区分真实行和填充行"""
+    def __init__(self, real_line: int | None):
+        super().__init__()
+        self.real_line = real_line  # None = 填充行, int = 原始行号(0-based)
+
+
 class _LineNumberArea(QWidget):
     """行号侧栏"""
 
@@ -169,10 +178,21 @@ class CodeEditor(QPlainTextEdit):
 
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
-                painter.drawText(
-                    0, top, self._line_number_area.width() - 4, self.fontMetrics().height(),
-                    Qt.AlignmentFlag.AlignRight, str(block_number + 1)
-                )
+                data = block.userData()
+                if isinstance(data, _DiffBlockData):
+                    if data.real_line is not None:
+                        painter.drawText(
+                            0, top, self._line_number_area.width() - 4,
+                            self.fontMetrics().height(),
+                            Qt.AlignmentFlag.AlignRight, str(data.real_line + 1)
+                        )
+                    # 填充行不绘制行号
+                else:
+                    painter.drawText(
+                        0, top, self._line_number_area.width() - 4,
+                        self.fontMetrics().height(),
+                        Qt.AlignmentFlag.AlignRight, str(block_number + 1)
+                    )
             block = block.next()
             top = bottom
             bottom = top + round(self.blockBoundingRect(block).height())
