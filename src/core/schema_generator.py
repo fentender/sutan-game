@@ -25,27 +25,22 @@ ARR_MARKER = '[]'
 
 from ..config import SCHEMA_DIR
 
-# 字段模板等价映射：从 template_map.json 加载
+# 字段模板等价映射（硬编码）
 # exact: 精确匹配字段名 → 规范名
 # regex: 正则匹配字段名 → 规范名
-_TEMPLATE_MAP_FILE = SCHEMA_DIR / "template_map.json"
-_template_exact = {}
-_template_regex = []  # [(compiled_re, canonical_name)]
-
-
-def _load_template_map():
-    """加载字段模板等价映射配置"""
-    global _template_exact, _template_regex
-    import json as _json
-    data = _json.loads(_TEMPLATE_MAP_FILE.read_text(encoding="utf-8"))
-    _template_exact = data.get("exact", {})
-    _template_regex = [
-        (re.compile(pattern), canonical)
-        for pattern, canonical in data.get("regex", {}).items()
-    ]
-
-
-_load_template_map()
+_template_exact = {
+    "any": "condition",
+    "all": "condition",
+    "result": "action",
+    "choose": "action",
+    "success": "action",
+    "failed": "action",
+}
+_template_regex = [
+    (re.compile(r"^case:op\d+$"), "action"),
+    (re.compile(r"^s\d+$"), "slot"),
+    (re.compile(r"^-?\d+$"), "music_entry"),
+]
 
 
 def _canonical_field_name(field_name):

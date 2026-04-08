@@ -7,7 +7,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from ..config import MERGED_OUTPUT_PATH, SYNTHETIC_MOD_ID
+from ..config import SYNTHETIC_MOD_ID
 
 
 def generate_info_json(mod_names: list[str], output_path: Path):

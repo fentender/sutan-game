@@ -48,7 +48,13 @@
       "Bash(python -c \"import ast; ast.parse\\(open\\('src/gui/diff_dialog.py', encoding='utf-8'\\).read\\(\\)\\); print\\('语法正确'\\)\")",
       "Bash(grep -r \"search\\\\|find\\\\|Search\\\\|Find\" /d/Games/SuDanGame/src/gui/*.py)",
       "Bash(git log:*)",
-      "Bash(python -c \"import ast; ast.parse\\(open\\('src/core/conflict.py', encoding='utf-8'\\).read\\(\\)\\); print\\('OK'\\)\")"
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/core/conflict.py', encoding='utf-8'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(wc -l /d/Games/SuDanGame/src/core/*.py /d/Games/SuDanGame/src/gui/*.py)",
+      "Bash(python -c \"p=__import__\\('pathlib'\\).Path\\(r'C:/Users/Lenovo/.claude/plans/gleaming-giggling-pony-agent-a7aec76a25aa1c91d.md'\\); p.write_text\\('# Plan placeholder\\\\n', encoding='utf-8'\\); print\\('ok'\\)\")",
+      "Bash(git -C d:/Games/SuDanGame log --oneline --follow -- schemas/template_map.json)",
+      "Bash(git -C d:/Games/SuDanGame ls-files schemas/)",
+      "Bash(pyinstaller sudan.spec --noconfirm)",
+      "Bash(python -c \"from src.config import PROJECT_ROOT, SCHEMA_DIR, USER_CONFIG_PATH; print\\('ROOT:', PROJECT_ROOT\\); print\\('SCHEMA:', SCHEMA_DIR\\); print\\('CONFIG:', USER_CONFIG_PATH\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans",

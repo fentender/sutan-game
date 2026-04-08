@@ -4,6 +4,7 @@
 import json
 import logging
 import os
+import sys
 import tempfile
 from pathlib import Path
 from dataclasses import dataclass, field, asdict
@@ -12,7 +13,12 @@ log = logging.getLogger(__name__)
 
 
 # 项目根目录
-PROJECT_ROOT = Path(__file__).parent.parent
+if getattr(sys, 'frozen', False):
+    # PyInstaller 打包后：exe 所在目录
+    PROJECT_ROOT = Path(sys.executable).parent
+else:
+    # 源码运行：项目根目录
+    PROJECT_ROOT = Path(__file__).parent.parent
 
 # 默认路径
 DEFAULT_GAME_PATH = Path("d:/SteamLibrary/steamapps/common/Sultan's Game")

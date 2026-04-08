@@ -16,3 +16,8 @@ merged_output/
 mod_overrides/
 user_config.json
 _remap_temp
+
+# PyInstaller
+build/
+dist/
+*.spec

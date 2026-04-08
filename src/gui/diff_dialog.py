@@ -29,6 +29,7 @@ _CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
 _CLR_LEFT_CONFLICT = QColor(120, 80, 20)  # 橙底（冲突：左侧对应行）
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
 _CLR_PADDING = QColor(30, 30, 30)         # 填充行背景（略深于编辑器背景）
+_CLR_SEARCH = QColor(40, 100, 180)        # 搜索匹配高亮（亮蓝）
 
 # 同一行出现多种高亮时，按优先级保留最高的（QColor 不可哈希，用 rgb 整数做 key）
 _COLOR_PRIORITY: dict[int, int] = {
@@ -257,6 +258,9 @@ class DiffDialog(QDialog):
         self._loaded_tabs: set[int] = set()
         # 各 tab 的左右 CodeEditor 引用
         self._tab_edits: list[tuple[CodeEditor, CodeEditor]] = []
+        # 各 tab 的搜索栏容器和输入框
+        self._tab_search_bars: list[tuple[QWidget, QWidget]] = []
+        self._tab_search_inputs: list[tuple[QLineEdit, QLineEdit]] = []
         # 各 tab 的错误提示条
         self._tab_error_bars: list[QLabel] = []
         # 导航相关
@@ -392,19 +396,7 @@ class DiffDialog(QDialog):
         path_label.setFixedHeight(24)
         layout.addWidget(path_label)
 
-        # 搜索栏（默认隐藏）
-        self._search_bar = QLineEdit()
-        self._search_bar.setPlaceholderText(
-            "搜索... (Enter=下一个, Shift+Enter=上一个, Esc=关闭)")
-        self._search_bar.setVisible(False)
-        self._search_bar.returnPressed.connect(self._find_next)
-        layout.addWidget(self._search_bar)
-
         QShortcut(QKeySequence("Ctrl+F"), self, self._toggle_search)
-        QShortcut(QKeySequence("Shift+Return"), self._search_bar,
-                  self._find_prev)
-        QShortcut(QKeySequence("Escape"), self._search_bar,
-                  self._close_search)
 
         if not self._diff_pairs:
             placeholder = QLabel("没有 Mod 修改此文件")
@@ -414,12 +406,15 @@ class DiffDialog(QDialog):
 
         self._tabs = QTabWidget()
         for idx, (_, mod_name, _, _) in enumerate(self._diff_pairs):
-            tab, left_edit, right_edit, error_bar, btn_prev, count_lbl, btn_next = (
+            (tab, left_edit, right_edit, error_bar, btn_prev, count_lbl, btn_next,
+             left_search_w, left_search_in, right_search_w, right_search_in) = (
                 self._create_empty_tab(mod_name, idx))
             self._tabs.addTab(tab, f"↔ {mod_name}")
             if self._tab_has_conflict[idx]:
                 self._tabs.tabBar().setTabTextColor(idx, QColor(255, 180, 50))
             self._tab_edits.append((left_edit, right_edit))
+            self._tab_search_bars.append((left_search_w, right_search_w))
+            self._tab_search_inputs.append((left_search_in, right_search_in))
             self._tab_error_bars.append(error_bar)
             self._tab_diff_positions.append([])
             self._tab_current_idx.append(-1)
@@ -460,12 +455,14 @@ class DiffDialog(QDialog):
         # 导航按钮
         btn_prev = QPushButton("▲ 上一个变化")
         btn_prev.setFixedWidth(100)
+        btn_prev.setAutoDefault(False)
         count_label = QLabel("0 / 0")
         count_label.setFixedWidth(50)
         count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         count_label.setStyleSheet("font-size: 11px; color: #aaa;")
         btn_next = QPushButton("▼ 下一个变化")
         btn_next.setFixedWidth(100)
+        btn_next.setAutoDefault(False)
         label_layout.addWidget(btn_prev)
         label_layout.addWidget(count_label)
         label_layout.addWidget(btn_next)
@@ -476,17 +473,20 @@ class DiffDialog(QDialog):
         # 格式化、保存、重置按钮
         btn_format = QPushButton("格式化")
         btn_format.setFixedWidth(60)
+        btn_format.setAutoDefault(False)
         btn_format.clicked.connect(lambda: self._format_override(tab_index))
         label_layout.addWidget(btn_format)
 
         btn_save = QPushButton("保存")
         btn_save.setFixedWidth(50)
+        btn_save.setAutoDefault(False)
         btn_save.setStyleSheet("font-weight: bold;")
         btn_save.clicked.connect(lambda: self._save_override(tab_index))
         label_layout.addWidget(btn_save)
 
         btn_reset = QPushButton("重置为默认")
         btn_reset.setFixedWidth(80)
+        btn_reset.setAutoDefault(False)
         btn_reset.clicked.connect(lambda: self._reset_override(tab_index))
         label_layout.addWidget(btn_reset)
 
@@ -495,14 +495,98 @@ class DiffDialog(QDialog):
         # 左右对比区域
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
+        # 左侧容器：搜索栏 + 编辑器
+        left_container = QWidget()
+        left_vlayout = QVBoxLayout(left_container)
+        left_vlayout.setContentsMargins(0, 0, 0, 0)
+        left_vlayout.setSpacing(0)
+
+        left_search_widget = QWidget()
+        left_search_layout = QHBoxLayout(left_search_widget)
+        left_search_layout.setContentsMargins(2, 2, 2, 2)
+        left_search_layout.setSpacing(2)
+        left_search_input = QLineEdit()
+        left_search_input.setPlaceholderText("搜索...")
+        left_search_prev = QPushButton("▲")
+        left_search_prev.setFixedWidth(28)
+        left_search_prev.setAutoDefault(False)
+        left_search_next = QPushButton("▼")
+        left_search_next.setFixedWidth(28)
+        left_search_next.setAutoDefault(False)
+        left_search_close = QPushButton("✕")
+        left_search_close.setFixedWidth(28)
+        left_search_close.setAutoDefault(False)
+        left_search_layout.addWidget(left_search_input, 1)
+        left_search_layout.addWidget(left_search_prev)
+        left_search_layout.addWidget(left_search_next)
+        left_search_layout.addWidget(left_search_close)
+        left_search_widget.setVisible(False)
+        left_vlayout.addWidget(left_search_widget)
+
         left_edit = CodeEditor()
         left_edit.setReadOnly(True)
+        left_vlayout.addWidget(left_edit, 1)
+
+        # 右侧容器：搜索栏 + 编辑器
+        right_container = QWidget()
+        right_vlayout = QVBoxLayout(right_container)
+        right_vlayout.setContentsMargins(0, 0, 0, 0)
+        right_vlayout.setSpacing(0)
+
+        right_search_widget = QWidget()
+        right_search_layout = QHBoxLayout(right_search_widget)
+        right_search_layout.setContentsMargins(2, 2, 2, 2)
+        right_search_layout.setSpacing(2)
+        right_search_input = QLineEdit()
+        right_search_input.setPlaceholderText("搜索...")
+        right_search_prev = QPushButton("▲")
+        right_search_prev.setFixedWidth(28)
+        right_search_prev.setAutoDefault(False)
+        right_search_next = QPushButton("▼")
+        right_search_next.setFixedWidth(28)
+        right_search_next.setAutoDefault(False)
+        right_search_close = QPushButton("✕")
+        right_search_close.setFixedWidth(28)
+        right_search_close.setAutoDefault(False)
+        right_search_layout.addWidget(right_search_input, 1)
+        right_search_layout.addWidget(right_search_prev)
+        right_search_layout.addWidget(right_search_next)
+        right_search_layout.addWidget(right_search_close)
+        right_search_widget.setVisible(False)
+        right_vlayout.addWidget(right_search_widget)
 
         right_edit = CodeEditor()
-        # 可编辑（默认）
+        right_vlayout.addWidget(right_edit, 1)
 
-        splitter.addWidget(left_edit)
-        splitter.addWidget(right_edit)
+        # 搜索信号连接
+        left_search_input.returnPressed.connect(
+            lambda: self._find_in_editor(left_edit, left_search_input.text()))
+        left_search_next.clicked.connect(
+            lambda: self._find_in_editor(left_edit, left_search_input.text()))
+        left_search_prev.clicked.connect(
+            lambda: self._find_in_editor(left_edit, left_search_input.text(), backward=True))
+        left_search_close.clicked.connect(
+            lambda: self._close_search_bar(left_search_widget, left_edit))
+        QShortcut(QKeySequence("Shift+Return"), left_search_input,
+                  lambda: self._find_in_editor(left_edit, left_search_input.text(), backward=True))
+        QShortcut(QKeySequence("Escape"), left_search_input,
+                  lambda: self._close_search_bar(left_search_widget, left_edit))
+
+        right_search_input.returnPressed.connect(
+            lambda: self._find_in_editor(right_edit, right_search_input.text()))
+        right_search_next.clicked.connect(
+            lambda: self._find_in_editor(right_edit, right_search_input.text()))
+        right_search_prev.clicked.connect(
+            lambda: self._find_in_editor(right_edit, right_search_input.text(), backward=True))
+        right_search_close.clicked.connect(
+            lambda: self._close_search_bar(right_search_widget, right_edit))
+        QShortcut(QKeySequence("Shift+Return"), right_search_input,
+                  lambda: self._find_in_editor(right_edit, right_search_input.text(), backward=True))
+        QShortcut(QKeySequence("Escape"), right_search_input,
+                  lambda: self._close_search_bar(right_search_widget, right_edit))
+
+        splitter.addWidget(left_container)
+        splitter.addWidget(right_container)
         splitter.setSizes([500, 500])
         vlayout.addWidget(splitter, 1)
 
@@ -540,7 +624,8 @@ class DiffDialog(QDialog):
         left_edit.horizontalScrollBar().valueChanged.connect(sync_horizontal_lr)
         right_edit.horizontalScrollBar().valueChanged.connect(sync_horizontal_rl)
 
-        return widget, left_edit, right_edit, error_bar, btn_prev, count_label, btn_next
+        return (widget, left_edit, right_edit, error_bar, btn_prev, count_label, btn_next,
+                left_search_widget, left_search_input, right_search_widget, right_search_input)
 
     def _on_tab_changed(self, index: int):
         self._load_tab(index)
@@ -729,41 +814,60 @@ class DiffDialog(QDialog):
             left_edit.centerCursor()
 
     def _toggle_search(self):
-        visible = not self._search_bar.isVisible()
-        self._search_bar.setVisible(visible)
-        if visible:
-            self._search_bar.setFocus()
-            self._search_bar.selectAll()
-
-    def _close_search(self):
-        self._search_bar.setVisible(False)
-
-    def _find_next(self):
-        text = self._search_bar.text()
-        if not text:
-            return
+        """Ctrl+F：显示当前焦点编辑器对应的搜索框"""
         idx = self._tabs.currentIndex()
+        if idx < 0 or idx >= len(self._tab_search_bars):
+            return
+        left_bar, right_bar = self._tab_search_bars[idx]
         left_edit, right_edit = self._tab_edits[idx]
-        if not left_edit.find(text):
-            cursor = left_edit.textCursor()
-            cursor.movePosition(cursor.MoveOperation.Start)
-            left_edit.setTextCursor(cursor)
-            left_edit.find(text)
-        if not right_edit.find(text):
-            cursor = right_edit.textCursor()
-            cursor.movePosition(cursor.MoveOperation.Start)
-            right_edit.setTextCursor(cursor)
-            right_edit.find(text)
+        left_input, right_input = self._tab_search_inputs[idx]
+        # 判断焦点在哪侧，默认右侧
+        if left_edit.hasFocus() or left_input.hasFocus():
+            bar, inp = left_bar, left_input
+        else:
+            bar, inp = right_bar, right_input
+        visible = not bar.isVisible()
+        bar.setVisible(visible)
+        if visible:
+            inp.setFocus()
+            inp.selectAll()
 
-    def _find_prev(self):
-        text = self._search_bar.text()
+    def _close_search_bar(self, search_widget: QWidget, editor: CodeEditor):
+        """关闭搜索栏并清除搜索高亮"""
+        search_widget.setVisible(False)
+        selections = [s for s in editor.extraSelections()
+                      if s.format.background().color() != _CLR_SEARCH]
+        editor.setExtraSelections(selections)
+
+    def _find_in_editor(self, editor: CodeEditor, text: str, backward: bool = False):
+        """在指定编辑器中搜索文本，匹配处用亮蓝背景高亮"""
         if not text:
             return
         from PySide6.QtGui import QTextDocument
-        idx = self._tabs.currentIndex()
-        left_edit, right_edit = self._tab_edits[idx]
-        left_edit.find(text, QTextDocument.FindFlag.FindBackward)
-        right_edit.find(text, QTextDocument.FindFlag.FindBackward)
+        flags = QTextDocument.FindFlag.FindBackward if backward else QTextDocument.FindFlag(0)
+        found = editor.find(text, flags)
+        if not found:
+            cursor = editor.textCursor()
+            cursor.movePosition(
+                cursor.MoveOperation.End if backward else cursor.MoveOperation.Start)
+            editor.setTextCursor(cursor)
+            found = editor.find(text, flags)
+        if found:
+            # 记录匹配的光标（含选区），用于高亮
+            match_cursor = editor.textCursor()
+            # 取消选区但保持光标在匹配末尾，确保下次搜索从此处继续
+            end_pos = match_cursor.selectionEnd()
+            deselected = QTextCursor(editor.document())
+            deselected.setPosition(end_pos)
+            editor.setTextCursor(deselected)
+            # 将搜索高亮追加到已有的 diff 高亮之后
+            selections = [s for s in editor.extraSelections()
+                          if s.format.background().color() != _CLR_SEARCH]
+            sel = QTextEdit.ExtraSelection()
+            sel.format.setBackground(_CLR_SEARCH)
+            sel.cursor = match_cursor
+            selections.append(sel)
+            editor.setExtraSelections(selections)
 
     def _save_override(self, tab_index: int):
         """验证 JSON 后保存为 override 文件"""
