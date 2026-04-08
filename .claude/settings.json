@@ -40,10 +40,19 @@
       "Bash([ -f \"d:/SteamLibrary/steamapps/workshop/content/3117820/$mod/config/cards.json\" ])",
       "Bash(python -c \"from src.core.id_remapper import remap_mod_configs; print\\('import ok'\\)\")",
       "Bash(python -c \"from src.gui.diff_dialog import DiffDialog; print\\('import ok'\\)\")",
-      "Bash(grep -r \"smart_match\\\\|append\\\\|array\" /d/Games/SuDanGame/tests/*.py --include=\"*.py\" -n)"
+      "Bash(grep -r \"smart_match\\\\|append\\\\|array\" /d/Games/SuDanGame/tests/*.py --include=\"*.py\" -n)",
+      "Bash(python3)",
+      "Bash(python3 -c \"print\\('hello'\\)\")",
+      "Bash(python -c \"import pathlib; p = pathlib.Path\\(r'C:/Users/Lenovo/.claude/plans/bright-mixing-lollipop-agent-ad663cf6a96159b41.md'\\); p.write_text\\('test content', encoding='utf-8'\\); print\\('OK'\\)\")",
+      "Bash(python -c \"import pathlib; p=pathlib.Path\\(r'C:/Users/Lenovo/.claude/plans'\\); print\\(p.exists\\(\\), list\\(p.iterdir\\(\\)\\)[:3]\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/gui/diff_dialog.py', encoding='utf-8'\\).read\\(\\)\\); print\\('语法正确'\\)\")",
+      "Bash(grep -r \"search\\\\|find\\\\|Search\\\\|Find\" /d/Games/SuDanGame/src/gui/*.py)",
+      "Bash(git log:*)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/core/conflict.py', encoding='utf-8'\\).read\\(\\)\\); print\\('OK'\\)\")"
     ],
     "additionalDirectories": [
-      "C:\\Users\\Lenovo\\.claude\\plans"
+      "C:\\Users\\Lenovo\\.claude\\plans",
+      "d:\\Games\\SuDanGame"
     ]
   }
 }

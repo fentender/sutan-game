@@ -26,17 +26,37 @@ from .json_editor import CodeEditor, _format_with_comments, _DiffBlockData
 # diff 行高亮背景色
 _CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（被修改/删除的行）
 _CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
+_CLR_LEFT_CONFLICT = QColor(120, 80, 20)  # 橙底（冲突：左侧对应行）
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
 _CLR_PADDING = QColor(30, 30, 30)         # 填充行背景（略深于编辑器背景）
 
+# 同一行出现多种高亮时，按优先级保留最高的（QColor 不可哈希，用 rgb 整数做 key）
+_COLOR_PRIORITY: dict[int, int] = {
+    _CLR_PADDING.rgb(): 1,
+    _CLR_LEFT_CHANGE.rgb(): 2,
+    _CLR_RIGHT_CHANGE.rgb(): 2,
+    _CLR_LEFT_CONFLICT.rgb(): 3,
+    _CLR_RIGHT_CONFLICT.rgb(): 3,
+}
+
+
+def _normalize_for_diff(line: str) -> str:
+    """去除行尾逗号，避免 JSON 数组元素追加/删除时的纯格式差异被识别为内容修改"""
+    stripped = line.rstrip()
+    if stripped.endswith(','):
+        return stripped[:-1]
+    return stripped
+
 
 def _intern_lines(lines: list[str], table: dict[str, int]) -> list[int]:
-    """将字符串行列表映射为整数 ID 列表，共享 table 跨多次调用复用"""
+    """将字符串行列表映射为整数 ID 列表，共享 table 跨多次调用复用。
+    对行做尾逗号标准化，使 JSON 格式差异不影响 diff 结果。"""
     ids = []
     for line in lines:
-        if line not in table:
-            table[line] = len(table)
-        ids.append(table[line])
+        key = _normalize_for_diff(line)
+        if key not in table:
+            table[key] = len(table)
+        ids.append(table[key])
     return ids
 
 
@@ -183,12 +203,21 @@ def _get_real_text(editor: CodeEditor) -> str:
 @profile
 def _apply_extra_selections(editor: CodeEditor,
                             highlights: list[tuple[int, QColor]]):
-    """对 CodeEditor 应用行级背景高亮"""
-    selections = []
+    """对 CodeEditor 应用行级背景高亮。同一行多种颜色时按优先级保留最高的。"""
+    # 按行去重，冲突色优先
+    best: dict[int, tuple[int, QColor]] = {}
     for block_no, color in highlights:
+        prio = _COLOR_PRIORITY.get(color.rgb(), 0)
+        prev = best.get(block_no)
+        if prev is None or prio > prev[0]:
+            best[block_no] = (prio, color)
+
+    selections = []
+    for block_no in sorted(best):
         block = editor.document().findBlockByNumber(block_no)
         if not block.isValid():
             continue
+        _, color = best[block_no]
         sel = QTextEdit.ExtraSelection()
         sel.format.setBackground(color)
         sel.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
@@ -330,16 +359,18 @@ class DiffDialog(QDialog):
                     continue
                 diff_positions.append(i1)
 
+                is_conflict = (
+                    tag == "replace"
+                    and prev_changed_lines
+                    and any(i in prev_changed_lines for i in range(i1, i2))
+                )
+
                 if tag in ("replace", "delete"):
+                    color = _CLR_LEFT_CONFLICT if is_conflict else _CLR_LEFT_CHANGE
                     for i in range(i1, i2):
-                        left_highlights.append((i, _CLR_LEFT_CHANGE))
+                        left_highlights.append((i, color))
 
                 if tag in ("replace", "insert"):
-                    is_conflict = (
-                        tag == "replace"
-                        and prev_changed_lines
-                        and any(i in prev_changed_lines for i in range(i1, i2))
-                    )
                     color = _CLR_RIGHT_CONFLICT if is_conflict else _CLR_RIGHT_CHANGE
                     for j in range(j1, j2):
                         right_highlights.append((j, color))
@@ -623,17 +654,19 @@ class DiffDialog(QDialog):
             if i1 in left_o2p:
                 diff_positions.append(left_o2p[i1])
 
+            is_conflict = (
+                tag == "replace"
+                and prev_changed_lines
+                and any(i in prev_changed_lines for i in range(i1, i2))
+            )
+
             if tag in ("replace", "delete"):
+                color = _CLR_LEFT_CONFLICT if is_conflict else _CLR_LEFT_CHANGE
                 for i in range(i1, i2):
                     if i in left_o2p:
-                        left_highlights.append((left_o2p[i], _CLR_LEFT_CHANGE))
+                        left_highlights.append((left_o2p[i], color))
 
             if tag in ("replace", "insert"):
-                is_conflict = (
-                    tag == "replace"
-                    and prev_changed_lines
-                    and any(i in prev_changed_lines for i in range(i1, i2))
-                )
                 color = _CLR_RIGHT_CONFLICT if is_conflict else _CLR_RIGHT_CHANGE
                 for j in range(j1, j2):
                     if j in right_o2p:

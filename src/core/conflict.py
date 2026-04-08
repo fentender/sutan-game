@@ -28,8 +28,11 @@ class FieldOverride:
 
     @property
     def is_conflict(self) -> bool:
-        """多个 mod 修改了同一字段"""
-        return len(self.mod_values) > 1
+        """多个 mod 修改了同一字段，且修改值不完全相同"""
+        if len(self.mod_values) <= 1:
+            return False
+        first_val = self.mod_values[0][1]
+        return any(v != first_val for _, v in self.mod_values[1:])
 
 
 @dataclass
@@ -138,6 +141,35 @@ def _is_obj_array(arr) -> bool:
     return isinstance(arr, list) and bool(arr) and all(isinstance(x, dict) for x in arr)
 
 
+def _collect_append_array_diffs(base_arr, mod_arr, path):
+    """append 策略的简单数组差异收集。
+    用集合消耗式匹配：mod 中每个元素与 base 剩余元素逐个比较，
+    匹配到的从 base 池中移除。未匹配的 mod 元素为新增，
+    未消耗的 base 元素为删除。"""
+    diffs = []
+    # base 剩余池（同一值可能出现多次，用索引追踪）
+    remaining = list(range(len(base_arr)))
+
+    for mod_item in mod_arr:
+        found = False
+        for ri, bi in enumerate(remaining):
+            if base_arr[bi] == mod_item:
+                remaining.pop(ri)
+                found = True
+                break
+        if not found:
+            # mod 中有但 base 中没有 → 新增
+            label = str(mod_item)[:30]
+            diffs.append((f"{path}[{label}]", None, mod_item))
+
+    # base 中剩余未匹配的 → 删除
+    for bi in remaining:
+        label = str(base_arr[bi])[:30]
+        diffs.append((f"{path}[{label}]", base_arr[bi], None))
+
+    return diffs
+
+
 def _collect_index_match_diffs(base_arr, mod_arr, path, schema, field_path):
     """按序号位置对应的 array<object> 深度比较。
     mod[i] ↔ base[i]，超出部分为新增/删除。"""
@@ -209,6 +241,11 @@ def _collect_field_diffs(
                         diffs.extend(_collect_index_match_diffs(
                             base[key], mod_data[key], path,
                             schema, child_path,
+                        ))
+                    elif merge_strategy == "append":
+                        # append 策略的简单数组：集合消耗式逐元素比较
+                        diffs.extend(_collect_append_array_diffs(
+                            base[key], mod_data[key], path,
                         ))
                     elif base[key] != mod_data[key]:
                         diffs.append((path, base[key], mod_data[key]))
