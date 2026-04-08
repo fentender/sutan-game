@@ -43,6 +43,12 @@ MOD_OVERRIDES_DIR = PROJECT_ROOT / "mod_overrides"
 # 合成 Mod 的 ID（放在 workshop 目录下）
 SYNTHETIC_MOD_ID = "0000000001"
 
+# 应用图标（打包后在 _MEIPASS 即 _internal/ 中，源码运行时在项目根目录）
+if getattr(sys, 'frozen', False):
+    APP_ICON_PATH = Path(sys._MEIPASS) / "app.ico"
+else:
+    APP_ICON_PATH = PROJECT_ROOT / "app.ico"
+
 
 @dataclass
 class UserConfig:

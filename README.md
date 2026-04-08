@@ -1,88 +1,95 @@
 # 苏丹的游戏 - Mod 合并管理器
 
-解决「苏丹的游戏」中多个 Mod 修改同一 JSON 文件时无法同时启用的问题。
+玩「苏丹的游戏」下了好几个 Mod，结果发现有两个 Mod 都改了同一个文件，游戏直接报错冲突，禁止同时开启，这种情况屡见不鲜。但其实大部分mod之间其实并没有真正修改到同一数据，造成完全不可避免的冲突，但是游戏还是给你报错了，你肯定想过为什么自己不能全都要呢？如果你这样想，那这个工具就很适合你。
 
-游戏原生 Mod 系统采用文件级覆盖，当两个 Mod 都修改了 `rite/5000101.json` 时只能二选一。本工具以游戏本体文件为基础，按用户设定的 Mod 优先级逐层进行 **JSON 内容级深度合并**，确保不丢失任何一方的内容。
+目前这个工具就是来解决这个问题的。它不是简单地用一个文件替换另一个，而是把多个 Mod 的修改内容在 JSON 字段级别做深度合并，生成一个「合成 Mod」。这样所有 Mod 的改动都能共存，你不用再纠结该留哪个。
 
-## 功能
+**我全都要！**
 
-- 自动扫描 Steam 创意工坊和本地 Mod 目录
-- GUI 界面管理 Mod 启用/禁用和优先级排序
-- 展示 Mod 预览图、描述、修改的文件列表
-- JSON 深度合并（非整文件替换），保留游戏本体新增内容
-- 覆盖详情面板：按文件维度展示覆盖链和字段级冲突
-- 合并结果部署为合成 Mod，无需修改游戏本体文件
-- 错误日志面板：实时展示解析异常和合并警告
+> 本项目大部分代码通过 AI 辅助编程（vibe coding）实现。
+
+## 功能特性
+
+### 1. ID 冲突自动处理
+
+不同 Mod 作者之间没有沟通，可能碰巧用了相同的 ID。比如两个 Mod 都新建了一张 ID 为 5000101 的卡牌，直接合并会出问题。
+
+工具会自动检测这种冲突，给低优先级的 Mod 重新分配一个不冲突的 ID，并且自动把所有引用这个 ID 的地方一起改掉。你不需要手动处理任何 ID 问题。
+![alt text](asset/img/id_remapping.png)
+
+### 2. 智能合并 + 冲突定位
+
+工具会深入到 JSON 文件内部，逐个字段地进行合并。大多数情况下合并是全自动的——两个 Mod 改了不同的字段，各取所需就好。
+
+但如果两个 Mod 恰好修改了同一个字段（真正的冲突），工具会用醒目的颜色标注出来。你可以在内置的 Diff 对比面板里清楚地看到每个 Mod 改了什么，还能直接手动编辑合并结果。
+
+![alt text](asset/img/conflict_2.png)
+![alt text](asset/img/conflict_1.png)
+
+### 3. Mod 优先级排序
+
+你可以通过拖拽或上下按钮调整 Mod 的优先级。排在下面的 Mod 优先级更高——当多个 Mod 修改了同一个字段时，优先级高的那个值会被保留。
+![alt text](asset/img/mod_order.png)
 
 ## 安装
 
-需要 Python 3.10+ 和 PySide6：
+### 方式一：下载 exe
+
+从 [GitHub Releases](../../releases) 下载最新版 `SuDanModMerger.zip`，解压后直接运行 `SuDanModMerger.exe`，无需安装 Python。
+
+### 方式二：从源码运行
+
+需要 Python 3.10+：
 
 ```bash
-pip install PySide6
-```
-
-## 使用
-
-双击 `run.bat`，或在项目根目录执行：
-
-```bash
+pip install -r requirements.txt
 python -m src.main
 ```
 
-### 基本流程
+或者双击 `run.bat`。
 
-1. 启动后自动扫描并列出所有已安装的 Mod
-2. 勾选要启用的 Mod，用 ▲▼ 按钮调整优先级（下方优先级更高）
-3. 点击「分析冲突」查看哪些文件被多个 Mod 修改及具体覆盖情况
-4. 点击「执行合并」生成合并结果到 `merged_output/`
-5. 点击「部署到游戏」将合成 Mod 放入 Workshop 目录
-6. 在游戏中禁用所有原始 Mod，只启用合成 Mod
+## 使用指南
 
-## 合并策略
+1. **首次启动**会自动生成合并规则文件（需要几秒钟，只跑一次）
+2. 工具自动扫描已安装的 Mod 并列出
+3. **勾选**要启用的 Mod，**拖拽**或用 ▲▼ 按钮调整优先级（下方优先级更高）
+4. 工具**自动分析**哪些文件被多个 Mod 修改，以及具体的冲突情况
+5. **双击**覆盖详情中的文件，打开 Diff 对比面板查看每个 Mod 的修改细节
+6. 点击「**执行合并**」生成合成 Mod
+7. 在游戏中**禁用所有原始 Mod**，只启用合成 Mod 即可
 
-### 字典型文件（cards.json, upgrade.json, tag.json 等）
-
-顶层 key 是 ID，按 key 深度合并，新 key 直接添加。
-
-### 实体型文件（rite/*.json, event/*.json 等）
-
-- **标量字段**：后序 Mod 覆盖前序
-- **对象字段**（如 cards_slot）：按 key 递归合并
-- **数组字段**（settlement, settlement_prior, settlement_extre）：智能匹配合并
-  - Rite 文件：按 guid → 槽位引用（s2.is 等）→ condition 全文 → result_text 四级匹配
-  - Event 文件：按 action 中的关键指令（rite/event_on/prompt.id 等）匹配
-
-### 特殊文件
-
-- `sfx_config.json`：整文件替换（按官方文档要求）
-- `tag.json`：覆盖时验证 name 字段一致性，不一致时发出警告
-
-## 项目结构
-
-```
-├── run.bat                  # 启动脚本
-├── src/
-│   ├── main.py              # 入口
-│   ├── config.py            # 路径配置、用户设置持久化
-│   ├── core/
-│   │   ├── json_parser.py   # JS 注释 / BOM / 尾随逗号自动修正
-│   │   ├── mod_scanner.py   # 扫描 Workshop 和本地 Mod 目录
-│   │   ├── merger.py        # 核心合并算法（四级数组匹配）
-│   │   ├── conflict.py      # 冲突检测、覆盖链分析
-│   │   └── deployer.py      # 生成 / 清理合成 Mod
-│   └── gui/
-│       ├── app.py           # 主窗口
-│       ├── mod_list.py      # Mod 列表面板（排序 + 启用）
-│       ├── mod_detail.py    # 详情面板（preview 图片 + 文件列表）
-│       └── override_panel.py # 覆盖详情面板（覆盖链 + 冲突标记）
-├── user_config.json         # 用户设置（运行时生成，已 gitignore）
-└── merged_output/           # 合并输出（运行时生成，已 gitignore）
-```
+![使用示例](asset/img/example_video.gif)
 
 ## 注意事项
 
+- 游戏更新后建议重新执行合并，以获取本体新增的内容
+- 合并输出为标准 JSON，不保留原文件中的注释
 - Mod 优先级：列表中越靠下的 Mod 优先级越高，同一字段以最后一个 Mod 的值为准
-- 部署后需要在游戏中禁用所有原始 Mod，只启用合成 Mod
-- 游戏更新后建议重新执行合并，以获取本体新增内容
-- 合并输出为标准 JSON（不保留原文件中的注释）
+- 首次使用需要在「文件」菜单中设置正确的游戏路径和 Workshop 路径
+
+---
+
+## English Summary
+
+**Sultan's Game - Mod Merge Manager**
+
+You've downloaded a bunch of mods for Sultan's Game, only to find that two of them modify the same file — and the game throws a conflict error, refusing to enable both at once. Sound familiar? In most cases, the mods aren't even touching the same data — there's no real conflict — but the game blocks them anyway. Ever wished you could just have them all? If so, this tool is for you.
+
+It performs **deep field-level JSON merging** across multiple mods, producing a single synthetic mod that preserves all changes. No more choosing one mod over another.
+
+**I want it all!**
+
+> Most of the code in this project was written with AI-assisted programming (vibe coding).
+
+**Key Features:**
+
+- **Automatic ID conflict resolution** — Detects when different mods use the same entity ID (cards, rites, events, etc.) and automatically reassigns conflicting IDs with all references updated.
+- **Smart merging with conflict highlighting** — Merges mods at the JSON field level rather than file level. True conflicts (same field modified by multiple mods) are highlighted in an interactive diff panel where you can review and manually adjust the merged result.
+- **Drag-and-drop priority ordering** — Arrange mod priority by dragging. Lower position = higher priority. When conflicts occur, the highest-priority mod's value wins.
+
+**Installation:**
+
+- **Recommended:** Download the latest `SuDanModMerger.zip` from [GitHub Releases](../../releases) and run `SuDanModMerger.exe`.
+- **From source:** Requires Python 3.10+. Run `pip install -r requirements.txt`, then `python -m src.main`.
+
+**Usage:** Launch the tool → select and order your mods → click "Execute Merge" → disable all original mods in-game and enable only the synthetic mod.

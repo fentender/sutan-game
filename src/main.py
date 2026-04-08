@@ -9,7 +9,7 @@ import sys
 from PySide6.QtWidgets import QApplication, QProgressDialog
 from PySide6.QtCore import Qt
 
-from .config import UserConfig, SCHEMA_DIR
+from .config import UserConfig, SCHEMA_DIR, APP_ICON_PATH
 from .gui.workers import SchemaWorker
 
 
@@ -49,6 +49,10 @@ def _ensure_schemas_with_ui(config_dir, schema_dir):
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+
+    if APP_ICON_PATH.exists():
+        from PySide6.QtGui import QIcon
+        app.setWindowIcon(QIcon(str(APP_ICON_PATH)))
 
     config = UserConfig.load()
 
