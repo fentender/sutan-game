@@ -4,6 +4,7 @@
 import json
 import logging
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -20,13 +21,106 @@ else:
     # 源码运行：项目根目录
     PROJECT_ROOT = Path(__file__).parent.parent
 
-# 默认路径
-DEFAULT_GAME_PATH = Path("d:/SteamLibrary/steamapps/common/Sultan's Game")
-DEFAULT_WORKSHOP_PATH = Path("d:/SteamLibrary/steamapps/workshop/content/3117820")
+# 游戏与 Workshop 常量
+GAME_DIR_NAME = "Sultan's Game"
+WORKSHOP_APP_ID = "3117820"
 DEFAULT_CONFIG_SUBPATH = "Sultan's Game_Data/StreamingAssets/config"
 
 # 本地 mod 目录（我的文档/DoubleCross/SultansGame/Mod）
 DEFAULT_LOCAL_MOD_PATH = Path(os.path.expanduser("~/Documents/DoubleCross/SultansGame/Mod"))
+
+
+# ── Steam 路径自动检测 ──────────────────────────────────────────
+
+def _detect_steam_library_folders() -> list[Path]:
+    """检测所有 Steam 库目录（支持多磁盘安装）"""
+    steam_root = None
+
+    # 方式一：通过 Windows 注册表获取 Steam 安装目录
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r"Software\Valve\Steam") as key:
+            steam_root = Path(winreg.QueryValueEx(key, "SteamPath")[0])
+    except Exception:
+        pass
+
+    # 方式二：尝试常见安装位置
+    if not steam_root or not steam_root.exists():
+        for candidate in [
+            Path("C:/Program Files (x86)/Steam"),
+            Path("C:/Program Files/Steam"),
+            Path("D:/Steam"),
+            Path("E:/Steam"),
+        ]:
+            if candidate.exists():
+                steam_root = candidate
+                break
+
+    if not steam_root or not steam_root.exists():
+        return []
+
+    # 解析 libraryfolders.vdf 获取所有库目录
+    vdf_path = steam_root / "steamapps" / "libraryfolders.vdf"
+    folders = [steam_root]  # Steam 安装目录本身也是一个库
+
+    if vdf_path.exists():
+        try:
+            text = vdf_path.read_text(encoding='utf-8')
+            # VDF 格式中 "path" 的值就是库目录
+            for match in re.finditer(r'"path"\s+"([^"]+)"', text):
+                p = Path(match.group(1).replace("\\\\", "/"))
+                if p.exists() and p not in folders:
+                    folders.append(p)
+        except Exception:
+            pass
+
+    return folders
+
+
+GAME_EXE_NAME = "Sultan's Game.exe"
+
+
+def detect_game_path() -> str:
+    """在所有 Steam 库中查找游戏安装目录，找不到返回空字符串。
+    优先选择包含游戏可执行文件的完整安装目录。
+    """
+    fallback = ""
+    for folder in _detect_steam_library_folders():
+        candidate = folder / "steamapps" / "common" / GAME_DIR_NAME
+        if candidate.exists():
+            if (candidate / GAME_EXE_NAME).exists():
+                return str(candidate)
+            # 目录存在但没有 exe，记为备选
+            if not fallback:
+                fallback = str(candidate)
+    return fallback
+
+
+def detect_workshop_path() -> str:
+    """在所有 Steam 库中查找游戏的 Workshop 内容目录，找不到返回空字符串"""
+    for folder in _detect_steam_library_folders():
+        candidate = folder / "steamapps" / "workshop" / "content" / WORKSHOP_APP_ID
+        if candidate.exists():
+            return str(candidate)
+    return ""
+
+
+def infer_workshop_path_from_game(game_path: str) -> str:
+    """根据游戏安装路径推导 Workshop 路径"""
+    gp = Path(game_path)
+    # 游戏路径: .../steamapps/common/Sultan's Game
+    # Workshop:  .../steamapps/workshop/content/3117820
+    steamapps = gp.parent.parent  # .../steamapps
+    candidate = steamapps / "workshop" / "content" / WORKSHOP_APP_ID
+    if candidate.exists():
+        return str(candidate)
+    return ""
+
+
+# 默认路径（自动检测，找不到为空字符串）
+DEFAULT_GAME_PATH = detect_game_path()
+DEFAULT_WORKSHOP_PATH = detect_workshop_path()
 
 # 用户配置文件
 USER_CONFIG_PATH = PROJECT_ROOT / "user_config.json"

@@ -131,6 +131,16 @@ class MainWindow(QMainWindow):
         """加载所有 mod（workshop + 本地目录）"""
         diag.snapshot("scan", "parse")  # 清空上次的扫描/解析消息
 
+        # 路径有效性检查
+        if not self.config.workshop_dir.exists():
+            diag.warn("scan",
+                      "Workshop 路径不存在，请通过 文件 → 设置 Workshop 路径 进行配置: "
+                      + str(self.config.workshop_dir))
+        if not self.config.game_config_path.exists():
+            diag.warn("scan",
+                      "游戏配置目录不存在，请通过 文件 → 设置游戏路径 进行配置: "
+                      + str(self.config.game_config_path))
+
         # 扫描 workshop 目录
         mods = scan_all_mods(
             self.config.workshop_dir,

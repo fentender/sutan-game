@@ -54,7 +54,9 @@
       "Bash(git -C d:/Games/SuDanGame log --oneline --follow -- schemas/template_map.json)",
       "Bash(git -C d:/Games/SuDanGame ls-files schemas/)",
       "Bash(pyinstaller sudan.spec --noconfirm)",
-      "Bash(python -c \"from src.config import PROJECT_ROOT, SCHEMA_DIR, USER_CONFIG_PATH; print\\('ROOT:', PROJECT_ROOT\\); print\\('SCHEMA:', SCHEMA_DIR\\); print\\('CONFIG:', USER_CONFIG_PATH\\)\")"
+      "Bash(python -c \"from src.config import PROJECT_ROOT, SCHEMA_DIR, USER_CONFIG_PATH; print\\('ROOT:', PROJECT_ROOT\\); print\\('SCHEMA:', SCHEMA_DIR\\); print\\('CONFIG:', USER_CONFIG_PATH\\)\")",
+      "Bash(python -c \"from src.config import detect_game_path, detect_workshop_path, DEFAULT_GAME_PATH, DEFAULT_WORKSHOP_PATH, infer_workshop_path_from_game; print\\('game:', repr\\(DEFAULT_GAME_PATH\\)\\); print\\('workshop:', repr\\(DEFAULT_WORKSHOP_PATH\\)\\); print\\('detect_game:', repr\\(detect_game_path\\(\\)\\)\\); print\\('detect_workshop:', repr\\(detect_workshop_path\\(\\)\\)\\); print\\('infer from game:', repr\\(infer_workshop_path_from_game\\(DEFAULT_GAME_PATH\\)\\)\\)\")",
+      "Read(//c/program files \\(x86\\)/steam/steamapps/common/Sultan's Game/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans",
