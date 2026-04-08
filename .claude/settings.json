@@ -39,7 +39,8 @@
       "Bash(wc -l after_story/*.json)",
       "Bash([ -f \"d:/SteamLibrary/steamapps/workshop/content/3117820/$mod/config/cards.json\" ])",
       "Bash(python -c \"from src.core.id_remapper import remap_mod_configs; print\\('import ok'\\)\")",
-      "Bash(python -c \"from src.gui.diff_dialog import DiffDialog; print\\('import ok'\\)\")"
+      "Bash(python -c \"from src.gui.diff_dialog import DiffDialog; print\\('import ok'\\)\")",
+      "Bash(grep -r \"smart_match\\\\|append\\\\|array\" /d/Games/SuDanGame/tests/*.py --include=\"*.py\" -n)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans"

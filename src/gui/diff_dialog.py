@@ -204,14 +204,12 @@ class DiffDialog(QDialog):
     def __init__(self, rel_path: str, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
                  allow_deletions: bool = False,
-                 array_append_mode: bool = False,
                  parent=None):
         super().__init__(parent)
         self._rel_path = rel_path
         self._game_config_path = game_config_path
         self._mod_configs = mod_configs
         self._allow_deletions = allow_deletions
-        self._array_append_mode = array_append_mode
 
         # 预计算各级合并状态的 JSON 文本
         self._base_text: str = ""  # 游戏本体原始文本（所有 mod 之前）
@@ -267,8 +265,7 @@ class DiffDialog(QDialog):
 
             mod_data = load_json(mod_file)
             delta = compute_mod_delta(base_data, mod_data, file_type, self._allow_deletions,
-                                      schema=schema, root_key=root_key,
-                                      array_append_mode=self._array_append_mode)
+                                      schema=schema, root_key=root_key)
             if not delta:
                 continue
 
@@ -282,14 +279,12 @@ class DiffDialog(QDialog):
                         next_state.pop(key, None)
                         continue
                     if key in next_state:
-                        next_state[key] = deep_merge(next_state[key], value, schema, field_path,
-                                                     array_append_mode=self._array_append_mode)
+                        next_state[key] = deep_merge(next_state[key], value, schema, field_path)
                     else:
                         next_state[key] = copy.deepcopy(value)
                 current = next_state
             else:
-                current = deep_merge(current, delta, schema, field_path,
-                                     array_append_mode=self._array_append_mode)
+                current = deep_merge(current, delta, schema, field_path)
 
             curr_text = _format_json(current)
 

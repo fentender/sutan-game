@@ -42,14 +42,13 @@ class MergeWorker(CancellableWorker):
     progress = Signal(str)
 
     def __init__(self, game_config_path, mod_configs, output_path, mod_paths,
-                 allow_deletions=False, array_append_mode=False):
+                 allow_deletions=False):
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
         self.allow_deletions = allow_deletions
-        self.array_append_mode = array_append_mode
 
     def run(self):
         try:
@@ -62,7 +61,6 @@ class MergeWorker(CancellableWorker):
                 allow_deletions=self.allow_deletions,
                 cancel_check=self._check_cancel,
                 overrides_dir=MOD_OVERRIDES_DIR,
-                array_append_mode=self.array_append_mode,
             )
             self._check_cancel()
             # 在工作线程内快照警告，避免跨线程竞态
@@ -81,13 +79,11 @@ class AnalyzeWorker(CancellableWorker):
     """后台冲突分析线程"""
     finished = Signal(list, list)  # overrides, parse_messages
 
-    def __init__(self, game_config_path, mod_configs, schema_dir,
-                 array_append_mode=False):
+    def __init__(self, game_config_path, mod_configs, schema_dir):
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.schema_dir = schema_dir
-        self.array_append_mode = array_append_mode
 
     def run(self):
         try:
@@ -97,7 +93,6 @@ class AnalyzeWorker(CancellableWorker):
                 self.mod_configs,
                 schema_dir=self.schema_dir,
                 cancel_check=self._check_cancel,
-                array_append_mode=self.array_append_mode,
             )
             parse_msgs = diag.snapshot("parse")
             self.finished.emit(overrides, parse_msgs)

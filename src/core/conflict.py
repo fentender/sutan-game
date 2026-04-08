@@ -69,8 +69,7 @@ def _make_element_label(item, match_keys):
 # ==================== 差异收集 ====================
 
 def _collect_smart_match_diffs(base_arr, mod_arr, path,
-                               match_keys, schema, field_path,
-                               array_append_mode=False):
+                               match_keys, schema, field_path):
     """可匹配数组的原子化比较：按 match_keys 精确匹配元素后递归比较子字段。
     同 key 多对多时用字符串相似度做全局最优配对。"""
     diffs = []
@@ -119,7 +118,6 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
             diffs.extend(_collect_field_diffs(
                 base_arr[base_idx], mod_item, elem_path,
                 schema, field_path,
-                array_append_mode=array_append_mode
             ))
 
         for _, mod_item in unmatched:
@@ -135,27 +133,33 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
     return diffs
 
 
-def _collect_unmatched_array_diffs(base_arr, mod_arr, path):
-    """不可匹配数组：每个 mod 元素与 base 所有元素整体比较"""
+def _is_obj_array(arr) -> bool:
+    """判断是否是非空对象数组"""
+    return isinstance(arr, list) and bool(arr) and all(isinstance(x, dict) for x in arr)
+
+
+def _collect_index_match_diffs(base_arr, mod_arr, path, schema, field_path):
+    """按序号位置对应的 array<object> 深度比较。
+    mod[i] ↔ base[i]，超出部分为新增/删除。"""
     diffs = []
+    min_len = min(len(base_arr), len(mod_arr))
 
-    def _serialize(x):
-        if isinstance(x, (dict, list)):
-            return json.dumps(x, sort_keys=True, ensure_ascii=False)
-        return x
+    for i in range(min_len):
+        elem_path = f"{path}[{i}]"
+        if isinstance(base_arr[i], dict) and isinstance(mod_arr[i], dict):
+            diffs.extend(_collect_field_diffs(
+                base_arr[i], mod_arr[i], elem_path, schema, field_path
+            ))
+        elif base_arr[i] != mod_arr[i]:
+            diffs.append((elem_path, base_arr[i], mod_arr[i]))
 
-    base_strs = [_serialize(x) for x in base_arr]
-    mod_strs = [_serialize(x) for x in mod_arr]
+    # mod 多出的 = 新增
+    for i in range(min_len, len(mod_arr)):
+        diffs.append((f"{path}[{i}]", None, mod_arr[i]))
 
-    # 新增：mod 中有但 base 中没有的
-    for i, ms in enumerate(mod_strs):
-        if ms not in base_strs:
-            diffs.append((f"{path}[+]", None, mod_arr[i]))
-
-    # 删除：base 中有但 mod 中没有的
-    for i, bs in enumerate(base_strs):
-        if bs not in mod_strs:
-            diffs.append((f"{path}[-]", base_arr[i], None))
+    # base 多出的 = 删除
+    for i in range(min_len, len(base_arr)):
+        diffs.append((f"{path}[{i}]", base_arr[i], None))
 
     return diffs
 
@@ -164,7 +168,6 @@ def _collect_unmatched_array_diffs(base_arr, mod_arr, path):
 def _collect_field_diffs(
     base: object, mod_data: object, prefix: str = "",
     schema: dict | None = None, field_path: list[str] | None = None,
-    array_append_mode: bool = False,
 ) -> list[tuple[str, object, object]]:
     """
     收集 mod 相对于 base 的字段差异。
@@ -189,7 +192,6 @@ def _collect_field_diffs(
                     diffs.extend(_collect_field_diffs(
                         base[key], mod_data[key], path,
                         schema, child_path,
-                        array_append_mode=array_append_mode
                     ))
                 elif isinstance(base[key], list) and isinstance(mod_data[key], list):
                     # 从 schema 判断数组合并策略
@@ -201,11 +203,12 @@ def _collect_field_diffs(
                         diffs.extend(_collect_smart_match_diffs(
                             base[key], mod_data[key], path,
                             match_keys, schema, child_path,
-                            array_append_mode=array_append_mode
                         ))
-                    elif array_append_mode:
-                        diffs.extend(_collect_unmatched_array_diffs(
-                            base[key], mod_data[key], path
+                    elif _is_obj_array(base[key]) and _is_obj_array(mod_data[key]):
+                        # 对象数组：按序号位置深度比较
+                        diffs.extend(_collect_index_match_diffs(
+                            base[key], mod_data[key], path,
+                            schema, child_path,
                         ))
                     elif base[key] != mod_data[key]:
                         diffs.append((path, base[key], mod_data[key]))
@@ -223,7 +226,6 @@ def analyze_file_overrides(
     mod_data_list: list[tuple[str, str, dict]],
     schema: dict | None = None,
     field_path: list[str] | None = None,
-    array_append_mode: bool = False,
 ) -> FileOverrideInfo:
     """
     分析单个文件的覆盖情况。
@@ -243,8 +245,7 @@ def analyze_file_overrides(
 
     for _, mod_name, mod_data in mod_data_list:
         diffs = _collect_field_diffs(base_data, mod_data,
-                                     schema=schema, field_path=field_path,
-                                     array_append_mode=array_append_mode)
+                                     schema=schema, field_path=field_path)
         for fp, base_val, mod_val in diffs:
             if base_val is None:
                 info.new_entries.append((mod_name, f"新增: {fp}"))
@@ -273,7 +274,6 @@ def analyze_all_overrides(
     mod_configs: list[tuple[str, str, Path]],
     schema_dir: Path | None = None,
     cancel_check=None,
-    array_append_mode: bool = False,
 ) -> list[FileOverrideInfo]:
     """
     分析所有文件的覆盖情况。
@@ -321,8 +321,7 @@ def analyze_all_overrides(
         schema_path = [root_key] if root_key else None
 
         info = analyze_file_overrides(rel_path, base_data, mod_data_list,
-                                       schema=schema, field_path=schema_path,
-                                       array_append_mode=array_append_mode)
+                                       schema=schema, field_path=schema_path)
         results.append(info)
 
     return results

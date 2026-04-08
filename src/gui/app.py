@@ -108,15 +108,6 @@ class MainWindow(QMainWindow):
         self.chk_allow_deletions.toggled.connect(self._on_allow_deletions_changed)
         btn_layout.addWidget(self.chk_allow_deletions)
 
-        self.chk_array_append = QCheckBox("数组追加模式")
-        self.chk_array_append.setChecked(self.config.array_append_mode)
-        self.chk_array_append.setToolTip(
-            "勾选后，没有 smart_match 的对象数组使用追加模式（逐元素比较）。\n"
-            "默认关闭，使用整体替换，避免数组元素重复。"
-        )
-        self.chk_array_append.toggled.connect(self._on_array_append_changed)
-        btn_layout.addWidget(self.chk_array_append)
-
         main_layout.addLayout(btn_layout)
 
         # 日志面板
@@ -180,11 +171,6 @@ class MainWindow(QMainWindow):
     def _on_allow_deletions_changed(self, checked: bool):
         self.config.allow_deletions = checked
         self.config.save()
-
-    def _on_array_append_changed(self, checked: bool):
-        self.config.array_append_mode = checked
-        self.config.save()
-        self._schedule_analyze()
 
     def _save_config(self):
         new_order = self.mod_list_panel.get_mod_order()
@@ -268,7 +254,6 @@ class MainWindow(QMainWindow):
 
         self._analyze_worker = AnalyzeWorker(
             self.config.game_config_path, self._remapped_configs, SCHEMA_DIR,
-            array_append_mode=self.config.array_append_mode,
         )
         self._analyze_worker.finished.connect(self._on_analyze_finished)
         self._analyze_worker.error.connect(self._on_analyze_error)
@@ -316,7 +301,6 @@ class MainWindow(QMainWindow):
             game_config_path=self.config.game_config_path,
             mod_configs=self._remapped_configs or self._get_mod_configs(),
             allow_deletions=self.config.allow_deletions,
-            array_append_mode=self.config.array_append_mode,
             parent=self,
         )
         dlg.exec()
@@ -357,7 +341,6 @@ class MainWindow(QMainWindow):
             output_path,
             mod_paths,
             allow_deletions=self.config.allow_deletions,
-            array_append_mode=self.config.array_append_mode,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
         self._worker.finished.connect(self._on_merge_finished)
