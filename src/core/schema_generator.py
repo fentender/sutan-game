@@ -391,7 +391,7 @@ def _build_field_from_counts(key, type_counts, self_name=None):
     # 检查模板引用（允许同名引用，但防止自引用）
     canonical = _canonical_field_name(key)
     if canonical in _templates_registry and canonical != self_name:
-        return {"_use_template": canonical}
+        return {"__use_template__": canonical}
 
     # 推断合并策略
     if isinstance(type_val, list):
@@ -411,18 +411,18 @@ def _build_field_from_counts(key, type_counts, self_name=None):
     else:
         merge = "replace"
 
-    field_def = {"type": type_val, "merge": merge}
+    field_def = {"__type__": type_val, "__merge__": merge}
     if merge == "smart_match":
         mk = _detect_match_key_from_global(_canonical_field_name(key))
         if mk:
-            field_def["match_key"] = mk
+            field_def["__match_key__"] = mk
 
     # array<object> 字段递归构建 element
     if (type_val == "array<object>"
             or (isinstance(type_val, list) and "array<object>" in type_val)):
         elem = _build_element_from_global(canonical)
         if elem:
-            field_def["element"] = elem
+            field_def["__element__"] = elem
 
     return field_def
 
@@ -441,9 +441,9 @@ def _build_template_from_field_info(fi, self_name=None):
             fields[key] = fd
 
     result = {
-        "type": "object",
-        "merge": "merge",
-        "fields": fields,
+        "__type__": "object",
+        "__merge__": "merge",
+        "__fields__": fields,
     }
     if not fields:
         result["_note"] = "所有子 key 均为 DSL 模式，由全局 DSL 规则处理"
@@ -493,7 +493,7 @@ def _build_dsl_rules():
         if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
             # case:opN → action 模板
             if group_name == "case":
-                dsl_rules[group_name] = {"_use_template": "action"}
+                dsl_rules[group_name] = {"__use_template__": "action"}
                 continue
 
         # 普通 DSL 组
@@ -503,7 +503,7 @@ def _build_dsl_rules():
             merge = "append"
         else:
             merge = "replace"
-        dsl_rules[group_name] = {"type": type_val, "merge": merge}
+        dsl_rules[group_name] = {"__type__": type_val, "__merge__": merge}
 
     return dsl_rules
 
@@ -517,13 +517,13 @@ def build_field_def(path, info, all_info):
     type_val = infer_type(types)
     merge = infer_merge_strategy(field_name, type_val, field_info)
 
-    result = {"type": type_val, "merge": merge}
+    result = {"__type__": type_val, "__merge__": merge}
 
     # object 处理
     if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
         canonical = _canonical_field_name(field_name)
         if canonical in _templates_registry:
-            result["_use_template"] = canonical
+            result["__use_template__"] = canonical
         else:
             # 固定 key object → 递归构建 fields
             fields = {}
@@ -537,10 +537,10 @@ def build_field_def(path, info, all_info):
                 # 检测子 key 是否为同类结构：
                 # 全部 value 都是 object 且子字段名集合存在包含关系 → 用 _template 替代
                 obj_fields = {k: v for k, v in fields.items()
-                              if isinstance(v, dict) and v.get("type") == "object" and "fields" in v}
+                              if isinstance(v, dict) and v.get("__type__") == "object" and "__fields__" in v}
                 if len(obj_fields) > 1 and len(obj_fields) == len(fields):
                     # 取子字段名最多的集合作为基准
-                    sub_key_sets = {k: frozenset(v["fields"].keys()) for k, v in obj_fields.items()}
+                    sub_key_sets = {k: frozenset(v["__fields__"].keys()) for k, v in obj_fields.items()}
                     largest = max(sub_key_sets.values(), key=len)
                     # 所有子 key 的字段集合都是最大集合的子集 → 同类
                     all_subset = all(s <= largest for s in sub_key_sets.values())
@@ -548,11 +548,11 @@ def build_field_def(path, info, all_info):
                         # 选 schema 最丰富的（序列化最长的）作为模板
                         best_key = max(obj_fields, key=lambda k: len(
                             json.dumps(obj_fields[k], sort_keys=True)))
-                        result["_template"] = obj_fields[best_key]
+                        result["__template__"] = obj_fields[best_key]
                     else:
-                        result["fields"] = fields
+                        result["__fields__"] = fields
                 else:
-                    result["fields"] = fields
+                    result["__fields__"] = fields
 
     # array<object> 处理（包括联合类型中含 array<object> 或 array 的情况）
     has_array_object = (
@@ -570,17 +570,17 @@ def build_field_def(path, info, all_info):
                 if SEP not in remainder:
                     element[remainder] = build_field_def(key, all_info[key], all_info)
         if element:
-            result["element"] = element
+            result["__element__"] = element
         else:
             diag.warn("schema", f"数组元素无字段信息: {arr_path.replace(SEP, ' → ')}")
 
         if merge == "smart_match":
             mk = infer_match_key(field_info)
             if mk:
-                result["match_key"] = mk
+                result["__match_key__"] = mk
             else:
                 # 无 match_key：降级为 append
-                result["merge"] = "append"
+                result["__merge__"] = "append"
 
     return result
 
@@ -797,13 +797,13 @@ def generate_all(config_dir, output_dir, progress_callback=None):
     dsl_rules = _build_dsl_rules()
     diag.info("schema", f"自动发现的模板: {sorted(_templates_registry.keys())}")
     for name, tpl in _templates_registry.items():
-        n_fields = len(tpl.get("fields", {}))
+        n_fields = len(tpl.get("__fields__", {}))
         diag.info("schema", f"  {name}: {n_fields} 个固定 key")
     diag.info("schema", f"DSL 规则: {len(dsl_rules)} 组")
 
     # 写入全局模板文件
     global_schema = {
-        "_templates": _templates_registry,
+        "__templates__": _templates_registry,
         "_dsl_rules": dsl_rules,
     }
     global_file = output_path / "_global.schema.json"

@@ -7,98 +7,98 @@
   },
   "_fields": {
     "Bag": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "slides": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "res": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "Card": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "slides": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "res": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "Main": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "slides": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "res": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "Rite": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "slides": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "res": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     }

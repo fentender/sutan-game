@@ -9,157 +9,157 @@
   },
   "_fields": {
     "bg": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "bg_pos": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "x": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "y": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         }
       }
     },
     "fg": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "fg_in_slot_index": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "name": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "nomal_slot_bg": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "slots": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "s1": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s10": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s11": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s12": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s13": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s14": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s15": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s16": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s17": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s2": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s3": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s4": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s5": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s6": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s7": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s8": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s9": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         }
       }
     },
     "tips": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "title_bg_hide": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "title_help_btn_hide": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "title_pos": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "x": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "y": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     }

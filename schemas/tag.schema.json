@@ -7,74 +7,74 @@
   },
   "_entry": {
     "attributes": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "吸附指定": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "can_add": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "can_inherit": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "can_nagative_and_zero": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "can_visible": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "code": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "fail_tag": {
-      "type": "array",
-      "merge": "append"
+      "__type__": "array",
+      "__merge__": "append"
     },
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "name": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "resource": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "tag_rank": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "tag_sfx": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "tag_vanishing": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "text": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "tips": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "type": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     }
   }
 }

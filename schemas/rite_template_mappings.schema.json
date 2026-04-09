@@ -7,20 +7,20 @@
   },
   "_entry": {
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "slot_open": {
-      "type": "array<string>",
-      "merge": "append"
+      "__type__": "array<string>",
+      "__merge__": "append"
     },
     "template_id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "tips": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     }
   }
 }

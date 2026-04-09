@@ -9,154 +9,154 @@
   },
   "_fields": {
     "auto_start": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "auto_start_init": {
-      "type": "array<int>",
-      "merge": "append"
+      "__type__": "array<int>",
+      "__merge__": "append"
     },
     "condition": {
-      "type": "object",
-      "merge": "merge",
-      "_use_template": "condition"
+      "__type__": "object",
+      "__merge__": "merge",
+      "__use_template__": "condition"
     },
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "is_replay": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "on": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "back_to_prev_round_end": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "card_born": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "card_clean": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "close_begin_guide": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "close_prompt": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_wizard": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "counter": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "game_end": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "open_card_info": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "open_card_info_end": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "open_rite": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "open_rite_end": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_can_fill": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_can_start": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_can_stop": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_cancel": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_end": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "rite_start": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "round_begin_ba": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "show_wizard_option": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "sudan_redraw_start": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "settlement": {
-      "type": "array<object>",
-      "merge": "append",
-      "element": {
+      "__type__": "array<object>",
+      "__merge__": "append",
+      "__element__": {
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "tips_resource": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "tips_text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "start_trigger": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "text": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     }
   }
 }

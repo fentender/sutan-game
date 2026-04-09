@@ -9,246 +9,246 @@
   },
   "_fields": {
     "back_to_prev_round_count": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "card_equips": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "2000024": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         },
         "2000061": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         },
         "2000328": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         },
         "2000791": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "cards": {
-      "type": "array",
-      "merge": "append"
+      "__type__": "array",
+      "__merge__": "append"
     },
     "default_cards": {
-      "type": "array<int>",
-      "merge": "append"
+      "__type__": "array<int>",
+      "__merge__": "append"
     },
     "default_rite": {
-      "type": "array",
-      "merge": "append"
+      "__type__": "array",
+      "__merge__": "append"
     },
     "difficulty": {
-      "type": "array<object>",
-      "merge": "append",
-      "element": {
+      "__type__": "array<object>",
+      "__merge__": "append",
+      "__element__": {
         "back_to_prev_round_count": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "desc": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "gold_dice_count": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "name": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "single_dice_face_weight": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         },
         "sudan_life_time": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "sudan_redraw_times_per_round": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "gold_dice_count": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "name": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "show_deadline": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "show_helpbtn": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "show_ithink": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "show_prestige": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "show_story": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "single_dice_face_weight": {
-      "type": "array<int>",
-      "merge": "append"
+      "__type__": "array<int>",
+      "__merge__": "append"
     },
     "sudan_box_show_after_wizard": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "sudan_card_desc": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "2000512": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2000513": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2000514": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2000515": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010001": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010002": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010003": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010004": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010005": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010006": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010007": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010008": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010009": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010010": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010011": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010012": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010013": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010014": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010015": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "2010016": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         }
       }
     },
     "sudan_life_time": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "sudan_pool": {
-      "type": "array<int>",
-      "merge": "append"
+      "__type__": "array<int>",
+      "__merge__": "append"
     },
     "sudan_pool_desc": {
-      "type": "array<string>",
-      "merge": "append"
+      "__type__": "array<string>",
+      "__merge__": "append"
     },
     "sudan_redraw_count": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "sudan_redraw_times_per_round": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "sudan_redraw_times_recovery_round": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "sudan_shuffle": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "think_id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "think_show_settlement": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "wizard": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     }
   }
 }

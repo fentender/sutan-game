@@ -9,69 +9,69 @@
   },
   "_fields": {
     "Item": {
-      "type": "array<object>",
-      "merge": "append",
-      "element": {
+      "__type__": "array<object>",
+      "__merge__": "append",
+      "__element__": {
         "Option": {
-          "type": [
+          "__type__": [
             "array",
             "array<object>"
           ],
-          "merge": "append",
-          "element": {
+          "__merge__": "append",
+          "__element__": {
             "action": {
-              "type": "object",
-              "merge": "merge",
-              "_use_template": "action"
+              "__type__": "object",
+              "__merge__": "merge",
+              "__use_template__": "action"
             },
             "option_Jump_condition": {
-              "type": "object",
-              "merge": "merge"
+              "__type__": "object",
+              "__merge__": "merge"
             },
             "option_Jump_id": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "option_Jump_word": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "direct_id": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "jump_type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "word": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "word_id": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "description": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "dialog_tree_id": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "first_word_id": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     }
   }
 }

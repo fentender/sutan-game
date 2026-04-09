@@ -7,90 +7,90 @@
   },
   "_fields": {
     "MAIN_UI_LEAVE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "height": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posX": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posY": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "width": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "OVER_UI_LOGO": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "height": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posX": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posY": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "width": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         }
       }
     },
     "START_UI_LOGO": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "height": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "posX": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "posY": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "width": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         }
       }
     },
     "START_UI_START_GAME_BUTTON_BG": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "height": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posX": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "posY": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "width": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     }

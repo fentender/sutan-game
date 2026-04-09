@@ -7,78 +7,78 @@
   },
   "_entry": {
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "is_show": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "plots": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "smart_match",
-      "element": {
+      "__merge__": "smart_match",
+      "__element__": {
         "data": {
-          "type": "array<object>",
-          "merge": "smart_match",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "smart_match",
+          "__element__": {
             "guid": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "plot_text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "plot_title": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           },
-          "match_key": [
+          "__match_key__": [
             "guid"
           ]
         },
         "guid": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       },
-      "match_key": [
+      "__match_key__": [
         "guid"
       ]
     },
     "resources": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "append",
-      "element": {
+      "__merge__": "append",
+      "__element__": {
         "pic_res": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "rare": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "show_type": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "sort": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     }
   }
 }

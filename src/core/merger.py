@@ -139,7 +139,7 @@ def _merge_settlement_array(base_arr: list, mod_arr: list,
     if schema and element_path:
         field_def = get_field_def(schema, element_path)
         if field_def:
-            match_keys = field_def.get("match_key")
+            match_keys = field_def.get("__match_key__")
 
     if not match_keys:
         raise ValueError(
@@ -381,16 +381,16 @@ def deep_merge(base: object, override: object,
         known_keys = set()
 
         # current_def 可能是 _entry/_fields 层（直接包含字段定义），
-        # 也可能是某个 object 字段的定义（通过 fields 包含子字段）
-        if "fields" in current_def:
-            known_keys = set(current_def["fields"].keys())
+        # 也可能是某个 object 字段的定义（通过 __fields__ 包含子字段）
+        if "__fields__" in current_def:
+            known_keys = set(current_def["__fields__"].keys())
         else:
             # 检查是否是字段列表层：每个 value 都是 field_def
-            meta_keys = {"type", "merge", "fields", "element", "match_key",
-                         "_template", "_use_template", "_templates"}
+            meta_keys = {"__type__", "__merge__", "__fields__", "__element__", "__match_key__",
+                         "__template__", "__use_template__", "__templates__"}
             field_candidates = {k for k in current_def if k not in meta_keys}
             if field_candidates and all(
-                isinstance(current_def[k], dict) and ("type" in current_def[k] or "_use_template" in current_def[k])
+                isinstance(current_def[k], dict) and ("__type__" in current_def[k] or "__use_template__" in current_def[k])
                 for k in field_candidates
             ):
                 known_keys = field_candidates
@@ -411,10 +411,10 @@ def deep_merge(base: object, override: object,
 def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key: str) -> tuple[str, str | None]:
     """确定字段的合并策略，返回 (strategy, type_warn_or_None)"""
     if child_def:
-        strategy = child_def.get("merge", "replace")
+        strategy = child_def.get("__merge__", "replace")
 
         # 类型校验
-        schema_type = child_def.get("type")
+        schema_type = child_def.get("__type__")
         if schema_type and override_val is not None:
             if not check_type_match(schema_type, override_val):
                 from .type_utils import get_type_str
@@ -648,8 +648,8 @@ def _recursive_delta(base, mod, allow_deletions=False,
         schema_match_key = None
         if schema and field_path:
             field_def = get_field_def(schema, field_path)
-            if field_def and field_def.get("merge") == "smart_match":
-                mk = field_def.get("match_key")
+            if field_def and field_def.get("__merge__") == "smart_match":
+                mk = field_def.get("__match_key__")
                 if mk:
                     schema_match_key = mk[0]
 

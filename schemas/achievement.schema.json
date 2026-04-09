@@ -2,23 +2,11 @@
   "_meta": {
     "schema_version": 1,
     "file_type": "dictionary",
-    "description": "gallery_cg",
-    "source": "gallery_cg.json"
+    "description": "achievement",
+    "source": "achievement.json"
   },
   "_entry": {
-    "big_resource": {
-      "__type__": "string",
-      "__merge__": "replace"
-    },
     "icon": {
-      "__type__": "string",
-      "__merge__": "replace"
-    },
-    "icon_deselect": {
-      "__type__": "string",
-      "__merge__": "replace"
-    },
-    "icon_lock": {
       "__type__": "string",
       "__merge__": "replace"
     },
@@ -26,11 +14,23 @@
       "__type__": "int",
       "__merge__": "replace"
     },
-    "over_id": {
-      "__type__": "array<int>",
-      "__merge__": "append"
+    "is_hidden": {
+      "__type__": "bool",
+      "__merge__": "replace"
     },
-    "title": {
+    "lock_icon": {
+      "__type__": "string",
+      "__merge__": "replace"
+    },
+    "name": {
+      "__type__": "string",
+      "__merge__": "replace"
+    },
+    "sort": {
+      "__type__": "int",
+      "__merge__": "replace"
+    },
+    "text": {
       "__type__": "string",
       "__merge__": "replace"
     }

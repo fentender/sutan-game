@@ -9,493 +9,493 @@
   },
   "_fields": {
     "auto_begin": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "auto_result": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "cards_slot": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "s": {
-          "type": "object",
-          "merge": "merge",
-          "fields": {
+          "__type__": "object",
+          "__merge__": "merge",
+          "__fields__": {
             "condition": {
-              "type": "object",
-              "merge": "merge",
-              "_use_template": "condition"
+              "__type__": "object",
+              "__merge__": "merge",
+              "__use_template__": "condition"
             },
             "guid": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "is_empty": {
-              "type": "int",
-              "merge": "replace"
+              "__type__": "int",
+              "__merge__": "replace"
             },
             "is_enemy": {
-              "type": "int",
-              "merge": "replace"
+              "__type__": "int",
+              "__merge__": "replace"
             },
             "is_key": {
-              "type": "int",
-              "merge": "replace"
+              "__type__": "int",
+              "__merge__": "replace"
             },
             "open_adsorb": {
-              "type": "int",
-              "merge": "replace"
+              "__type__": "int",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "s1": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s10": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s11": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s12": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s13": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s14": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s15": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s16": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s17": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s2": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s3": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s4": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s5": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s6": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s7": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s8": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         },
         "s9": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "slot"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "slot"
         }
       }
     },
     "final_pin": {
-      "type": "bool",
-      "merge": "replace"
+      "__type__": "bool",
+      "__merge__": "replace"
     },
     "from_pins": {
-      "type": "array<object>",
-      "merge": "append",
-      "element": {
+      "__type__": "array<object>",
+      "__merge__": "append",
+      "__element__": {
         "arrow_angle": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "arrow_length": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "color": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         },
         "controls": {
-          "type": "array<array>",
-          "merge": "append"
+          "__type__": "array<array>",
+          "__merge__": "append"
         },
         "dashed": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "resolution": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite_id": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "start_reserve": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "width": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "icon": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "location": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "mapping": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "mapping_id": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "method_settlement": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "name": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "once_new": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "open_conditions": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "append",
-      "element": {
+      "__merge__": "append",
+      "__element__": {
         "condition": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "condition"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "condition"
         },
         "tips": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "random_effect": {
-      "type": "object",
-      "merge": "merge"
+      "__type__": "object",
+      "__merge__": "merge"
     },
     "random_text": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "r1": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "r2": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "r3": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "r4": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "r5": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "r6": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "random_text_up": {
-      "type": "object",
-      "merge": "merge",
-      "_template": {
-        "type": "object",
-        "merge": "merge",
-        "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__template__": {
+        "__type__": "object",
+        "__merge__": "merge",
+        "__fields__": {
           "low_target": {
-            "type": "int",
-            "merge": "replace"
+            "__type__": "int",
+            "__merge__": "replace"
           },
           "low_target_tips": {
-            "type": "string",
-            "merge": "replace"
+            "__type__": "string",
+            "__merge__": "replace"
           },
           "text": {
-            "type": "string",
-            "merge": "replace"
+            "__type__": "string",
+            "__merge__": "replace"
           },
           "type": {
-            "type": "string",
-            "merge": "replace"
+            "__type__": "string",
+            "__merge__": "replace"
           },
           "type_tips": {
-            "type": "string",
-            "merge": "replace"
+            "__type__": "string",
+            "__merge__": "replace"
           }
         }
       }
     },
     "round_number": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "settlement": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "smart_match",
-      "element": {
+      "__merge__": "smart_match",
+      "__element__": {
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "condition": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "condition"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "condition"
         },
         "guid": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "result_text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result_title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       },
-      "match_key": [
+      "__match_key__": [
         "guid"
       ]
     },
     "settlement_extre": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "smart_match",
-      "element": {
+      "__merge__": "smart_match",
+      "__element__": {
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "condition": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "condition"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "condition"
         },
         "guid": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "result_text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result_title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       },
-      "match_key": [
+      "__match_key__": [
         "guid"
       ]
     },
     "settlement_prior": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "smart_match",
-      "element": {
+      "__merge__": "smart_match",
+      "__element__": {
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "condition": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "condition"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "condition"
         },
         "guid": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "result_text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result_title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       },
-      "match_key": [
+      "__match_key__": [
         "guid"
       ]
     },
     "tag_tips": {
-      "type": [
+      "__type__": [
         "array",
         "array<string>"
       ],
-      "merge": "append"
+      "__merge__": "append"
     },
     "tag_tips_up": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "tips": {
-          "type": "array<string>",
-          "merge": "append"
+          "__type__": "array<string>",
+          "__merge__": "append"
         },
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "text": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "tips": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "tips_text": {
-      "type": [
+      "__type__": [
         "array",
         "array<string>"
       ],
-      "merge": "append"
+      "__merge__": "append"
     },
     "type": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "waiting_round": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "waiting_round_end_action": {
-      "type": [
+      "__type__": [
         "array",
         "array<object>"
       ],
-      "merge": "append",
-      "element": {
+      "__merge__": "append",
+      "__element__": {
         "action": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "condition": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "condition"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "condition"
         },
         "result": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "action"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "action"
         },
         "result_text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "result_title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     }

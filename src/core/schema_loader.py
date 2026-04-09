@@ -45,7 +45,7 @@ def load_schemas(schema_dir: Path | str) -> dict[str, dict]:
     global_file = schema_dir / "_global.schema.json"
     if global_file.exists():
         global_data = json.loads(global_file.read_text(encoding="utf-8"))
-        _global_templates = global_data.get("_templates", {})
+        _global_templates = global_data.get("__templates__", {})
         _global_dsl_rules = global_data.get("_dsl_rules", {})
         log.info(f"已加载全局模板 {len(_global_templates)} 个, DSL 规则 {len(_global_dsl_rules)} 组")
 
@@ -110,10 +110,10 @@ def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
 
     导航逻辑：
     - 遇到 "_entry" / "_fields" → 直接取对应的 dict
-    - 遇到有 "fields" 的节点 → 进入 fields
-    - 遇到 "_use_template" → 解析命名模板后继续导航
-    - 遇到有 "_template" 的节点 → 回退到模板继续导航
-    - 遇到有 "element" 的节点 → 进入 element（用于数组元素的字段）
+    - 遇到有 "__fields__" 的节点 → 进入 __fields__
+    - 遇到 "__use_template__" → 解析命名模板后继续导航
+    - 遇到有 "__template__" 的节点 → 回退到模板继续导航
+    - 遇到有 "__element__" 的节点 → 进入 __element__（用于数组元素的字段）
     - key 匹配 DSL 模式 → 返回默认 replace 定义
     """
     if not field_path or not schema:
@@ -139,9 +139,9 @@ def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
         if current is None:
             return None
 
-        # 处理 _use_template 引用：先解析为实际模板定义
-        if isinstance(current, dict) and "_use_template" in current:
-            resolved = _resolve_template(current["_use_template"])
+        # 处理 __use_template__ 引用：先解析为实际模板定义
+        if isinstance(current, dict) and "__use_template__" in current:
+            resolved = _resolve_template(current["__use_template__"])
             if resolved is None:
                 return None
             current = resolved
@@ -153,21 +153,21 @@ def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
 
         # 在当前层级查找 segment
         if isinstance(current, dict):
-            # 优先在 fields 子结构中查找
-            if "fields" in current and isinstance(current["fields"], dict):
-                if segment in current["fields"]:
-                    current = current["fields"][segment]
+            # 优先在 __fields__ 子结构中查找
+            if "__fields__" in current and isinstance(current["__fields__"], dict):
+                if segment in current["__fields__"]:
+                    current = current["__fields__"][segment]
                     continue
 
             # 同类子结构模板（如 cards_slot 的 s1-s18 共享同一模板）
-            if "_template" in current:
-                current = current["_template"]
+            if "__template__" in current:
+                current = current["__template__"]
                 continue
 
-            # 在 element 子结构中查找（数组元素字段）
-            if "element" in current and isinstance(current["element"], dict):
-                if segment in current["element"]:
-                    current = current["element"][segment]
+            # 在 __element__ 子结构中查找（数组元素字段）
+            if "__element__" in current and isinstance(current["__element__"], dict):
+                if segment in current["__element__"]:
+                    current = current["__element__"][segment]
                     continue
 
             # 全局 DSL 模式兜底：key 匹配 DSL pattern → 从 _dsl_rules 读取规则
@@ -175,12 +175,12 @@ def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
             if group:
                 rule = _global_dsl_rules.get(group)
                 if rule:
-                    if "_use_template" in rule:
-                        resolved = _resolve_template(rule["_use_template"])
+                    if "__use_template__" in rule:
+                        resolved = _resolve_template(rule["__use_template__"])
                         if resolved:
                             return resolved
                     return rule
-                return {"type": None, "merge": "replace"}
+                return {"__type__": None, "__merge__": "replace"}
 
             # 回退：直接在当前层级查找
             if segment in current:
@@ -190,9 +190,9 @@ def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
             # 找不到
             return None
 
-    # 最终结果也可能是 _use_template 引用
-    if isinstance(current, dict) and "_use_template" in current:
-        resolved = _resolve_template(current["_use_template"])
+    # 最终结果也可能是 __use_template__ 引用
+    if isinstance(current, dict) and "__use_template__" in current:
+        resolved = _resolve_template(current["__use_template__"])
         if resolved is not None:
             return resolved
 

@@ -1,430 +1,414 @@
 {
-  "_templates": {
+  "__templates__": {
     "condition": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "any": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "is": {
-          "type": [
+          "__type__": [
             "int",
             "string"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "all": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "is_rite": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "unlock_upgrade": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rare": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "round": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "change_name": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "difficulty": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "option": {
-          "_use_template": "option"
+          "__use_template__": "option"
         },
         "case:1": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         }
       }
     },
     "action": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "event_on": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "card": {
-          "type": [
+          "__type__": [
             "array<int,string>",
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "rite": {
-          "type": [
+          "__type__": [
             "int",
             "string"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "prompt": {
-          "_use_template": "prompt"
+          "__use_template__": "prompt"
         },
         "event_off": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "choose": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "success": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "over": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "option": {
-          "_use_template": "option"
+          "__use_template__": "option"
         },
         "coin": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "no_show": {
-          "_use_template": "no_show"
+          "__use_template__": "no_show"
         },
         "loot": {
-          "type": [
+          "__type__": [
             "array<int>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "delay": {
-          "_use_template": "delay"
+          "__use_template__": "delay"
         },
         "no_prompt": {
-          "_use_template": "no_prompt"
+          "__use_template__": "no_prompt"
         },
         "steam_achievement": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "debug": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "failed": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "all": {
-          "_use_template": "condition"
+          "__use_template__": "condition"
         },
         "begin_guide": {
-          "_use_template": "begin_guide"
+          "__use_template__": "begin_guide"
         },
         "delay_off": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_box": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "enable_auto_gen_sudan_card": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "change_desk_bg": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sleep": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "change_name": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "slide": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "magic_sudan": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "hand_card_refresh": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_story": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_prestige": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "change_location_icon": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_deadline": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "close_helpbtn": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "confirm": {
-          "type": "object",
-          "merge": "merge"
+          "__type__": "object",
+          "__merge__": "merge"
         },
         "difficulty": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "delay": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "id": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "round": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "event_on": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "rite": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "card": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "prompt": {
-          "_use_template": "prompt"
+          "__use_template__": "prompt"
         },
         "loot": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "music_entry": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "clip": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "start": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "loop_start": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "loop_end": {
-          "type": "float",
-          "merge": "replace"
-        },
-        "icon": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "title": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "bg": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "icon": {
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "name": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "title": {
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "text_extra": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "condition": {
-              "_use_template": "condition"
+              "__use_template__": "condition"
             },
             "result_text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "sub_name": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "success": {
-          "_use_template": "action"
+          "__use_template__": "action"
         },
         "open_after_story": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "manual_prompt": {
-          "type": "bool",
-          "merge": "replace"
-        },
-        "over_id": {
-          "type": "array<int>",
-          "merge": "append"
-        },
-        "icon_deselect": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "icon_lock": {
-          "type": "string",
-          "merge": "replace"
-        },
-        "big_resource": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "play_in_rite_create": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "play_instant": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         }
       }
     },
     "css_size": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "xs": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "sm": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "md": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "lg": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "xl": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "xxl": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "option": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "id": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "items": {
-          "type": "array<object>",
-          "merge": "smart_match",
-          "match_key": [
+          "__type__": "array<object>",
+          "__merge__": "smart_match",
+          "__match_key__": [
             "tag"
           ],
-          "element": {
+          "__element__": {
             "tag": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             },
             "text": {
-              "type": "string",
-              "merge": "replace"
+              "__type__": "string",
+              "__merge__": "replace"
             }
           }
         },
         "icon": {
-          "type": [
+          "__type__": [
             "array<null,string>",
             "array<string>",
             "string"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         }
       }
     },
     "prompt": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "id": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "icon": {
-          "type": [
+          "__type__": [
             "array<array,null,string>",
             "array<array,null>",
             "array<array,string>",
@@ -433,331 +417,331 @@
             "array<string>",
             "string"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         }
       }
     },
     "no_prompt": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "card": {
-          "type": [
+          "__type__": [
             "array<int,string>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "event_off": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "enable_auto_gen_sudan_card": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "rite": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "delay_off": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "event_on": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "begin_guide": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "anim_type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "pos": {
-          "_use_template": "pos"
+          "__use_template__": "pos"
         },
         "is_show_ring": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "ring_pos": {
-          "type": [
+          "__type__": [
             "array<float,int>",
             "array<int>"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "anchors": {
-          "type": "array<array>",
-          "merge": "append"
+          "__type__": "array<array>",
+          "__merge__": "append"
         },
         "is_on_in_mobile": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "bind": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "mobile_properties": {
-          "_use_template": "mobile_properties"
+          "__use_template__": "mobile_properties"
         }
       }
     },
     "mobile_properties": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "anim_type": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "pos": {
-          "_use_template": "pos"
+          "__use_template__": "pos"
         },
         "ring_pos": {
-          "type": [
+          "__type__": [
             "array<float,int>",
             "array<float>",
             "array<int>"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "anchors": {
-          "type": "array<array>",
-          "merge": "append"
+          "__type__": "array<array>",
+          "__merge__": "append"
         }
       }
     },
     "no_show": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "card": {
-          "type": [
+          "__type__": [
             "array<int,string>",
             "int"
           ],
-          "merge": "coerce"
+          "__merge__": "coerce"
         },
         "loot": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "choose": {
-          "_use_template": "action"
+          "__use_template__": "action"
         }
       }
     },
     "slot": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "guid": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "condition": {
-          "_use_template": "condition"
+          "__use_template__": "condition"
         },
         "open_adsorb": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "is_key": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "is_empty": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "is_enemy": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "text": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "is_hide_bg": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "is_set_card_hide_bg": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "slot_bg": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "pos": {
-          "_use_template": "pos"
+          "__use_template__": "pos"
         },
         "scale": {
-          "_use_template": "scale"
+          "__use_template__": "scale"
         },
         "rotation_z": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "pops": {
-          "type": "array<object>",
-          "merge": "append",
-          "element": {
+          "__type__": "array<object>",
+          "__merge__": "append",
+          "__element__": {
             "action": {
-              "_use_template": "action"
+              "__use_template__": "action"
             },
             "condition": {
-              "_use_template": "condition"
+              "__use_template__": "condition"
             }
           }
         }
       }
     },
     "pos": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "x": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "y": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         }
       }
     },
     "scale": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "x": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "y": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         }
       }
     }
   },
   "_dsl_rules": {
     "attr_cmp": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "case": {
-      "_use_template": "action"
+      "__use_template__": "action"
     },
     "change_card": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "clean": {
-      "type": [
+      "__type__": [
         "array<int>",
         "int"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "cost": {
-      "type": [
+      "__type__": [
         "array<int>",
         "int"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "counter": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "entity_op": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "focus": {
-      "type": "array<int>",
-      "merge": "append"
+      "__type__": "array<int>",
+      "__merge__": "append"
     },
     "formula": {
-      "type": [
+      "__type__": [
         "array<int>",
         "int"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "have": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "loot_dsl": {
-      "type": [
+      "__type__": [
         "array<int>",
         "int"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "negated": {
-      "type": [
+      "__type__": [
         "int",
         "string"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "pop": {
-      "type": "string",
-      "merge": "replace"
+      "__type__": "string",
+      "__merge__": "replace"
     },
     "rare": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "slot": {
-      "type": [
+      "__type__": [
         "array<string>",
         "int",
         "string"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "sudan_pool": {
-      "type": "int",
-      "merge": "replace"
+      "__type__": "int",
+      "__merge__": "replace"
     },
     "table": {
-      "type": [
+      "__type__": [
         "array<string>",
         "int",
         "string"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "tag_check": {
-      "type": [
+      "__type__": [
         "int",
         "string"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     },
     "total": {
-      "type": [
+      "__type__": [
         "int",
         "string"
       ],
-      "merge": "coerce"
+      "__merge__": "coerce"
     }
   }
 }

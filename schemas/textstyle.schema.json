@@ -7,1271 +7,1327 @@
   },
   "_fields": {
     "@BIG_BUTTON": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@BIG_BUTTON_AUTO_SIZE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@BIG_BUTTON_HALF": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@BIG_BUTTON_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@BUTTON": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@BUTTON_AUTO_SIZE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_DESC": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_DESC_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_NAME": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_NAME_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_RARE_TEXT_FORMAT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_INFO_TAG_FIXED_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_INFO_TAG_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@CARD_INFO_TAG_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_INFO_TAG_TITLE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_INFO_TYPE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_INFO_TYPE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_SUDAN_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@CARD_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@EXECUTION_DAY_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
+        }
+      }
+    },
+    "@GALLERY_ACHIEVEMENT_ITEM_DESC_MOBILE": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
+        "font": {
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "size": {
+          "__type__": "int",
+          "__merge__": "replace"
+        }
+      }
+    },
+    "@GALLERY_ACHIEVEMENT_ITEM_TITLE_MOBILE": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
+        "font": {
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "size": {
+          "__type__": "int",
+          "__merge__": "replace"
+        }
+      }
+    },
+    "@GALLERY_ACHIEVEMENT_NOTIFY": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
+        "font": {
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "size": {
+          "__type__": "int",
+          "__merge__": "replace"
+        }
+      }
+    },
+    "@GALLERY_ACHIEVEMENT_NOTIFY_TITLE": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
+        "font": {
+          "__type__": "string",
+          "__merge__": "replace"
+        },
+        "size": {
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GALLERY_CARD_INFO_PLOT_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GALLERY_CARD_INFO_PLOT_TITLE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@GALLERY_CARD_INFO_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GALLERY_CARD_INFO_TEXT_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GALLERY_CARD_TYPE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GALLERY_CARD_TYPE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@GUIDE_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@HELP_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@MAIN_BODY": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@MAIN_BODY_AUTO_SIZE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@MAIN_BODY_AUTO_SIZE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@MAIN_BODY_HALF": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@MAIN_BODY_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@NOTE_ITEM_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@OPTION_ITEM_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@OPTION_ITEM_TEXT_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@OVER_RECORD_SUB_NAME": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@OVER_RECORD_SUB_NAME_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@OVER_SUBTITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@OVER_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@POP_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@PRESITGE_COUNT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "characterSpacing": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@PRESTIGE_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@PROMPT_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@PROMPT_TEXT_AUTO_SIZE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@PROMPT_TEXT_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_PANEL_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "characterSpacing": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_PANEL_TITLE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "characterSpacing": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_SETTLEMENT_POP_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_SETTLEMENT_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_TITLE_BLACK": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_TITLE_BLACK_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@RITE_TITLE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "material": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@SETTING_OPTION_ITEM": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@SETTING_OPTION_ITEM_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@SETTING_OPTION_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@SETTING_OPTION_TITLE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TAG_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@TIPS_FORMAT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@TIPS_FORMAT_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H1": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H1_HALF": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H1_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H2": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H2_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "lineSpacing": {
-          "type": "float",
-          "merge": "replace"
+          "__type__": "float",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H3": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TITLE_H3_AUTO_SIZE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@TITLE_H3_AUTO_SIZE_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "enableAutoSize": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "sizeRange": {
-          "type": "array<int>",
-          "merge": "append"
+          "__type__": "array<int>",
+          "__merge__": "append"
         }
       }
     },
     "@TITLE_H3_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@TOGGLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "@WIZARD_BODY": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@WIZARD_BODY_MOBILE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@WIZARD_OPTION_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "@WIZARD_TEXT": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "ADD_TO_WISHLIST": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "characterSpacing": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "NEXT_DAY": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         },
         "isRightToLeftText": {
-          "type": "bool",
-          "merge": "replace"
+          "__type__": "bool",
+          "__merge__": "replace"
         },
         "size": {
-          "type": "int",
-          "merge": "replace"
+          "__type__": "int",
+          "__merge__": "replace"
         }
       }
     },
     "PROMPT_CHANGE_NAME_INPUT_PLACEHOLDER": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     },
     "PROMPT_CHANGE_NAME_TITLE": {
-      "type": "object",
-      "merge": "merge",
-      "fields": {
+      "__type__": "object",
+      "__merge__": "merge",
+      "__fields__": {
         "css_size": {
-          "type": "object",
-          "merge": "merge",
-          "_use_template": "css_size"
+          "__type__": "object",
+          "__merge__": "merge",
+          "__use_template__": "css_size"
         },
         "font": {
-          "type": "string",
-          "merge": "replace"
+          "__type__": "string",
+          "__merge__": "replace"
         }
       }
     }

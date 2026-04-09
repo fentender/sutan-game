@@ -228,8 +228,8 @@ def _collect_field_diffs(
                 elif isinstance(base[key], list) and isinstance(mod_data[key], list):
                     # 从 schema 判断数组合并策略
                     child_def = get_field_def(schema, child_path) if schema and child_path else None
-                    merge_strategy = child_def.get("merge") if child_def else None
-                    match_keys = child_def.get("match_key") if child_def else None
+                    merge_strategy = child_def.get("__merge__") if child_def else None
+                    match_keys = child_def.get("__match_key__") if child_def else None
 
                     if merge_strategy == "smart_match" and match_keys:
                         diffs.extend(_collect_smart_match_diffs(
