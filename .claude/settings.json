@@ -56,7 +56,16 @@
       "Bash(pyinstaller sudan.spec --noconfirm)",
       "Bash(python -c \"from src.config import PROJECT_ROOT, SCHEMA_DIR, USER_CONFIG_PATH; print\\('ROOT:', PROJECT_ROOT\\); print\\('SCHEMA:', SCHEMA_DIR\\); print\\('CONFIG:', USER_CONFIG_PATH\\)\")",
       "Bash(python -c \"from src.config import detect_game_path, detect_workshop_path, DEFAULT_GAME_PATH, DEFAULT_WORKSHOP_PATH, infer_workshop_path_from_game; print\\('game:', repr\\(DEFAULT_GAME_PATH\\)\\); print\\('workshop:', repr\\(DEFAULT_WORKSHOP_PATH\\)\\); print\\('detect_game:', repr\\(detect_game_path\\(\\)\\)\\); print\\('detect_workshop:', repr\\(detect_workshop_path\\(\\)\\)\\); print\\('infer from game:', repr\\(infer_workshop_path_from_game\\(DEFAULT_GAME_PATH\\)\\)\\)\")",
-      "Read(//c/program files \\(x86\\)/steam/steamapps/common/Sultan's Game/**)"
+      "Read(//c/program files \\(x86\\)/steam/steamapps/common/Sultan's Game/**)",
+      "Bash(cp -r \"/c/Users/Lenovo/Documents/DoubleCross/SultansGame/Mod/0000000002\" \"/c/Users/Lenovo/Documents/DoubleCross/SultansGame/Mod/0000000003\")",
+      "Bash(rm -rf \"/c/Users/Lenovo/Documents/DoubleCross/SultansGame/Mod/0000000002\")",
+      "Bash(curl -s https://api.github.com/repos/JuliuBrussee/caveman)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('description',''\\), d.get\\('html_url',''\\)\\)\")",
+      "mcp__github__get_file_contents",
+      "mcp__github__search_repositories",
+      "Bash(npx skills:*)",
+      "Bash(find /d/Games/SuDanGame/_remap_temp -name \"*.json\" -exec grep -l \"begin_guide\" {} \\\\;)",
+      "Bash(find /d/Games/SuDanGame -name \"*.json\" -exec grep -l \"ring_rect\" {} \\\\;)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Lenovo\\.claude\\plans",

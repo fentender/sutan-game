@@ -277,10 +277,8 @@ class MainWindow(QMainWindow):
             allow_deletions=self.config.allow_deletions
         )
         if parse_msgs:
-            self._show_messages([
-                (level, prefix_mod_title(msg, self._mod_name_map))
-                for level, msg in parse_msgs
-            ])
+            for level, msg in parse_msgs:
+                self._log_message(level, prefix_mod_title(msg, self._mod_name_map))
         conflict_count = sum(1 for o in overrides if o.has_conflict)
         self.statusBar().showMessage(
             f"分析完成: {len(overrides)} 个文件被修改, "

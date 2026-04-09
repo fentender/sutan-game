@@ -778,7 +778,7 @@ def merge_all_files(
                 diag.warn("merge", msg)
                 continue
         else:
-            diag.info("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
+            # diag.info("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
         # 确定文件类型（用于 delta 计算）
