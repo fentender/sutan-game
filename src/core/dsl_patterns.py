@@ -45,10 +45,10 @@ DSL_KEY_PATTERNS = [
     ("entity_op",      re.compile(r"^[\u4e00-\u9fff\w]+[+\-=.][\u4e00-\u9fff\w.|]+$")),
     # 属性比较：属性名+比较符（如 智慧>=、魔力<、round<=）
     ("attr_cmp",       re.compile(r"^!?[\u4e00-\u9fff\w]+[<>=]+\d*$")),
-    # 否定检查：!词（如 !金币、!怪物、!rite）
-    ("negated",        re.compile(r"^![\u4e00-\u9fff\w]+$")),
-    # 标签检查：裸中文词（tag.json 中的标签名，如 主角、贵族、追随者）
-    ("tag_check",      re.compile(r"^[\u4e00-\u9fff][\u4e00-\u9fff\w]*\d*$")),
+    # 否定检查：!词（如 !金币、!怪物、!rite、!雨林！雨林！）
+    ("negated",        re.compile(r"^!.+$")),
+    # 标签检查：裸中文词（tag.json 中的标签名，如 主角、贵族、追随者、雨林！雨林！）
+    ("tag_check",      re.compile(r"^[\u4e00-\u9fff\uff00-\uffef][\u4e00-\u9fff\uff00-\uffef\w]*\d*$")),
 ]
 
 

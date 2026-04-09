@@ -178,9 +178,12 @@ def _get_field_def_uncached(schema: dict, field_path: list[str]) -> dict | None:
                     if "__use_template__" in rule:
                         resolved = _resolve_template(rule["__use_template__"])
                         if resolved:
-                            return resolved
-                    return rule
-                return {"__type__": None, "__merge__": "replace"}
+                            current = resolved
+                            continue
+                    current = rule
+                    continue
+                current = {"__type__": None, "__merge__": "replace"}
+                continue
 
             # 回退：直接在当前层级查找
             if segment in current:
