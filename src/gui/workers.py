@@ -42,13 +42,14 @@ class MergeWorker(CancellableWorker):
     progress = Signal(str)
 
     def __init__(self, game_config_path, mod_configs, output_path, mod_paths,
-                 allow_deletions=False):
+                 allow_deletions=False, remap_tables=None):
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
         self.allow_deletions = allow_deletions
+        self.remap_tables = remap_tables
 
     def run(self):
         try:
@@ -67,7 +68,8 @@ class MergeWorker(CancellableWorker):
             warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
             self.progress.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path,
-                           cancel_check=self._check_cancel)
+                           cancel_check=self._check_cancel,
+                           remap_tables=self.remap_tables)
             self.finished.emit(results, warnings_snapshot)
         except _MergeCancelled:
             pass

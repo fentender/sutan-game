@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
         # 结果供 AnalyzeWorker / DiffDialog / MergeWorker 共用
         self._remapped_configs: list[tuple[str, str, Path]] | None = None
         self._remap_temp_dir: Path | None = None
+        self._remap_tables: dict | None = None
 
         # 防抖定时器：快速连续操作只触发一次分析
         self._analyze_timer = QTimer()
@@ -244,11 +245,12 @@ class MainWindow(QMainWindow):
         self._cleanup_remap()
         diag.snapshot("remap")
         remap_temp = MOD_OVERRIDES_DIR.parent / "_remap_temp"
-        remapped, remap_msgs = remap_mod_configs(
+        remapped, remap_msgs, remap_tables = remap_mod_configs(
             self.config.game_config_path, mod_configs, remap_temp,
         )
         self._remapped_configs = remapped
         self._remap_temp_dir = remap_temp
+        self._remap_tables = remap_tables
 
         # 展示 remap 日志
         remap_messages = diag.snapshot("remap")
@@ -349,6 +351,7 @@ class MainWindow(QMainWindow):
             output_path,
             mod_paths,
             allow_deletions=self.config.allow_deletions,
+            remap_tables=self._remap_tables,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
         self._worker.finished.connect(self._on_merge_finished)
@@ -448,6 +451,7 @@ class MainWindow(QMainWindow):
             shutil.rmtree(self._remap_temp_dir, ignore_errors=True)
         self._remap_temp_dir = None
         self._remapped_configs = None
+        self._remap_tables = None
 
     def closeEvent(self, event):
         """关闭窗口时协作式等待工作线程结束"""

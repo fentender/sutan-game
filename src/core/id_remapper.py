@@ -549,6 +549,51 @@ def _compute_new_rel_path(rel_str: str, remap: RemapTable) -> str:
     return rel_str
 
 
+def _split_stem_ext(filename: str) -> tuple[str, str]:
+    """分离文件名和扩展名，如 '2020000.PNG' -> ('2020000', '.PNG')"""
+    dot_idx = filename.rfind(".")
+    if dot_idx < 0:
+        return filename, ""
+    return filename[:dot_idx], filename[dot_idx:]
+
+
+def compute_resource_rename(rel_str: str, remap: RemapTable) -> str:
+    """
+    计算资源文件重映射后的目标路径。
+
+    处理以下资源文件：
+    - image/cards/{card_id}.ext 和 image/cards/{card_id}_{suffix}.ext
+    - image/head/{card_id}.ext 和 image/head/{card_id}_{suffix}.ext
+    - image/tag/tag_{tag_id}.ext
+
+    不匹配时原样返回。
+    """
+    parts = rel_str.split("/")
+
+    # image/cards/ 和 image/head/ 中的 card ID 图片
+    if len(parts) == 3 and parts[0] == "image" and parts[1] in ("cards", "head"):
+        stem, ext = _split_stem_ext(parts[2])
+        for old_id, new_id in remap.cards.items():
+            if stem == old_id:
+                return f"image/{parts[1]}/{new_id}{ext}"
+            if stem.startswith(old_id + "_"):
+                new_stem = new_id + stem[len(old_id):]
+                return f"image/{parts[1]}/{new_stem}{ext}"
+
+    # image/tag/tag_{id}.ext 中的 tag ID 图片
+    if len(parts) == 3 and parts[0] == "image" and parts[1] == "tag":
+        stem, ext = _split_stem_ext(parts[2])
+        if stem.startswith("tag_"):
+            try:
+                tag_id = int(stem[4:])
+            except ValueError:
+                return rel_str
+            if tag_id in remap.tag_ids:
+                return f"image/tag/tag_{remap.tag_ids[tag_id]}{ext}"
+
+    return rel_str
+
+
 def _remap_dict_keys(rel_str: str, data: dict, remap: RemapTable) -> dict:
     """替换 dictionary 文件的顶层 key"""
     if not isinstance(data, dict):
@@ -610,7 +655,7 @@ def remap_mod_configs(
     mod_configs: list[tuple[str, str, Path]],
     temp_dir: Path,
     cancel_check=None,
-) -> tuple[list[tuple[str, str, Path]], list[str]]:
+) -> tuple[list[tuple[str, str, Path]], list[str], dict[str, RemapTable]]:
     """
     检测 ID 冲突并重分配。
 
@@ -621,14 +666,15 @@ def remap_mod_configs(
         cancel_check: 可选的取消检查回调
 
     返回:
-        (new_mod_configs, remap_messages)
+        (new_mod_configs, remap_messages, remap_tables)
         - new_mod_configs: 更新后的 mod_configs（有冲突的 mod 指向临时目录）
         - remap_messages: 日志消息列表
+        - remap_tables: {mod_id: RemapTable} 各 mod 的重映射表
     """
     messages: list[str] = []
 
     if not mod_configs:
-        return mod_configs, messages
+        return mod_configs, messages, {}
 
     # 1. 收集本体 ID
     base_ids = collect_base_ids(game_config_path)
@@ -645,7 +691,7 @@ def remap_mod_configs(
     # 3. 检测冲突
     conflicts = detect_conflicts(base_ids, mod_ids_list)
     if not conflicts:
-        return mod_configs, messages
+        return mod_configs, messages, {}
 
     # 汇总冲突信息
     type_counts = {t: len(ids) for t, ids in conflicts.items()}
@@ -663,6 +709,7 @@ def remap_mod_configs(
 
     # 5. 为每个有冲突的 mod 构建 remap table 并应用
     new_mod_configs = list(mod_configs)
+    remap_tables: dict[str, RemapTable] = {}
     mods_needing_remap: set[int] = set()
     for (mod_idx, _, _) in remap:
         mods_needing_remap.add(mod_idx)
@@ -709,8 +756,9 @@ def remap_mod_configs(
 
         # 更新 mod_configs 指向临时目录
         new_mod_configs[mod_idx] = (mod_id, mod_name, mod_temp)
+        remap_tables[mod_id] = table
 
         if cancel_check:
             cancel_check()
 
-    return new_mod_configs, messages
+    return new_mod_configs, messages, remap_tables
