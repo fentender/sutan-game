@@ -317,6 +317,8 @@ def _append_array(base_arr: list, override_arr: list,
 def _build_warn_msg(field_path: list[str] | None, msg: str) -> str:
     """拼接合并警告消息，从 merge_ctx 读取 mod 名称和文件路径"""
     parts = []
+    if merge_ctx.mod_name:
+        parts.append(f"[{merge_ctx.mod_name}]")
     if merge_ctx.source_file:
         parts.append(merge_ctx.source_file)
     elif merge_ctx.rel_path:

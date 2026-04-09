@@ -17,6 +17,7 @@ from PySide6.QtGui import (
 from PySide6.QtCore import Qt
 
 from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
+from ..core.diagnostics import diag, merge_ctx
 from ..core.json_parser import load_json, strip_js_comments, strip_trailing_commas
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
@@ -279,6 +280,7 @@ class DiffDialog(QDialog):
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
         self._precomputed_opcodes.clear()
+        diag.snapshot("merge")  # 清空残留的 merge 警告
         base_file = self._game_config_path / self._rel_path
         base_data = load_json(base_file) if base_file.exists() else {}
 
@@ -295,6 +297,12 @@ class DiffDialog(QDialog):
             mod_file = config_path / self._rel_path
             if not mod_file.exists():
                 continue
+
+            # 设置合并上下文，供 deep_merge 内部的警告使用
+            merge_ctx.mod_name = mod_name
+            merge_ctx.mod_id = mod_id
+            merge_ctx.rel_path = self._rel_path
+            merge_ctx.source_file = str(mod_file)
 
             mod_data = load_json(mod_file)
             delta = compute_mod_delta(base_data, mod_data, file_type, self._allow_deletions,
@@ -328,6 +336,9 @@ class DiffDialog(QDialog):
                 current = json.loads(curr_text)
 
             self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
+
+        # 收集合并过程中产生的 schema 验证警告
+        self._merge_warnings = [msg for _, msg in diag.snapshot("merge")]
 
         # 预计算所有 tab 的行级 diff 高亮（行哈希 + rapidfuzz C++ 后端）
         base_lines = self._base_text.splitlines()
@@ -395,6 +406,16 @@ class DiffDialog(QDialog):
         path_label.setStyleSheet("font-weight: bold; font-size: 13px; padding: 2px;")
         path_label.setFixedHeight(24)
         layout.addWidget(path_label)
+
+        # Schema 验证警告条
+        self._warn_bar = QLabel()
+        self._warn_bar.setWordWrap(True)
+        self._warn_bar.setStyleSheet(
+            "background-color: #3a3010; color: #eec864; padding: 4px 8px; font-size: 12px;"
+        )
+        self._warn_bar.setVisible(False)
+        layout.addWidget(self._warn_bar)
+        self._update_warn_bar()
 
         QShortcut(QKeySequence("Ctrl+F"), self, self._toggle_search)
 
@@ -937,10 +958,26 @@ class DiffDialog(QDialog):
             override_file.parent.rmdir()
         self._refresh_all()
 
+    def _update_warn_bar(self):
+        """根据 _merge_warnings 更新警告条"""
+        warnings = getattr(self, "_merge_warnings", [])
+        if warnings:
+            MAX_SHOW = 10
+            lines = [f"  - {w}" for w in warnings[:MAX_SHOW]]
+            if len(warnings) > MAX_SHOW:
+                lines.append(f"  ... 还有 {len(warnings) - MAX_SHOW} 条")
+            self._warn_bar.setText(
+                f"Schema 验证警告 ({len(warnings)}):\n" + "\n".join(lines)
+            )
+            self._warn_bar.setVisible(True)
+        else:
+            self._warn_bar.setVisible(False)
+
     def _refresh_all(self):
         """重新预计算并刷新所有 tab"""
         current_tab = self._tabs.currentIndex()
         self._precompute_merge_states()
+        self._update_warn_bar()
         self._loaded_tabs.clear()
         for i in range(len(self._diff_pairs)):
             if i < len(self._tab_edits):
