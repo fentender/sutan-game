@@ -230,13 +230,16 @@ class CodeEditor(QPlainTextEdit):
 
         painter.end()
 
-    def highlight_line(self, line_no: int, scroll_to: bool = True):
-        """用红色背景高亮指定行（1-based）"""
+    def highlight_line(self, line_no: int, scroll_to: bool = True,
+                       color: QColor | None = None):
+        """用指定背景色高亮指定行（1-based），默认红色"""
+        if color is None:
+            color = QColor(100, 30, 30)
         selections = []
         block = self.document().findBlockByLineNumber(line_no - 1)
         if block.isValid():
             selection = QTextEdit.ExtraSelection()
-            selection.format.setBackground(QColor(100, 30, 30))
+            selection.format.setBackground(color)
             selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
             selection.cursor = QTextCursor(block)
             selection.cursor.clearSelection()
@@ -290,9 +293,10 @@ class CodeEditor(QPlainTextEdit):
 class JsonEditorDialog(QDialog):
     """JSON 文件编辑器弹窗，出错行标红"""
 
-    def __init__(self, file_path: Path, parent=None):
+    def __init__(self, file_path: Path, parent=None, search_key: str = ""):
         super().__init__(parent)
         self._file_path = file_path
+        self._search_key = search_key
         self._error_line: int | None = None
         self._error_msg: str = ""
 
@@ -342,6 +346,24 @@ class JsonEditorDialog(QDialog):
         self._editor.setPlainText(raw)
         self._detect_error()
         self._update_highlights()
+        # 语法错误优先；无语法错误时，按 search_key 定位字段
+        if self._search_key and self._error_line is None:
+            line = self._find_key_line(self._search_key)
+            if line:
+                self._editor.highlight_line(line, scroll_to=True,
+                                            color=QColor(80, 70, 20))
+
+    def _find_key_line(self, field_path: str) -> int | None:
+        """根据字段路径定位行号，取路径最后一段在文件文本中搜索"""
+        if not field_path:
+            return None
+        key = field_path.rsplit(".", 1)[-1]
+        pattern = f'"{key}"'
+        text = self._editor.toPlainText()
+        for i, line in enumerate(text.split('\n'), 1):
+            if pattern in line:
+                return i
+        return None
 
     def _detect_error(self):
         """基于编辑器当前文本检测 JSON 语法错误"""

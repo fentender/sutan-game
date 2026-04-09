@@ -432,14 +432,14 @@ class MainWindow(QMainWindow):
         """追加一条日志到面板"""
         self.log_panel.log_message(level, msg)
 
-    def _open_json_editor(self, file_path: str):
+    def _open_json_editor(self, file_path: str, search_key: str = ""):
         """打开 JSON 编辑器（由日志面板双击触发）"""
         path = Path(file_path)
         if not path.exists():
             QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
             return
         from .json_editor import JsonEditorDialog
-        dlg = JsonEditorDialog(path, parent=self)
+        dlg = JsonEditorDialog(path, parent=self, search_key=search_key)
         dlg.exec()
 
     def _cleanup_remap(self):

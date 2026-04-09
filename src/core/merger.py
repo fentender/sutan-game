@@ -17,7 +17,7 @@ from .schema_loader import (
 )
 from .type_utils import classify_json
 from .mod_scanner import collect_mod_files
-from .diagnostics import diag
+from .diagnostics import diag, merge_ctx
 
 log = logging.getLogger(__name__)
 
@@ -314,6 +314,19 @@ def _append_array(base_arr: list, override_arr: list,
     return result
 
 
+def _build_warn_msg(field_path: list[str] | None, msg: str) -> str:
+    """拼接合并警告消息，从 merge_ctx 读取 mod 名称和文件路径"""
+    parts = []
+    if merge_ctx.source_file:
+        parts.append(merge_ctx.source_file)
+    elif merge_ctx.rel_path:
+        parts.append(merge_ctx.rel_path)
+    if field_path:
+        parts.append(".".join(field_path))
+    prefix = " > ".join(parts)
+    return f"{prefix}: {msg}" if prefix else msg
+
+
 @profile
 def deep_merge(base: object, override: object,
                schema: dict | None,
@@ -347,7 +360,10 @@ def deep_merge(base: object, override: object,
         child_def = get_field_def(schema, child_path) if schema and child_path else None
 
         # 确定合并策略
-        merge_strategy = _resolve_merge_strategy(child_def, result.get(key), value, key)
+        merge_strategy, type_warn = _resolve_merge_strategy(child_def, result.get(key), value, key)
+
+        if type_warn:
+            diag.warn("merge", _build_warn_msg(child_path, type_warn))
 
         if key in result:
             result[key] = _apply_merge_strategy(
@@ -383,14 +399,15 @@ def deep_merge(base: object, override: object,
                     # 全局 DSL 模式兜底：匹配 DSL pattern 的 key 不发警告
                     if classify_dsl_key(key):
                         continue
+                    path_with_key = field_path + [key] if field_path is not None else None
                     msg = f"未知字段 '{key}'，schema 中未定义"
-                    diag.warn("merge", msg)
+                    diag.warn("merge", _build_warn_msg(path_with_key, msg))
 
     return result
 
 
-def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key: str) -> str:
-    """确定字段的合并策略"""
+def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key: str) -> tuple[str, str | None]:
+    """确定字段的合并策略，返回 (strategy, type_warn_or_None)"""
     if child_def:
         strategy = child_def.get("merge", "replace")
 
@@ -400,15 +417,15 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
             if not check_type_match(schema_type, override_val):
                 from .type_utils import get_type_str
                 actual = get_type_str(override_val)
-                msg = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
-                diag.warn("merge", msg)
+                type_warn = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
+                return strategy, type_warn
 
-        return strategy
+        return strategy, None
 
     # 无 schema 时的默认策略：根据数据类型推断
     if isinstance(base_val, dict) and isinstance(override_val, dict):
-        return "merge"
-    return "replace"
+        return "merge", None
+    return "replace", None
 
 
 def _apply_merge_strategy(strategy: str, base_val, override_val,
@@ -706,7 +723,16 @@ def merge_file(
     # 确定 schema 根 key
     root_key = get_schema_root_key(schema) if schema else None
 
-    for mod_id, mod_name, mod_data in mod_data_list:
+    for mod_entry in mod_data_list:
+        mod_id, mod_name, mod_data = mod_entry[0], mod_entry[1], mod_entry[2]
+        source_file = mod_entry[3] if len(mod_entry) > 3 else ""
+
+        # 设置线程本地上下文，供 deep_merge 内部的警告使用
+        merge_ctx.mod_name = mod_name
+        merge_ctx.mod_id = mod_id
+        merge_ctx.rel_path = rel_path
+        merge_ctx.source_file = source_file
+
         if file_type == "dictionary":
             for key, value in mod_data.items():
                 if value is _DELETED:
@@ -806,7 +832,7 @@ def merge_all_files(
             delta = compute_mod_delta(base_data, mod_data, file_type, allow_deletions,
                                       schema=schema, root_key=root_key)
             if delta:
-                mod_data_list.append((mod_id, mod_name, delta))
+                mod_data_list.append((mod_id, mod_name, delta, str(mod_file)))
 
         if not mod_data_list:
             continue

@@ -14,6 +14,8 @@ from ..core.diagnostics import INFO, WARNING, ERROR
 
 # 日志项存储级别的自定义角色
 _LEVEL_ROLE = Qt.ItemDataRole.UserRole + 1
+# 日志项存储字段路径的自定义角色
+_FIELD_PATH_ROLE = Qt.ItemDataRole.UserRole + 2
 
 
 def prefix_mod_title(msg: str, name_map: dict[str, str]) -> str:
@@ -22,7 +24,7 @@ def prefix_mod_title(msg: str, name_map: dict[str, str]) -> str:
         return msg
 
     # 已含 mod 名称的消息不重复添加
-    if re.search(r'Mod \[.+?\]', msg):
+    if re.search(r'Mod \[.+?\]', msg) or msg.startswith('【'):
         return msg
 
     # "Mod {mod_id}: ..." 格式（scan_errors）
@@ -46,8 +48,8 @@ def prefix_mod_title(msg: str, name_map: dict[str, str]) -> str:
 class LogPanel(QWidget):
     """可筛选的日志面板，支持按级别着色和文件路径提取"""
 
-    # 双击日志条目中包含文件路径时发出，携带文件路径
-    file_open_requested = Signal(str)
+    # 双击日志条目中包含文件路径时发出，携带 (文件路径, 字段路径)
+    file_open_requested = Signal(str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -122,6 +124,10 @@ class LogPanel(QWidget):
         match = re.search(r'([A-Za-z]:\\[^:]+\.json|/[^:]+\.json)', msg)
         if match:
             item.setData(Qt.ItemDataRole.UserRole, match.group(1))
+        # 提取字段路径（格式: ...json > field.path: ...）
+        fp_match = re.search(r'\.json\s*>\s*([a-zA-Z0-9_.]+):', msg)
+        if fp_match:
+            item.setData(_FIELD_PATH_ROLE, fp_match.group(1))
         self._list.addItem(item)
         self.setVisible(True)
         self._apply_filter_to_item(item)
@@ -151,4 +157,5 @@ class LogPanel(QWidget):
         """双击日志条目，发出文件打开信号"""
         file_path = item.data(Qt.ItemDataRole.UserRole)
         if file_path:
-            self.file_open_requested.emit(file_path)
+            field_path = item.data(_FIELD_PATH_ROLE) or ""
+            self.file_open_requested.emit(file_path, field_path)

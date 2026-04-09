@@ -48,3 +48,15 @@ class Diagnostics:
 
 
 diag = Diagnostics()
+
+
+class MergeContext(threading.local):
+    """线程本地的合并上下文，由 merge_file 设置，供 deep_merge 中的警告生成读取"""
+    def __init__(self):
+        super().__init__()
+        self.mod_name: str = ""
+        self.mod_id: str = ""
+        self.rel_path: str = ""
+        self.source_file: str = ""  # mod 源文件绝对路径
+
+merge_ctx = MergeContext()

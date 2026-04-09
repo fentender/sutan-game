@@ -21,3 +21,5 @@ _remap_temp
 build/
 dist/
 *.spec
+.agent
+.claude
