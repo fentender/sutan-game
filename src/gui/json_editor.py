@@ -4,6 +4,8 @@
 import json
 from pathlib import Path
 
+from ..core.json_parser import clean_json_text
+
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPlainTextEdit, QTextEdit,
     QLabel, QPushButton, QMessageBox, QWidget
@@ -12,8 +14,6 @@ from PySide6.QtGui import (
     QFont, QColor, QTextCursor, QPainter, QTextFormat, QTextBlockUserData
 )
 from PySide6.QtCore import Qt, QRect, QSize, QMimeData
-
-from ..core.json_parser import strip_js_comments, strip_trailing_commas
 
 _FONT = QFont("Consolas", 10)
 _INDENT = "    "
@@ -231,11 +231,12 @@ class CodeEditor(QPlainTextEdit):
         painter.end()
 
     def highlight_line(self, line_no: int, scroll_to: bool = True,
-                       color: QColor | None = None):
-        """用指定背景色高亮指定行（1-based），默认红色"""
+                       color: QColor | None = None, append: bool = False):
+        """用指定背景色高亮指定行（1-based），默认红色。
+        append=True 时追加到已有高亮，不覆盖。"""
         if color is None:
             color = QColor(100, 30, 30)
-        selections = []
+        selections = list(self.extraSelections()) if append else []
         block = self.document().findBlockByLineNumber(line_no - 1)
         if block.isValid():
             selection = QTextEdit.ExtraSelection()
@@ -346,12 +347,13 @@ class JsonEditorDialog(QDialog):
         self._editor.setPlainText(raw)
         self._detect_error()
         self._update_highlights()
-        # 语法错误优先；无语法错误时，按 search_key 定位字段
-        if self._search_key and self._error_line is None:
+        # 语法错误优先；无论是否有语法错误，都按 search_key 定位字段
+        if self._search_key:
             line = self._find_key_line(self._search_key)
             if line:
                 self._editor.highlight_line(line, scroll_to=True,
-                                            color=QColor(80, 70, 20))
+                                            color=QColor(80, 70, 20),
+                                            append=True)
 
     def _find_key_line(self, field_path: str) -> int | None:
         """根据字段路径定位行号，取路径最后一段在文件文本中搜索"""
@@ -370,7 +372,7 @@ class JsonEditorDialog(QDialog):
         self._error_line = None
         self._error_msg = ""
         text = self._editor.toPlainText()
-        cleaned = strip_trailing_commas(strip_js_comments(text))
+        cleaned = clean_json_text(text)
         try:
             json.loads(cleaned)
         except json.JSONDecodeError as e:

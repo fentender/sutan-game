@@ -12,6 +12,23 @@ from dataclasses import dataclass, field, asdict
 
 log = logging.getLogger(__name__)
 
+# 应用版本号（发版时与 git tag 同步更新）
+APP_VERSION = "1.0.2"
+
+# 更新检查源（GitHub 优先，Gitee 备用）
+UPDATE_SOURCES = [
+    {
+        "name": "GitHub",
+        "api": "https://api.github.com/repos/fentender/sutan-game/releases/latest",
+        "releases_url": "https://github.com/fentender/sutan-game/releases",
+    },
+    {
+        "name": "Gitee",
+        "api": "https://gitee.com/api/v5/repos/fentende125/sutan-game/releases/latest",
+        "releases_url": "https://gitee.com/fentende125/sutan-game/releases",
+    },
+]
+
 
 # 项目根目录
 if getattr(sys, 'frozen', False):

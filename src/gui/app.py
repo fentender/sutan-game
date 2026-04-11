@@ -9,9 +9,10 @@ from PySide6.QtWidgets import (
     QPushButton, QSplitter, QMessageBox, QProgressBar,
     QFileDialog, QCheckBox
 )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtGui import QDesktopServices
 
-from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR, MOD_OVERRIDES_DIR
+from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR, MOD_OVERRIDES_DIR, APP_VERSION
 from ..core.mod_scanner import scan_all_mods
 from ..core.diagnostics import diag, INFO, WARNING, ERROR
 from ..core.deployer import generate_info_json
@@ -21,7 +22,7 @@ from .mod_list import ModListPanel
 from .mod_detail import ModDetailPanel
 from .override_panel import OverridePanel
 from .log_panel import LogPanel, prefix_mod_title
-from .workers import MergeWorker, AnalyzeWorker
+from .workers import MergeWorker, AnalyzeWorker, UpdateCheckWorker
 
 
 class MainWindow(QMainWindow):
@@ -35,6 +36,7 @@ class MainWindow(QMainWindow):
         self.config = UserConfig.load()
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
+        self._update_worker: UpdateCheckWorker | None = None
         self._pending_action = None  # 等待分析完成后执行的操作
 
         # ID 重分配缓存：remap 只在 _analyze_conflicts 中做一次，
@@ -55,6 +57,9 @@ class MainWindow(QMainWindow):
         self._load_mods()
         self._schedule_analyze()
 
+        # 启动 3 秒后静默检查更新
+        QTimer.singleShot(3000, self._auto_check_update)
+
     def _setup_menu(self):
         menubar = self.menuBar()
         file_menu = menubar.addMenu("文件")
@@ -63,6 +68,9 @@ class MainWindow(QMainWindow):
         file_menu.addAction("设置本地 Mod 路径...", self._set_local_mod_path)
         file_menu.addSeparator()
         file_menu.addAction("退出", self.close)
+
+        help_menu = menubar.addMenu("帮助")
+        help_menu.addAction(f"检查更新 (当前: v{APP_VERSION})", self._check_update)
 
     def _setup_ui(self):
         central = QWidget()
@@ -232,6 +240,7 @@ class MainWindow(QMainWindow):
             self._analyze_worker.finished.disconnect()
             self._analyze_worker.error.disconnect()
             self._analyze_worker.cancel()
+            self._analyze_worker._resume_event.set()  # 防止 worker 卡在等待用户处理
             self._analyze_worker.wait()
 
         mod_configs = self._get_mod_configs()
@@ -269,6 +278,7 @@ class MainWindow(QMainWindow):
         )
         self._analyze_worker.finished.connect(self._on_analyze_finished)
         self._analyze_worker.error.connect(self._on_analyze_error)
+        self._analyze_worker.parse_errors.connect(self._on_analyze_parse_errors)
         self._analyze_worker.start()
 
     def _on_analyze_finished(self, overrides, parse_msgs):
@@ -297,6 +307,13 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         self.statusBar().showMessage(f"分析失败: {error}")
         self._log_message(ERROR, f"冲突分析失败: {error}")
+
+    def _on_analyze_parse_errors(self, parse_failures: list):
+        """分析过程中有 JSON 解析失败，弹窗让用户处理"""
+        from .json_fix_dialog import JsonFixDialog
+        dialog = JsonFixDialog(parse_failures, parent=self)
+        dialog.exec()
+        self._analyze_worker.set_error_resolution(dialog.resolutions)
 
     def _open_diff(self, rel_path: str):
         """打开 Diff 对比窗口（分析进行中则排队等待）"""
@@ -356,12 +373,14 @@ class MainWindow(QMainWindow):
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
         self._worker.finished.connect(self._on_merge_finished)
         self._worker.error.connect(self._on_merge_error)
+        self._worker.parse_errors.connect(self._on_parse_errors)
         self._worker.start()
 
     def _cancel_merge(self):
         """取消正在进行的合并"""
         if self._worker:
             self._worker.cancel()
+            self._worker._resume_event.set()  # 防止 worker 卡在等待用户处理
         self.statusBar().showMessage("正在取消...")
 
     def _restore_merge_btn(self):
@@ -395,6 +414,13 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"合并失败: {error}")
         self._log_message(ERROR, f"合并失败: {error}")
         QMessageBox.critical(self, "合并失败", error)
+
+    def _on_parse_errors(self, parse_failures: list):
+        """合并过程中有 JSON 解析失败，弹窗让用户处理"""
+        from .json_fix_dialog import JsonFixDialog
+        dialog = JsonFixDialog(parse_failures, parent=self)
+        dialog.exec()
+        self._worker.set_error_resolution(dialog.resolutions)
 
     def _clean(self):
         """清理合成 Mod"""
@@ -453,14 +479,63 @@ class MainWindow(QMainWindow):
         self._remapped_configs = None
         self._remap_tables = None
 
+    # ── 检查更新 ──
+
+    def _auto_check_update(self):
+        """启动时自动检查更新（静默模式）"""
+        self._do_check_update(silent=True)
+
+    def _check_update(self):
+        """用户手动触发检查更新"""
+        self._do_check_update(silent=False)
+
+    def _do_check_update(self, silent: bool):
+        if self._update_worker and self._update_worker.isRunning():
+            return
+        self._update_worker = UpdateCheckWorker()
+        self._update_worker.finished.connect(
+            lambda result: self._on_update_checked(result, silent)
+        )
+        self._update_worker.start()
+
+    def _on_update_checked(self, result: dict | None, silent: bool):
+        if result:
+            self._show_update_dialog(result)
+        elif not silent:
+            QMessageBox.information(self, "检查更新",
+                                    f"当前版本 v{APP_VERSION} 已是最新版本。")
+
+    def _show_update_dialog(self, info: dict):
+        tag = info["tag_name"]
+        name = info.get("name") or tag
+        body = info.get("body") or ""
+        if len(body) > 500:
+            body = body[:500] + "..."
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("发现新版本")
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setText(f"新版本 {name} 可用！\n\n当前版本: v{APP_VERSION}\n最新版本: {tag}")
+        if body:
+            msg.setDetailedText(body)
+        btn_download = msg.addButton("前往下载", QMessageBox.ButtonRole.AcceptRole)
+        msg.addButton("稍后再说", QMessageBox.ButtonRole.RejectRole)
+        msg.exec()
+        if msg.clickedButton() == btn_download:
+            QDesktopServices.openUrl(QUrl(info.get("download_url", "")))
+
     def closeEvent(self, event):
         """关闭窗口时协作式等待工作线程结束"""
         self._analyze_timer.stop()
         if self._analyze_worker is not None and self._analyze_worker.isRunning():
             self._analyze_worker.cancel()
+            self._analyze_worker._resume_event.set()  # 防止 worker 卡在等待用户处理
             self._analyze_worker.wait(5000)
         if self._worker is not None and self._worker.isRunning():
             self._worker.cancel()
+            self._worker._resume_event.set()  # 防止 worker 卡在等待用户处理
             self._worker.wait(5000)
+        if self._update_worker is not None and self._update_worker.isRunning():
+            self._update_worker.wait(2000)
         self._cleanup_remap()
         event.accept()

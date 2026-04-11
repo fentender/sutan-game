@@ -199,6 +199,42 @@ def perf_merge_all():
         log.info("    合并 %d 个文件，耗时 %.3fs", len(results), elapsed)
 
 
+def perf_json_parse():
+    """JSON 解析性能（含逗号修复）"""
+    from src.core.json_parser import load_json, clear_json_cache
+
+    game_config, workshop = _require_real_data()
+
+    # 收集所有 mod JSON 文件
+    json_files = []
+    for mod_dir in workshop.iterdir():
+        if not mod_dir.is_dir():
+            continue
+        config_dir = mod_dir / "config"
+        if config_dir.exists():
+            json_files.extend(config_dir.rglob("*.json"))
+
+    if not json_files:
+        skip("没有可用的 JSON 文件")
+
+    # 也加入本体的 JSON 文件
+    base_files = list(game_config.rglob("*.json"))
+    all_files = base_files + json_files
+
+    clear_json_cache()
+
+    start = time.perf_counter()
+    repair_count = 0
+    for f in all_files:
+        try:
+            load_json(f)
+        except Exception:
+            repair_count += 1
+    elapsed = time.perf_counter() - start
+    log.info("    解析 %d 个 JSON（%d 本体 + %d mod），耗时 %.3fs",
+             len(all_files), len(base_files), len(json_files), elapsed)
+
+
 # ==================== 入口 ====================
 
 def run_all(result: TestResult):
@@ -208,6 +244,7 @@ def run_all(result: TestResult):
 
     tests = [
         ("perf_load_schemas", perf_load_schemas),
+        ("perf_json_parse", perf_json_parse),
         ("perf_scan_mods", perf_scan_mods),
         ("perf_analyze_all", perf_analyze_all),
         ("perf_deep_merge_large", perf_deep_merge_large),

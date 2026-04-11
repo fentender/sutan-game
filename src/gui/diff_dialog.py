@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt
 
 from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
 from ..core.diagnostics import diag, merge_ctx
-from ..core.json_parser import load_json, strip_js_comments, strip_trailing_commas
+from ..core.json_parser import load_json, clean_json_text
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
 from ..core.profiler import profile
@@ -897,7 +897,7 @@ class DiffDialog(QDialog):
         error_bar = self._tab_error_bars[tab_index]
 
         # JSON 验证
-        cleaned = strip_trailing_commas(strip_js_comments(text))
+        cleaned = clean_json_text(text)
         try:
             json.loads(cleaned)
         except json.JSONDecodeError as e:

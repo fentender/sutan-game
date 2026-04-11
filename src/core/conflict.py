@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .json_parser import load_json
+from .merger import ParseFailure
 from .mod_scanner import collect_mod_files
 from .diagnostics import diag
 from .schema_generator import SEP
@@ -311,7 +312,7 @@ def analyze_all_overrides(
     mod_configs: list[tuple[str, str, Path]],
     schema_dir: Path | None = None,
     cancel_check=None,
-) -> list[FileOverrideInfo]:
+) -> tuple[list[FileOverrideInfo], list[ParseFailure]]:
     """
     分析所有文件的覆盖情况。
 
@@ -327,6 +328,7 @@ def analyze_all_overrides(
     all_files = collect_mod_files(mod_configs)
 
     results = []
+    parse_failures: list[ParseFailure] = []
     for rel_path, mod_file_list in sorted(all_files.items()):
         if cancel_check:
             cancel_check()
@@ -337,7 +339,12 @@ def analyze_all_overrides(
             except json.JSONDecodeError as e:
                 msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)
-                diag.warn("parse", msg)
+                diag.error("parse", msg)
+                parse_failures.append(ParseFailure(
+                    file_path=base_file, rel_path=rel_path,
+                    error_msg=e.msg, error_line=getattr(e, 'lineno', 0) or 0,
+                    is_base=True, mod_id="", mod_name="",
+                ))
                 continue
         else:
             # diag.info("parse", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
@@ -350,7 +357,12 @@ def analyze_all_overrides(
             except json.JSONDecodeError as e:
                 msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
                 log.warning(msg)
-                diag.warn("parse", msg)
+                diag.error("parse", msg)
+                parse_failures.append(ParseFailure(
+                    file_path=mod_file, rel_path=rel_path,
+                    error_msg=e.msg, error_line=getattr(e, 'lineno', 0) or 0,
+                    is_base=False, mod_id=mod_id, mod_name=mod_name,
+                ))
 
         # 查找 schema
         schema = resolve_schema(rel_path, schemas) if schemas else None
@@ -361,4 +373,4 @@ def analyze_all_overrides(
                                        schema=schema, field_path=schema_path)
         results.append(info)
 
-    return results
+    return results, parse_failures

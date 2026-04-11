@@ -4,6 +4,7 @@
 import json
 import logging
 import copy
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -45,6 +46,18 @@ class MergeResult:
     merged_data: dict = field(default_factory=dict)
     overrides: list[OverrideRecord] = field(default_factory=list)
     new_entries: list[tuple[str, str, str]] = field(default_factory=list)  # (file, mod_name, description)
+
+
+@dataclass
+class ParseFailure:
+    """JSON 解析失败的记录"""
+    file_path: Path
+    rel_path: str
+    error_msg: str
+    error_line: int
+    is_base: bool
+    mod_id: str
+    mod_name: str
 
 
 # ==================== 通用数组合并 ====================
@@ -373,7 +386,15 @@ def deep_merge(base: object, override: object,
                 _in_place=True,
             )
         else:
-            result[key] = value if _in_place else copy.deepcopy(value)
+            # 新增字段：对含 delta 标记的数组仍需走 _apply_merge_strategy
+            # 以正确清理 _new_entry/_delta/_deleted 标记
+            if merge_strategy in ("smart_match", "append") and isinstance(value, list):
+                result[key] = _apply_merge_strategy(
+                    merge_strategy, [], value, schema, child_path,
+                    _in_place=False,
+                )
+            else:
+                result[key] = value if _in_place else copy.deepcopy(value)
 
     # 未知 key 警告：检查 override 中的 key 是否在 schema 中有定义
     if current_def and isinstance(current_def, dict):
@@ -771,7 +792,7 @@ def merge_all_files(
     allow_deletions: bool = False,
     cancel_check=None,
     overrides_dir: Path | None = None,
-) -> dict[str, MergeResult]:
+) -> tuple[dict[str, MergeResult], list[ParseFailure]]:
     """
     合并所有文件。
 
@@ -783,6 +804,9 @@ def merge_all_files(
         allow_deletions: 是否允许删减（mod 中缺少的条目从结果中删除）
         cancel_check: 可选的取消检查回调，调用时若已取消则抛出异常
         overrides_dir: 用户 override 文件目录，存在时传递给 merge_file
+
+    返回:
+        (合并结果字典, 解析失败列表)
     """
     diag.snapshot("merge")  # 清空上次的合并警告
 
@@ -792,6 +816,7 @@ def merge_all_files(
     all_files = collect_mod_files(mod_configs)
 
     results = {}
+    parse_failures: list[ParseFailure] = []
     for rel_path, mod_file_list in all_files.items():
         if cancel_check:
             cancel_check()
@@ -801,9 +826,14 @@ def merge_all_files(
             try:
                 base_data = load_json(base_file)
             except json.JSONDecodeError as e:
-                msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
+                msg = f"{base_file}: JSON 解析失败 ({e.msg})"
                 log.warning(msg)
-                diag.warn("merge", msg)
+                diag.error("merge", msg)
+                parse_failures.append(ParseFailure(
+                    file_path=base_file, rel_path=rel_path,
+                    error_msg=e.msg, error_line=getattr(e, 'lineno', 0) or 0,
+                    is_base=True, mod_id="", mod_name="",
+                ))
                 continue
         else:
             # diag.info("merge", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
@@ -822,9 +852,14 @@ def merge_all_files(
             try:
                 mod_data = load_json(mod_file)
             except json.JSONDecodeError as e:
-                msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
+                msg = f"{mod_file}: JSON 解析失败 ({e.msg})"
                 log.warning(msg)
-                diag.warn("merge", msg)
+                diag.error("merge", msg)
+                parse_failures.append(ParseFailure(
+                    file_path=mod_file, rel_path=rel_path,
+                    error_msg=e.msg, error_line=getattr(e, 'lineno', 0) or 0,
+                    is_base=False, mod_id=mod_id, mod_name=mod_name,
+                ))
                 continue
 
             # tag.json name 匹配验证（需在 delta 计算前用原始数据验证）
@@ -848,7 +883,14 @@ def merge_all_files(
         out_file = output_path / rel_path
         dump_json(merge_result.merged_data, out_file)
 
-    return results
+    return results, parse_failures
+
+
+def raw_copy_file(source: Path, rel_path: str, output_path: Path):
+    """将文件原样复制到输出目录"""
+    dest = output_path / rel_path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, dest)
 
 
 def _validate_tag_names(base_data: dict, mod_data_list: list[tuple[str, str, dict]]):
