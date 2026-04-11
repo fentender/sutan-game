@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-from .json_parser import load_json
+from .json_parser import load_json, DupList
 from .type_utils import get_type_str, classify_json
 from .dsl_patterns import classify_dsl_key
 from .diagnostics import diag
@@ -162,64 +162,75 @@ def collect_field_info(obj, info, prefix="", _visited=None):
     for k, v in obj.items():
         path = f"{prefix}{SEP}{k}" if prefix else k
 
-        if path not in info:
-            info[path] = {
-                "types": set(),
-                "child_keys": set(),
-                "array_elem_types": set(),
-                "has_guid": False,
-                "has_condition": False,
-                "has_action": False,
-                "has_result_title": False,
-                "has_tag": False,
-                "has_id": False,
-                "has_key": False,
-                "sample_values": [],
-                "count": 0,
-                "child_key_counts": {},
-                "child_key_types": {},  # {key_name: {type_str: count}}
-            }
+        # DupList：展开为逐元素分析（每个元素等价于原始字段值）
+        if isinstance(v, DupList):
+            for elem in v:
+                _collect_single_value(elem, path, info, _visited)
+            continue
 
-        entry = info[path]
-        entry["count"] += 1
-        vtype = get_type_str(v)
-        detailed_type = analyze_value_type(v)
-        entry["types"].add(detailed_type)
+        _collect_single_value(v, path, info, _visited)
 
-        if vtype in ("int", "float", "string", "bool", "null"):
-            entry["sample_values"].append(v)
 
-        if vtype == "object":
-            entry["child_keys"].update(v.keys())
-            for ck, cv in v.items():
-                entry["child_key_counts"][ck] = entry["child_key_counts"].get(ck, 0) + 1
-                cv_type = analyze_value_type(cv)
-                if ck not in entry["child_key_types"]:
-                    entry["child_key_types"][ck] = {}
-                entry["child_key_types"][ck][cv_type] = entry["child_key_types"][ck].get(cv_type, 0) + 1
-            collect_field_info(v, info, path, _visited)
+def _collect_single_value(v, path, info, _visited):
+    """分析单个字段值并更新 info（从 collect_field_info 提取，支持 DupList 展开）"""
+    if path not in info:
+        info[path] = {
+            "types": set(),
+            "child_keys": set(),
+            "array_elem_types": set(),
+            "has_guid": False,
+            "has_condition": False,
+            "has_action": False,
+            "has_result_title": False,
+            "has_tag": False,
+            "has_id": False,
+            "has_key": False,
+            "sample_values": [],
+            "count": 0,
+            "child_key_counts": {},
+            "child_key_types": {},  # {key_name: {type_str: count}}
+        }
 
-        elif vtype == "array" and v:
-            for item in v:
-                item_type = get_type_str(item)
-                entry["array_elem_types"].add(item_type)
-                if isinstance(item, dict):
-                    if "id" in item:
-                        entry["has_id"] = True
-                    if "guid" in item:
-                        entry["has_guid"] = True
-                    if "tag" in item:
-                        entry["has_tag"] = True
-                    if "key" in item:
-                        entry["has_key"] = True
-                    if "condition" in item:
-                        entry["has_condition"] = True
-                    if "action" in item:
-                        entry["has_action"] = True
-                    if "result_title" in item:
-                        entry["has_result_title"] = True
-                    arr_path = f"{path}{SEP}{ARR_MARKER}"
-                    collect_field_info(item, info, arr_path, _visited)
+    entry = info[path]
+    entry["count"] += 1
+    vtype = get_type_str(v)
+    detailed_type = analyze_value_type(v)
+    entry["types"].add(detailed_type)
+
+    if vtype in ("int", "float", "string", "bool", "null"):
+        entry["sample_values"].append(v)
+
+    if vtype == "object":
+        entry["child_keys"].update(v.keys())
+        for ck, cv in v.items():
+            entry["child_key_counts"][ck] = entry["child_key_counts"].get(ck, 0) + 1
+            cv_type = analyze_value_type(cv)
+            if ck not in entry["child_key_types"]:
+                entry["child_key_types"][ck] = {}
+            entry["child_key_types"][ck][cv_type] = entry["child_key_types"][ck].get(cv_type, 0) + 1
+        collect_field_info(v, info, path, _visited)
+
+    elif vtype == "array" and v:
+        for item in v:
+            item_type = get_type_str(item)
+            entry["array_elem_types"].add(item_type)
+            if isinstance(item, dict):
+                if "id" in item:
+                    entry["has_id"] = True
+                if "guid" in item:
+                    entry["has_guid"] = True
+                if "tag" in item:
+                    entry["has_tag"] = True
+                if "key" in item:
+                    entry["has_key"] = True
+                if "condition" in item:
+                    entry["has_condition"] = True
+                if "action" in item:
+                    entry["has_action"] = True
+                if "result_title" in item:
+                    entry["has_result_title"] = True
+                arr_path = f"{path}{SEP}{ARR_MARKER}"
+                collect_field_info(item, info, arr_path, _visited)
 
 
 # ==================== Schema 推断 ====================

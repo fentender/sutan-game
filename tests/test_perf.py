@@ -123,7 +123,7 @@ def perf_diff_dialog_tab_load():
     mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
 
     # 挑选最坏情况：被最多 mod 同时修改、且字段 override 数最多的文件
-    overrides = analyze_all_overrides(game_config, mod_configs, schema_dir=SCHEMA_DIR)
+    overrides, _ = analyze_all_overrides(game_config, mod_configs, schema_dir=SCHEMA_DIR)
     candidates = [o for o in overrides if len(o.mod_chain) >= 2]
     if not candidates:
         skip("没有多 mod 同时修改的文件")
@@ -235,6 +235,52 @@ def perf_json_parse():
              len(all_files), len(base_files), len(json_files), elapsed)
 
 
+def perf_full_pipeline_profile():
+    """完整合并管线 profile：scan → analyze → merge，输出全函数耗时"""
+    import tempfile
+    game_config, workshop = _require_real_data()
+    from src.core.mod_scanner import scan_all_mods
+    from src.core.conflict import analyze_all_overrides
+    from src.core.merger import merge_all_files
+    from src.core.json_parser import clear_json_cache
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+
+    # 使用所有 mod（不限于 enabled_mods）
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    log.info("    使用 %d 个 Mod 进行完整管线 profile", len(mod_configs))
+
+    # 清缓存，确保 load_json 的耗时被完整记录
+    clear_json_cache()
+
+    # 阶段 1：冲突分析
+    start = time.perf_counter()
+    overrides, _ = analyze_all_overrides(game_config, mod_configs,
+                                         schema_dir=SCHEMA_DIR)
+    analyze_elapsed = time.perf_counter() - start
+    log.info("    冲突分析: %.3fs (%d 个文件)", analyze_elapsed, len(overrides))
+
+    # 清缓存，让 merge 阶段也完整记录 load_json
+    clear_json_cache()
+
+    # 阶段 2：完整合并
+    with tempfile.TemporaryDirectory() as tmpdir:
+        from pathlib import Path
+        output = Path(tmpdir) / "config"
+        output.mkdir()
+
+        start = time.perf_counter()
+        results, _ = merge_all_files(
+            game_config, mod_configs, output, schema_dir=SCHEMA_DIR,
+        )
+        merge_elapsed = time.perf_counter() - start
+        log.info("    完整合并: %.3fs (%d 个文件)", merge_elapsed, len(results))
+
+    log.info("    管线总耗时: %.3fs (分析 + 合并)", analyze_elapsed + merge_elapsed)
+
+
 # ==================== 入口 ====================
 
 def run_all(result: TestResult):
@@ -251,11 +297,12 @@ def run_all(result: TestResult):
         ("perf_resolve_duplicates", perf_resolve_duplicates),
         ("perf_merge_all", perf_merge_all),
         ("perf_diff_dialog_tab_load", perf_diff_dialog_tab_load),
+        ("perf_full_pipeline_profile", perf_full_pipeline_profile),
     ]
     for name, func in tests:
         run_test(name, func, result)
 
     # 输出 profiler 报告
     log.info("")
-    log.info(profiler.get_report())
+    log.info(profiler.get_report(top_n=30))
     profiler.disable()

@@ -8,6 +8,7 @@ from pathlib import Path
 from .dsl_patterns import classify_dsl_key
 from .profiler import profile
 from .type_utils import get_type_str
+from .json_parser import DupList
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +102,7 @@ def _resolve_template(template_name: str) -> dict | None:
     return _global_templates.get(template_name)
 
 
+@profile
 def get_field_def(schema: dict, field_path: list[str]) -> dict | None:
     """
     在 schema 树中查找字段定义。
@@ -215,9 +217,14 @@ def check_type_match(schema_type, actual_value) -> bool:
     检查实际值的类型是否匹配 schema 定义的类型。
 
     schema_type 可以是 string 或 list[string]。
+    DupList 逐元素检查——每个元素等价于原始字段值。
     """
     if schema_type is None:
         return True
+
+    # DupList：逐元素检查（每个元素等价于原始字段值）
+    if isinstance(actual_value, DupList):
+        return all(check_type_match(schema_type, elem) for elem in actual_value)
 
     actual_type = get_type_str(actual_value)
     if isinstance(schema_type, list):

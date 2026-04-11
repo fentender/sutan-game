@@ -11,7 +11,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .json_parser import load_json, dump_json
+from .json_parser import load_json, dump_json, DupList
 from .diagnostics import diag
 
 log = logging.getLogger(__name__)
@@ -457,6 +457,9 @@ def replace_in_value(value, int_lookup: dict[int, int], str_lookup: dict[str, st
             _replace_in_key(k, str_lookup): replace_in_value(v, int_lookup, str_lookup)
             for k, v in value.items()
         }
+    if isinstance(value, DupList):
+        # 保留 DupList 类型（同名重复键的值集合）
+        return DupList(replace_in_value(item, int_lookup, str_lookup) for item in value)
     if isinstance(value, list):
         return [replace_in_value(item, int_lookup, str_lookup) for item in value]
     if isinstance(value, bool):

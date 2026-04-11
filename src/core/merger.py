@@ -105,6 +105,7 @@ def _classify_delta_items(
     return delta_items, new_entry_items, deleted_items
 
 
+@profile
 def _apply_deltas_to_result(
     result: list, delta_items: list[dict], match_keys: list[str],
     matched: set[int], schema: dict | None, element_path: list[str] | None,
@@ -200,7 +201,11 @@ def _coerce_and_merge_array(base_val, override_val):
     """
     类型不匹配时的数组合并策略。
     将标量一侧包裹为单元素列表，然后合并（去重追加）。
+    DupList 不参与 coerce——它是同名重复键的值集合，不是数组。
     """
+    # DupList 不是真正的数组，直接替换
+    if isinstance(base_val, DupList) or isinstance(override_val, DupList):
+        return copy.deepcopy(override_val)
     if isinstance(base_val, list) and not isinstance(override_val, list):
         if override_val in base_val:
             return copy.deepcopy(base_val)
@@ -521,11 +526,10 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
         # 类型校验
         schema_type = child_def.get("__type__")
         if schema_type and override_val is not None:
-            # DupList/DupListDelta：逐元素检查类型（schema 定义的是元素类型）
-            if isinstance(override_val, (DupList, DupListDelta)):
+            # DupListDelta：元素含 _delta/_new_entry/_deleted 标记，需要特殊提取值
+            if isinstance(override_val, DupListDelta):
                 from .type_utils import get_type_str
                 for elem in override_val:
-                    # DupListDelta 的元素是标记 dict，取 _value 或跳过
                     if isinstance(elem, dict) and ("_delta" in elem or "_new_entry" in elem or "_deleted" in elem):
                         val = elem.get("_value", elem)
                         if val is elem:
@@ -534,10 +538,11 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
                         val = elem
                     if not check_type_match(schema_type, val):
                         actual = get_type_str(val)
-                        type_warn = f"字段 '{key}' DupList 元素类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
+                        type_warn = f"字段 '{key}' DupListDelta 元素类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
                         return strategy, type_warn
                 return strategy, None
 
+            # 普通值（含 DupList）：check_type_match 已能正确处理 DupList 逐元素检查
             if not check_type_match(schema_type, override_val):
                 from .type_utils import get_type_str
                 actual = get_type_str(override_val)
@@ -552,6 +557,7 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
     return "replace", None
 
 
+@profile
 def _apply_merge_strategy(strategy: str, base_val, override_val,
                           schema: dict | None, child_path: list[str] | None,
                           _in_place: bool = False) -> object:
@@ -637,6 +643,7 @@ def compute_mod_delta(base_data: dict, mod_data: dict,
         return result if result is not None else {}
 
 
+@profile
 def _object_array_delta(base_arr: list[dict], mod_arr: list[dict],
                         match_key: str, allow_deletions: bool = False,
                         schema=None, field_path=None) -> list[dict] | None:
@@ -938,7 +945,7 @@ def merge_all_files(
         base_file = game_config_path / rel_path
         if base_file.exists():
             try:
-                base_data = load_json(base_file)
+                base_data = load_json(base_file, readonly=True)
             except json.JSONDecodeError as e:
                 msg = f"{base_file}: JSON 解析失败 ({e.msg})"
                 log.warning(msg)
@@ -964,7 +971,7 @@ def merge_all_files(
         mod_data_list = []
         for mod_id, mod_name, mod_file in mod_file_list:
             try:
-                mod_data = load_json(mod_file)
+                mod_data = load_json(mod_file, readonly=True)
             except json.JSONDecodeError as e:
                 msg = f"{mod_file}: JSON 解析失败 ({e.msg})"
                 log.warning(msg)

@@ -2,7 +2,7 @@
 数组元素匹配工具 - merger 和 conflict 共享的匹配算法
 """
 import json
-from difflib import SequenceMatcher
+from rapidfuzz import fuzz
 
 from .profiler import profile
 
@@ -32,7 +32,7 @@ def item_similarity(a: dict, b: dict) -> float:
     """计算两个 dict 的字符串相似度（0.0 ~ 1.0）"""
     a_str = json.dumps(a, sort_keys=True, ensure_ascii=False)
     b_str = json.dumps(b, sort_keys=True, ensure_ascii=False)
-    return SequenceMatcher(None, a_str, b_str).ratio()
+    return fuzz.ratio(a_str, b_str) / 100.0
 
 
 @profile
@@ -83,7 +83,7 @@ def resolve_duplicates(
             if base_str == mod_str:
                 best_bi = bi
                 break
-            ratio = SequenceMatcher(None, mod_str, base_str).ratio()
+            ratio = fuzz.ratio(mod_str, base_str) / 100.0
             if ratio > best_ratio:
                 best_ratio = ratio
                 best_bi = bi
@@ -99,7 +99,7 @@ def resolve_duplicates(
             if ms == bs:
                 matrix[(mi, bi_idx)] = 1.0
             else:
-                matrix[(mi, bi_idx)] = SequenceMatcher(None, ms, bs).ratio()
+                matrix[(mi, bi_idx)] = fuzz.ratio(ms, bs) / 100.0
 
     remaining_mod = set(range(len(mod_items)))
     remaining_base = set(range(len(base_indices)))

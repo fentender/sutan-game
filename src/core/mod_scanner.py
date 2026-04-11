@@ -38,6 +38,7 @@ def find_preview(mod_path: Path) -> str | None:
     return None
 
 
+@profile
 def scan_config_files(mod_path: Path) -> tuple[list[str], list[str]]:
     """扫描 mod 的 config 目录，返回 (配置文件列表, 资源文件列表)"""
     config_dir = mod_path / "config"

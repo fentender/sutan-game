@@ -72,6 +72,7 @@ def _make_element_label(item, match_keys):
 
 # ==================== 差异收集 ====================
 
+@profile
 def _collect_smart_match_diffs(base_arr, mod_arr, path,
                                match_keys, schema, field_path):
     """可匹配数组的原子化比较：按 match_keys 精确匹配元素后递归比较子字段。

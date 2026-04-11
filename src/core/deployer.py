@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ..config import SYNTHETIC_MOD_ID
 from .id_remapper import RemapTable, compute_resource_rename
+from .profiler import profile
 
 
 def generate_info_json(mod_names: list[str], output_path: Path):
@@ -27,6 +28,7 @@ def generate_info_json(mod_names: list[str], output_path: Path):
     )
 
 
+@profile
 def copy_resources(
     mod_paths: list[tuple[str, Path]],
     output_path: Path,
@@ -65,6 +67,7 @@ def copy_resources(
                 shutil.copy2(f, dest)
 
 
+@profile
 def deploy_to_workshop(
     merged_output: Path,
     workshop_path: Path,
