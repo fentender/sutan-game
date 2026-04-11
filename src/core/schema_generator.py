@@ -381,16 +381,16 @@ def _build_element_from_global(arr_canonical):
     return element or None
 
 
-def _build_field_from_counts(key, type_counts, self_name=None):
+def _build_field_from_counts(key, type_counts):
     """从 {type_str: count} 构建单个字段定义（供模板 fields 和 element 复用）"""
     if classify_dsl_key(key):
         return None
 
     type_val = _infer_type_from_counts(type_counts)
 
-    # 检查模板引用（允许同名引用，但防止自引用）
+    # 检查模板引用（包括自引用——输出的是 JSON 引用，不会递归展开）
     canonical = _canonical_field_name(key)
-    if canonical in _templates_registry and canonical != self_name:
+    if canonical in _templates_registry:
         return {"__use_template__": canonical}
 
     # 推断合并策略
@@ -424,19 +424,37 @@ def _build_field_from_counts(key, type_counts, self_name=None):
         if elem:
             field_def["__element__"] = elem
 
+    # 非模板 object：从全局字段信息构建 __fields__
+    if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
+        field_canonical = _canonical_field_name(key)
+        if field_canonical in _global_field_info:
+            fi = _global_field_info[field_canonical]
+            if fi["child_key_counts"]:
+                fields = {}
+                for ck in sorted(fi["child_key_counts"]):
+                    fd = _build_field_from_counts(ck, fi["child_key_types"].get(ck, {}))
+                    if fd is not None:
+                        fields[ck] = fd
+                if fields:
+                    field_def["__fields__"] = fields
+                else:
+                    field_def["_note"] = "数据中未观察到子字段"
+            else:
+                field_def["_note"] = "数据中未观察到子字段"
+        else:
+            field_def["_note"] = "数据中未观察到子字段"
+
     return field_def
 
 
-def _build_template_from_field_info(fi, self_name=None):
-    """从全局字段信息构建命名模板定义。
-    self_name: 当前正在构建的模板名，防止自引用。
-    """
+def _build_template_from_field_info(fi):
+    """从全局字段信息构建命名模板定义。"""
     key_counts = fi["child_key_counts"]
     key_types = fi["child_key_types"]
 
     fields = {}
     for key in sorted(key_counts, key=lambda k: -key_counts[k]):
-        fd = _build_field_from_counts(key, key_types.get(key, {}), self_name=self_name)
+        fd = _build_field_from_counts(key, key_types.get(key, {}))
         if fd is not None:
             fields[key] = fd
 
@@ -466,7 +484,7 @@ def _build_templates():
     # 第二遍：构建定义
     for name in template_names:
         _templates_registry[name] = _build_template_from_field_info(
-            _global_field_info[name], self_name=name)
+            _global_field_info[name])
     return _templates_registry
 
 
@@ -553,6 +571,8 @@ def build_field_def(path, info, all_info):
                         result["__fields__"] = fields
                 else:
                     result["__fields__"] = fields
+            else:
+                result["_note"] = "数据中未观察到子字段"
 
     # array<object> 处理（包括联合类型中含 array<object> 或 array 的情况）
     has_array_object = (

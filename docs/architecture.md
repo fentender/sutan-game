@@ -15,23 +15,40 @@
 ```
 SuDanGame/
 ├── src/
-│   ├── main.py                   # 应用入口
-│   ├── config.py                 # 配置管理：路径常量、用户偏好持久化
-│   ├── core/                     # 核心逻辑层
-│   │   ├── json_parser.py       # JSON 解析（注释/BOM/尾逗号处理）
-│   │   ├── mod_scanner.py       # Mod 扫描（遍历 workshop + 本地目录）
+│   ├── main.py                   # 应用入口：路径检测、Schema 生成、启动 GUI
+│   ├── config.py                 # 配置管理：路径常量、Steam 路径自动检测、用户偏好持久化
+│   ├── core/                     # 核心逻辑层（无 GUI 依赖）
+│   │   ├── merger.py            # 【核心】深度合并算法（~900 行）
 │   │   ├── conflict.py          # 冲突分析（字段级覆盖链追踪）
-│   │   ├── merger.py            # 【核心】深度合并算法
-│   │   ├── deployer.py          # 部署（生成合成 Mod、原子替换）
-│   │   └── schema_loader.py     # Schema 规则加载与查询
-│   └── gui/                      # GUI 层（PySide6）
-│       ├── app.py               # 主窗口、MergeWorker 后台线程
-│       ├── mod_list.py          # Mod 列表面板（拖拽排序、启用/禁用）
-│       ├── mod_detail.py        # Mod 详情面板（preview + 描述）
-│       ├── override_panel.py    # 覆盖详情（树形展示冲突）
-│       ├── diff_dialog.py       # Diff 对比（逐级合并可视化）
-│       └── json_editor.py       # JSON 编辑器（行号 + 错误高亮）
-├── schemas/                      # 合并规则文件（.schema.json）
+│   │   ├── id_remapper.py       # ID 冲突检测与自动重映射（~700 行）
+│   │   ├── json_parser.py       # JSON 解析（注释/BOM/尾逗号/缺逗号自动修复）
+│   │   ├── mod_scanner.py       # Mod 扫描（遍历 workshop + 本地目录）
+│   │   ├── deployer.py          # 部署（生成合成 Mod、资源复制、原子替换）
+│   │   ├── schema_loader.py     # Schema 规则加载与字段定义查询
+│   │   ├── schema_generator.py  # 从游戏本体自动生成 Schema
+│   │   ├── array_match.py       # 数组元素匹配（精确 + 相似度配对）
+│   │   ├── type_utils.py        # classify_json / get_type_str
+│   │   ├── diagnostics.py       # 线程安全诊断收集器（diag.warn/error/snapshot）
+│   │   ├── dsl_patterns.py      # DSL key 模式识别
+│   │   ├── profiler.py          # 可选性能评估（@profile 装饰器，禁用时零开销）
+│   │   ├── override_utils.py    # 用户 override 目录管理
+│   │   └── updater.py           # GitHub/Gitee 版本检查
+│   ├── gui/                      # GUI 层（PySide6）
+│   │   ├── app.py               # MainWindow — 中央协调器
+│   │   ├── workers.py           # QThread 工作线程（MergeWorker/AnalyzeWorker/SchemaWorker/UpdateCheckWorker）
+│   │   ├── mod_list.py          # Mod 列表面板（拖拽排序、启用/禁用）
+│   │   ├── mod_detail.py        # Mod 详情面板（preview + 描述）
+│   │   ├── override_panel.py    # 覆盖详情（树形展示冲突）
+│   │   ├── log_panel.py         # 日志面板（错误/警告，双击打开文件）
+│   │   ├── diff_dialog.py       # Diff 对比（逐级合并可视化、行级高亮）
+│   │   ├── json_editor.py       # JSON 编辑器（行号 + 错误高亮 + 格式化）
+│   │   └── json_fix_dialog.py   # 多 Tab JSON 修复弹窗
+│   └── lib/                      # 第三方库
+├── schemas/                      # 合并规则文件（.schema.json，可自动生成）
+├── tests/
+│   ├── test_core.py              # 功能测试
+│   └── test_perf.py              # 性能测试
+├── docs/                         # 项目文档
 ├── run.bat                       # Windows 启动脚本
 ├── requirements.txt              # 依赖清单
 ├── user_config.json              # 用户配置（运行时生成，gitignore）
@@ -66,7 +83,9 @@ SuDanGame/
 | `mod_order` | Mod 排序列表（越靠后优先级越高）|
 | `enabled_mods` | 启用的 Mod ID 集合 |
 | `allow_deletions` | 是否允许删减模式 |
+| `enable_profiler` | 性能评估开关 |
 
+- `detect_game_path()` / `detect_workshop_path()` 通过 Steam 注册表和硬编码路径自动检测
 - `save()` 使用临时文件 + `os.replace` 原子写入
 - `load()` 捕获损坏文件异常，回退默认值
 
@@ -80,9 +99,11 @@ SuDanGame/
 |------|------|
 | `strip_js_comments()` | 逐行剥离 `//` 注释，使用字符串状态机避免误删字符串内的 `//` |
 | `strip_trailing_commas()` | 正则去除 `}` 或 `]` 前的尾逗号 |
-| `load_json()` | 加载并自动修正 JSON，检测并移除 BOM |
-| `dump_json()` | 输出标准 JSON |
-| `parse_warnings` | 模块级列表，收集解析警告供 GUI 展示 |
+| `fix_missing_commas()` | 字符级解析器，修复对象内相邻 key:value 之间缺失的逗号 |
+| `strip_duplicate_commas()` | 压缩连续逗号 `,,` → `,` |
+| `clean_json_text()` | 统一清洗流程：注释 → 尾逗号 → 缺逗号 → 连续逗号 |
+| `load_json()` | 加载并自动修正 JSON，检测并移除 BOM，带 `(path, mtime)` 缓存 |
+| `dump_json()` | 输出标准 JSON（缩进 4）|
 
 ---
 
@@ -274,7 +295,90 @@ deep_merge(base, override, schema, field_path, game_base)
 
 ---
 
-### 3.7 deployer.py — 部署
+### 3.7 id_remapper.py — ID 冲突检测与自动重映射
+
+多个 Mod 可能定义相同 ID 的卡牌、仪式、幕后等实体，导致运行时冲突。此模块检测这些冲突并自动分配新 ID。
+
+**支持的 ID 类型**：
+
+| 类型 | 分类 | ID 分配起始值 | 示例 |
+|------|------|-------------|------|
+| cards | dictionary（字典表 key） | 2900000 | cards.json 中的条目 ID |
+| tag_id | Tag 数字 ID | 3900000 | tag.json 中的 id 字段 |
+| tag_code | Tag 代码 | 加后缀生成 | tag.json 中的 code |
+| rite | file-based（文件名） | 5090000 | rite/5000001.json |
+| event | file-based | 5390000 | event/5300001.json |
+| over | file-based | 900 | over/800.json |
+| loot | file-based | 6900000 | loot/6800001.json |
+| rite_template | file-based | 8090000 | rite_template/*.json |
+| rite_template_mappings | file-based | 8091000 | rite_template_mappings/*.json |
+
+**核心数据结构**：
+
+- **RemapTable** — 单个 Mod 的 ID 替换映射（cards/tag_codes/tag_ids/rite/event/over/loot 各一个 dict）
+- **ModIdInfo** — 单个 Mod 的 ID 信息收集
+
+**关键函数**：
+
+| 函数 | 功能 |
+|------|------|
+| `collect_base_ids()` | 收集游戏本体的所有 ID |
+| `collect_mod_ids()` | 收集单个 Mod 的 ID 定义 |
+| `detect_conflicts()` | 检测所有类型的 ID 冲突（dictionary 重复 ID、Tag code/id 冲突） |
+| `remap_mod_configs()` | 入口函数：检测冲突 → 分配新 ID → 生成临时重映射配置 → 返回 RemapTable |
+
+**处理流程**：检测到冲突后，为冲突 ID 分配新值，生成临时目录存放重映射后的 Mod 配置，同时返回 `remap_tables` 供合并和资源复制时使用。
+
+---
+
+### 3.8 array_match.py — 数组元素匹配
+
+从 merger.py 中抽离的数组匹配逻辑，处理多对多元素配对。
+
+| 函数 | 功能 |
+|------|------|
+| `find_matching_item()` | 按 match_key 精确匹配 base 数组中的元素 |
+| `resolve_duplicates()` | 多对多相似度匹配（贪心策略，每次选最相似一对） |
+| `item_similarity()` | JSON 字符串相似度（SequenceMatcher，0.0~1.0） |
+| `get_key_vals()` | 提取 match_key 值元组 |
+
+**优化策略**：1×1 直接配对、1×N 找最相似候选、N×M 预计算完整相似度矩阵。
+
+---
+
+### 3.9 diagnostics.py — 线程安全诊断收集器
+
+替代原有的模块级列表（parse_warnings / scan_errors / merge_warnings），提供统一的线程安全诊断信息收集。
+
+```python
+from src.core.diagnostics import diag, INFO, WARNING, ERROR
+
+# core 层代码中收集诊断
+diag.warn("scan", f"Mod {mod_id}: 找不到 manifest.json")
+diag.error("merge", f"JSON 语法错误: {error}")
+
+# GUI 层快照并清空
+messages = diag.snapshot("scan", "parse")  # [(level, msg), ...]
+```
+
+**分类**：`"parse"` / `"scan"` / `"merge"` / `"schema"`
+
+---
+
+### 3.10 其他工具模块
+
+| 模块 | 功能 |
+|------|------|
+| `schema_generator.py` | 从游戏本体 JSON 自动生成 Schema 规则文件 |
+| `type_utils.py` | `classify_json(data)` 判定文件类型、`get_type_str(value)` 获取类型字符串 |
+| `dsl_patterns.py` | DSL key 模式定义（条件/命令的参数化表达式），`classify_dsl_key()` 匹配模式组 |
+| `profiler.py` | 可选性能评估，`@profile` 装饰器 + `profile_block()` 上下文管理器，禁用时零开销 |
+| `override_utils.py` | `invalidate_stale_overrides()` 清理失效的用户 override 目录 |
+| `updater.py` | `check_for_update()` 依次尝试 GitHub/Gitee API 检查新版本 |
+
+---
+
+### 3.11 deployer.py — 部署
 
 | 函数 | 功能 |
 |------|------|
@@ -287,27 +391,83 @@ deep_merge(base, override, schema, field_path, game_base)
 
 ## 四、GUI 架构
 
-### 4.1 app.py — 主窗口
+### 4.1 app.py — 主窗口（中央协调器）
 
-**MergeWorker**（QThread）：在后台执行合并操作，通过信号传递结果和警告到主线程。
+MainWindow 串联所有 GUI 面板和核心逻辑，管理异步工作线程。
 
-**MainWindow 关键方法**：
+**关键属性**：
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `config` | `UserConfig` | 用户配置 |
+| `mod_list_panel` | `ModListPanel` | 左侧 Mod 列表 |
+| `mod_detail_panel` | `ModDetailPanel` | 右侧 Mod 详情 |
+| `override_panel` | `OverridePanel` | 覆盖详情面板 |
+| `log_panel` | `LogPanel` | 底部日志面板 |
+| `_worker` | `MergeWorker` | 当前合并工作线程 |
+| `_analyze_worker` | `AnalyzeWorker` | 冲突分析工作线程 |
+| `_analyze_timer` | `QTimer` | 防抖定时器（300ms） |
+| `_remapped_configs` | `list[tuple]` | ID 重映射后的 Mod 配置（缓存） |
+| `_remap_tables` | `dict` | ID 映射表 |
+
+**关键方法**：
 
 | 方法 | 功能 |
 |------|------|
 | `_load_mods()` | 扫描 workshop + 本地目录，展示 mod 列表 |
-| `_analyze_conflicts()` | 调用冲突分析，在 override_panel 中展示结果 |
-| `_execute_merge()` | 启动 MergeWorker，合并期间禁用按钮 |
+| `_schedule_analyze()` | 启动 300ms 防抖定时器，避免频繁触发分析 |
+| `_analyze_conflicts()` | [同步] ID 重映射 + [异步] AnalyzeWorker 冲突分析 |
+| `_execute_merge()` | 检查分析完成后启动 MergeWorker |
+| `_cancel_merge()` | 协作式取消合并 |
 | `_on_merge_finished()` | 合并完成：生成 Info.json，展示警告 |
 | `_on_merge_error()` | 合并失败：清理半成品目录，显示错误 |
-| `_show_errors()` / `_log_error()` | 错误日志面板管理 |
-| `closeEvent()` | 关闭窗口时等待工作线程结束 |
+| `_on_analyze_parse_errors()` | 弹 JsonFixDialog，用户修复后继续分析 |
+| `_open_diff()` | 等待分析完成，打开 DiffDialog |
+| `_open_json_editor()` | 打开 JsonEditorDialog |
+| `_auto_check_update()` | 启动 3 秒后自动检查更新 |
+| `closeEvent()` | 协作式等待所有工作线程结束（超时 5 秒），清理临时目录 |
 
 **信号连接**：
-- `mod_list_panel.mod_selected` → `mod_detail_panel.show_mod`
-- `mod_list_panel.order_changed` → `_save_config`
 
-### 4.2 mod_list.py — Mod 列表面板
+```
+mod_list_panel.mod_selected    → mod_detail_panel.show_mod
+mod_list_panel.order_changed   → _save_config → _schedule_analyze（防抖）
+override_panel.diff_requested  → _open_diff
+log_panel.file_open_requested  → _open_json_editor
+```
+
+### 4.2 workers.py — 异步工作线程
+
+所有 Worker 继承自 `CancellableWorker(QThread)`，通过 `threading.Event` 实现协作式取消。
+
+| Worker | 职责 | 关键信号 |
+|--------|------|---------|
+| `MergeWorker` | 后台执行 JSON 合并 | `finished(dict, list)` / `progress(str)` / `parse_errors(list)` |
+| `AnalyzeWorker` | 后台执行冲突分析 | `finished(list, list)` / `parse_errors(list)` |
+| `SchemaWorker` | 首次运行时生成 Schema | `progress(int, int, str)` / `finished()` |
+| `UpdateCheckWorker` | 后台检查版本更新 | `finished(dict \| None)` |
+
+**可恢复错误处理模式**：
+
+```
+Worker 遇到 JSON 解析失败
+  │
+  ├─ parse_errors.emit(parse_failures)     # 信号通知主线程
+  ├─ _resume_event.clear()
+  └─ _resume_event.wait()                  # Worker 阻塞等待
+      ↓
+  主线程收到信号
+      ↓
+  JsonFixDialog.exec()                     # 模态对话框，用户修复或忽视
+      ↓
+  worker.set_error_resolution(resolutions) # 回传处理结果
+      ↓
+  _resume_event.set()                      # 唤醒 Worker
+      ↓
+  Worker 调用 _apply_error_resolutions()   # 继续执行
+```
+
+### 4.3 mod_list.py — Mod 列表面板
 
 **DraggableModList**：支持内部拖拽的 QListWidget。
 - 自定义 `startDrag()` 绘制半透明圆角预览
@@ -316,11 +476,11 @@ deep_merge(base, override, schema, field_path, game_base)
 
 **ModListPanel**：管理 mod 排序、启用/禁用、全选/全不选。
 
-### 4.3 mod_detail.py — Mod 详情面板
+### 4.4 mod_detail.py — Mod 详情面板
 
 显示选中 Mod 的 preview 图片、名称、版本、标签、描述。
 
-### 4.4 override_panel.py — 覆盖详情面板
+### 4.5 override_panel.py — 覆盖详情面板
 
 树形展示文件级覆盖链和字段级冲突：
 ```
@@ -332,19 +492,34 @@ deep_merge(base, override, schema, field_path, game_base)
 
 支持筛选模式（全部/常规/仅冲突）和文本搜索。双击文件节点打开 Diff 对比。
 
-### 4.5 diff_dialog.py — Diff 对比窗口
+### 4.6 log_panel.py — 日志面板
+
+按级别着色展示诊断信息（ERROR=红、WARNING=黄、INFO=灰）。从消息中正则提取 .json 路径和字段路径，双击可打开对应文件。
+
+### 4.7 diff_dialog.py — Diff 对比窗口
 
 逐级展示合并过程中各 mod 的行级差异。
 
 **设计**：
-- 预计算：创建对话框时计算所有 diff 对的 JSON 文本
-- 懒加载：切换 tab 时才生成 HTML diff
-- 批量 HTML：一次字符串拼接 + 单次 `setHtml()`
-- 滚动同步：左右编辑框垂直滚动联动
+- 预计算：创建对话框时计算所有 diff 对的 JSON 文本和高亮数据
+- 懒加载：切换 tab 时才生成编辑器内容
+- 行哈希加速：使用 `rapidfuzz.distance.Indel.opcodes()` C++ 后端（31000 行 ~1ms）
+- 滚动同步：左右编辑框垂直 + 水平滚动联动
+- 用户可保存 override 编辑到 `MOD_OVERRIDES_DIR/{mod_id}/{rel_path}`
 
-### 4.6 json_editor.py — JSON 编辑器
+**高亮颜色体系**：红（删除/修改）、绿（新增/修改后）、橙（冲突）、深灰（填充行）、亮蓝（搜索匹配）
+
+### 4.8 json_editor.py — JSON 编辑器
 
 内置 JSON 编辑器，带行号栏、语法错误高亮、自动格式化（保留注释）。
+
+### 4.9 json_fix_dialog.py — JSON 修复弹窗
+
+当 Worker 遇到 JSON 解析失败时弹出的多 Tab 修复对话框。每个失败文件一个 Tab，用户可逐个修复或选择忽视。
+
+- `_save_current()` — 验证当前 Tab 的 JSON，成功则 Tab 变绿，全部成功自动关闭
+- `_ignore_remaining()` — 忽视所有未修复的 Tab，关闭弹窗
+- `resolutions` — `{file_path_str: {'action': 'fixed' | 'ignored'}}`，回传给 Worker
 
 ---
 
@@ -365,34 +540,51 @@ main() → QApplication → MainWindow.__init__()
 ### 5.2 分析冲突
 
 ```
-_analyze_conflicts()
-  → analyze_all_overrides(game_config_path, mod_configs)
-    → 遍历所有 mod JSON 文件
-    → load_json(base) + load_json(mod)
-    → _collect_field_diffs() → FieldOverride
-  → override_panel.set_data()
+用户调整 Mod 排序/启用
+  → _save_config()
+  → _schedule_analyze()              # 300ms 防抖定时器
+  → _analyze_conflicts()
+    → [同步] id_remapper.remap_mod_configs()
+      → collect_base_ids() + collect_mod_ids()
+      → detect_conflicts()           # 检测 ID 冲突
+      → 分配新 ID，生成临时重映射配置
+      → 返回 (remapped_configs, remap_tables)
+    → [异步] AnalyzeWorker.start()
+      → analyze_all_overrides(game_config_path, remapped_configs)
+        → 遍历所有 mod JSON 文件
+        → load_json(base) + load_json(mod)
+        → compute_mod_delta()
+        → _collect_field_diffs() → FieldOverride
+        → (若解析失败) parse_errors.emit → JsonFixDialog → 用户修复 → 继续
+      → finished.emit(overrides, parse_msgs)
+  → _on_analyze_finished()
+    → override_panel.set_data()
 ```
 
 ### 5.3 执行合并
 
 ```
 _execute_merge()
-  → MergeWorker.start() → run()
+  → 检查分析是否完成（若进行中则排队等待）
+  → MergeWorker.start(remapped_configs, remap_tables) → run()
     → merge_all_files()
       → load_schemas()
       → 遍历所有 mod JSON 文件
-      → compute_mod_delta()  → 只保留差异
+      → compute_mod_delta()          # 只保留差异
       → merge_file()
         → classify_json()
-        → deep_merge()  递归
+        → deep_merge() 递归
           → _resolve_merge_strategy()
           → _apply_merge_strategy()
             → _merge_settlement_array() / _append_array() / ...
+        → 检查并应用用户 override 编辑
       → dump_json(out_file)
-    → copy_resources()
+      → (若解析失败) parse_errors.emit → JsonFixDialog → 用户修复 → 继续
+    → copy_resources(remap_tables)   # 复制非 JSON 资源，支持 ID 重映射
     → finished.emit(results, warnings)
   → _on_merge_finished()
-    → generate_info_json()
+    → generate_info_json()           # 生成合成 Mod Info.json
+    → deploy_to_workshop()           # 原子部署
 ```
 
 ### 5.4 Diff 对比
@@ -419,21 +611,47 @@ OverridePanel 双击文件节点
 
 ---
 
-## 七、全局状态与警告收集
+## 七、诊断与警告收集
 
-各模块使用模块级列表收集警告/错误，GUI 读取后展示：
+使用线程安全的全局诊断收集器 `diagnostics.diag`，按分类管理信息：
 
-| 模块 | 变量 | 说明 |
+| 分类 | 来源 | 说明 |
 |------|------|------|
-| `json_parser` | `parse_warnings` | JSON 解析警告（BOM、格式异常）|
-| `mod_scanner` | `scan_errors` | Mod 扫描错误（Info.json 缺失/损坏）|
-| `merger` | `merge_warnings` | 合并警告（类型不匹配、未知字段）|
+| `"parse"` | `json_parser` | JSON 解析警告（BOM、格式异常） |
+| `"scan"` | `mod_scanner` | Mod 扫描错误（Info.json 缺失/损坏） |
+| `"merge"` | `merger` | 合并警告（类型不匹配、未知字段） |
+| `"schema"` | `schema_loader` | Schema 加载警告 |
 
-MergeWorker 在工作线程内快照 `merge_warnings`，通过信号传递给主线程，避免竞态。
+GUI 通过 `diag.snapshot(*categories)` 读取并清空消息，传递给 `log_panel` 展示。
+Worker 线程内可安全调用 `diag.warn()` / `diag.error()`，无竞态问题。
 
 ---
 
-## 八、安全与原子性
+## 八、异步与性能设计
+
+### 防抖机制
+
+Mod 排序/启用变化 → 300ms `QTimer.singleShot` → 只触发一次 `_analyze_conflicts()`。
+快速连续操作不会导致重复分析。
+
+### 协作式取消
+
+`CancellableWorker` 基类使用 `threading.Event` 作为取消标志。Worker 在关键循环点调用 `_check_cancel()`，检测到取消后抛出 `_MergeCancelled` 异常，干净退出。
+
+### 性能优化
+
+| 优化手段 | 应用场景 | 效果 |
+|---------|---------|------|
+| 行哈希 + rapidfuzz C++ 后端 | diff_dialog 行级 diff | 31000 行 ~1ms |
+| 懒加载 Tab | diff_dialog 多 Mod 对比 | 仅切换时加载 |
+| JSON 解析缓存 `(path, mtime)` | json_parser.load_json | 避免重复解析同一文件 |
+| Schema 字段定义缓存 | schema_loader.get_field_def | 避免重复导航 Schema 树 |
+| 预计算高亮数据 | diff_dialog | 创建时一次计算，Tab 切换零延迟 |
+| @profile 装饰器 | merger 等核心函数 | 禁用时零开销 |
+
+---
+
+## 九、安全与原子性
 
 | 环节 | 安全机制 |
 |------|--------|
@@ -445,7 +663,7 @@ MergeWorker 在工作线程内快照 `merge_warnings`，通过信号传递给主
 
 ---
 
-## 九、扩展指南
+## 十、扩展指南
 
 ### 添加新的合并策略
 

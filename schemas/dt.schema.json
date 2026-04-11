@@ -26,7 +26,8 @@
             },
             "option_Jump_condition": {
               "__type__": "object",
-              "__merge__": "merge"
+              "__merge__": "merge",
+              "_note": "数据中未观察到子字段"
             },
             "option_Jump_id": {
               "__type__": "string",

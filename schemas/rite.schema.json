@@ -240,7 +240,8 @@
     },
     "random_effect": {
       "__type__": "object",
-      "__merge__": "merge"
+      "__merge__": "merge",
+      "_note": "数据中未观察到子字段"
     },
     "random_text": {
       "__type__": "object",

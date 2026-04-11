@@ -9,8 +9,7 @@
           "__merge__": "replace"
         },
         "any": {
-          "__type__": "object",
-          "__merge__": "merge"
+          "__use_template__": "condition"
         },
         "is": {
           "__type__": [
@@ -20,8 +19,7 @@
           "__merge__": "coerce"
         },
         "all": {
-          "__type__": "object",
-          "__merge__": "merge"
+          "__use_template__": "condition"
         },
         "is_rite": {
           "__type__": "int",
@@ -56,7 +54,13 @@
         },
         "case:1": {
           "__type__": "object",
-          "__merge__": "merge"
+          "__merge__": "merge",
+          "__fields__": {
+            "card": {
+              "__type__": "int",
+              "__merge__": "replace"
+            }
+          }
         }
       }
     },
@@ -97,12 +101,10 @@
           "__merge__": "coerce"
         },
         "choose": {
-          "__type__": "object",
-          "__merge__": "merge"
+          "__use_template__": "action"
         },
         "success": {
-          "__type__": "object",
-          "__merge__": "merge"
+          "__use_template__": "action"
         },
         "over": {
           "__type__": "int",
@@ -140,8 +142,7 @@
           "__merge__": "replace"
         },
         "failed": {
-          "__type__": "object",
-          "__merge__": "merge"
+          "__use_template__": "action"
         },
         "all": {
           "__use_template__": "condition"
@@ -207,7 +208,29 @@
         },
         "confirm": {
           "__type__": "object",
-          "__merge__": "merge"
+          "__merge__": "merge",
+          "__fields__": {
+            "cancel_text": {
+              "__type__": "string",
+              "__merge__": "replace"
+            },
+            "confirm_text": {
+              "__type__": "string",
+              "__merge__": "replace"
+            },
+            "icon": {
+              "__type__": "array<string>",
+              "__merge__": "append"
+            },
+            "id": {
+              "__type__": "string",
+              "__merge__": "replace"
+            },
+            "text": {
+              "__type__": "string",
+              "__merge__": "replace"
+            }
+          }
         },
         "difficulty": {
           "__type__": "int",
