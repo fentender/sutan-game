@@ -214,6 +214,9 @@ def _collect_field_diffs(
     diffs = []
 
     if isinstance(base, dict) and isinstance(mod_data, dict):
+        # 早期相等退出：跳过完全相同的子树，避免大量递归
+        if base == mod_data:
+            return diffs
         all_keys = base.keys() | mod_data.keys()
         for key in all_keys:
             path = f"{prefix}{SEP}{key}" if prefix else key

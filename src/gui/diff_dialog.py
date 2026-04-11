@@ -282,7 +282,7 @@ class DiffDialog(QDialog):
         self._precomputed_opcodes.clear()
         diag.snapshot("merge")  # 清空残留的 merge 警告
         base_file = self._game_config_path / self._rel_path
-        base_data = load_json(base_file) if base_file.exists() else {}
+        base_data = load_json(base_file, readonly=True) if base_file.exists() else {}
 
         self._base_text = _format_json(base_data)
 
@@ -293,6 +293,8 @@ class DiffDialog(QDialog):
         file_type = classify_json(base_data) if base_data else "config"
 
         current: dict = copy.deepcopy(base_data)
+        # 缓存上一轮 curr_text，避免重复格式化
+        last_curr_text: str | None = None
         for mod_id, mod_name, config_path in self._mod_configs:
             mod_file = config_path / self._rel_path
             if not mod_file.exists():
@@ -304,13 +306,14 @@ class DiffDialog(QDialog):
             merge_ctx.rel_path = self._rel_path
             merge_ctx.source_file = str(mod_file)
 
-            mod_data = load_json(mod_file)
+            mod_data = load_json(mod_file, readonly=True)
             delta = compute_mod_delta(base_data, mod_data, file_type, self._allow_deletions,
                                       schema=schema, root_key=root_key)
             if not delta:
                 continue
 
-            prev_text = _format_json(current)
+            # 复用上轮 curr_text 作为本轮 prev_text
+            prev_text = last_curr_text if last_curr_text is not None else _format_json(current)
 
             field_path = [root_key] if root_key else None
             if file_type == "dictionary":
@@ -320,7 +323,8 @@ class DiffDialog(QDialog):
                         next_state.pop(key, None)
                         continue
                     if key in next_state:
-                        next_state[key] = deep_merge(next_state[key], value, schema, field_path)
+                        next_state[key] = deep_merge(next_state[key], value, schema, field_path,
+                                                     _in_place=True)
                     else:
                         next_state[key] = copy.deepcopy(value)
                 current = next_state
@@ -334,6 +338,10 @@ class DiffDialog(QDialog):
             if override_file.exists():
                 curr_text = override_file.read_text(encoding="utf-8")
                 current = json.loads(curr_text, object_pairs_hook=_pairs_hook)
+                # override 改变了 current，下轮需要重新格式化
+                last_curr_text = None
+            else:
+                last_curr_text = curr_text
 
             self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
 
@@ -669,13 +677,20 @@ class DiffDialog(QDialog):
          left_map, right_map,
          left_o2p, right_o2p) = _build_padded_texts(left_lines, right_lines, opcodes)
 
-        left_edit.setPlainText('\n'.join(padded_left))
-        right_edit.setPlainText('\n'.join(padded_right))
+        # 禁用更新，避免 setPlainText/userdata/highlight 期间多次重绘
+        left_edit.setUpdatesEnabled(False)
+        right_edit.setUpdatesEnabled(False)
+        try:
+            left_edit.setPlainText('\n'.join(padded_left))
+            right_edit.setPlainText('\n'.join(padded_right))
 
-        _apply_block_userdata(left_edit, left_map)
-        _apply_block_userdata(right_edit, right_map)
+            _apply_block_userdata(left_edit, left_map)
+            _apply_block_userdata(right_edit, right_map)
 
-        self._apply_precomputed_highlights(index, left_o2p, right_o2p, left_map, right_map)
+            self._apply_precomputed_highlights(index, left_o2p, right_o2p, left_map, right_map)
+        finally:
+            left_edit.setUpdatesEnabled(True)
+            right_edit.setUpdatesEnabled(True)
 
     def _apply_precomputed_highlights(self, tab_index: int,
                                        left_o2p: dict[int, int],
@@ -937,14 +952,20 @@ class DiffDialog(QDialog):
          _, _) = _build_padded_texts(left_lines, right_lines, opcodes)
 
         scroll_val = right_edit.verticalScrollBar().value()
-        left_edit.setPlainText('\n'.join(padded_left))
-        right_edit.setPlainText('\n'.join(padded_right))
-        right_edit.verticalScrollBar().setValue(scroll_val)
+        left_edit.setUpdatesEnabled(False)
+        right_edit.setUpdatesEnabled(False)
+        try:
+            left_edit.setPlainText('\n'.join(padded_left))
+            right_edit.setPlainText('\n'.join(padded_right))
+            right_edit.verticalScrollBar().setValue(scroll_val)
 
-        _apply_block_userdata(left_edit, left_map)
-        _apply_block_userdata(right_edit, right_map)
+            _apply_block_userdata(left_edit, left_map)
+            _apply_block_userdata(right_edit, right_map)
 
-        self._compute_and_apply_highlights(tab_index, left_map, right_map)
+            self._compute_and_apply_highlights(tab_index, left_map, right_map)
+        finally:
+            left_edit.setUpdatesEnabled(True)
+            right_edit.setUpdatesEnabled(True)
 
     def _reset_override(self, tab_index: int):
         """删除 override 文件并刷新"""

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, asdict
 log = logging.getLogger(__name__)
 
 # 应用版本号（发版时与 git tag 同步更新）
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 
 # 更新检查源（GitHub 优先，Gitee 备用）
 UPDATE_SOURCES = [

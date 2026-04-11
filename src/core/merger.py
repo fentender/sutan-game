@@ -275,7 +275,9 @@ def _merge_index_array(base_arr: list, mod_arr: list,
 
     # 追加新增
     for item in new_entry_items:
-        result.append(copy.deepcopy(_strip_marker(item, '_new_entry')))
+        clean = _strip_marker(item, '_new_entry')
+        clean.pop('_index', None)
+        result.append(copy.deepcopy(clean))
 
     # 删除（用 set 收集后统一过滤，避免索引偏移）
     to_remove = set()
@@ -364,51 +366,9 @@ def _merge_dup_list(base_dl, delta_dl, schema=None, field_path=None):
     return DupList(result)
 
 
-def _append_array(base_arr: list, override_arr: list,
-                  schema: dict | None = None,
-                  child_path: list[str] | None = None) -> list:
-    """数组追加去重。对象数组按标记驱动合并。
-    override_arr 中的对象元素必须带 _delta/_new_entry/_deleted 标记。"""
+def _append_array(base_arr: list, override_arr: list) -> list:
+    """数组追加去重（仅用于标量数组或无标记的情况）。"""
     result = copy.deepcopy(base_arr)
-
-    # 对象数组：按 key 字段匹配并合并
-    if (base_arr and override_arr
-            and all(isinstance(x, dict) for x in base_arr)
-            and all(isinstance(x, dict) for x in override_arr)):
-        match_key = find_array_match_key(base_arr)
-        if match_key:
-            key_index: dict = {}
-            for i, item in enumerate(result):
-                kv = item.get(match_key)
-                if kv is not None:
-                    key_index[kv] = i
-
-            delta_items, new_entry_items, deleted_items = _classify_delta_items(
-                override_arr, context=f"append 对象数组 (match_key={match_key}) "
-            )
-
-            to_remove = set()
-            for item in deleted_items:
-                kv = item.get(match_key)
-                idx = key_index.get(kv) if kv is not None else None
-                if idx is not None:
-                    to_remove.add(idx)
-
-            for item in new_entry_items:
-                result.append(copy.deepcopy(_strip_marker(item, '_new_entry')))
-
-            for item in delta_items:
-                clean = _strip_marker(item, '_delta')
-                kv = item.get(match_key)
-                idx = key_index.get(kv) if kv is not None else None
-                if idx is not None:
-                    result[idx] = deep_merge(result[idx], clean, schema, child_path)
-                else:
-                    result.append(clean)
-
-            if to_remove:
-                result = [r for i, r in enumerate(result) if i not in to_remove]
-            return result
 
     for item in override_arr:
         if item not in result:
@@ -477,9 +437,12 @@ def deep_merge(base: object, override: object,
         else:
             # 新增字段：对含 delta 标记的数组仍需走 _apply_merge_strategy
             # 以正确清理 _new_entry/_delta/_deleted 标记
-            if merge_strategy in ("smart_match", "append") and isinstance(value, list):
+            if (merge_strategy in ("smart_match", "append") and isinstance(value, list)
+                    or isinstance(value, DupListDelta)):
+                # DupListDelta 需要 DupList 作为 base
+                empty_base = DupList() if isinstance(value, DupListDelta) else []
                 result[key] = _apply_merge_strategy(
-                    merge_strategy, [], value, schema, child_path,
+                    merge_strategy, empty_base, value, schema, child_path,
                     _in_place=False,
                 )
             else:
@@ -562,10 +525,16 @@ def _apply_merge_strategy(strategy: str, base_val, override_val,
                           schema: dict | None, child_path: list[str] | None,
                           _in_place: bool = False) -> object:
     """根据合并策略执行合并"""
-    # DupListDelta：元素级合并，field_path 不变（跳过 DupList 层）
-    if isinstance(override_val, DupListDelta):
+    # DupList 相关合并：override 是 DupListDelta，或 base 是 DupList
+    if isinstance(override_val, DupListDelta) or isinstance(base_val, DupList):
         base_dl = base_val if isinstance(base_val, DupList) else DupList([base_val])
-        return _merge_dup_list(base_dl, override_val, schema, child_path)
+        if isinstance(override_val, DupListDelta):
+            delta_dl = override_val
+        elif isinstance(override_val, dict):
+            delta_dl = DupListDelta([{**override_val, "_delta": True, "_index": 0}])
+        else:
+            delta_dl = DupListDelta([{"_delta": True, "_index": 0, "_value": override_val}])
+        return _merge_dup_list(base_dl, delta_dl, schema, child_path)
 
     if strategy == "replace":
         if (isinstance(base_val, list) and isinstance(override_val, list)
@@ -583,7 +552,7 @@ def _apply_merge_strategy(strategy: str, base_val, override_val,
         if isinstance(base_val, list) and isinstance(override_val, list):
             if _has_index_markers(override_val):
                 return _merge_index_array(base_val, override_val, schema, child_path)
-            return _append_array(base_val, override_val, schema, child_path)
+            return _append_array(base_val, override_val)
         return override_val if _in_place else copy.deepcopy(override_val)
 
     elif strategy == "smart_match":
@@ -737,10 +706,11 @@ def _index_array_delta(base_arr, mod_arr, allow_deletions=False,
             elem_delta['_index'] = i
             delta_items.append(elem_delta)
 
-    # mod 多出的 = 新增
+    # mod 多出的 = 新增（带 _index 标记来源，确保 _has_index_markers 可识别）
     for i in range(min_len, len(mod_arr)):
         new_item = copy.deepcopy(mod_arr[i])
         new_item['_new_entry'] = True
+        new_item['_index'] = i
         delta_items.append(new_item)
 
     # base 多出的 = 删除
@@ -754,6 +724,9 @@ def _index_array_delta(base_arr, mod_arr, allow_deletions=False,
 def _recursive_delta(base, mod, allow_deletions=False,
                      schema=None, field_path=None):
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。"""
+    # 早期相等退出：跳过完全相同的子树，避免大量递归
+    if base == mod:
+        return None
     if isinstance(base, dict) and isinstance(mod, dict):
         delta = {}
         for key, mod_val in mod.items():
@@ -761,7 +734,10 @@ def _recursive_delta(base, mod, allow_deletions=False,
             if key not in base:
                 # 新增字段：如果是数组仍需走 delta 标记逻辑
                 if isinstance(mod_val, list) and schema and child_path:
-                    sub = _recursive_delta([], mod_val, allow_deletions,
+                    # DupList 也是 list，需要用 DupList([]) 作为 base
+                    # 以确保 _dup_list_delta 正确处理重复键
+                    empty_base = DupList() if isinstance(mod_val, DupList) else []
+                    sub = _recursive_delta(empty_base, mod_val, allow_deletions,
                                            schema, child_path)
                     delta[key] = sub if sub is not None else copy.deepcopy(mod_val)
                 else:
@@ -883,14 +859,18 @@ def merge_file(
                     continue
                 if key in current:
                     field_path = [root_key] if root_key else None
-                    current[key] = deep_merge(current[key], value, schema, field_path)
+                    # current 已是 deepcopy，可直接原地修改
+                    current[key] = deep_merge(current[key], value, schema, field_path,
+                                              _in_place=True)
                 else:
                     current[key] = copy.deepcopy(value)
                     result.new_entries.append(("", mod_name, f"新增 key: {key}"))
         else:
             # 实体型和配置型
             field_path = [root_key] if root_key else None
-            current = deep_merge(current, mod_data, schema, field_path)
+            # current 已是 deepcopy，可直接原地修改
+            current = deep_merge(current, mod_data, schema, field_path,
+                                 _in_place=True)
 
         # 检查用户 override：如果存在则用 override 替换累积状态
         if overrides_dir:
