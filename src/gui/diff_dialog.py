@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt
 
 from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
 from ..core.diagnostics import diag, merge_ctx
-from ..core.json_parser import load_json, clean_json_text
+from ..core.json_parser import load_json, clean_json_text, format_json, _pairs_hook
 from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
 from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
 from ..core.profiler import profile
@@ -333,7 +333,7 @@ class DiffDialog(QDialog):
             override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
             if override_file.exists():
                 curr_text = override_file.read_text(encoding="utf-8")
-                current = json.loads(curr_text)
+                current = json.loads(curr_text, object_pairs_hook=_pairs_hook)
 
             self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
 
@@ -899,7 +899,7 @@ class DiffDialog(QDialog):
         # JSON 验证
         cleaned = clean_json_text(text)
         try:
-            json.loads(cleaned)
+            json.loads(cleaned, object_pairs_hook=_pairs_hook)
         except json.JSONDecodeError as e:
             error_bar.setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             error_bar.setVisible(True)
@@ -989,4 +989,4 @@ class DiffDialog(QDialog):
 
 
 def _format_json(data: object) -> str:
-    return json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
+    return format_json(data)

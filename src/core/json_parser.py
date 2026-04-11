@@ -16,6 +16,31 @@ from .profiler import profile
 _json_cache: dict[tuple[str, float], dict] = {}
 
 
+class DupList(list):
+    """JSON 重复键展开后的值列表。
+
+    游戏 JSON 中同一对象内可出现同名键（如 "type":"char", "type":"item"），
+    解析时将同名键的多个值收集为 DupList，序列化时还原为重复键。
+    与普通 list 通过类型区分，合并逻辑按索引逐元素处理。
+    """
+    pass
+
+
+def _pairs_hook(pairs: list[tuple[str, object]]) -> dict:
+    """json.loads 的 object_pairs_hook：检测重复键并将其值收集为 DupList。"""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            existing = result[key]
+            if isinstance(existing, DupList):
+                existing.append(value)
+            else:
+                result[key] = DupList([existing, value])
+        else:
+            result[key] = value
+    return result
+
+
 # 正则：匹配双引号字符串（含转义）或 // 注释
 _COMMENT_RE = re.compile(r'"(?:[^"\\]|\\.)*"|//.*$', re.MULTILINE)
 
@@ -185,7 +210,7 @@ def load_json(file_path: str | Path, readonly: bool = False) -> dict:
         log.warning(msg)
         diag.warn("parse", msg)
 
-    result = json.loads(cleaned)
+    result = json.loads(cleaned, object_pairs_hook=_pairs_hook)
 
     _json_cache[cache_key] = result
     return result if readonly else copy.deepcopy(result)
@@ -196,11 +221,62 @@ def clear_json_cache():
     _json_cache.clear()
 
 
+def _serialize(obj, indent=4, sort_keys=False, _level=0):
+    """自定义 JSON 序列化：DupList 值展开为重复键。"""
+    ind = ' ' * indent
+    current_ind = ind * _level
+    next_ind = ind * (_level + 1)
+
+    if obj is None:
+        return 'null'
+    if isinstance(obj, bool):
+        return 'true' if obj else 'false'
+    if isinstance(obj, int):
+        return str(obj)
+    if isinstance(obj, float):
+        return repr(obj)
+    if isinstance(obj, str):
+        return json.dumps(obj, ensure_ascii=False)
+
+    if isinstance(obj, dict):
+        if not obj:
+            return '{}'
+        keys = sorted(obj.keys()) if sort_keys else list(obj.keys())
+        parts = []
+        for key in keys:
+            value = obj[key]
+            key_str = json.dumps(key, ensure_ascii=False)
+            if isinstance(value, DupList):
+                # 重复键：为 DupList 中每个元素输出一次同名 key
+                for elem in value:
+                    val_str = _serialize(elem, indent, sort_keys, _level + 1)
+                    parts.append(f'{next_ind}{key_str}: {val_str}')
+            else:
+                val_str = _serialize(value, indent, sort_keys, _level + 1)
+                parts.append(f'{next_ind}{key_str}: {val_str}')
+        return '{\n' + ',\n'.join(parts) + '\n' + current_ind + '}'
+
+    if isinstance(obj, list):
+        if not obj:
+            return '[]'
+        parts = []
+        for item in obj:
+            parts.append(next_ind + _serialize(item, indent, sort_keys, _level + 1))
+        return '[\n' + ',\n'.join(parts) + '\n' + current_ind + ']'
+
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def format_json(data: object) -> str:
+    """格式化 JSON 文本（用于 diff 面板展示），保留重复键，key 排序。"""
+    return _serialize(data, indent=4, sort_keys=True)
+
+
 def dump_json(data: dict, file_path: str | Path):
-    """将数据写入 JSON 文件（标准格式，无注释）"""
+    """将数据写入 JSON 文件，保留重复键"""
     path = Path(file_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps(data, ensure_ascii=False, indent=4),
+        _serialize(data, indent=4, sort_keys=False),
         encoding='utf-8'
     )

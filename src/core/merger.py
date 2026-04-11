@@ -11,7 +11,7 @@ from pathlib import Path
 from .array_match import find_matching_item, resolve_duplicates, get_key_vals
 from .dsl_patterns import classify_dsl_key
 from .profiler import profile
-from .json_parser import load_json, dump_json
+from .json_parser import load_json, dump_json, DupList, _pairs_hook
 from .schema_loader import (
     load_schemas, resolve_schema, get_field_def,
     get_schema_root_key, check_type_match,
@@ -27,6 +27,15 @@ WHOLE_FILE_REPLACE = {'sfx_config.json'}
 
 # 删除标记（用于 allow_deletions 模式）
 _DELETED = object()
+
+
+class DupListDelta(DupList):
+    """DupList 的元素级 delta，含 _delta/_new_entry/_deleted 标记。
+
+    与 DupList 区分：DupListDelta 表示一组变更指令，
+    DupList 表示实际的重复键值列表。
+    """
+    pass
 
 
 @dataclass
@@ -275,6 +284,81 @@ def _merge_index_array(base_arr: list, mod_arr: list,
     return result
 
 
+def _dup_list_delta(base_dl, mod_dl, allow_deletions=False,
+                    schema=None, field_path=None):
+    """DupList 按索引 delta。
+
+    field_path 不变（跳过 DupList 层），元素通过 _recursive_delta 递归比较，
+    按 schema 对应字段的类型和策略处理。
+    """
+    delta_items = []
+    min_len = min(len(base_dl), len(mod_dl))
+
+    for i in range(min_len):
+        # field_path 不变：schema 规则应用到元素（非 DupList 整体）
+        elem_delta = _recursive_delta(base_dl[i], mod_dl[i], allow_deletions,
+                                       schema, field_path)
+        if elem_delta is not None:
+            if isinstance(elem_delta, dict):
+                elem_delta['_delta'] = True
+                elem_delta['_index'] = i
+                delta_items.append(elem_delta)
+            else:
+                # 标量元素的 delta：包裹为 dict
+                delta_items.append({"_delta": True, "_index": i, "_value": elem_delta})
+
+    # mod 多出的 = 新增
+    for i in range(min_len, len(mod_dl)):
+        val = copy.deepcopy(mod_dl[i])
+        if isinstance(val, dict):
+            val['_new_entry'] = True
+            delta_items.append(val)
+        else:
+            delta_items.append({"_new_entry": True, "_value": val})
+
+    # base 多出的 = 删除
+    if allow_deletions:
+        for i in range(min_len, len(base_dl)):
+            delta_items.append({"_deleted": True, "_index": i})
+
+    return DupListDelta(delta_items) if delta_items else None
+
+
+def _merge_dup_list(base_dl, delta_dl, schema=None, field_path=None):
+    """应用 DupListDelta 到 base DupList。
+
+    field_path 不变（跳过 DupList 层），dict 元素用 deep_merge 合并。
+    """
+    result = list(base_dl)
+    new_items = []
+    to_delete = set()
+
+    for item in delta_dl:
+        if item.get("_delta"):
+            idx = item["_index"]
+            if idx < len(result):
+                if "_value" in item:
+                    result[idx] = item["_value"]
+                else:
+                    clean = {k: v for k, v in item.items()
+                             if k not in ("_delta", "_index")}
+                    result[idx] = deep_merge(result[idx], clean,
+                                             schema, field_path, _in_place=True)
+        elif item.get("_new_entry"):
+            if "_value" in item:
+                new_items.append(item["_value"])
+            else:
+                clean = {k: v for k, v in item.items() if k != "_new_entry"}
+                new_items.append(clean)
+        elif item.get("_deleted"):
+            to_delete.add(item["_index"])
+
+    result.extend(new_items)
+    if to_delete:
+        result = [v for i, v in enumerate(result) if i not in to_delete]
+    return DupList(result)
+
+
 def _append_array(base_arr: list, override_arr: list,
                   schema: dict | None = None,
                   child_path: list[str] | None = None) -> list:
@@ -437,6 +521,23 @@ def _resolve_merge_strategy(child_def: dict | None, base_val, override_val, key:
         # 类型校验
         schema_type = child_def.get("__type__")
         if schema_type and override_val is not None:
+            # DupList/DupListDelta：逐元素检查类型（schema 定义的是元素类型）
+            if isinstance(override_val, (DupList, DupListDelta)):
+                from .type_utils import get_type_str
+                for elem in override_val:
+                    # DupListDelta 的元素是标记 dict，取 _value 或跳过
+                    if isinstance(elem, dict) and ("_delta" in elem or "_new_entry" in elem or "_deleted" in elem):
+                        val = elem.get("_value", elem)
+                        if val is elem:
+                            continue  # dict delta，跳过类型检查
+                    else:
+                        val = elem
+                    if not check_type_match(schema_type, val):
+                        actual = get_type_str(val)
+                        type_warn = f"字段 '{key}' DupList 元素类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
+                        return strategy, type_warn
+                return strategy, None
+
             if not check_type_match(schema_type, override_val):
                 from .type_utils import get_type_str
                 actual = get_type_str(override_val)
@@ -455,6 +556,11 @@ def _apply_merge_strategy(strategy: str, base_val, override_val,
                           schema: dict | None, child_path: list[str] | None,
                           _in_place: bool = False) -> object:
     """根据合并策略执行合并"""
+    # DupListDelta：元素级合并，field_path 不变（跳过 DupList 层）
+    if isinstance(override_val, DupListDelta):
+        base_dl = base_val if isinstance(base_val, DupList) else DupList([base_val])
+        return _merge_dup_list(base_dl, override_val, schema, child_path)
+
     if strategy == "replace":
         if (isinstance(base_val, list) and isinstance(override_val, list)
                 and _has_index_markers(override_val)):
@@ -664,6 +770,12 @@ def _recursive_delta(base, mod, allow_deletions=False,
                     delta[key] = _DELETED
         return delta if delta else None
 
+    # DupList：统一为 DupList 后按索引递归比较（field_path 不变，跳过 DupList 层）
+    if isinstance(base, DupList) or isinstance(mod, DupList):
+        base_dl = base if isinstance(base, DupList) else DupList([base])
+        mod_dl = mod if isinstance(mod, DupList) else DupList([mod])
+        return _dup_list_delta(base_dl, mod_dl, allow_deletions, schema, field_path)
+
     if isinstance(base, list) and isinstance(mod, list):
         # 从 schema 查询 smart_match 的 match_key
         schema_match_key = None
@@ -692,8 +804,9 @@ def _recursive_delta(base, mod, allow_deletions=False,
 
     # 标量与数组兼容：mod 作者可能将 [value, extra] 简化为 value
     # 注意：只处理"标量简化数组"方向，反向（标量→数组）是真实修改不能跳过
+    # DupList 不适用此启发式（DupList 到标量是真实变更，已在上方处理）
     if isinstance(base, list) and not isinstance(mod, (list, dict)):
-        if mod in base:
+        if not isinstance(base, DupList) and mod in base:
             return None  # 标量已在数组中，视为无变化
 
     # 标量比较
@@ -776,7 +889,8 @@ def merge_file(
         if overrides_dir:
             override_file = overrides_dir / mod_id / rel_path
             if override_file.exists():
-                current = json.loads(override_file.read_text(encoding="utf-8"))
+                current = json.loads(override_file.read_text(encoding="utf-8"),
+                                     object_pairs_hook=_pairs_hook)
 
     result.merged_data = current
     return result
