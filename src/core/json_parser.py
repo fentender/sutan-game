@@ -29,17 +29,55 @@ class DupList(list):
     pass
 
 
-# C 加速模块（必需）
-from ..accel._fast_json import (
-    strip_js_comments as _c_strip_js_comments,
-    strip_trailing_commas as _c_strip_trailing_commas,
-    fix_missing_commas as _c_fix_missing_commas,
-    has_duplist as _c_has_duplist,
-    pairs_hook as _pairs_hook,
-)
+# C 加速模块（可选；macOS 源码执行时可能不存在）
+try:
+    from ..accel._fast_json import (  # pyright: ignore[reportMissingImports]
+        strip_js_comments as _c_strip_js_comments,
+        strip_trailing_commas as _c_strip_trailing_commas,
+        fix_missing_commas as _c_fix_missing_commas,
+        has_duplist as _c_has_duplist,
+        pairs_hook as _c_pairs_hook,
+    )
+except ModuleNotFoundError:
+    _c_strip_js_comments = None
+    _c_strip_trailing_commas = None
+    _c_fix_missing_commas = None
+    _c_has_duplist = None
+    _c_pairs_hook = None
 
 # 正则：匹配双引号字符串（含转义）或连续逗号
 _DUP_COMMA_RE = re.compile(r'"(?:[^"\\]|\\.)*"|,(\s*,)+', re.MULTILINE)
+
+
+def _strip_js_comments_py(text: str) -> str:
+    out = []
+    i = 0
+    in_string = False
+    escaped = False
+    while i < len(text):
+        ch = text[i]
+        if in_string:
+            out.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == '\\':
+                escaped = True
+            elif ch == '"':
+                in_string = False
+            i += 1
+            continue
+        if ch == '"':
+            in_string = True
+            out.append(ch)
+            i += 1
+            continue
+        if ch == '/' and i + 1 < len(text) and text[i + 1] == '/':
+            while i < len(text) and text[i] not in '\r\n':
+                i += 1
+            continue
+        out.append(ch)
+        i += 1
+    return ''.join(out)
 
 
 @profile
@@ -47,12 +85,20 @@ def strip_js_comments(text: str) -> str:
     """剥离 // 注释，保留字符串内的 //"""
     if '//' not in text:
         return text
-    return _c_strip_js_comments(text)
+    if _c_strip_js_comments is not None:
+        return _c_strip_js_comments(text)
+    return _strip_js_comments_py(text)
+
+
+def _strip_trailing_commas_py(text: str) -> str:
+    return re.sub(r',(?=\s*[}\]])', '', text)
 
 
 def strip_trailing_commas(text: str) -> str:
     """去除 JSON 中的尾随逗号（} 或 ] 前的逗号）"""
-    return _c_strip_trailing_commas(text)
+    if _c_strip_trailing_commas is not None:
+        return _c_strip_trailing_commas(text)
+    return _strip_trailing_commas_py(text)
 
 
 def strip_duplicate_commas(text: str) -> str:
@@ -62,10 +108,21 @@ def strip_duplicate_commas(text: str) -> str:
     return _DUP_COMMA_RE.sub(_replacer, text)
 
 
+def _fix_missing_commas_py(text: str) -> str:
+    pattern = re.compile(r'(?<=[}\]"0-9eE\w])(?=\s*"(?:[^"\\]|\\.)*"\s*:)')
+    while True:
+        fixed = pattern.sub(', ', text)
+        if fixed == text:
+            return text
+        text = fixed
+
+
 @profile
 def fix_missing_commas(text: str) -> str:
     """修复对象内相邻键值对之间缺失的逗号。"""
-    return _c_fix_missing_commas(text)
+    if _c_fix_missing_commas is not None:
+        return _c_fix_missing_commas(text)
+    return _fix_missing_commas_py(text)
 
 
 @profile
@@ -76,6 +133,43 @@ def clean_json_text(text: str) -> str:
     text = fix_missing_commas(text)
     text = strip_duplicate_commas(text)
     return text
+
+
+def _pairs_hook_py(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            current = result[key]
+            if isinstance(current, DupList):
+                current.append(value)
+            else:
+                result[key] = DupList([current, value])
+        else:
+            result[key] = value
+    return result
+
+
+def _has_duplist_py(obj) -> bool:
+    if isinstance(obj, DupList):
+        return True
+    if isinstance(obj, dict):
+        return any(_has_duplist_py(value) for value in obj.values())
+    if isinstance(obj, list):
+        return any(_has_duplist_py(item) for item in obj)
+    return False
+
+
+def _pairs_hook(pairs):
+    if _c_pairs_hook is not None:
+        return _c_pairs_hook(pairs)
+    return _pairs_hook_py(pairs)
+
+
+def _has_duplist(obj) -> bool:
+    """快速检测数据中是否存在 DupList"""
+    if _c_has_duplist is not None:
+        return _c_has_duplist(obj)
+    return _has_duplist_py(obj)
 
 
 def _try_parse_progressive(raw: str) -> dict:
@@ -91,28 +185,24 @@ def _try_parse_progressive(raw: str) -> dict:
     """
     has_comment = '//' in raw
 
-    # 第 1 步：直接解析（有 // 时跳过，避免 json.loads 白解析大半文件后抛异常）
     if not has_comment:
         try:
             return json.loads(raw, object_pairs_hook=_pairs_hook)
         except json.JSONDecodeError:
             pass
 
-    # 第 2 步：仅去注释
     text = strip_js_comments(raw) if has_comment else raw
     try:
         return json.loads(text, object_pairs_hook=_pairs_hook)
     except json.JSONDecodeError:
         pass
 
-    # 第 3 步：去注释 + 去尾随逗号
     text = strip_trailing_commas(text)
     try:
         return json.loads(text, object_pairs_hook=_pairs_hook)
     except json.JSONDecodeError:
         pass
 
-    # 第 4 步：完整清洗
     text = fix_missing_commas(text)
     text = strip_duplicate_commas(text)
     return json.loads(text, object_pairs_hook=_pairs_hook)
@@ -135,18 +225,13 @@ def load_json(file_path: str | Path, readonly: bool = False) -> dict:
     raw_bytes = path.read_bytes()
     abnormal_fixes = []
 
-    # 检测并去除 BOM（异常格式，需要报告）
     if raw_bytes.startswith(b'\xef\xbb\xbf'):
         abnormal_fixes.append("UTF-8 BOM")
         raw_bytes = raw_bytes[3:]
 
     raw = raw_bytes.decode('utf-8')
-
-    # 分级清洗：逐步尝试，成功即停
-    # 大部分文件只需要去注释或去注释+尾逗号，避免对所有文件跑完整清洗
     result = _try_parse_progressive(raw)
 
-    # 只记录真正异常的格式问题
     if abnormal_fixes:
         msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
         log.warning(msg)
@@ -160,6 +245,7 @@ def clear_json_cache():
     """清空 JSON 解析缓存"""
     _json_cache.clear()
     _created_dirs.clear()
+
 
 
 def _serialize(obj, indent=4, sort_keys=False, _level=0):
@@ -215,11 +301,6 @@ def format_json(data: object) -> str:
     if not _has_duplist(data):
         return json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False)
     return _serialize(data, indent=4, sort_keys=True)
-
-
-def _has_duplist(obj) -> bool:
-    """快速检测数据中是否存在 DupList"""
-    return _c_has_duplist(obj)
 
 
 @profile

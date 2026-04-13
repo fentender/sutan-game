@@ -42,9 +42,13 @@ else:
 GAME_DIR_NAME = "Sultan's Game"
 WORKSHOP_APP_ID = "3117820"
 DEFAULT_CONFIG_SUBPATH = "Sultan's Game_Data/StreamingAssets/config"
+DEFAULT_MAC_CONFIG_SUBPATH = Path("Contents/Resources/Data/StreamingAssets/config")
 
-# 本地 mod 目录（我的文档/DoubleCross/SultansGame/Mod）
-DEFAULT_LOCAL_MOD_PATH = Path(os.path.expanduser("~/Documents/DoubleCross/SultansGame/Mod"))
+# 本地 mod 目录
+if sys.platform == 'darwin':
+    DEFAULT_LOCAL_MOD_PATH = Path.home() / 'DoubleCross' / 'SultansGame' / 'mod'
+else:
+    DEFAULT_LOCAL_MOD_PATH = Path(os.path.expanduser("~/Documents/DoubleCross/SultansGame/Mod"))
 
 
 # ── Steam 路径自动检测 ──────────────────────────────────────────
@@ -53,26 +57,30 @@ def _detect_steam_library_folders() -> list[Path]:
     """检测所有 Steam 库目录（支持多磁盘安装）"""
     steam_root = None
 
-    # 方式一：通过 Windows 注册表获取 Steam 安装目录
-    try:
-        import winreg
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                            r"Software\Valve\Steam") as key:
-            steam_root = Path(winreg.QueryValueEx(key, "SteamPath")[0])
-    except Exception:
-        pass
+    if sys.platform == 'darwin':
+        steam_root = Path.home() / 'Library' / 'Application Support' / 'Steam'
+    else:
+        # 方式一：通过 Windows 注册表获取 Steam 安装目录
+        try:
+            import importlib
+            winreg = importlib.import_module('winreg')
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Valve\Steam") as key:
+                steam_root = Path(winreg.QueryValueEx(key, "SteamPath")[0])
+        except Exception:
+            pass
 
-    # 方式二：尝试常见安装位置
-    if not steam_root or not steam_root.exists():
-        for candidate in [
-            Path("C:/Program Files (x86)/Steam"),
-            Path("C:/Program Files/Steam"),
-            Path("D:/Steam"),
-            Path("E:/Steam"),
-        ]:
-            if candidate.exists():
-                steam_root = candidate
-                break
+        # 方式二：尝试常见安装位置
+        if not steam_root or not steam_root.exists():
+            for candidate in [
+                Path("C:/Program Files (x86)/Steam"),
+                Path("C:/Program Files/Steam"),
+                Path("D:/Steam"),
+                Path("E:/Steam"),
+            ]:
+                if candidate.exists():
+                    steam_root = candidate
+                    break
 
     if not steam_root or not steam_root.exists():
         return []
@@ -96,6 +104,20 @@ def _detect_steam_library_folders() -> list[Path]:
 
 
 GAME_EXE_NAME = "Sultan's Game.exe"
+GAME_APP_NAME = "Sultan's Game.app"
+
+
+def _is_game_app_bundle(path: Path) -> bool:
+    return path.name == GAME_APP_NAME and path.suffix == '.app'
+
+
+def _game_config_path_for_game(game_path: Path) -> Path:
+    app_bundle = game_path / GAME_APP_NAME
+    if _is_game_app_bundle(game_path):
+        return game_path / DEFAULT_MAC_CONFIG_SUBPATH
+    if app_bundle.exists():
+        return app_bundle / DEFAULT_MAC_CONFIG_SUBPATH
+    return game_path / DEFAULT_CONFIG_SUBPATH
 
 
 def detect_game_path() -> str:
@@ -106,9 +128,9 @@ def detect_game_path() -> str:
     for folder in _detect_steam_library_folders():
         candidate = folder / "steamapps" / "common" / GAME_DIR_NAME
         if candidate.exists():
-            if (candidate / GAME_EXE_NAME).exists():
+            if (candidate / GAME_EXE_NAME).exists() or (candidate / GAME_APP_NAME).exists():
                 return str(candidate)
-            # 目录存在但没有 exe，记为备选
+            # 目录存在但没有 exe/app，记为备选
             if not fallback:
                 fallback = str(candidate)
     return fallback
@@ -126,9 +148,10 @@ def detect_workshop_path() -> str:
 def infer_workshop_path_from_game(game_path: str) -> str:
     """根据游戏安装路径推导 Workshop 路径"""
     gp = Path(game_path)
-    # 游戏路径: .../steamapps/common/Sultan's Game
-    # Workshop:  .../steamapps/workshop/content/3117820
-    steamapps = gp.parent.parent  # .../steamapps
+    if _is_game_app_bundle(gp):
+        steamapps = gp.parent.parent.parent  # .../steamapps
+    else:
+        steamapps = gp.parent.parent  # .../steamapps
     candidate = steamapps / "workshop" / "content" / WORKSHOP_APP_ID
     if candidate.exists():
         return str(candidate)
@@ -156,7 +179,7 @@ SYNTHETIC_MOD_ID = "0000000001"
 
 # 应用图标（打包后在 _MEIPASS 即 _internal/ 中，源码运行时在项目根目录）
 if getattr(sys, 'frozen', False):
-    APP_ICON_PATH = Path(sys._MEIPASS) / "app.ico"
+    APP_ICON_PATH = Path(getattr(sys, '_MEIPASS', PROJECT_ROOT)) / "app.ico"
 else:
     APP_ICON_PATH = PROJECT_ROOT / "app.ico"
 
@@ -178,7 +201,7 @@ class UserConfig:
 
     @property
     def game_config_path(self) -> Path:
-        return Path(self.game_path) / DEFAULT_CONFIG_SUBPATH
+        return _game_config_path_for_game(Path(self.game_path))
 
     @property
     def workshop_dir(self) -> Path:
