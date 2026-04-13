@@ -257,10 +257,12 @@ class ModListPanel(QWidget):
     def _select_all(self):
         self._enabled = {m.mod_id: True for m in self._mods}
         self._refresh_list()
+        self.order_changed.emit()
 
     def _deselect_all(self):
         self._enabled = {m.mod_id: False for m in self._mods}
         self._refresh_list()
+        self.order_changed.emit()
 
     def get_enabled_mods(self) -> list[ModInfo]:
         """获取启用的 mod 列表（按当前顺序）"""
