@@ -2,15 +2,11 @@
 Mod 扫描器 - 扫描 workshop 目录，读取 mod 元数据
 """
 import json
-import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .json_parser import load_json
-
-log = logging.getLogger(__name__)
-
 from .diagnostics import diag
+from .json_parser import load_json
 from .profiler import profile
 
 
@@ -42,8 +38,8 @@ def find_preview(mod_path: Path) -> str | None:
 def scan_config_files(mod_path: Path) -> tuple[list[str], list[str]]:
     """扫描 mod 的 config 目录，返回 (配置文件列表, 资源文件列表)"""
     config_dir = mod_path / "config"
-    config_files = []
-    resource_files = []
+    config_files: list[str] = []
+    resource_files: list[str] = []
 
     if not config_dir.exists():
         # 有些 mod 可能没有 config 目录，扫描其他资源
@@ -83,13 +79,16 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
     if info_file.exists():
         try:
             data = load_json(info_file)
-            info.name = data.get("name", mod_id)
-            info.description = data.get("description", "")
-            info.tags = data.get("tags", [])
-            info.version = data.get("version", "")
+            name = data.get("name", mod_id)
+            info.name = str(name) if name is not None else mod_id
+            desc = data.get("description", "")
+            info.description = str(desc) if desc is not None else ""
+            tags = data.get("tags", [])
+            info.tags = [str(t) for t in tags] if isinstance(tags, list) else []
+            version = data.get("version", "")
+            info.version = str(version) if version is not None else ""
         except json.JSONDecodeError as e:
             msg = f"Mod {mod_id}: Info.json 解析失败 - {e}"
-            log.warning(msg)
             diag.warn("scan", msg)
             info.name = mod_id
     else:
@@ -107,7 +106,7 @@ def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> l
     if exclude_ids is None:
         exclude_ids = set()
 
-    mods = []
+    mods: list[ModInfo] = []
     if not workshop_path.exists():
         return mods
 

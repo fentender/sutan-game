@@ -8,13 +8,15 @@
 import json
 import os
 import re
-from pathlib import Path
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
-from .json_parser import load_json, DupList
-from .type_utils import get_type_str, classify_json
-from .dsl_patterns import classify_dsl_key
 from .diagnostics import diag
+from .dsl_patterns import classify_dsl_key
+from .json_parser import DupList, load_json
+from .type_utils import classify_json, get_type_str
+from .types import FieldInfo, GlobalFieldEntry
 
 # 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典
 DYNAMIC_KEY_THRESHOLD = 100
@@ -23,7 +25,6 @@ DYNAMIC_KEY_THRESHOLD = 100
 SEP = '\x01'
 ARR_MARKER = '[]'
 
-from ..config import SCHEMA_DIR
 
 # 字段模板等价映射（硬编码）
 # exact: 精确匹配字段名 → 规范名
@@ -43,7 +44,7 @@ _template_regex = [
 ]
 
 
-def _canonical_field_name(field_name):
+def _canonical_field_name(field_name: str) -> str:
     """获取字段的规范模板名（用于聚合等价字段）"""
     if field_name in _template_exact:
         return _template_exact[field_name]
@@ -54,21 +55,21 @@ def _canonical_field_name(field_name):
 
 
 # 全局字段信息收集器（按规范字段名聚合，用于最终报告）
-_global_field_info = {}  # canonical_name → {child_keys, child_key_counts, child_key_types, count, paths}
+_global_field_info: dict[str, GlobalFieldEntry] = {}
 
 
-def _ensure_global_entry(canonical):
+def _ensure_global_entry(canonical: str) -> GlobalFieldEntry:
     """确保 _global_field_info 中存在指定条目"""
     if canonical not in _global_field_info:
-        _global_field_info[canonical] = {
-            "child_keys": set(),
-            "child_key_counts": {},
-            "child_key_types": {},
-            "elem_child_key_counts": {},
-            "elem_child_key_types": {},
-            "count": 0,
-            "paths": set(),
-        }
+        _global_field_info[canonical] = GlobalFieldEntry(
+            child_keys=set(),
+            child_key_counts={},
+            child_key_types={},
+            elem_child_key_counts={},
+            elem_child_key_types={},
+            count=0,
+            paths=set(),
+        )
     g = _global_field_info[canonical]
     if "elem_child_key_counts" not in g:
         g["elem_child_key_counts"] = {}
@@ -76,7 +77,7 @@ def _ensure_global_entry(canonical):
     return g
 
 
-def _accumulate_global_info(info):
+def _accumulate_global_info(info: dict[str, FieldInfo]) -> None:
     """将单次 collect_field_info 结果累积到全局字段信息中（按规范字段名聚合）"""
     for path, entry in info.items():
         if not entry.get("child_keys"):
@@ -122,10 +123,11 @@ def _accumulate_global_info(info):
 # ==================== 类型分析 ====================
 
 
-def analyze_value_type(v):
+def analyze_value_type(v: object) -> str:
     """分析单个值的详细类型（包括数组元素类型）"""
     base = get_type_str(v)
     if base == "array" and v:
+        assert isinstance(v, list)
         elem_types = {get_type_str(item) for item in v}
         if len(elem_types) == 1:
             et = elem_types.pop()
@@ -135,7 +137,12 @@ def analyze_value_type(v):
     return base
 
 
-def collect_field_info(obj, info, prefix="", _visited=None):
+def collect_field_info(
+    obj: dict[str, object],
+    info: dict[str, FieldInfo],
+    prefix: str = "",
+    _visited: set[int] | None = None,
+) -> None:
     """
     递归分析对象结构，收集每个路径的类型信息和值样本。
 
@@ -171,25 +178,30 @@ def collect_field_info(obj, info, prefix="", _visited=None):
         _collect_single_value(v, path, info, _visited)
 
 
-def _collect_single_value(v, path, info, _visited):
+def _collect_single_value(
+    v: object,
+    path: str,
+    info: dict[str, FieldInfo],
+    _visited: set[int],
+) -> None:
     """分析单个字段值并更新 info（从 collect_field_info 提取，支持 DupList 展开）"""
     if path not in info:
-        info[path] = {
-            "types": set(),
-            "child_keys": set(),
-            "array_elem_types": set(),
-            "has_guid": False,
-            "has_condition": False,
-            "has_action": False,
-            "has_result_title": False,
-            "has_tag": False,
-            "has_id": False,
-            "has_key": False,
-            "sample_values": [],
-            "count": 0,
-            "child_key_counts": {},
-            "child_key_types": {},  # {key_name: {type_str: count}}
-        }
+        info[path] = FieldInfo(
+            types=set(),
+            child_keys=set(),
+            array_elem_types=set(),
+            has_guid=False,
+            has_condition=False,
+            has_action=False,
+            has_result_title=False,
+            has_tag=False,
+            has_id=False,
+            has_key=False,
+            sample_values=[],
+            count=0,
+            child_key_counts={},
+            child_key_types={},
+        )
 
     entry = info[path]
     entry["count"] += 1
@@ -201,6 +213,7 @@ def _collect_single_value(v, path, info, _visited):
         entry["sample_values"].append(v)
 
     if vtype == "object":
+        assert isinstance(v, dict)
         entry["child_keys"].update(v.keys())
         for ck, cv in v.items():
             entry["child_key_counts"][ck] = entry["child_key_counts"].get(ck, 0) + 1
@@ -211,6 +224,7 @@ def _collect_single_value(v, path, info, _visited):
         collect_field_info(v, info, path, _visited)
 
     elif vtype == "array" and v:
+        assert isinstance(v, list)
         for item in v:
             item_type = get_type_str(item)
             entry["array_elem_types"].add(item_type)
@@ -235,7 +249,7 @@ def _collect_single_value(v, path, info, _visited):
 
 # ==================== Schema 推断 ====================
 
-def _collapse_int_float(types):
+def _collapse_int_float(types: set[str]) -> set[str]:
     """将类型集合中的 int 合并到 float（包括 array 内部的 int）"""
     if "int" not in types or "float" not in types:
         return types
@@ -247,7 +261,7 @@ def _collapse_int_float(types):
         if not t.startswith("array<") or "int" not in t:
             continue
         inner = t[6:-1].split(",")
-        merged = sorted(set("float" if x == "int" else x for x in inner))
+        merged = sorted({"float" if x == "int" else x for x in inner})
         new_t = f"array<{','.join(merged)}>"
         if new_t != t:
             to_remove.add(t)
@@ -257,7 +271,7 @@ def _collapse_int_float(types):
     return types
 
 
-def infer_type(types_set):
+def infer_type(types_set: set[str]) -> str | list[str]:
     """从观察到的类型集合推断 schema 类型"""
     types = _collapse_int_float(set(types_set))
 
@@ -275,7 +289,7 @@ def infer_type(types_set):
 _SCALAR_TYPES = {"int", "float", "string", "bool"}
 
 
-def _validate_type_combination(field_name, type_list):
+def _validate_type_combination(field_name: str, type_list: list[str]) -> None:
     """验证多类型组合是否合理，不合理时通过 diagnostics 报告"""
     types = set(type_list)
     has_scalar = bool(types & _SCALAR_TYPES)
@@ -293,7 +307,7 @@ def _validate_type_combination(field_name, type_list):
         diag.warn("schema", f"字段 '{field_name}' 类型组合可疑（对象+数组）: {type_list}")
 
 
-def _detect_match_key(field_info) -> list[str] | None:
+def _detect_match_key(field_info: FieldInfo) -> list[str] | None:
     """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。
     按 COMMON_MATCH_KEYS 优先级顺序返回第一个命中的字段。"""
     from .merger import COMMON_MATCH_KEYS
@@ -303,7 +317,7 @@ def _detect_match_key(field_info) -> list[str] | None:
     return None
 
 
-def infer_merge_strategy(field_name, type_info, field_info):
+def infer_merge_strategy(field_name: str, type_info: str | list[str], field_info: FieldInfo) -> str:
     """根据字段名、类型、结构信息推断合并策略"""
     # 联合类型
     if isinstance(type_info, list):
@@ -337,16 +351,16 @@ def infer_merge_strategy(field_name, type_info, field_info):
     return "replace"
 
 
-def infer_match_key(field_info) -> list[str] | None:
+def infer_match_key(field_info: FieldInfo) -> list[str] | None:
     """推断 smart_match 的匹配字段"""
     return _detect_match_key(field_info)
 
 
 # 模板注册表：canonical_name → template_def（在 Pass 1 完成后填充）
-_templates_registry = {}
+_templates_registry: dict[str, dict[str, object] | None] = {}
 
 
-def _infer_type_from_counts(type_counts):
+def _infer_type_from_counts(type_counts: dict[str, int]) -> str | list[str]:
     """从 {type_str: count} 推断 schema 类型"""
     if not type_counts:
         return "null"
@@ -359,7 +373,7 @@ def _infer_type_from_counts(type_counts):
     return sorted(types)
 
 
-def _detect_match_key_from_global(canonical) -> list[str] | None:
+def _detect_match_key_from_global(canonical: str) -> list[str] | None:
     """从 _global_field_info 检测 array<object> 元素中的唯一标识字段"""
     if canonical not in _global_field_info:
         return None
@@ -374,7 +388,7 @@ def _detect_match_key_from_global(canonical) -> list[str] | None:
     return None
 
 
-def _build_element_from_global(arr_canonical):
+def _build_element_from_global(arr_canonical: str) -> dict[str, object] | None:
     """从全局字段信息构建数组元素定义"""
     if arr_canonical not in _global_field_info:
         return None
@@ -384,7 +398,7 @@ def _build_element_from_global(arr_canonical):
     if not elem_counts:
         return None
 
-    element = {}
+    element: dict[str, object] = {}
     for key in sorted(elem_counts):
         fd = _build_field_from_counts(key, elem_types.get(key, {}))
         if fd is not None:
@@ -392,7 +406,7 @@ def _build_element_from_global(arr_canonical):
     return element or None
 
 
-def _build_field_from_counts(key, type_counts):
+def _build_field_from_counts(key: str, type_counts: dict[str, int]) -> dict[str, object] | None:
     """从 {type_str: count} 构建单个字段定义（供模板 fields 和 element 复用）"""
     if classify_dsl_key(key):
         return None
@@ -422,7 +436,7 @@ def _build_field_from_counts(key, type_counts):
     else:
         merge = "replace"
 
-    field_def = {"__type__": type_val, "__merge__": merge}
+    field_def: dict[str, object] = {"__type__": type_val, "__merge__": merge}
     if merge == "smart_match":
         mk = _detect_match_key_from_global(_canonical_field_name(key))
         if mk:
@@ -458,18 +472,18 @@ def _build_field_from_counts(key, type_counts):
     return field_def
 
 
-def _build_template_from_field_info(fi):
+def _build_template_from_field_info(fi: GlobalFieldEntry) -> dict[str, object]:
     """从全局字段信息构建命名模板定义。"""
     key_counts = fi["child_key_counts"]
     key_types = fi["child_key_types"]
 
-    fields = {}
+    fields: dict[str, object] = {}
     for key in sorted(key_counts, key=lambda k: -key_counts[k]):
         fd = _build_field_from_counts(key, key_types.get(key, {}))
         if fd is not None:
             fields[key] = fd
 
-    result = {
+    result: dict[str, object] = {
         "__type__": "object",
         "__merge__": "merge",
         "__fields__": fields,
@@ -479,7 +493,7 @@ def _build_template_from_field_info(fi):
     return result
 
 
-def _build_templates():
+def _build_templates() -> dict[str, dict[str, object] | None]:
     """从 _global_field_info 自动发现并构建所有模板。
     判定规则：一个字段在多个不同路径中被复用（paths >= 2）且有子 key，即注册为模板。
     两遍构建：第一遍注册所有模板名（占位），第二遍构建定义（此时所有模板名都可见，解决顺序依赖）。
@@ -499,22 +513,22 @@ def _build_templates():
     return _templates_registry
 
 
-def _build_dsl_rules():
+def _build_dsl_rules() -> dict[str, dict[str, object]]:
     """从所有已注册模板的 DSL key 聚合每个 DSL 组的类型信息，生成 _dsl_rules"""
-    group_types = {}  # group_name → {type_str: count}
+    group_types: dict[str, dict[str, int]] = {}
     for name in _templates_registry:
         fi = _global_field_info[name]
         for key in fi["child_key_counts"]:
             group = classify_dsl_key(key)
             if not group:
                 continue
-            types = fi["child_key_types"].get(key, {})
+            types: dict[str, int] = fi["child_key_types"].get(key, {})
             if group not in group_types:
                 group_types[group] = {}
             for t, tc in types.items():
                 group_types[group][t] = group_types[group].get(t, 0) + tc
 
-    dsl_rules = {}
+    dsl_rules: dict[str, dict[str, object]] = {}
     for group_name, types in sorted(group_types.items()):
         type_val = _infer_type_from_counts(types)
 
@@ -527,7 +541,7 @@ def _build_dsl_rules():
 
         # 普通 DSL 组
         if isinstance(type_val, list):
-            merge = "coerce"
+            merge: str = "coerce"
         elif isinstance(type_val, str) and type_val.startswith("array"):
             merge = "append"
         else:
@@ -538,7 +552,7 @@ def _build_dsl_rules():
 
 
 
-def build_field_def(path, info, all_info):
+def build_field_def(path: str, info: FieldInfo, all_info: dict[str, FieldInfo]) -> dict[str, object]:
     """构建单个字段的 schema 定义"""
     field_info = info
     types = field_info["types"]
@@ -546,7 +560,7 @@ def build_field_def(path, info, all_info):
     type_val = infer_type(types)
     merge = infer_merge_strategy(field_name, type_val, field_info)
 
-    result = {"__type__": type_val, "__merge__": merge}
+    result: dict[str, object] = {"__type__": type_val, "__merge__": merge}
 
     # object 处理
     if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
@@ -565,11 +579,20 @@ def build_field_def(path, info, all_info):
             if fields:
                 # 检测子 key 是否为同类结构：
                 # 全部 value 都是 object 且子字段名集合存在包含关系 → 用 _template 替代
-                obj_fields = {k: v for k, v in fields.items()
-                              if isinstance(v, dict) and v.get("__type__") == "object" and "__fields__" in v}
+                obj_fields: dict[str, dict[str, object]] = {
+                    k: v for k, v in fields.items()
+                    if isinstance(v, dict) and v.get("__type__") == "object" and "__fields__" in v
+                }
                 if len(obj_fields) > 1 and len(obj_fields) == len(fields):
                     # 取子字段名最多的集合作为基准
-                    sub_key_sets = {k: frozenset(v["__fields__"].keys()) for k, v in obj_fields.items()}
+                    sub_key_sets = {
+                        k: frozenset(
+                            sub_f.keys()
+                            if isinstance((sub_f := v["__fields__"]), dict)
+                            else ()
+                        )
+                        for k, v in obj_fields.items()
+                    }
                     largest = max(sub_key_sets.values(), key=len)
                     # 所有子 key 的字段集合都是最大集合的子集 → 同类
                     all_subset = all(s <= largest for s in sub_key_sets.values())
@@ -619,7 +642,7 @@ def build_field_def(path, info, all_info):
 
 # ==================== 分析入口 ====================
 
-def _collect_file_info(filepath):
+def _collect_file_info(filepath: str) -> tuple[str, dict[str, FieldInfo], dict[str, object]] | None:
     """收集单个根目录文件的字段信息（不构建 schema）。
     返回 (file_type, info, data) 或 None。
     """
@@ -627,7 +650,7 @@ def _collect_file_info(filepath):
     if data is None:
         return None
     file_type = classify_json(data)
-    info = {}
+    info: dict[str, FieldInfo] = {}
 
     if file_type == "dictionary":
         for _, entry_val in data.items():
@@ -647,20 +670,20 @@ def _collect_file_info(filepath):
     return file_type, info, data
 
 
-def _collect_dir_info(dirpath):
+def _collect_dir_info(dirpath: str) -> tuple[str | None, dict[str, FieldInfo], int, int] | None:
     """收集子目录所有文件的字段信息（不构建 schema）。
     返回 (file_type, info, file_count, total) 或 None。
     """
     files = sorted([f for f in os.listdir(dirpath) if f.endswith(".json")])
     total = len(files)
 
-    def _load(fname):
+    def _load(fname: str) -> dict[str, object] | None:
         return load_json(os.path.join(dirpath, fname))
 
     with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
         results = list(pool.map(_load, files))
 
-    info = {}
+    info: dict[str, FieldInfo] = {}
     file_count = 0
     file_type = None
 
@@ -682,7 +705,7 @@ def _collect_dir_info(dirpath):
     return file_type, info, file_count, total
 
 
-def _build_single_file_schema(filepath, file_type, info):
+def _build_single_file_schema(filepath: str, file_type: str, info: dict[str, FieldInfo]) -> dict[str, object]:
     """从已收集的字段信息构建单个文件的 schema"""
     if file_type == "flat_dict":
         return {
@@ -753,7 +776,7 @@ def _build_single_file_schema(filepath, file_type, info):
     }
 
 
-def _build_dir_schema(dirpath, file_type, info, file_count, total):
+def _build_dir_schema(dirpath: str, file_type: str | None, info: dict[str, FieldInfo], file_count: int, total: int) -> dict[str, object]:
     """从已收集的字段信息构建子目录的 schema"""
     dirname = Path(dirpath).name
     schema_key = "_fields" if file_type in ("entity", "config") else "_entry"
@@ -778,7 +801,8 @@ def _build_dir_schema(dirpath, file_type, info, file_count, total):
 
 # ==================== 主入口 ====================
 
-def generate_all(config_dir, output_dir, progress_callback=None):
+def generate_all(config_dir: str, output_dir: str,
+                  progress_callback: Callable[[int, int, str], None] | None = None) -> list[str]:
     """生成所有 schema 文件（两遍处理：先收集字段信息，再构建 schema）
 
     progress_callback: 可选回调 (current: int, total: int, name: str) -> None
@@ -804,7 +828,7 @@ def generate_all(config_dir, output_dir, progress_callback=None):
     ])
 
     # 收集根目录文件信息
-    file_infos = {}  # fname → (file_type, info, data)
+    file_infos: dict[str, tuple[str, dict[str, FieldInfo], dict[str, object]]] = {}
     for fname in root_files:
         filepath = config_path / fname
         result = _collect_file_info(str(filepath))
@@ -814,13 +838,13 @@ def generate_all(config_dir, output_dir, progress_callback=None):
             diag.info("schema", f"  收集: {fname}")
 
     # 收集子目录信息
-    dir_infos = {}  # dirname → (file_type, info, file_count, total)
+    dir_infos: dict[str, tuple[str | None, dict[str, FieldInfo], int, int]] = {}
     for subdir in subdirs:
         dirpath = config_path / subdir
-        result = _collect_dir_info(str(dirpath))
-        if result:
-            dir_infos[subdir] = result
-            _accumulate_global_info(result[1])  # result[1] = info
+        dir_result = _collect_dir_info(str(dirpath))
+        if dir_result:
+            dir_infos[subdir] = dir_result
+            _accumulate_global_info(dir_result[1])
             diag.info("schema", f"  收集: {subdir}/")
 
     # 构建模板注册表和 DSL 规则
@@ -828,7 +852,8 @@ def generate_all(config_dir, output_dir, progress_callback=None):
     dsl_rules = _build_dsl_rules()
     diag.info("schema", f"自动发现的模板: {sorted(_templates_registry.keys())}")
     for name, tpl in _templates_registry.items():
-        n_fields = len(tpl.get("__fields__", {}))
+        fields_val = tpl.get("__fields__", {}) if tpl else {}
+        n_fields = len(fields_val) if isinstance(fields_val, dict) else 0
         diag.info("schema", f"  {name}: {n_fields} 个固定 key")
     diag.info("schema", f"DSL 规则: {len(dsl_rules)} 组")
 
@@ -876,8 +901,8 @@ def generate_all(config_dir, output_dir, progress_callback=None):
         if subdir not in dir_infos:
             continue
         dirpath = config_path / subdir
-        file_type, info, file_count, total = dir_infos[subdir]
-        schema = _build_dir_schema(str(dirpath), file_type, info, file_count, total)
+        dir_file_type, dir_info, file_count, total = dir_infos[subdir]
+        schema = _build_dir_schema(str(dirpath), dir_file_type, dir_info, file_count, total)
         if schema:
             out_name = f"{subdir}.schema.json"
             out_file = output_path / out_name
@@ -896,7 +921,7 @@ def generate_all(config_dir, output_dir, progress_callback=None):
     return generated
 
 
-def ensure_schemas(config_dir, schema_dir) -> bool:
+def ensure_schemas(config_dir: str | Path, schema_dir: str | Path) -> bool:
     """检查 schemas/ 是否已初始化，若为空则执行生成。返回是否执行了生成。"""
     schema_dir = Path(schema_dir)
     if schema_dir.exists() and any(schema_dir.glob("*.schema.json")):

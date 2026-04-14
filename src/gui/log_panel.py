@@ -3,14 +3,19 @@
 """
 import re
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QListWidget, QListWidgetItem,
-)
-from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ..core.diagnostics import INFO, WARNING, ERROR
+from ..core.diagnostics import ERROR, INFO, WARNING
 
 # 日志项存储级别的自定义角色
 _LEVEL_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -51,7 +56,7 @@ class LogPanel(QWidget):
     # 双击日志条目中包含文件路径时发出，携带 (文件路径, 字段路径)
     file_open_requested = Signal(str, str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setVisible(False)
 
@@ -99,7 +104,7 @@ class LogPanel(QWidget):
         self._list.itemDoubleClicked.connect(self._on_double_clicked)
         layout.addWidget(self._list)
 
-    def show_messages(self, messages: list[tuple[str, str]]):
+    def show_messages(self, messages: list[tuple[str, str]]) -> None:
         """重置并显示消息列表 [(level, msg), ...]"""
         self._list.clear()
         self._error_count = 0
@@ -109,7 +114,7 @@ class LogPanel(QWidget):
         else:
             self.setVisible(False)
 
-    def log_message(self, level: str, msg: str):
+    def log_message(self, level: str, msg: str) -> None:
         """追加一条日志，按级别着色"""
         self._error_count += 1
         item = QListWidgetItem(f"[{self._error_count}] {msg}")
@@ -132,13 +137,13 @@ class LogPanel(QWidget):
         self.setVisible(True)
         self._apply_filter_to_item(item)
 
-    def clear(self):
+    def clear(self) -> None:
         """清空日志"""
         self._list.clear()
         self._error_count = 0
         self.setVisible(False)
 
-    def _set_filter(self, mode: str):
+    def _set_filter(self, mode: str) -> None:
         """切换日志级别筛选"""
         self._log_filter_mode = mode
         for m, btn in self._filter_buttons.items():
@@ -146,14 +151,14 @@ class LogPanel(QWidget):
         for i in range(self._list.count()):
             self._apply_filter_to_item(self._list.item(i))
 
-    def _apply_filter_to_item(self, item: QListWidgetItem):
+    def _apply_filter_to_item(self, item: QListWidgetItem) -> None:
         """根据当前筛选模式显示/隐藏日志项"""
         if self._log_filter_mode == "all":
             item.setHidden(False)
         else:
             item.setHidden(item.data(_LEVEL_ROLE) != self._log_filter_mode)
 
-    def _on_double_clicked(self, item: QListWidgetItem):
+    def _on_double_clicked(self, item: QListWidgetItem) -> None:
         """双击日志条目，发出文件打开信号"""
         file_path = item.data(Qt.ItemDataRole.UserRole)
         if file_path:

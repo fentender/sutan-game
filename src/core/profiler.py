@@ -10,16 +10,18 @@
 默认关闭，关闭时 @profile 和 profile_block 零开销（直接透传）。
 通过 user_config.json 的 enable_profiler 字段控制是否在启动时自动开启。
 """
-import time
-import logging
 import threading
-from functools import wraps
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
-
-log = logging.getLogger(__name__)
+from functools import wraps
+from typing import ParamSpec, TypeVar
 
 _enabled = False
 _lock = threading.Lock()
+
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
 
 @dataclass
@@ -34,14 +36,13 @@ class _Stats:
 _registry: dict[str, _Stats] = {}
 
 
-def enable():
+def enable() -> None:
     """启用性能评估"""
     global _enabled
     _enabled = True
-    log.info("性能评估已启用")
 
 
-def disable():
+def disable() -> None:
     """禁用性能评估"""
     global _enabled
     _enabled = False
@@ -51,16 +52,16 @@ def is_enabled() -> bool:
     return _enabled
 
 
-def reset():
+def reset() -> None:
     """清空所有统计数据"""
     with _lock:
         _registry.clear()
 
 
-def profile(func):
+def profile(func: Callable[_P, _R]) -> Callable[_P, _R]:
     """装饰器：记录函数执行时间。禁用时零开销。"""
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _R:
         if not _enabled:
             return func(*args, **kwargs)
         name = f"{func.__module__}.{func.__qualname__}"
@@ -76,22 +77,26 @@ class profile_block:
     """上下文管理器：记录代码块执行时间。禁用时零开销。"""
     __slots__ = ('name', 'start')
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.start = 0.0
 
-    def __enter__(self):
+    def __enter__(self) -> "profile_block":
         if _enabled:
             self.start = time.perf_counter()
         return self
 
-    def __exit__(self, *exc):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
         if _enabled:
             _record(self.name, time.perf_counter() - self.start)
-        return False
 
 
-def _record(name: str, elapsed: float):
+def _record(name: str, elapsed: float) -> None:
     with _lock:
         stats = _registry.setdefault(name, _Stats())
         stats.call_count += 1
@@ -131,7 +136,7 @@ def get_report(top_n: int = 20) -> str:
     return "\n".join(lines)
 
 
-def log_report(top_n: int = 20):
-    """输出性能报告到日志"""
+def log_report(top_n: int = 20) -> None:
+    """输出性能报告到标准输出"""
     if _registry:
-        log.info("\n%s", get_report(top_n))
+        print(get_report(top_n))

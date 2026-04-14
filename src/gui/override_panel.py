@@ -3,12 +3,17 @@
 """
 from pathlib import Path
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QTreeWidget, QTreeWidgetItem, QLineEdit, QPushButton
-)
-from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..core.conflict import FileOverrideInfo
 from ..core.schema_generator import SEP
@@ -18,7 +23,7 @@ class OverridePanel(QWidget):
     """覆盖详情面板"""
     diff_requested = Signal(str)  # rel_path
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._data: list[FileOverrideInfo] = []
         self._game_config_path: Path | None = None
@@ -68,19 +73,19 @@ class OverridePanel(QWidget):
 
         self._collapsed = False
 
-    def _toggle(self):
+    def _toggle(self) -> None:
         self._collapsed = not self._collapsed
         self.tree.setVisible(not self._collapsed)
         self.search_input.setVisible(not self._collapsed)
         self.toggle_btn.setText("► 覆盖详情" if self._collapsed else "▼ 覆盖详情")
 
-    def _set_filter_mode(self, mode: str):
+    def _set_filter_mode(self, mode: str) -> None:
         self._filter_mode = mode
         for m, btn in self._filter_buttons.items():
             btn.setChecked(m == mode)
         self._apply_filter()
 
-    def _apply_filter(self):
+    def _apply_filter(self) -> None:
         text = self.search_input.text().lower()
         for i in range(self.tree.topLevelItemCount()):
             item = self.tree.topLevelItem(i)
@@ -100,7 +105,7 @@ class OverridePanel(QWidget):
                 mode_match = True
             item.setHidden(not (text_match and mode_match))
 
-    def _on_item_double_clicked(self, item: QTreeWidgetItem, column: int):
+    def _on_item_double_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         # 只响应文件级节点（顶层节点）
         if item.parent() is not None:
             return
@@ -110,9 +115,9 @@ class OverridePanel(QWidget):
         self.diff_requested.emit(info.rel_path)
 
     def set_data(self, overrides: list[FileOverrideInfo],
-                 game_config_path: Path = None,
-                 mod_configs: list[tuple[str, str, Path]] = None,
-                 allow_deletions: bool = False):
+                 game_config_path: Path | None = None,
+                 mod_configs: list[tuple[str, str, Path]] | None = None,
+                 allow_deletions: bool = False) -> None:
         """设置覆盖数据并刷新显示"""
         self._data = overrides
         self._game_config_path = game_config_path
@@ -153,7 +158,7 @@ class OverridePanel(QWidget):
 
             self.tree.addTopLevelItem(file_item)
 
-    def clear(self):
+    def clear(self) -> None:
         self._data = []
         self.tree.clear()
 

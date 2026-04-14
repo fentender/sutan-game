@@ -3,11 +3,17 @@
 """
 from pathlib import Path
 
-from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFileDialog,
-)
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..config import infer_workshop_path_from_game
 
@@ -16,7 +22,7 @@ class SetupDialog(QDialog):
     """引导用户配置游戏安装目录和创意工坊目录"""
 
     def __init__(self, default_game: str = "", default_workshop: str = "",
-                 parent=None):
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle("首次运行 — 路径配置")
         self.setMinimumWidth(560)
@@ -78,19 +84,19 @@ class SetupDialog(QDialog):
 
     # ── 内部方法 ──
 
-    def _browse_game(self):
+    def _browse_game(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择游戏安装目录",
                                                  self._game_edit.text())
         if path:
             self._game_edit.setText(path)
 
-    def _browse_workshop(self):
+    def _browse_workshop(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择创意工坊目录",
                                                  self._workshop_edit.text())
         if path:
             self._workshop_edit.setText(path)
 
-    def _on_game_path_changed(self):
+    def _on_game_path_changed(self) -> None:
         """用户修改游戏路径后，自动推导创意工坊路径"""
         game = self.game_path
         if game and Path(game).exists() and not self._workshop_edit.text().strip():
@@ -99,7 +105,7 @@ class SetupDialog(QDialog):
                 self._workshop_edit.setText(inferred)
         self._validate()
 
-    def _validate(self):
+    def _validate(self) -> None:
         """校验两个路径是否都存在，控制确定按钮状态"""
         problems = []
         if not self.game_path:

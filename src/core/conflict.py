@@ -2,20 +2,26 @@
 冲突检测与覆盖链报告
 """
 import json
-import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .json_parser import load_json
+from .array_match import get_key_vals, is_obj_array, resolve_duplicates
+from .diagnostics import diag
+from .json_parser import DupList, load_json
 from .merger import ParseFailure
 from .mod_scanner import collect_mod_files
-from .diagnostics import diag
-from .schema_generator import SEP
-from .schema_loader import load_schemas, resolve_schema, get_field_def, get_schema_root_key
-from .array_match import find_matching_item, resolve_duplicates, get_key_vals
 from .profiler import profile
+from .schema_generator import SEP
+from .schema_loader import get_field_def, get_schema_root_key, load_schemas, resolve_schema
+from .types import CancelCheck
 
-log = logging.getLogger(__name__)
+
+@dataclass
+class DeletionRecord:
+    """单个字段的删除记录"""
+    field_path: str       # 被删除的字段路径（用 SEP 分隔）
+    base_value: object    # 被删除的原始值
+    mod_name: str         # 执行删除的 Mod 名称
 
 
 @dataclass
@@ -46,6 +52,8 @@ class FileOverrideInfo:
     field_overrides: list[FieldOverride] = field(default_factory=list)
     # 新增条目
     new_entries: list[tuple[str, str]] = field(default_factory=list)  # (mod_name, description)
+    # 删除记录
+    deletions: list[DeletionRecord] = field(default_factory=list)
 
     @property
     def has_conflict(self) -> bool:
@@ -54,7 +62,7 @@ class FileOverrideInfo:
 
 # ==================== 数组匹配辅助 ====================
 
-def _make_element_label(item, match_keys):
+def _make_element_label(item: object, match_keys: list[str]) -> str:
     """为数组元素生成可读标识"""
     if not isinstance(item, dict):
         return str(item)
@@ -73,15 +81,21 @@ def _make_element_label(item, match_keys):
 # ==================== 差异收集 ====================
 
 @profile
-def _collect_smart_match_diffs(base_arr, mod_arr, path,
-                               match_keys, schema, field_path):
+def _collect_smart_match_diffs(
+    base_arr: list[object],
+    mod_arr: list[object],
+    path: str,
+    match_keys: list[str],
+    schema: dict[str, object] | None,
+    field_path: list[str] | None,
+) -> list[tuple[str, object, object]]:
     """可匹配数组的原子化比较：按 match_keys 精确匹配元素后递归比较子字段。
     同 key 多对多时用字符串相似度做全局最优配对。"""
-    diffs = []
-    matched_base = set()
+    diffs: list[tuple[str, object, object]] = []
+    matched_base: set[int] = set()
 
     # 按 match_key 值分组 mod 元素
-    mod_groups: dict[tuple | None, list[tuple[int, dict]]] = {}
+    mod_groups: dict[tuple[object, ...] | None, list[tuple[int, dict[str, object]]]] = {}
     for i, mod_item in enumerate(mod_arr):
         if not isinstance(mod_item, dict):
             continue
@@ -89,7 +103,7 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
         mod_groups.setdefault(kv, []).append((i, mod_item))
 
     # 按 match_key 值分组 base 元素
-    base_groups: dict[tuple, list[int]] = {}
+    base_groups: dict[tuple[object, ...], list[int]] = {}
     for i, base_item in enumerate(base_arr):
         if isinstance(base_item, dict):
             kv = get_key_vals(base_item, match_keys)
@@ -138,17 +152,20 @@ def _collect_smart_match_diffs(base_arr, mod_arr, path,
     return diffs
 
 
-def _is_obj_array(arr) -> bool:
-    """判断是否是非空对象数组"""
-    return isinstance(arr, list) and bool(arr) and all(isinstance(x, dict) for x in arr)
+def _is_obj_array(arr: object) -> bool:
+    return is_obj_array(arr)
 
 
-def _collect_append_array_diffs(base_arr, mod_arr, path):
+def _collect_append_array_diffs(
+    base_arr: list[object],
+    mod_arr: list[object],
+    path: str,
+) -> list[tuple[str, object, object]]:
     """append 策略的简单数组差异收集。
     用集合消耗式匹配：mod 中每个元素与 base 剩余元素逐个比较，
     匹配到的从 base 池中移除。未匹配的 mod 元素为新增，
     未消耗的 base 元素为删除。"""
-    diffs = []
+    diffs: list[tuple[str, object, object]] = []
     # base 剩余池（同一值可能出现多次，用索引追踪）
     remaining = list(range(len(base_arr)))
 
@@ -172,10 +189,16 @@ def _collect_append_array_diffs(base_arr, mod_arr, path):
     return diffs
 
 
-def _collect_index_match_diffs(base_arr, mod_arr, path, schema, field_path):
+def _collect_index_match_diffs(
+    base_arr: list[object],
+    mod_arr: list[object],
+    path: str,
+    schema: dict[str, object] | None,
+    field_path: list[str] | None,
+) -> list[tuple[str, object, object]]:
     """按序号位置对应的 array<object> 深度比较。
     mod[i] ↔ base[i]，超出部分为新增/删除。"""
-    diffs = []
+    diffs: list[tuple[str, object, object]] = []
     min_len = min(len(base_arr), len(mod_arr))
 
     for i in range(min_len):
@@ -200,8 +223,11 @@ def _collect_index_match_diffs(base_arr, mod_arr, path, schema, field_path):
 
 @profile
 def _collect_field_diffs(
-    base: object, mod_data: object, prefix: str = "",
-    schema: dict | None = None, field_path: list[str] | None = None,
+    base: object,
+    mod_data: object,
+    prefix: str = "",
+    schema: dict[str, object] | None = None,
+    field_path: list[str] | None = None,
 ) -> list[tuple[str, object, object]]:
     """
     收集 mod 相对于 base 的字段差异。
@@ -211,7 +237,14 @@ def _collect_field_diffs(
         schema: schema 规则（用于判断数组的匹配策略）
         field_path: 当前在 schema 中的路径
     """
-    diffs = []
+    diffs: list[tuple[str, object, object]] = []
+
+    # DupList：按索引位置展开后比较
+    if isinstance(base, DupList) or isinstance(mod_data, DupList):
+        base_list = list(base) if isinstance(base, DupList) else [base]
+        mod_list = list(mod_data) if isinstance(mod_data, DupList) else [mod_data]
+        diffs.extend(_collect_index_match_diffs(base_list, mod_list, prefix, schema, field_path))
+        return diffs
 
     if isinstance(base, dict) and isinstance(mod_data, dict):
         # 早期相等退出：跳过完全相同的子树，避免大量递归
@@ -234,7 +267,8 @@ def _collect_field_diffs(
                     # 从 schema 判断数组合并策略
                     child_def = get_field_def(schema, child_path) if schema and child_path else None
                     merge_strategy = child_def.get("__merge__") if child_def else None
-                    match_keys = child_def.get("__match_key__") if child_def else None
+                    match_keys_val = child_def.get("__match_key__") if child_def else None
+                    match_keys = match_keys_val if isinstance(match_keys_val, list) else None
 
                     if merge_strategy == "smart_match" and match_keys:
                         diffs.extend(_collect_smart_match_diffs(
@@ -264,9 +298,9 @@ def _collect_field_diffs(
 
 def analyze_file_overrides(
     rel_path: str,
-    base_data: dict,
-    mod_data_list: list[tuple[str, str, dict]],
-    schema: dict | None = None,
+    base_data: dict[str, object],
+    mod_data_list: list[tuple[str, str, dict[str, object]]],
+    schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
 ) -> FileOverrideInfo:
     """
@@ -294,6 +328,9 @@ def analyze_file_overrides(
                 continue
             if mod_val is None:
                 info.new_entries.append((mod_name, f"删除: {fp}"))
+                info.deletions.append(DeletionRecord(
+                    field_path=fp, base_value=base_val, mod_name=mod_name,
+                ))
                 continue
             if fp not in field_map:
                 field_map[fp] = FieldOverride(
@@ -315,7 +352,7 @@ def analyze_all_overrides(
     game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
     schema_dir: Path | None = None,
-    cancel_check=None,
+    cancel_check: CancelCheck | None = None,
 ) -> tuple[list[FileOverrideInfo], list[ParseFailure]]:
     """
     分析所有文件的覆盖情况。
@@ -331,7 +368,7 @@ def analyze_all_overrides(
     schemas = load_schemas(schema_dir) if schema_dir else {}
     all_files = collect_mod_files(mod_configs)
 
-    results = []
+    results: list[FileOverrideInfo] = []
     parse_failures: list[ParseFailure] = []
     for rel_path, mod_file_list in sorted(all_files.items()):
         if cancel_check:
@@ -342,7 +379,6 @@ def analyze_all_overrides(
                 base_data = load_json(base_file, readonly=True)
             except json.JSONDecodeError as e:
                 msg = f"{base_file}: JSON 解析失败，已跳过 ({e.msg})"
-                log.warning(msg)
                 diag.error("parse", msg)
                 parse_failures.append(ParseFailure(
                     file_path=base_file, rel_path=rel_path,
@@ -351,16 +387,14 @@ def analyze_all_overrides(
                 ))
                 continue
         else:
-            # diag.info("parse", f"{rel_path}: 游戏本体中不存在此文件，视为 Mod 新增")
             base_data = {}
 
-        mod_data_list = []
+        mod_data_list: list[tuple[str, str, dict[str, object]]] = []
         for mod_id, mod_name, mod_file in mod_file_list:
             try:
                 mod_data_list.append((mod_id, mod_name, load_json(mod_file, readonly=True)))
             except json.JSONDecodeError as e:
                 msg = f"{mod_file}: JSON 解析失败，已跳过 ({e.msg})"
-                log.warning(msg)
                 diag.error("parse", msg)
                 parse_failures.append(ParseFailure(
                     file_path=mod_file, rel_path=rel_path,

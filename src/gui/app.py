@@ -2,33 +2,43 @@
 主窗口 - 串联所有 GUI 面板和核心逻辑
 """
 import shutil
+from collections.abc import Callable
 from pathlib import Path
 
-from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QSplitter, QMessageBox, QProgressBar,
-    QFileDialog, QCheckBox
-)
 from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QCloseEvent, QDesktopServices
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QFileDialog,
+    QHBoxLayout,
+    QMainWindow,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ..config import UserConfig, SYNTHETIC_MOD_ID, SCHEMA_DIR, MOD_OVERRIDES_DIR, APP_VERSION
-from ..core.mod_scanner import scan_all_mods
-from ..core.diagnostics import diag, INFO, WARNING, ERROR
+from ..config import APP_VERSION, MOD_OVERRIDES_DIR, SCHEMA_DIR, SYNTHETIC_MOD_ID, UserConfig
+from ..core.conflict import FileOverrideInfo
 from ..core.deployer import generate_info_json
+from ..core.diagnostics import ERROR, INFO, WARNING, diag
+from ..core.id_remapper import RemapTable, remap_mod_configs
+from ..core.merger import ParseFailure
+from ..core.mod_scanner import scan_all_mods
 from ..core.override_utils import invalidate_stale_overrides
-from ..core.id_remapper import remap_mod_configs
-from .mod_list import ModListPanel
-from .mod_detail import ModDetailPanel
-from .override_panel import OverridePanel
 from .log_panel import LogPanel, prefix_mod_title
-from .workers import MergeWorker, AnalyzeWorker, UpdateCheckWorker
+from .mod_detail import ModDetailPanel
+from .mod_list import ModListPanel
+from .override_panel import OverridePanel
+from .workers import AnalyzeWorker, MergeWorker, UpdateCheckWorker
 
 
 class MainWindow(QMainWindow):
     """主窗口"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("苏丹的游戏 - Mod 合并管理器")
         self.setMinimumSize(1000, 700)
@@ -37,13 +47,13 @@ class MainWindow(QMainWindow):
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
         self._update_worker: UpdateCheckWorker | None = None
-        self._pending_action = None  # 等待分析完成后执行的操作
+        self._pending_action: Callable[[], None] | None = None
 
         # ID 重分配缓存：remap 只在 _analyze_conflicts 中做一次，
         # 结果供 AnalyzeWorker / DiffDialog / MergeWorker 共用
         self._remapped_configs: list[tuple[str, str, Path]] | None = None
         self._remap_temp_dir: Path | None = None
-        self._remap_tables: dict | None = None
+        self._remap_tables: dict[str, RemapTable] | None = None
 
         # 防抖定时器：快速连续操作只触发一次分析
         self._analyze_timer = QTimer()
@@ -60,7 +70,7 @@ class MainWindow(QMainWindow):
         # 启动 3 秒后静默检查更新
         QTimer.singleShot(3000, self._auto_check_update)
 
-    def _setup_menu(self):
+    def _setup_menu(self) -> None:
         menubar = self.menuBar()
         file_menu = menubar.addMenu("文件")
         file_menu.addAction("设置游戏路径...", self._set_game_path)
@@ -72,7 +82,7 @@ class MainWindow(QMainWindow):
         help_menu = menubar.addMenu("帮助")
         help_menu.addAction(f"检查更新 (当前: v{APP_VERSION})", self._check_update)
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
@@ -117,6 +127,10 @@ class MainWindow(QMainWindow):
         self.chk_allow_deletions.toggled.connect(self._on_allow_deletions_changed)
         btn_layout.addWidget(self.chk_allow_deletions)
 
+        self.btn_deletion_report = QPushButton("查看删减报告")
+        self.btn_deletion_report.clicked.connect(self._show_deletion_report)
+        btn_layout.addWidget(self.btn_deletion_report)
+
         main_layout.addLayout(btn_layout)
 
         # 日志面板
@@ -129,14 +143,14 @@ class MainWindow(QMainWindow):
         self.mod_list_panel.order_changed.connect(self._save_config)
         self.override_panel.diff_requested.connect(self._open_diff)
 
-    def _setup_statusbar(self):
+    def _setup_statusbar(self) -> None:
         self.statusBar().showMessage("就绪")
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximumWidth(200)
         self.progress_bar.setVisible(False)
         self.statusBar().addPermanentWidget(self.progress_bar)
 
-    def _load_mods(self):
+    def _load_mods(self) -> None:
         """加载所有 mod（workshop + 本地目录）"""
         diag.snapshot("scan", "parse")  # 清空上次的扫描/解析消息
 
@@ -187,11 +201,22 @@ class MainWindow(QMainWindow):
             for level, msg in all_messages
         ])
 
-    def _on_allow_deletions_changed(self, checked: bool):
+    def _on_allow_deletions_changed(self, checked: bool) -> None:
         self.config.allow_deletions = checked
         self.config.save()
 
-    def _save_config(self):
+    def _show_deletion_report(self) -> None:
+        """打开删减报告对话框（懒加载）"""
+        from .deletion_report import DeletionReportDialog
+        dlg = DeletionReportDialog(
+            self.override_panel._data,
+            game_config_path=self.config.game_config_path,
+            mod_configs=self._remapped_configs or self._get_mod_configs(),
+            parent=self,
+        )
+        dlg.exec()
+
+    def _save_config(self) -> None:
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
 
@@ -217,7 +242,7 @@ class MainWindow(QMainWindow):
         self.config.save()
         self._schedule_analyze()
 
-    def _schedule_analyze(self):
+    def _schedule_analyze(self) -> None:
         """防抖触发冲突分析（重置 300ms 定时器）"""
         self._analyze_timer.start()
 
@@ -229,7 +254,7 @@ class MainWindow(QMainWindow):
             for m in enabled
         ]
 
-    def _analyze_conflicts(self):
+    def _analyze_conflicts(self) -> None:
         """异步分析冲突（由防抖定时器触发）"""
         # 合并期间不重新分析（避免清理正在使用的 remap 临时目录）
         if self._worker and self._worker.isRunning():
@@ -281,7 +306,8 @@ class MainWindow(QMainWindow):
         self._analyze_worker.parse_errors.connect(self._on_analyze_parse_errors)
         self._analyze_worker.start()
 
-    def _on_analyze_finished(self, overrides, parse_msgs):
+    def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
+                             parse_msgs: list[tuple[str, str]]) -> None:
         self.progress_bar.setVisible(False)
         self.override_panel.set_data(
             overrides, self.config.game_config_path,
@@ -303,19 +329,20 @@ class MainWindow(QMainWindow):
             self._pending_action = None
             action()
 
-    def _on_analyze_error(self, error: str):
+    def _on_analyze_error(self, error: str) -> None:
         self.progress_bar.setVisible(False)
         self.statusBar().showMessage(f"分析失败: {error}")
         self._log_message(ERROR, f"冲突分析失败: {error}")
 
-    def _on_analyze_parse_errors(self, parse_failures: list):
+    def _on_analyze_parse_errors(self, parse_failures: list[ParseFailure]) -> None:
         """分析过程中有 JSON 解析失败，弹窗让用户处理"""
         from .json_fix_dialog import JsonFixDialog
         dialog = JsonFixDialog(parse_failures, parent=self)
         dialog.exec()
+        assert self._analyze_worker is not None
         self._analyze_worker.set_error_resolution(dialog.resolutions)
 
-    def _open_diff(self, rel_path: str):
+    def _open_diff(self, rel_path: str) -> None:
         """打开 Diff 对比窗口（分析进行中则排队等待）"""
         if self._analyze_worker and self._analyze_worker.isRunning():
             self.statusBar().showMessage("等待冲突分析完成...")
@@ -332,7 +359,7 @@ class MainWindow(QMainWindow):
         )
         dlg.exec()
 
-    def _execute_merge(self):
+    def _execute_merge(self) -> None:
         """执行合并"""
         if self._analyze_worker and self._analyze_worker.isRunning():
             self.statusBar().showMessage("等待冲突分析完成...")
@@ -376,14 +403,14 @@ class MainWindow(QMainWindow):
         self._worker.parse_errors.connect(self._on_parse_errors)
         self._worker.start()
 
-    def _cancel_merge(self):
+    def _cancel_merge(self) -> None:
         """取消正在进行的合并"""
         if self._worker:
             self._worker.cancel()
             self._worker._resume_event.set()  # 防止 worker 卡在等待用户处理
         self.statusBar().showMessage("正在取消...")
 
-    def _restore_merge_btn(self):
+    def _restore_merge_btn(self) -> None:
         """恢复合并按钮到初始状态"""
         self.btn_merge.setText("执行合并")
         self.btn_merge.setEnabled(True)
@@ -391,7 +418,7 @@ class MainWindow(QMainWindow):
         self.btn_merge.clicked.connect(self._execute_merge)
         self.progress_bar.setVisible(False)
 
-    def _on_merge_finished(self, results: dict, warnings: list[str]):
+    def _on_merge_finished(self, results: dict[str, object], warnings: list[str]) -> None:
         self._restore_merge_btn()
         # 生成合成 Mod 的 Info.json
         enabled = self.mod_list_panel.get_enabled_mods()
@@ -406,7 +433,7 @@ class MainWindow(QMainWindow):
             self._log_message(WARNING, prefix_mod_title(w, self._mod_name_map))
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
-    def _on_merge_error(self, error: str):
+    def _on_merge_error(self, error: str) -> None:
         self._restore_merge_btn()
         # 清理合并失败后残留的半成品输出目录
         if self._merge_output_path and self._merge_output_path.exists():
@@ -415,14 +442,15 @@ class MainWindow(QMainWindow):
         self._log_message(ERROR, f"合并失败: {error}")
         QMessageBox.critical(self, "合并失败", error)
 
-    def _on_parse_errors(self, parse_failures: list):
+    def _on_parse_errors(self, parse_failures: list[ParseFailure]) -> None:
         """合并过程中有 JSON 解析失败，弹窗让用户处理"""
         from .json_fix_dialog import JsonFixDialog
         dialog = JsonFixDialog(parse_failures, parent=self)
         dialog.exec()
+        assert self._worker is not None
         self._worker.set_error_resolution(dialog.resolutions)
 
-    def _clean(self):
+    def _clean(self) -> None:
         """清理合成 Mod"""
         target = self.config.local_mod_dir / SYNTHETIC_MOD_ID
         if target.exists():
@@ -432,36 +460,36 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.information(self, "提示", "没有找到合成 Mod")
 
-    def _set_game_path(self):
+    def _set_game_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择游戏安装目录", self.config.game_path)
         if path:
             self.config.game_path = path
             self.config.save()
             self.statusBar().showMessage(f"游戏路径已更新: {path}")
 
-    def _set_workshop_path(self):
+    def _set_workshop_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择 Workshop 目录", self.config.workshop_path)
         if path:
             self.config.workshop_path = path
             self.config.save()
             self._load_mods()
 
-    def _set_local_mod_path(self):
+    def _set_local_mod_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择本地 Mod 目录", self.config.local_mod_path)
         if path:
             self.config.local_mod_path = path
             self.config.save()
             self._load_mods()
 
-    def _show_messages(self, messages: list[tuple[str, str]]):
+    def _show_messages(self, messages: list[tuple[str, str]]) -> None:
         """显示或隐藏日志面板，messages 为 [(level, msg), ...]"""
         self.log_panel.show_messages(messages)
 
-    def _log_message(self, level: str, msg: str):
+    def _log_message(self, level: str, msg: str) -> None:
         """追加一条日志到面板"""
         self.log_panel.log_message(level, msg)
 
-    def _open_json_editor(self, file_path: str, search_key: str = ""):
+    def _open_json_editor(self, file_path: str, search_key: str = "") -> None:
         """打开 JSON 编辑器（由日志面板双击触发）"""
         path = Path(file_path)
         if not path.exists():
@@ -471,7 +499,7 @@ class MainWindow(QMainWindow):
         dlg = JsonEditorDialog(path, parent=self, search_key=search_key)
         dlg.exec()
 
-    def _cleanup_remap(self):
+    def _cleanup_remap(self) -> None:
         """清理上一次 remap 产生的临时目录"""
         if self._remap_temp_dir and self._remap_temp_dir.exists():
             shutil.rmtree(self._remap_temp_dir, ignore_errors=True)
@@ -481,15 +509,15 @@ class MainWindow(QMainWindow):
 
     # ── 检查更新 ──
 
-    def _auto_check_update(self):
+    def _auto_check_update(self) -> None:
         """启动时自动检查更新（静默模式）"""
         self._do_check_update(silent=True)
 
-    def _check_update(self):
+    def _check_update(self) -> None:
         """用户手动触发检查更新"""
         self._do_check_update(silent=False)
 
-    def _do_check_update(self, silent: bool):
+    def _do_check_update(self, silent: bool) -> None:
         if self._update_worker and self._update_worker.isRunning():
             return
         self._update_worker = UpdateCheckWorker()
@@ -498,14 +526,14 @@ class MainWindow(QMainWindow):
         )
         self._update_worker.start()
 
-    def _on_update_checked(self, result: dict | None, silent: bool):
+    def _on_update_checked(self, result: dict[str, str] | None, silent: bool) -> None:
         if result:
             self._show_update_dialog(result)
         elif not silent:
             QMessageBox.information(self, "检查更新",
                                     f"当前版本 v{APP_VERSION} 已是最新版本。")
 
-    def _show_update_dialog(self, info: dict):
+    def _show_update_dialog(self, info: dict[str, str]) -> None:
         tag = info["tag_name"]
         name = info.get("name") or tag
         body = info.get("body") or ""
@@ -524,7 +552,7 @@ class MainWindow(QMainWindow):
         if msg.clickedButton() == btn_download:
             QDesktopServices.openUrl(QUrl(info.get("download_url", "")))
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """关闭窗口时协作式等待工作线程结束"""
         self._analyze_timer.stop()
         if self._analyze_worker is not None and self._analyze_worker.isRunning():

@@ -2,15 +2,17 @@
 后台工作线程 - 合并、冲突分析、Schema 生成
 """
 import threading
+from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
-from ..core.merger import merge_all_files, raw_copy_file, ParseFailure
-from ..core.diagnostics import diag
+from ..config import MOD_OVERRIDES_DIR, SCHEMA_DIR
 from ..core.conflict import analyze_all_overrides
 from ..core.deployer import copy_resources
-from ..core.json_parser import load_json, dump_json, clear_json_cache
+from ..core.diagnostics import diag
+from ..core.id_remapper import RemapTable
+from ..core.json_parser import clear_json_cache, dump_json, load_json
+from ..core.merger import ParseFailure, merge_all_files, raw_copy_file
 
 
 class _MergeCancelled(Exception):
@@ -22,15 +24,15 @@ class CancellableWorker(QThread):
     """可取消的工作线程基类"""
     error = Signal(str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._cancelled = threading.Event()
 
-    def cancel(self):
+    def cancel(self) -> None:
         """请求取消"""
         self._cancelled.set()
 
-    def _check_cancel(self):
+    def _check_cancel(self) -> None:
         """检查取消标志，已取消则抛出异常"""
         if self._cancelled.is_set():
             raise _MergeCancelled()
@@ -42,8 +44,10 @@ class MergeWorker(CancellableWorker):
     progress = Signal(str)
     parse_errors = Signal(list)  # list[ParseFailure]
 
-    def __init__(self, game_config_path, mod_configs, output_path, mod_paths,
-                 allow_deletions=False, remap_tables=None):
+    def __init__(self, game_config_path: Path, mod_configs: list[tuple[str, str, Path]],
+                 output_path: Path, mod_paths: list[tuple[str, Path]],
+                 allow_deletions: bool = False,
+                 remap_tables: dict[str, RemapTable] | None = None) -> None:
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
@@ -52,9 +56,9 @@ class MergeWorker(CancellableWorker):
         self.allow_deletions = allow_deletions
         self.remap_tables = remap_tables
         self._resume_event = threading.Event()
-        self._error_resolutions: dict | None = None
+        self._error_resolutions: dict[str, dict[str, str]] | None = None
 
-    def set_error_resolution(self, resolutions: dict):
+    def set_error_resolution(self, resolutions: dict[str, dict[str, str]]) -> None:
         """主线程回传用户处理结果后唤醒 worker。
 
         resolutions: {file_path_str: {'action': 'fixed'|'ignored'}}
@@ -62,7 +66,7 @@ class MergeWorker(CancellableWorker):
         self._error_resolutions = resolutions
         self._resume_event.set()
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.progress.emit("正在合并 JSON 文件...")
             results, parse_failures = merge_all_files(
@@ -96,7 +100,7 @@ class MergeWorker(CancellableWorker):
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
-    def _apply_error_resolutions(self, failures: list[ParseFailure]):
+    def _apply_error_resolutions(self, failures: list[ParseFailure]) -> None:
         """根据用户选择处理解析失败的文件"""
         if not self._error_resolutions:
             # 没有 resolutions（如用户直接关闭窗口），全部原样复制
@@ -131,20 +135,21 @@ class AnalyzeWorker(CancellableWorker):
     finished = Signal(list, list)  # overrides, parse_messages
     parse_errors = Signal(list)    # list[ParseFailure]
 
-    def __init__(self, game_config_path, mod_configs, schema_dir):
+    def __init__(self, game_config_path: Path, mod_configs: list[tuple[str, str, Path]],
+                 schema_dir: Path) -> None:
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.schema_dir = schema_dir
         self._resume_event = threading.Event()
-        self._error_resolutions: dict | None = None
+        self._error_resolutions: dict[str, dict[str, str]] | None = None
 
-    def set_error_resolution(self, resolutions: dict):
+    def set_error_resolution(self, resolutions: dict[str, dict[str, str]]) -> None:
         """主线程回传用户处理结果后唤醒 worker。"""
         self._error_resolutions = resolutions
         self._resume_event.set()
 
-    def run(self):
+    def run(self) -> None:
         try:
             diag.snapshot("parse")
             overrides, parse_failures = analyze_all_overrides(
@@ -189,12 +194,12 @@ class SchemaWorker(QThread):
     finished = Signal()
     error = Signal(str)
 
-    def __init__(self, config_dir, schema_dir):
+    def __init__(self, config_dir: Path, schema_dir: Path) -> None:
         super().__init__()
         self.config_dir = config_dir
         self.schema_dir = schema_dir
 
-    def run(self):
+    def run(self) -> None:
         try:
             from ..core.schema_generator import generate_all
             generate_all(
@@ -210,6 +215,6 @@ class UpdateCheckWorker(QThread):
     """后台检查更新线程"""
     finished = Signal(object)  # dict（有新版本）或 None
 
-    def run(self):
+    def run(self) -> None:
         from ..core.updater import check_for_update
         self.finished.emit(check_for_update(timeout=8))

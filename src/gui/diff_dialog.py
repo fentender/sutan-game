@@ -6,23 +6,29 @@ import copy
 import json
 from pathlib import Path
 
-from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget,
-    QTextEdit, QLabel, QSplitter, QWidget, QPushButton,
-    QLineEdit, QMessageBox
-)
-from PySide6.QtGui import (
-    QKeySequence, QShortcut, QColor, QTextCursor, QTextFormat
-)
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QKeySequence, QShortcut, QTextCursor, QTextFormat
+from PySide6.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ..config import SCHEMA_DIR, MOD_OVERRIDES_DIR
+from ..config import MOD_OVERRIDES_DIR, SCHEMA_DIR
 from ..core.diagnostics import diag, merge_ctx
-from ..core.json_parser import load_json, clean_json_text, format_json, _pairs_hook
-from ..core.merger import deep_merge, classify_json, compute_mod_delta, _DELETED
-from ..core.schema_loader import load_schemas, resolve_schema, get_schema_root_key
+from ..core.json_parser import _pairs_hook, clean_json_text, format_json, load_json
+from ..core.merger import _DELETED, classify_json, compute_mod_delta, deep_merge
 from ..core.profiler import profile
-from .json_editor import CodeEditor, _format_with_comments, _DiffBlockData
+from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
+from .json_editor import CodeEditor, _DiffBlockData, _format_with_comments
 
 # diff 行高亮背景色
 _CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（被修改/删除的行）
@@ -180,7 +186,7 @@ def _build_padded_texts(
     return padded_left, padded_right, left_map, right_map, left_o2p, right_o2p
 
 
-def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]):
+def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]) -> None:
     """为编辑器的每个 block 设置 _DiffBlockData"""
     block = editor.document().begin()
     for real_line in line_map:
@@ -204,7 +210,7 @@ def _get_real_text(editor: CodeEditor) -> str:
 
 @profile
 def _apply_extra_selections(editor: CodeEditor,
-                            highlights: list[tuple[int, QColor]]):
+                            highlights: list[tuple[int, QColor]]) -> None:
     """对 CodeEditor 应用行级背景高亮。同一行多种颜色时按优先级保留最高的。"""
     # 按行去重，冲突色优先
     best: dict[int, tuple[int, QColor]] = {}
@@ -235,7 +241,7 @@ class DiffDialog(QDialog):
     def __init__(self, rel_path: str, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
                  allow_deletions: bool = False,
-                 parent=None):
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._rel_path = rel_path
         self._game_config_path = game_config_path
@@ -275,7 +281,7 @@ class DiffDialog(QDialog):
         self._build_ui()
 
     @profile
-    def _precompute_merge_states(self):
+    def _precompute_merge_states(self) -> None:
         """预计算逐级合并的 JSON 文本对 + 行级 diff 高亮，不涉及 UI 操作"""
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
@@ -307,7 +313,7 @@ class DiffDialog(QDialog):
             merge_ctx.source_file = str(mod_file)
 
             mod_data = load_json(mod_file, readonly=True)
-            delta = compute_mod_delta(base_data, mod_data, file_type, self._allow_deletions,
+            delta = compute_mod_delta(base_data, mod_data, file_type,
                                       schema=schema, root_key=root_key)
             if not delta:
                 continue
@@ -329,7 +335,9 @@ class DiffDialog(QDialog):
                         next_state[key] = copy.deepcopy(value)
                 current = next_state
             else:
-                current = deep_merge(current, delta, schema, field_path)
+                merged = deep_merge(current, delta, schema, field_path)
+                assert isinstance(merged, dict)
+                current = merged
 
             curr_text = _format_json(current)
 
@@ -405,7 +413,7 @@ class DiffDialog(QDialog):
                 any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
             )
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
 
@@ -455,7 +463,10 @@ class DiffDialog(QDialog):
         # 立即加载第一个 tab
         self._load_tab(0)
 
-    def _create_empty_tab(self, mod_name: str, tab_index: int):
+    def _create_empty_tab(self, mod_name: str, tab_index: int) -> tuple[
+        QWidget, CodeEditor, CodeEditor, QLabel, QPushButton, QLabel, QPushButton,
+        QWidget, QLineEdit, QWidget, QLineEdit,
+    ]:
         widget = QWidget()
         vlayout = QVBoxLayout(widget)
         vlayout.setContentsMargins(0, 0, 0, 0)
@@ -622,27 +633,27 @@ class DiffDialog(QDialog):
         # 滚动同步（垂直 + 水平）
         syncing = [False]
 
-        def sync_vertical_lr(val):
+        def sync_vertical_lr(val: int) -> None:
             if syncing[0]:
                 return
             syncing[0] = True
             right_edit.verticalScrollBar().setValue(val)
             syncing[0] = False
 
-        def sync_vertical_rl(val):
+        def sync_vertical_rl(val: int) -> None:
             if syncing[0]:
                 return
             syncing[0] = True
             left_edit.verticalScrollBar().setValue(val)
             syncing[0] = False
 
-        def sync_horizontal_lr(val):
+        def sync_horizontal_lr(val: int) -> None:
             if not syncing[0]:
                 syncing[0] = True
                 right_edit.horizontalScrollBar().setValue(val)
                 syncing[0] = False
 
-        def sync_horizontal_rl(val):
+        def sync_horizontal_rl(val: int) -> None:
             if not syncing[0]:
                 syncing[0] = True
                 left_edit.horizontalScrollBar().setValue(val)
@@ -656,11 +667,11 @@ class DiffDialog(QDialog):
         return (widget, left_edit, right_edit, error_bar, btn_prev, count_label, btn_next,
                 left_search_widget, left_search_input, right_search_widget, right_search_input)
 
-    def _on_tab_changed(self, index: int):
+    def _on_tab_changed(self, index: int) -> None:
         self._load_tab(index)
 
     @profile
-    def _load_tab(self, index: int):
+    def _load_tab(self, index: int) -> None:
         """懒加载：首次切换到某 tab 时构建填充文本并应用高亮"""
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
             return
@@ -696,7 +707,7 @@ class DiffDialog(QDialog):
                                        left_o2p: dict[int, int],
                                        right_o2p: dict[int, int],
                                        left_map: list[int | None],
-                                       right_map: list[int | None]):
+                                       right_map: list[int | None]) -> None:
         """应用预计算的高亮数据到编辑器，将原始行号翻译为填充后 block 号"""
         left_edit, right_edit = self._tab_edits[tab_index]
         left_hl, right_hl, diff_positions = self._precomputed_highlights[tab_index]
@@ -731,7 +742,7 @@ class DiffDialog(QDialog):
     @profile
     def _compute_and_apply_highlights(self, tab_index: int,
                                        left_map: list[int | None],
-                                       right_map: list[int | None]):
+                                       right_map: list[int | None]) -> None:
         """对比左右真实文本，计算差异高亮并翻译到填充后 block 号。
         仅用于格式化等需要实时重算的场景。"""
         left_edit, right_edit = self._tab_edits[tab_index]
@@ -822,7 +833,7 @@ class DiffDialog(QDialog):
             self._tab_current_idx[tab_index] = -1
             count_label.setText("0 / 0")
 
-    def _goto_diff(self, tab_index: int, direction: int):
+    def _goto_diff(self, tab_index: int, direction: int) -> None:
         """跳转到上一个(-1)或下一个(+1)变化块"""
         positions = self._tab_diff_positions[tab_index]
         if not positions:
@@ -849,7 +860,7 @@ class DiffDialog(QDialog):
             left_edit.setTextCursor(cursor)
             left_edit.centerCursor()
 
-    def _toggle_search(self):
+    def _toggle_search(self) -> None:
         """Ctrl+F：显示当前焦点编辑器对应的搜索框"""
         idx = self._tabs.currentIndex()
         if idx < 0 or idx >= len(self._tab_search_bars):
@@ -868,14 +879,14 @@ class DiffDialog(QDialog):
             inp.setFocus()
             inp.selectAll()
 
-    def _close_search_bar(self, search_widget: QWidget, editor: CodeEditor):
+    def _close_search_bar(self, search_widget: QWidget, editor: CodeEditor) -> None:
         """关闭搜索栏并清除搜索高亮"""
         search_widget.setVisible(False)
         selections = [s for s in editor.extraSelections()
                       if s.format.background().color() != _CLR_SEARCH]
         editor.setExtraSelections(selections)
 
-    def _find_in_editor(self, editor: CodeEditor, text: str, backward: bool = False):
+    def _find_in_editor(self, editor: CodeEditor, text: str, backward: bool = False) -> None:
         """在指定编辑器中搜索文本，匹配处用亮蓝背景高亮"""
         if not text:
             return
@@ -905,7 +916,7 @@ class DiffDialog(QDialog):
             selections.append(sel)
             editor.setExtraSelections(selections)
 
-    def _save_override(self, tab_index: int):
+    def _save_override(self, tab_index: int) -> None:
         """验证 JSON 后保存为 override 文件"""
         right_edit = self._tab_edits[tab_index][1]
         text = _get_real_text(right_edit)
@@ -933,7 +944,7 @@ class DiffDialog(QDialog):
 
         self._refresh_all()
 
-    def _format_override(self, tab_index: int):
+    def _format_override(self, tab_index: int) -> None:
         """格式化右侧文本，重建填充对齐并更新高亮"""
         left_edit, right_edit = self._tab_edits[tab_index]
 
@@ -967,7 +978,7 @@ class DiffDialog(QDialog):
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
 
-    def _reset_override(self, tab_index: int):
+    def _reset_override(self, tab_index: int) -> None:
         """删除 override 文件并刷新"""
         mod_id, mod_name, _, _ = self._diff_pairs[tab_index]
         override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
@@ -979,7 +990,7 @@ class DiffDialog(QDialog):
             override_file.parent.rmdir()
         self._refresh_all()
 
-    def _update_warn_bar(self):
+    def _update_warn_bar(self) -> None:
         """根据 _merge_warnings 更新警告条"""
         warnings = getattr(self, "_merge_warnings", [])
         if warnings:
@@ -994,7 +1005,7 @@ class DiffDialog(QDialog):
         else:
             self._warn_bar.setVisible(False)
 
-    def _refresh_all(self):
+    def _refresh_all(self) -> None:
         """重新预计算并刷新所有 tab"""
         current_tab = self._tabs.currentIndex()
         self._precompute_merge_states()

@@ -3,17 +3,22 @@ JSON 解析器 - 处理带有 JS 风格注释和尾随逗号的 JSON 文件
 """
 import copy
 import json
-import logging
 import re
 from pathlib import Path
+from typing import cast
 
-log = logging.getLogger(__name__)
-
+from ..accel._fast_json import (
+    fix_missing_commas as _c_fix_missing_commas,
+    has_duplist as _c_has_duplist,
+    pairs_hook as _pairs_hook,
+    strip_js_comments as _c_strip_js_comments,
+    strip_trailing_commas as _c_strip_trailing_commas,
+)
 from .diagnostics import diag
 from .profiler import profile
 
 # JSON 解析缓存：(路径, mtime) → 解析结果
-_json_cache: dict[tuple[str, float], dict] = {}
+_json_cache: dict[tuple[str, float], dict[str, object]] = {}
 
 # dump_json 已创建目录缓存，避免重复 mkdir 系统调用
 _created_dirs: set[str] = set()
@@ -29,15 +34,6 @@ class DupList(list):
     pass
 
 
-# C 加速模块（必需）
-from ..accel._fast_json import (
-    strip_js_comments as _c_strip_js_comments,
-    strip_trailing_commas as _c_strip_trailing_commas,
-    fix_missing_commas as _c_fix_missing_commas,
-    has_duplist as _c_has_duplist,
-    pairs_hook as _pairs_hook,
-)
-
 # 正则：匹配双引号字符串（含转义）或连续逗号
 _DUP_COMMA_RE = re.compile(r'"(?:[^"\\]|\\.)*"|,(\s*,)+', re.MULTILINE)
 
@@ -47,17 +43,17 @@ def strip_js_comments(text: str) -> str:
     """剥离 // 注释，保留字符串内的 //"""
     if '//' not in text:
         return text
-    return _c_strip_js_comments(text)
+    return str(_c_strip_js_comments(text))
 
 
 def strip_trailing_commas(text: str) -> str:
     """去除 JSON 中的尾随逗号（} 或 ] 前的逗号）"""
-    return _c_strip_trailing_commas(text)
+    return str(_c_strip_trailing_commas(text))
 
 
 def strip_duplicate_commas(text: str) -> str:
     """去除字符串外的连续逗号（如 ,, 或 ,,,），压缩为单个逗号"""
-    def _replacer(m: re.Match) -> str:
+    def _replacer(m: re.Match[str]) -> str:
         return m.group() if m.group().startswith('"') else ','
     return _DUP_COMMA_RE.sub(_replacer, text)
 
@@ -65,7 +61,7 @@ def strip_duplicate_commas(text: str) -> str:
 @profile
 def fix_missing_commas(text: str) -> str:
     """修复对象内相邻键值对之间缺失的逗号。"""
-    return _c_fix_missing_commas(text)
+    return str(_c_fix_missing_commas(text))
 
 
 @profile
@@ -78,7 +74,7 @@ def clean_json_text(text: str) -> str:
     return text
 
 
-def _try_parse_progressive(raw: str) -> dict:
+def _try_parse_progressive(raw: str) -> dict[str, object]:
     """分级尝试解析 JSON 文本。
 
     按需逐步清洗，成功即停：
@@ -94,32 +90,32 @@ def _try_parse_progressive(raw: str) -> dict:
     # 第 1 步：直接解析（有 // 时跳过，避免 json.loads 白解析大半文件后抛异常）
     if not has_comment:
         try:
-            return json.loads(raw, object_pairs_hook=_pairs_hook)
+            return cast(dict[str, object], json.loads(raw, object_pairs_hook=_pairs_hook))
         except json.JSONDecodeError:
             pass
 
     # 第 2 步：仅去注释
     text = strip_js_comments(raw) if has_comment else raw
     try:
-        return json.loads(text, object_pairs_hook=_pairs_hook)
+        return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
     except json.JSONDecodeError:
         pass
 
     # 第 3 步：去注释 + 去尾随逗号
     text = strip_trailing_commas(text)
     try:
-        return json.loads(text, object_pairs_hook=_pairs_hook)
+        return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
     except json.JSONDecodeError:
         pass
 
     # 第 4 步：完整清洗
     text = fix_missing_commas(text)
     text = strip_duplicate_commas(text)
-    return json.loads(text, object_pairs_hook=_pairs_hook)
+    return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
 
 
 @profile
-def load_json(file_path: str | Path, readonly: bool = False) -> dict:
+def load_json(file_path: str | Path, readonly: bool = False) -> dict[str, object]:
     """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告。
     内置 (路径, mtime) 缓存。
 
@@ -149,20 +145,19 @@ def load_json(file_path: str | Path, readonly: bool = False) -> dict:
     # 只记录真正异常的格式问题
     if abnormal_fixes:
         msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
-        log.warning(msg)
         diag.warn("parse", msg)
 
     _json_cache[cache_key] = result
     return result if readonly else copy.deepcopy(result)
 
 
-def clear_json_cache():
+def clear_json_cache() -> None:
     """清空 JSON 解析缓存"""
     _json_cache.clear()
     _created_dirs.clear()
 
 
-def _serialize(obj, indent=4, sort_keys=False, _level=0):
+def _serialize(obj: object, indent: int = 4, sort_keys: bool = False, _level: int = 0) -> str:
     """自定义 JSON 序列化：DupList 值展开为重复键。"""
     ind = ' ' * indent
     current_ind = ind * _level
@@ -217,13 +212,13 @@ def format_json(data: object) -> str:
     return _serialize(data, indent=4, sort_keys=True)
 
 
-def _has_duplist(obj) -> bool:
+def _has_duplist(obj: object) -> bool:
     """快速检测数据中是否存在 DupList"""
-    return _c_has_duplist(obj)
+    return bool(_c_has_duplist(obj))
 
 
 @profile
-def dump_json(data: dict, file_path: str | Path):
+def dump_json(data: dict[str, object], file_path: str | Path) -> None:
     """将数据写入 JSON 文件，保留重复键"""
     path = Path(file_path)
     parent = str(path.parent)

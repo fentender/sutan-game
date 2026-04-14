@@ -7,13 +7,13 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication, QProgressDialog
 from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QProgressDialog
 
-from .config import UserConfig, SCHEMA_DIR, APP_ICON_PATH
+from .config import APP_ICON_PATH, SCHEMA_DIR, UserConfig
 
 
-def _ensure_schemas_with_ui(config_dir, schema_dir):
+def _ensure_schemas_with_ui(config_dir: Path, schema_dir: Path) -> None:
     """检查 schemas/ 是否已初始化，若为空则弹出进度框并生成"""
     if schema_dir.exists() and any(schema_dir.glob("*.schema.json")):
         return
@@ -27,13 +27,13 @@ def _ensure_schemas_with_ui(config_dir, schema_dir):
     from .gui.workers import SchemaWorker
     worker = SchemaWorker(config_dir, schema_dir)
 
-    def _on_progress(current, total, name):
+    def _on_progress(current: int, total: int, name: str) -> None:
         if total > 0:
             dlg.setMaximum(total)
             dlg.setValue(current)
             dlg.setLabelText(f"生成 Schema 规则: {name} ({current}/{total})")
 
-    def _on_error(msg):
+    def _on_error(msg: str) -> None:
         from PySide6.QtWidgets import QMessageBox
         dlg.close()
         QMessageBox.critical(None, "Schema 生成失败", msg)
@@ -56,8 +56,8 @@ def _ensure_paths(config: UserConfig) -> bool:
     if game_ok and workshop_ok:
         return True
 
-    from .gui.setup_dialog import SetupDialog
     from .config import detect_game_path, detect_workshop_path
+    from .gui.setup_dialog import SetupDialog
 
     # 预填：优先用配置中的值，无效则用自动检测结果
     default_game = config.game_path if game_ok else detect_game_path()
@@ -73,7 +73,7 @@ def _ensure_paths(config: UserConfig) -> bool:
     return True
 
 
-def main():
+def main() -> None:
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 

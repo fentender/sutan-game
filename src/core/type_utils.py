@@ -4,7 +4,7 @@
 from .json_parser import DupList
 
 
-def get_type_str(value) -> str:
+def get_type_str(value: object) -> str:
     """获取 Python 值的类型字符串。
 
     DupList 是同名重复键的值集合，语义上每个元素等价于原始字段值，
@@ -29,7 +29,7 @@ def get_type_str(value) -> str:
     return type(value).__name__
 
 
-def classify_json(data) -> str:
+def classify_json(data: object) -> str:
     """
     分类 JSON 文件类型。
     返回: "dictionary" | "entity" | "config"

@@ -1,0 +1,801 @@
+扫描目录: d:\SteamLibrary\steamapps\common\Sultan's Game\Sultan's Game_Data\StreamingAssets\config
+找到 JSON 文件: 3900 个
+
+======================================================================
+  数组字段统计报告
+======================================================================
+
+字段名: *
+  路径: init/*.json → card_equips.*  (2 个文件)
+  路径: init/*.json → sudan_card_desc.*  (2 个文件)
+  路径: sfx_npc_role_dub.json → *  (1 个文件)
+  总出现次数: 609
+  元素类型: str 690次 (99%), int 5次 (1%)
+  示例值: "是征服！这是伟大的王者最擅长的游戏，您征服了多少城邦与国家啊！那么，您打算怎么完成它呢？" / "您已经完全熟悉了基本规则。\n\n<size=85%><i>（神秘术士说着，用力折断了刚刚被完成的苏丹卡）</i... / "啊，杀戮，对王者来说，这真是不错的调剂。您一定体会过太多的鲜血与哀嚎，但这场游戏的妙处，就在于您不知道接下来自己...
+
+字段名: 1280x720
+  路径: variable.json → support_resolution.1280x720  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 1280 / 720
+
+字段名: 1280x800
+  路径: variable.json → support_resolution.1280x800  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 1280 / 800
+
+字段名: 1600x900
+  路径: variable.json → support_resolution.1600x900  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 1600 / 900
+
+字段名: 1920x1080
+  路径: variable.json → support_resolution.1920x1080  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 1920 / 1080
+
+字段名: 2560x1440
+  路径: variable.json → support_resolution.2560x1440  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 2560 / 1440
+
+字段名: 800x600
+  路径: variable.json → support_resolution.800x600  (1 个文件)
+  总出现次数: 1
+  元素类型: int 2次 (100%)
+  示例值: 800 / 600
+
+字段名: Arrow
+  路径: variable.json → begin_guide_sprites.Arrow  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "arrow_1" / "arrow_2"
+
+字段名: ArrowLeft
+  路径: variable.json → begin_guide_sprites.ArrowLeft  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "arrow_left_1" / "arrow_left_2"
+
+字段名: ArrowRight
+  路径: variable.json → begin_guide_sprites.ArrowRight  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "arrow_right_1" / "arrow_right_2"
+
+字段名: ArrowUp
+  路径: variable.json → begin_guide_sprites.ArrowUp  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "arrow_up_1" / "arrow_up_2"
+
+字段名: Item
+  路径: dt/*.json → Item  (9 个文件)
+  总出现次数: 9
+  元素类型: dict 60次 (100%)
+  对象 key:
+    Option     : list         例: []
+    action     : dict         例: {}
+    direct_id  : str          例: "S2"
+    jump_type  : str          例: "0"
+    word       : str          例: "这是一个只有王者才能玩的游戏——当然，在苏丹的允许下，您也可以享受到这个游戏的乐趣。"
+    word_id    : str          例: "S1"
+
+字段名: MouseDrag
+  路径: variable.json → begin_guide_sprites.MouseDrag  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "mouse_drag_1" / "mouse_drag_2"
+
+字段名: MouseDrag_Gamepad
+  路径: variable.json → begin_guide_sprites.MouseDrag_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: MouseLeftClick
+  路径: variable.json → begin_guide_sprites.MouseLeftClick  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "mouse_click_1" / "mouse_left_click"
+
+字段名: MouseLeftClick_Gamepad
+  路径: variable.json → begin_guide_sprites.MouseLeftClick_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: MouseRightClick
+  路径: variable.json → begin_guide_sprites.MouseRightClick  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "mouse_click_1" / "mouse_right_click"
+
+字段名: MouseRightClick_Gamepad
+  路径: variable.json → begin_guide_sprites.MouseRightClick_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: MouseRightClick_Touch
+  路径: variable.json → begin_guide_sprites.MouseRightClick_Touch  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: MouseWheel
+  路径: variable.json → begin_guide_sprites.MouseWheel  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "mouse_wheel_1" / "mouse_wheel_2"
+
+字段名: MouseWheel_Gamepad
+  路径: variable.json → begin_guide_sprites.MouseWheel_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: Option
+  路径: dt/*.json → Item[].Option  (9 个文件)
+  总出现次数: 60
+  元素类型: dict 38次 (100%)
+  对象 key:
+    action                 : dict         例: {}
+    option_Jump_condition  : dict         例: {}
+    option_Jump_id         : str          例: "S3"
+    option_Jump_word       : str          例: "什么是苏丹的游戏"
+
+字段名: TouchClick
+  路径: variable.json → begin_guide_sprites.TouchClick  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "touch_click_1" / "touch_click_2"
+
+字段名: TouchClick_Gamepad
+  路径: variable.json → begin_guide_sprites.TouchClick_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: TouchSwipeLeftRight
+  路径: variable.json → begin_guide_sprites.TouchSwipeLeftRight  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "touch_swipe_left_right_1" / "touch_swipe_left_right_2"
+
+字段名: TouchSwipeLeftRight_Gamepad
+  路径: variable.json → begin_guide_sprites.TouchSwipeLeftRight_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: TouchSwipeUpDown
+  路径: variable.json → begin_guide_sprites.TouchSwipeUpDown  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "touch_swipe_up_down_1" / "touch_swipe_up_down_2"
+
+字段名: TouchSwipeUpDown_Gamepad
+  路径: variable.json → begin_guide_sprites.TouchSwipeUpDown_Gamepad  (1 个文件)
+  总出现次数: 1
+  元素类型: (空数组)
+
+字段名: all_auto_classify_tags
+  路径: variable.json → all_auto_classify_tags  (1 个文件)
+  总出现次数: 1
+  元素类型: str 9次 (100%)
+  示例值: "char" / "army" / "coin"
+
+字段名: anchors
+  路径: event/*.json → settlement[].action.begin_guide.anchors  (14 个文件)
+  路径: event/*.json → settlement[].action.begin_guide.mobile_properties.anchors  (11 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.anchors  (3 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.mobile_properties.anchors  (3 个文件)
+  总出现次数: 31
+  元素类型: list 93次 (100%)
+  示例值: [0.5, 0.5]
+
+字段名: auto_classify_bag_tags
+  路径: variable.json → auto_classify_bag_tags  (1 个文件)
+  总出现次数: 1
+  元素类型: list 3次 (100%)
+  示例值: ["char", "sudan"] / ["consumable"] / ["equipment"]
+
+字段名: auto_start_init
+  路径: event/*.json → auto_start_init  (345 个文件)
+  总出现次数: 345
+  元素类型: int 345次 (100%)
+  示例值: 1
+
+字段名: card
+  路径: cards.json → *.post_rite[].result.card  (1 个文件)
+  路径: event/*.json, rite/*.json → settlement[].action.card  (64 个文件)
+  路径: event/*.json, rite/*.json → settlement[].action.{case}.card  (20 个文件)
+  路径: event/*.json → settlement[].action.no_prompt.card  (1 个文件)
+  路径: event/*.json → settlement[].action.{case}.no_prompt.card  (1 个文件)
+  路径: rite/*.json → settlement[].result.card  (128 个文件)
+  路径: rite/*.json → settlement[].result.no_show.card  (1 个文件)
+  路径: rite/*.json → settlement_extre[].result.card  (139 个文件)
+  路径: rite/*.json → settlement_extre[].result.no_show.card  (1 个文件)
+  路径: rite/*.json → settlement_extre[].result.no_show[].card  (1 个文件)
+  路径: rite/*.json → settlement_prior[].result.card  (16 个文件)
+  路径: rite/*.json → waiting_round_end_action[].action.card  (20 个文件)
+  总出现次数: 728
+  元素类型: str 845次 (54%), int 728次 (46%)
+  示例值: 2001161 / "已拥有+1" / 2000462
+
+字段名: card_clean
+  路径: event/*.json → on.card_clean  (28 个文件)
+  总出现次数: 28
+  元素类型: int 219次 (100%)
+  示例值: 2010005 / 2010006 / 2010007
+
+字段名: cards
+  路径: init/*.json → cards  (2 个文件)
+  总出现次数: 2
+  元素类型: (空数组)
+
+字段名: color
+  路径: rite/*.json → from_pins[].color  (8 个文件)
+  总出现次数: 8
+  元素类型: int 32次 (100%)
+  示例值: 207 / 187 / 161
+
+字段名: contact
+  路径: variable.json → contact  (1 个文件)
+  总出现次数: 1
+  元素类型: dict 40次 (100%)
+  对象 key:
+    full  : bool         例: true
+    id    : str          例: "920132246"
+    url   : str          例: "http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=2YdAmnw_NE4yZS7CfWNM1Rv2hRmAKsAX&a...
+
+字段名: contributors
+  路径: credits.json → contributors  (1 个文件)
+  总出现次数: 1
+  元素类型: dict 3次 (100%)
+  对象 key:
+    group  : list         例: [{"title": "音乐", "members": [{"name": "Zeta", "job": "音响设计"}, {"name": "Zeta"...
+    title  : str          例: "音乐"
+    type   : str          例: "helper"
+
+字段名: controls
+  路径: rite/*.json → from_pins[].controls  (8 个文件)
+  总出现次数: 8
+  元素类型: list 8次 (100%)
+  示例值: [100, 100]
+
+字段名: data
+  路径: gallery_cards.json → *.plots[].data  (1 个文件)
+  总出现次数: 568
+  元素类型: dict 1202次 (100%)
+  对象 key:
+    guid        : str          例: "77653bb4-f4e3-4954-9f3d-44a03c57f93a"
+    plot_text   : str          例: "当你不举的传言在宫廷中流行的时候，苏丹看你的眼神都变得更加柔和。偶尔，他会突然中断一个话题，拿你开个玩笑——少数不会死人的，苏丹的玩笑。群臣震惊，旋即恍...
+    plot_title  : str          例: "你大大地取悦了苏丹"
+
+字段名: default_cards
+  路径: init/*.json → default_cards  (2 个文件)
+  总出现次数: 2
+  元素类型: int 171次 (100%)
+  示例值: 2000024 / 2000517 / 2000518
+
+字段名: default_rite
+  路径: init/*.json → default_rite  (2 个文件)
+  总出现次数: 2
+  元素类型: (空数组)
+
+字段名: destroy_resources
+  路径: cards.json → *.destroy_resources  (1 个文件)
+  总出现次数: 20
+  元素类型: str 140次 (100%)
+  示例值: "sudan_big/1_sudan_1" / "sudan_big/1_sudan_1_2" / "sudan_big/1_sudan_1_3"
+
+字段名: difficulty
+  路径: init/*.json → difficulty  (1 个文件)
+  总出现次数: 1
+  元素类型: dict 3次 (100%)
+  对象 key:
+    back_to_prev_round_count      : int          例: 9999
+    desc                          : str          例: "梅姬是最温柔的叙事者，她对你充满耐心与善意—— \n\n<sprite=0><indent=10%><size=85%>故事里的主角总是幸运的，骰子成功...
+    gold_dice_count               : int          例: 3
+    name                          : str          例: "梅姬"
+    single_dice_face_weight       : list         例: [100, 100, 100, 100, 300, 300]
+    sudan_life_time               : int          例: 7
+    sudan_redraw_times_per_round  : int          例: 3
+    title                         : str          例: "简单"
+
+字段名: equips
+  路径: cards.json → *.equips  (1 个文件)
+  总出现次数: 1292
+  元素类型: str 386次 (100%)
+  示例值: "武器" / "服装" / "饰品"
+
+字段名: event_off
+  路径: event/*.json → settlement[].action.event_off  (26 个文件)
+  路径: rite/*.json → settlement_extre[].action.event_off  (1 个文件)
+  路径: rite/*.json → settlement_prior[].action.event_off  (1 个文件)
+  总出现次数: 28
+  元素类型: int 81次 (100%)
+  示例值: 5300833 / 5300834 / 5300835
+
+字段名: event_on
+  路径: cards.json → *.vanish.event_on  (1 个文件)
+  路径: event/*.json, rite/*.json → settlement[].action.event_on  (10 个文件)
+  路径: rite/*.json → settlement_extre[].action.event_on  (8 个文件)
+  路径: rite/*.json → waiting_round_end_action[].action.event_on  (1 个文件)
+  总出现次数: 61
+  元素类型: int 228次 (100%)
+  示例值: 5320095 / 5320096 / 5300830
+
+字段名: extra
+  路径: after_story/*.json → extra  (66 个文件)
+  总出现次数: 66
+  元素类型: dict 7750次 (100%)
+  对象 key:
+    condition    : dict         例: {"counter.7000490>="}
+    key          : str          例: "2000001_extra_1"
+    pic          : str          例: "cards/yrl"
+    result_text  : str          例: "“让我看看，按一下这里，调一下那个……好啦，再来一次！加油吧人类！争取这次做一点改变命运的事情！”"
+    sort         : int          例: 99
+
+字段名: fail_tag
+  路径: tag.json → *.fail_tag  (1 个文件)
+  总出现次数: 442
+  元素类型: (空数组)
+
+字段名: from_pins
+  路径: rite/*.json → from_pins  (8 个文件)
+  总出现次数: 8
+  元素类型: dict 8次 (100%)
+  对象 key:
+    arrow_angle    : int          例: 40
+    arrow_length   : int          例: 100
+    color          : list         例: [207, 187, 161, 255]
+    controls       : list         例: [[100, 100]]
+    dashed         : bool         例: true
+    resolution     : int          例: 50
+    rite_id        : int          例: 5010025
+    start_reserve  : float        例: 0.08
+    width          : int          例: 20
+
+字段名: gallery_card_show_items
+  路径: variable.json → gallery_card_show_items  (1 个文件)
+  总出现次数: 1
+  元素类型: str 4次 (100%)
+  示例值: "item" / "sudan" / "monster"
+
+字段名: gallery_card_type
+  路径: variable.json → gallery_card_type  (1 个文件)
+  总出现次数: 1
+  元素类型: str 13次 (100%)
+  示例值: "char" / "other_char" / "weapon_equip"
+
+字段名: game_end
+  路径: event/*.json → on.game_end  (2 个文件)
+  总出现次数: 2
+  元素类型: int 36次 (100%)
+  示例值: 1 / 2 / 3
+
+字段名: group
+  路径: credits.json → contributors[].group  (1 个文件)
+  总出现次数: 3
+  元素类型: dict 5次 (100%)
+  对象 key:
+    members  : list         例: [{"name": "Zeta", "job": "音响设计"}, {"name": "Zeta", "job": "作曲"}, {"name": "甄浩...
+    title    : str          例: "音乐"
+
+字段名: icon
+  路径: event/*.json → settlement[].action.confirm.icon  (1 个文件)
+  路径: event/*.json → settlement[].action.option.icon  (57 个文件)
+  路径: event/*.json → settlement[].action.success.prompt.icon  (3 个文件)
+  路径: event/*.json → settlement[].action.{case}.prompt.icon  (47 个文件)
+  路径: event/*.json → settlement[].action.{case}.{case}.prompt.icon  (1 个文件)
+  路径: event/*.json, rite/*.json → settlement[].action.prompt.icon  (92 个文件)
+  路径: rite/*.json → waiting_round_end_action[].action.prompt.icon  (6 个文件)
+  路径: rite/*.json → waiting_round_end_action[].result.prompt.icon  (2 个文件)
+  总出现次数: 329
+  元素类型: str 607次 (71%), null 176次 (21%), list 70次 (8%), int 4次 (0%)
+  示例值: "" / "common/introduction" / "common/position_guizu_2"
+
+字段名: item
+  路径: loot/*.json → item  (193 个文件)
+  总出现次数: 193
+  元素类型: dict 1276次 (100%)
+  对象 key:
+    condition  : dict         例: {"!have.2000707", "counter.7000673<"}
+    id         : str          例: "2000032"
+    num        : str          例: "1"
+    type       : str          例: "card"
+    weight     : int          例: 60
+
+字段名: items
+  路径: event/*.json, rite/*.json → settlement[].action.option.items  (286 个文件)
+  路径: event/*.json → settlement[].action.choose.all[].option.items  (1 个文件)
+  路径: event/*.json → settlement[].action.{case}.option.items  (7 个文件)
+  路径: event/*.json → settlement[].action.{case}.{case}.option.items  (1 个文件)
+  总出现次数: 310
+  元素类型: dict 736次 (100%)
+  对象 key:
+    tag   : str          例: "op1"
+    text  : str          例: "杀了他"
+
+字段名: loot
+  路径: event/*.json, rite/*.json → settlement[].action.loot  (5 个文件)
+  路径: rite/*.json → settlement[].result.loot  (5 个文件)
+  总出现次数: 14
+  元素类型: int 33次 (100%)
+  示例值: 6000102 / 6000105 / 6001101
+
+字段名: members
+  路径: credits.json → contributors[].group[].members  (1 个文件)
+  路径: credits.json → thanks[].members  (1 个文件)
+  总出现次数: 17
+  元素类型: str 11006次 (99%), dict 57次 (1%)
+  对象 key:
+    job   : str          例: "音响设计"
+    name  : str          例: "Zeta"
+  示例值: "Fan Gaoxiang" / "Yeti" / "游荡的海盗"
+
+字段名: open_conditions
+  路径: rite/*.json → open_conditions  (1495 个文件)
+  总出现次数: 1495
+  元素类型: dict 287次 (100%)
+  对象 key:
+    condition  : dict         例: {"f:s3.rare-s1.rare>="}
+    tips       : str          例: "纵欲对象的品级不能低于苏丹卡"
+
+字段名: options
+  路径: wizard/*.json → options  (2 个文件)
+  路径: wizard/*.json → options[].options  (2 个文件)
+  总出现次数: 7
+  元素类型: dict 16次 (100%)
+  对象 key:
+    action     : dict         例: {}
+    condition  : dict         例: {}
+    dt         : str          例: "DT5"
+    name       : str          例: "交换手上的苏丹卡"
+    op         : str          例: "redraw"
+    options    : list         例: [{"name": "返回", "op": "back"}]
+    text       : str          例: "这7日你有[sudan_redraw_total_left_times]次机会可以把手上的一张苏丹卡还给我，重新再抽一张随机的苏丹卡，但，苏丹的倒计时不...
+
+字段名: over_id
+  路径: gallery_cg.json → *.over_id  (1 个文件)
+  总出现次数: 15
+  元素类型: int 153次 (100%)
+  示例值: 0 / 1 / 2
+
+字段名: plots
+  路径: gallery_cards.json → *.plots  (1 个文件)
+  总出现次数: 1093
+  元素类型: dict 568次 (100%)
+  对象 key:
+    data   : list         例: [{"guid": "77653bb4-f4e3-4954-9f3d-44a03c57f93a", "plot_title": "你大大地取悦了苏丹", ...
+    guid   : str          例: "87a7895a-fd16-4f53-8ff9-32653ad18806"
+    title  : str          例: "福报"
+
+字段名: pops
+  路径: cards.json → *.pops  (1 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops  (209 个文件)
+  总出现次数: 1634
+  元素类型: dict 990次 (100%)
+  对象 key:
+    action     : dict         例: {"choose"}
+    condition  : dict         例: {"is"}
+
+字段名: pos
+  路径: event/*.json → settlement[].action.begin_guide.mobile_properties.pos  (11 个文件)
+  路径: event/*.json → settlement[].action.begin_guide.pos  (14 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.mobile_properties.pos  (3 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.pos  (3 个文件)
+  总出现次数: 31
+  元素类型: int 47次 (76%), float 15次 (24%)
+  示例值: -1584 / -55 / 892
+
+字段名: post_rite
+  路径: cards.json → *.post_rite  (1 个文件)
+  总出现次数: 173
+  元素类型: dict 176次 (100%)
+  对象 key:
+    action       : dict         例: {}
+    condition    : dict         例: {"tag_tips.战斗"}
+    guid         : str          例: "37e02253-95a4-44cc-8be3-425645f9c16f"
+    result       : dict         例: {"self+战斗的痕迹"}
+    result_text  : str          例: "无论胜负如何，她很享受这场战斗。"
+
+字段名: prior
+  路径: after_story/*.json → prior  (66 个文件)
+  总出现次数: 66
+  元素类型: (空数组)
+
+字段名: resource
+  路径: cards.json → *.resource  (1 个文件)
+  总出现次数: 23
+  元素类型: str 65次 (100%)
+  示例值: "cards/2000001" / "cards/2000001_1" / "cards/2000001_2"
+
+字段名: resources
+  路径: gallery_cards.json → *.resources  (1 个文件)
+  总出现次数: 1093
+  元素类型: dict 37次 (100%)
+  对象 key:
+    pic_res  : str          例: "cards/2000001_1"
+    rare     : int          例: 4
+
+字段名: ring_pos
+  路径: event/*.json → settlement[].action.begin_guide.mobile_properties.ring_pos  (11 个文件)
+  路径: event/*.json → settlement[].action.begin_guide.ring_pos  (14 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.mobile_properties.ring_pos  (3 个文件)
+  路径: rite/*.json → cards_slot.{slot}.pops[].action.begin_guide.ring_pos  (3 个文件)
+  总出现次数: 31
+  元素类型: int 41次 (66%), float 21次 (34%)
+  示例值: 824 / 53 / -875
+
+字段名: rite_end
+  路径: event/*.json → on.rite_end  (2 个文件)
+  总出现次数: 2
+  元素类型: int 4次 (100%)
+  示例值: 5000676 / 5000677
+
+字段名: round_begin_ba
+  路径: event/*.json → on.round_begin_ba  (164 个文件)
+  总出现次数: 164
+  元素类型: int 325次 (100%)
+  示例值: 2 / 5 / 4
+
+字段名: settle_card_bad_state
+  路径: variable.json → settle_card_bad_state  (1 个文件)
+  总出现次数: 1
+  元素类型: str 3次 (100%)
+  示例值: "cursed" / "hurt" / "incapacitate"
+
+字段名: settlement
+  路径: event/*.json, rite/*.json → settlement  (3358 个文件)
+  总出现次数: 3358
+  元素类型: dict 5675次 (100%)
+  对象 key:
+    action         : dict         例: {"confirm", "success", "failed"}
+    condition      : dict         例: {"!s1", "!s2"}
+    guid           : str          例: "74eeef56-b9a2-4f96-8dbd-e08a59de5f52"
+    result         : dict         例: {}
+    result_text    : str          例: "没人管理，当然就没有收入。"
+    result_title   : str          例: "你没有派遣任何人治理家业"
+    tips_resource  : str          例: ""
+    tips_text      : str          例: ""
+
+字段名: settlement_extre
+  路径: rite/*.json → settlement_extre  (1495 个文件)
+  总出现次数: 1495
+  元素类型: dict 4791次 (100%)
+  对象 key:
+    action        : DupList, dict 例: {}
+    condition     : dict         例: {"s3.is", "counter.7000002<"}
+    guid          : str          例: "882fe22e-3ace-4cb6-91ba-ef671d20e7c5"
+    result        : dict         例: {"counter+7000002"}
+    result_text   : str          例: "很多人都认为苏丹对你的处置并不一般。这种神秘的氛围中，你的声望在逐渐地积累。"
+    result_title  : str          例: ""
+
+字段名: settlement_prior
+  路径: rite/*.json → settlement_prior  (1495 个文件)
+  总出现次数: 1495
+  元素类型: dict 393次 (100%)
+  对象 key:
+    action        : dict         例: {"rite"}
+    condition     : dict         例: {"counter.7000617="}
+    guid          : str          例: "09542a87-d53f-4bf2-b680-63a74d1c51c9"
+    result        : dict         例: {"counter-7000617", "s4+回收"}
+    result_text   : str          例: "你的领地被掠食者残暴地践踏，一时间哀鸿遍野……你焦头烂额地组织大家重建家园，而这需要不少时间。（剩余7天）"
+    result_title  : str          例: "犹如沙暴过境"
+
+字段名: show_note_type
+  路径: variable.json → show_note_type  (1 个文件)
+  总出现次数: 1
+  元素类型: list 3次 (100%)
+  示例值: [1] / [2, 3] / [4, 10001, 10002]
+
+字段名: single_dice_face_weight
+  路径: init/*.json → difficulty[].single_dice_face_weight  (1 个文件)
+  路径: init/*.json → single_dice_face_weight  (1 个文件)
+  总出现次数: 4
+  元素类型: int 24次 (100%)
+  示例值: 100
+
+字段名: sizeRange
+  路径: textstyle.json → *.sizeRange  (1 个文件)
+  总出现次数: 13
+  元素类型: int 26次 (100%)
+  示例值: 26 / 30 / 60
+
+字段名: slides
+  路径: mobile_help.json → *.slides  (1 个文件)
+  总出现次数: 4
+  元素类型: dict 15次 (100%)
+  对象 key:
+    res   : str          例: "main_1"
+    text  : str          例: ""
+
+字段名: slot_open
+  路径: rite_template_mappings.json → *.slot_open  (1 个文件)
+  总出现次数: 453
+  元素类型: str 3180次 (100%)
+  示例值: "s1" / "s2" / "s3"
+
+字段名: special_counters
+  路径: variable.json → special_counters  (1 个文件)
+  总出现次数: 1
+  元素类型: int 8次 (100%)
+  示例值: 7100001 / 7100002 / 7100003
+
+字段名: sudan_card
+  路径: upgrade.json → *.effect.sudan_card  (1 个文件)
+  总出现次数: 4
+  元素类型: int 16次 (100%)
+  示例值: 2010001 / 2010005 / 2010009
+
+字段名: sudan_pool
+  路径: init/*.json → sudan_pool  (2 个文件)
+  总出现次数: 2
+  元素类型: int 33次 (100%)
+  示例值: 2000515 / 2000514 / 2000513
+
+字段名: sudan_pool_desc
+  路径: init/*.json → sudan_pool_desc  (2 个文件)
+  总出现次数: 2
+  元素类型: str 33次 (100%)
+  示例值: "是征服！这是伟大的王者最擅长的游戏，您征服了多少城邦与国家啊！那么，您打算怎么完成它呢？" / "您已经完全熟悉了基本规则。\n\n<size=85%><i>（神秘术士说着，用力折断了刚刚被完成的苏丹卡）</i... / "啊，杀戮，对王者来说，这真是不错的调剂。您一定体会过太多的鲜血与哀嚎，但这场游戏的妙处，就在于您不知道接下来自己...
+
+字段名: support_fullScreen
+  路径: variable.json → support_fullScreen  (1 个文件)
+  总出现次数: 1
+  元素类型: str 2次 (100%)
+  示例值: "ExclusiveFullScreen" / "Windowed"
+
+字段名: tag_tips
+  路径: rite/*.json → tag_tips  (1495 个文件)
+  总出现次数: 1495
+  元素类型: str 345次 (100%)
+  示例值: "智慧" / "社交" / "体魄"
+
+字段名: target
+  路径: quest.json → *.target  (1 个文件)
+  总出现次数: 161
+  元素类型: dict 193次 (100%)
+  对象 key:
+    condition     : dict         例: {"global_counter.7220001>="}
+    show_counter  : str          例: ""
+    text          : str          例: "完成1局苏丹的游戏"
+
+字段名: text_extra
+  路径: over.json → *.text_extra  (1 个文件)
+  总出现次数: 157
+  元素类型: dict 209次 (100%)
+  对象 key:
+    condition    : dict         例: {}
+    result_text  : str          例: ""
+
+字段名: thanks
+  路径: credits.json → thanks  (1 个文件)
+  总出现次数: 1
+  元素类型: dict 12次 (100%)
+  对象 key:
+    cell_size  : int          例: 20
+    column     : int          例: 1
+    desc       : str          例: "<size=150%>2PGames</size>"
+    members    : list         例: ["Fan Gaoxiang", "Yeti", "游荡的海盗", "Steven", "Nando", "Tuntun", "飞鸟喵", "阿柴", "...
+    page_size  : int          例: 42
+    title      : str          例: "发行团队"
+    type       : str          例: "tester"
+
+字段名: tips
+  路径: rite/*.json → tag_tips_up.tips  (441 个文件)
+  总出现次数: 441
+  元素类型: str 925次 (100%)
+  示例值: "智慧" / "社交" / "体魄"
+
+字段名: tips_text
+  路径: rite/*.json → tips_text  (1495 个文件)
+  总出现次数: 1495
+  元素类型: str 1875次 (100%)
+  示例值: "每回合自动进行，检定数值越高，金币收益越大。" / "可以通过游戏界面左下角的【俺寻思】消耗奢靡卡进行装修，增加收益。" / "如果获得带有【<color=#FF0000>地点</color>】标签的卡牌时，可以尝试放入。"
+
+字段名: waiting_round_end_action
+  路径: rite/*.json → waiting_round_end_action  (1495 个文件)
+  总出现次数: 1495
+  元素类型: dict 486次 (100%)
+  对象 key:
+    action        : dict         例: {"rite", "prompt", "counter=7000106"}
+    condition     : dict         例: {"any", "counter.7000102<"}
+    result        : dict         例: {}
+    result_text   : str          例: ""
+    result_title  : str          例: ""
+
+字段名: {clean}
+  路径: event/*.json → settlement[].action.no_prompt.{clean}  (2 个文件)
+  路径: event/*.json → settlement[].action.{case}.{clean}  (1 个文件)
+  路径: event/*.json → settlement[].action.{clean}  (4 个文件)
+  路径: rite/*.json → settlement_prior[].action.{clean}  (1 个文件)
+  总出现次数: 10
+  元素类型: int 51次 (100%)
+  示例值: 5004809 / 5004810 / 5004811
+
+字段名: {cost}
+  路径: rite/*.json → cards_slot.{slot}.condition.any.all[].{cost}  (1 个文件)
+  路径: rite/*.json → cards_slot.{slot}.condition.any.{cost}  (4 个文件)
+  路径: rite/*.json → cards_slot.{slot}.condition.{cost}  (139 个文件)
+  总出现次数: 163
+  元素类型: int 327次 (100%)
+  示例值: 1 / 3 / 10
+
+字段名: {entity_op}
+  路径: upgrade.json → *.effect.{entity_op}  (1 个文件)
+  总出现次数: 27
+  元素类型: int 33次 (61%), str 21次 (39%)
+  示例值: 2000019 / "追随者+1" / 2000459
+
+字段名: {focus}
+  路径: event/*.json → settlement[].action.{case}.{focus}  (2 个文件)
+  路径: event/*.json → settlement[].action.{focus}  (8 个文件)
+  路径: rite/*.json → settlement_extre[].action.{focus}  (2 个文件)
+  总出现次数: 23
+  元素类型: int 46次 (100%)
+  示例值: 600 / 1 / 1700
+
+字段名: {formula}
+  路径: rite/*.json → settlement[].condition.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement[].condition.any.{formula}  (3 个文件)
+  路径: rite/*.json → settlement[].condition.any[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement[].condition.{formula}  (218 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all.all[].any.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all.all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all.any.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all.any[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all.{formula}  (3 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all[].any.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.all[].{formula}  (2 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all.any.all[].all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all.any.all[].all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all.any.all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all.any.all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all.{formula}  (3 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].all[].any.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any.all[].all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any.all[].all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any.all[].any.all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any.all[].{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any[].all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].any[].{formula}  (3 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.all[].{formula}  (10 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any.{formula}  (13 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any[].all.{formula}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].condition.any[].{formula}  (4 个文件)
+  路径: rite/*.json → settlement_extre[].condition.{formula}  (214 个文件)
+  路径: rite/*.json → settlement_prior[].condition.{formula}  (12 个文件)
+  总出现次数: 2698
+  元素类型: int 5396次 (100%)
+  示例值: 3 / 5 / 2
+
+字段名: {loot_dsl}
+  路径: rite/*.json → settlement[].result.{loot_dsl}  (1 个文件)
+  总出现次数: 3
+  元素类型: int 6次 (100%)
+  示例值: 6000040 / 6000041 / 6000038
+
+字段名: {slot}
+  路径: rite/*.json → settlement[].result.{slot}  (7 个文件)
+  路径: rite/*.json → settlement_extre[].action.no_show.{slot}  (1 个文件)
+  路径: rite/*.json → settlement_extre[].result.no_show.{slot}  (3 个文件)
+  路径: rite/*.json → settlement_extre[].result.{slot}  (2 个文件)
+  路径: rite/*.json → settlement_prior[].result.{slot}  (3 个文件)
+  路径: rite/*.json → waiting_round_end_action[].result.no_prompt.{slot}  (1 个文件)
+  总出现次数: 44
+  元素类型: str 44次 (100%)
+  示例值: "装备"
+
+字段名: {table}
+  路径: event/*.json → settlement[].action.{case}.no_prompt.{table}  (1 个文件)
+  路径: event/*.json → settlement[].action.{table}  (4 个文件)
+  总出现次数: 7
+  元素类型: str 7次 (100%)
+  示例值: "被驯服的人" / "小薇"
+
+共统计 101 个不同的数组字段名

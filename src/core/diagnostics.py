@@ -14,21 +14,21 @@ ERROR = "error"
 
 
 class Diagnostics:
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = threading.Lock()
         self._messages: dict[str, list[tuple[str, str]]] = {}  # category → [(level, msg)]
 
-    def info(self, category: str, msg: str):
+    def info(self, category: str, msg: str) -> None:
         """线程安全地追加一条信息级别的诊断消息"""
         with self._lock:
             self._messages.setdefault(category, []).append((INFO, msg))
 
-    def warn(self, category: str, msg: str):
+    def warn(self, category: str, msg: str) -> None:
         """线程安全地追加一条警告级别的诊断消息"""
         with self._lock:
             self._messages.setdefault(category, []).append((WARNING, msg))
 
-    def error(self, category: str, msg: str):
+    def error(self, category: str, msg: str) -> None:
         """线程安全地追加一条错误级别的诊断消息"""
         with self._lock:
             self._messages.setdefault(category, []).append((ERROR, msg))
@@ -52,7 +52,7 @@ diag = Diagnostics()
 
 class MergeContext(threading.local):
     """线程本地的合并上下文，由 merge_file 设置，供 deep_merge 中的警告生成读取"""
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.mod_name: str = ""
         self.mod_id: str = ""

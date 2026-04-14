@@ -1,13 +1,29 @@
 """
 Mod 列表面板 - 左侧面板，显示所有 mod 并支持排序和启用/禁用
 """
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QListWidget, QListWidgetItem, QCheckBox, QLabel,
-    QAbstractItemView
+from PySide6.QtCore import QMimeData, QPoint, Qt, Signal
+from PySide6.QtGui import (
+    QColor,
+    QDrag,
+    QDragEnterEvent,
+    QDragMoveEvent,
+    QDropEvent,
+    QPainter,
+    QPaintEvent,
+    QPen,
+    QPixmap,
 )
-from PySide6.QtCore import Signal, Qt, QMimeData
-from PySide6.QtGui import QDrag, QPainter, QPen, QColor, QPixmap
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..core.mod_scanner import ModInfo
 
@@ -16,14 +32,14 @@ class DraggableModList(QListWidget):
     """支持拖拽排序的 Mod 列表"""
     item_moved = Signal(int, int)  # from_row, to_row
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.setDefaultDropAction(Qt.DropAction.MoveAction)
         self._drag_from_row = -1
         self._drop_indicator_row = -1
 
-    def startDrag(self, supportedActions):
+    def startDrag(self, supportedActions: Qt.DropAction) -> None:
         """绘制简洁的拖拽预览：半透明圆角背景 + Mod 名称"""
         item = self.currentItem()
         if not item:
@@ -53,13 +69,13 @@ class DraggableModList(QListWidget):
                             - self.visualItemRect(item).topLeft())
         drag.exec(Qt.DropAction.MoveAction)
 
-    def dragEnterEvent(self, event):
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.source() is self:
             event.accept()
         else:
             super().dragEnterEvent(event)
 
-    def _row_at_pos(self, pos):
+    def _row_at_pos(self, pos: QPoint) -> int:
         """根据鼠标位置计算插入行号"""
         target_item = self.itemAt(pos)
         if target_item:
@@ -71,7 +87,7 @@ class DraggableModList(QListWidget):
             return row
         return self.count()
 
-    def dragMoveEvent(self, event):
+    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
         if event.source() is self:
             self._drop_indicator_row = self._row_at_pos(event.position().toPoint())
             self.viewport().update()
@@ -79,7 +95,7 @@ class DraggableModList(QListWidget):
         else:
             super().dragMoveEvent(event)
 
-    def dropEvent(self, event):
+    def dropEvent(self, event: QDropEvent) -> None:
         self._drop_indicator_row = -1
         self.viewport().update()
         if event.source() is not self:
@@ -95,7 +111,7 @@ class DraggableModList(QListWidget):
         if from_row != to_row and from_row >= 0 and 0 <= to_row < self.count():
             self.item_moved.emit(from_row, to_row)
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QPaintEvent) -> None:
         super().paintEvent(event)
         if self._drop_indicator_row < 0:
             return
@@ -118,7 +134,7 @@ class ModListItem(QWidget):
     toggled = Signal(str, bool)  # mod_id, enabled
     move_up = Signal(str)
     move_down = Signal(str)
-    def __init__(self, mod: ModInfo, enabled: bool = True, parent=None):
+    def __init__(self, mod: ModInfo, enabled: bool = True, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.mod = mod
 
@@ -155,7 +171,7 @@ class ModListPanel(QWidget):
     mod_selected = Signal(object)  # ModInfo
     order_changed = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._mods: list[ModInfo] = []
         self._enabled: dict[str, bool] = {}
@@ -184,7 +200,7 @@ class ModListPanel(QWidget):
         layout.addLayout(btn_layout)
 
     def set_mods(self, mods: list[ModInfo], order: list[str] | None = None,
-                 enabled: list[str] | None = None):
+                 enabled: list[str] | None = None) -> None:
         """设置 mod 列表"""
         self._mods = list(mods)
 
@@ -204,7 +220,7 @@ class ModListPanel(QWidget):
 
         self._refresh_list()
 
-    def _refresh_list(self):
+    def _refresh_list(self) -> None:
         """刷新列表显示"""
         current_row = self.list_widget.currentRow()
         self.list_widget.clear()
@@ -222,11 +238,11 @@ class ModListPanel(QWidget):
         if 0 <= current_row < self.list_widget.count():
             self.list_widget.setCurrentRow(current_row)
 
-    def _on_toggle(self, mod_id: str, enabled: bool):
+    def _on_toggle(self, mod_id: str, enabled: bool) -> None:
         self._enabled[mod_id] = enabled
         self.order_changed.emit()
 
-    def _on_item_moved(self, from_row: int, to_row: int):
+    def _on_item_moved(self, from_row: int, to_row: int) -> None:
         """拖拽排序后同步数据模型"""
         mod = self._mods.pop(from_row)
         self._mods.insert(to_row, mod)
@@ -234,7 +250,7 @@ class ModListPanel(QWidget):
         self.list_widget.setCurrentRow(to_row)
         self.order_changed.emit()
 
-    def _on_move_up(self, mod_id: str):
+    def _on_move_up(self, mod_id: str) -> None:
         idx = next((i for i, m in enumerate(self._mods) if m.mod_id == mod_id), -1)
         if idx > 0:
             self._mods[idx - 1], self._mods[idx] = self._mods[idx], self._mods[idx - 1]
@@ -242,7 +258,7 @@ class ModListPanel(QWidget):
             self.list_widget.setCurrentRow(idx - 1)
             self.order_changed.emit()
 
-    def _on_move_down(self, mod_id: str):
+    def _on_move_down(self, mod_id: str) -> None:
         idx = next((i for i, m in enumerate(self._mods) if m.mod_id == mod_id), -1)
         if 0 <= idx < len(self._mods) - 1:
             self._mods[idx], self._mods[idx + 1] = self._mods[idx + 1], self._mods[idx]
@@ -250,16 +266,16 @@ class ModListPanel(QWidget):
             self.list_widget.setCurrentRow(idx + 1)
             self.order_changed.emit()
 
-    def _on_selection_changed(self, row: int):
+    def _on_selection_changed(self, row: int) -> None:
         if 0 <= row < len(self._mods):
             self.mod_selected.emit(self._mods[row])
 
-    def _select_all(self):
+    def _select_all(self) -> None:
         self._enabled = {m.mod_id: True for m in self._mods}
         self._refresh_list()
         self.order_changed.emit()
 
-    def _deselect_all(self):
+    def _deselect_all(self) -> None:
         self._enabled = {m.mod_id: False for m in self._mods}
         self._refresh_list()
         self.order_changed.emit()

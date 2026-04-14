@@ -2,15 +2,14 @@
 配置模块 - 路径常量和用户配置读写
 """
 import json
-import logging
 import os
 import re
 import sys
 import tempfile
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
 
-log = logging.getLogger(__name__)
+from .core.diagnostics import diag
 
 # 应用版本号（发版时与 git tag 同步更新）
 APP_VERSION = "1.1.2"
@@ -156,7 +155,7 @@ SYNTHETIC_MOD_ID = "0000000001"
 
 # 应用图标（打包后在 _MEIPASS 即 _internal/ 中，源码运行时在项目根目录）
 if getattr(sys, 'frozen', False):
-    APP_ICON_PATH = Path(sys._MEIPASS) / "app.ico"
+    APP_ICON_PATH = Path(sys._MEIPASS) / "app.ico"  # type: ignore[attr-defined]
 else:
     APP_ICON_PATH = PROJECT_ROOT / "app.ico"
 
@@ -188,7 +187,7 @@ class UserConfig:
     def local_mod_dir(self) -> Path:
         return Path(self.local_mod_path)
 
-    def save(self):
+    def save(self) -> None:
         """原子保存配置：先写临时文件，再重命名覆盖"""
         content = json.dumps(asdict(self), ensure_ascii=False, indent=4)
         tmp_fd, tmp_path = tempfile.mkstemp(
@@ -207,8 +206,8 @@ class UserConfig:
         if USER_CONFIG_PATH.exists():
             try:
                 data = json.loads(USER_CONFIG_PATH.read_text(encoding='utf-8'))
-            except (json.JSONDecodeError, IOError) as e:
-                log.warning("配置文件损坏，使用默认配置: %s", e)
+            except (OSError, json.JSONDecodeError) as e:
+                diag.warn("config", f"配置文件损坏，使用默认配置: {e}")
                 return cls()
             valid_fields = {f.name for f in cls.__dataclass_fields__.values()}
             filtered = {k: v for k, v in data.items() if k in valid_fields}

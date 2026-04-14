@@ -2,14 +2,19 @@
 数组元素匹配工具 - merger 和 conflict 共享的匹配算法
 """
 import json
+
 from rapidfuzz import fuzz
 
 from .profiler import profile
 
 
 @profile
-def find_matching_item(base_arr: list[dict], mod_item: dict,
-                       matched: set[int], match_keys: list[str]) -> int | None:
+def find_matching_item(
+    base_arr: list[dict[str, object]],
+    mod_item: dict[str, object],
+    matched: set[int],
+    match_keys: list[str],
+) -> int | None:
     """
     按 match_keys 中所有字段精确匹配，全部相等才算匹配到。
     返回 base_arr 中第一个匹配元素的索引，或 None。
@@ -28,7 +33,7 @@ def find_matching_item(base_arr: list[dict], mod_item: dict,
 
 
 @profile
-def item_similarity(a: dict, b: dict) -> float:
+def item_similarity(a: dict[str, object], b: dict[str, object]) -> float:
     """计算两个 dict 的字符串相似度（0.0 ~ 1.0）"""
     a_str = json.dumps(a, sort_keys=True, ensure_ascii=False)
     b_str = json.dumps(b, sort_keys=True, ensure_ascii=False)
@@ -37,10 +42,10 @@ def item_similarity(a: dict, b: dict) -> float:
 
 @profile
 def resolve_duplicates(
-    mod_items: list[tuple[int, dict]],
-    base_arr: list,
+    mod_items: list[tuple[int, dict[str, object]]],
+    base_arr: list[object],
     base_indices: list[int],
-) -> tuple[list[tuple[int, dict, int]], list[tuple[int, dict]]]:
+) -> tuple[list[tuple[int, dict[str, object], int]], list[tuple[int, dict[str, object]]]]:
     """
     多对多相似度匹配：mod 侧和 base 侧各有多个同 key 元素。
     贪心策略：每次从所有 mod×base 配对中选相似度最高的一对，
@@ -103,7 +108,7 @@ def resolve_duplicates(
 
     remaining_mod = set(range(len(mod_items)))
     remaining_base = set(range(len(base_indices)))
-    matched_pairs = []
+    matched_pairs: list[tuple[int, dict[str, object], int]] = []
 
     while remaining_base and remaining_mod:
         best_ratio = -1.0
@@ -125,9 +130,14 @@ def resolve_duplicates(
     return matched_pairs, unmatched
 
 
-def get_key_vals(item: dict, match_keys: list[str]) -> tuple | None:
+def get_key_vals(item: dict[str, object], match_keys: list[str]) -> tuple[object, ...] | None:
     """提取 match_key 值元组，任一 key 缺失则返回 None"""
     vals = tuple(item.get(k) for k in match_keys)
     if any(v is None for v in vals):
         return None
     return vals
+
+
+def is_obj_array(arr: object) -> bool:
+    """判断是否是非空对象数组"""
+    return isinstance(arr, list) and bool(arr) and all(isinstance(x, dict) for x in arr)

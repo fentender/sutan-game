@@ -1,8 +1,8 @@
 """
 部署模块 - 生成合成 Mod 并部署到 workshop 目录
 """
-import shutil
 import json
+import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -10,13 +10,14 @@ from pathlib import Path
 from ..config import SYNTHETIC_MOD_ID
 from .id_remapper import RemapTable, compute_resource_rename
 from .profiler import profile
+from .types import CancelCheck
 
 
-def generate_info_json(mod_names: list[str], output_path: Path):
+def generate_info_json(mod_names: list[str], output_path: Path) -> None:
     """生成合成 Mod 的 Info.json"""
     info = {
         "name": "合并Mod - 自动生成",
-        "description": f"由 Mod 合并管理器自动生成。\n包含以下 mod 的合并内容：\n" +
+        "description": "由 Mod 合并管理器自动生成。\n包含以下 mod 的合并内容：\n" +
                        "\n".join(f"  - {name}" for name in mod_names),
         "tags": ["Merged"],
         "version": datetime.now().strftime("%Y%m%d.%H%M%S")
@@ -32,9 +33,9 @@ def generate_info_json(mod_names: list[str], output_path: Path):
 def copy_resources(
     mod_paths: list[tuple[str, Path]],
     output_path: Path,
-    cancel_check=None,
+    cancel_check: CancelCheck | None = None,
     remap_tables: dict[str, RemapTable] | None = None,
-):
+) -> None:
     """
     复制非 JSON 资源文件（图片等），按优先级顺序覆盖。
     若提供 remap_tables，则对被重映射的 mod 的资源文件进行重命名。
@@ -71,7 +72,7 @@ def copy_resources(
 def deploy_to_workshop(
     merged_output: Path,
     workshop_path: Path,
-    mod_names: list[str]
+    mod_names: list[str],
 ) -> Path:
     """
     将合并结果部署为合成 Mod。

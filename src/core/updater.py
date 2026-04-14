@@ -3,7 +3,6 @@
 """
 import json
 import urllib.request
-from urllib.error import URLError
 
 from ..config import APP_VERSION, UPDATE_SOURCES
 from .diagnostics import diag

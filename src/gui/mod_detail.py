@@ -1,11 +1,9 @@
 """
 Mod 详情面板 - 右侧面板，显示选中 mod 的详细信息和 preview 图片
 """
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea
-)
-from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
 from ..core.mod_scanner import ModInfo
 
@@ -13,7 +11,7 @@ from ..core.mod_scanner import ModInfo
 class ModDetailPanel(QWidget):
     """Mod 详情面板"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         layout = QVBoxLayout(self)
@@ -72,7 +70,7 @@ class ModDetailPanel(QWidget):
 
         self._clear()
 
-    def _clear(self):
+    def _clear(self) -> None:
         self.preview_label.clear()
         self.preview_label.setText("无预览图")
         self.name_label.setText("未选择 Mod")
@@ -80,7 +78,7 @@ class ModDetailPanel(QWidget):
         self.tags_label.clear()
         self.desc_label.clear()
 
-    def show_mod(self, mod: ModInfo):
+    def show_mod(self, mod: ModInfo) -> None:
         """显示指定 mod 的详情"""
         # 预览图片
         if mod.preview_path:

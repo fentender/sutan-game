@@ -3,15 +3,22 @@
 """
 import json
 
-from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget,
-    QLabel, QPushButton, QWidget, QMessageBox,
-)
-from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QCloseEvent, QColor
+from PySide6.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
-from .json_editor import CodeEditor, _format_with_comments
 from ..core.json_parser import clean_json_text
+from ..core.merger import ParseFailure
+from .json_editor import CodeEditor, _format_with_comments
 
 
 class JsonFixDialog(QDialog):
@@ -21,11 +28,12 @@ class JsonFixDialog(QDialog):
     所有 Tab 修复成功后自动关闭；也可点击"忽视剩余"关闭。
     """
 
-    def __init__(self, parse_failures: list, parent=None):
+    def __init__(self, parse_failures: list[ParseFailure],
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._failures = parse_failures
         # {file_path_str: {'action': 'fixed'|'ignored'}}
-        self.resolutions: dict[str, dict] = {}
+        self.resolutions: dict[str, dict[str, str]] = {}
         self._editors: list[CodeEditor] = []
         self._error_bars: list[QLabel] = []
         self._tab_fixed: list[bool] = [False] * len(parse_failures)
@@ -36,7 +44,7 @@ class JsonFixDialog(QDialog):
         self._build_ui()
         self._init_tabs()
 
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(4)
@@ -86,7 +94,7 @@ class JsonFixDialog(QDialog):
         btn_layout.addLayout(ignore_container)
         layout.addLayout(btn_layout)
 
-    def _init_tabs(self):
+    def _init_tabs(self) -> None:
         """为每个失败文件创建一个 Tab"""
         for idx, failure in enumerate(self._failures):
             tab = QWidget()
@@ -123,7 +131,7 @@ class JsonFixDialog(QDialog):
             # 未修复 Tab 标红
             self._tabs.tabBar().setTabTextColor(idx, QColor(238, 136, 136))
 
-    def _format_current(self):
+    def _format_current(self) -> None:
         """格式化当前 Tab 的编辑器内容"""
         idx = self._tabs.currentIndex()
         if idx < 0:
@@ -137,7 +145,7 @@ class JsonFixDialog(QDialog):
         # 重新检测错误
         self._detect_and_highlight(idx)
 
-    def _save_current(self):
+    def _save_current(self) -> None:
         """保存当前 Tab：写回原文件 + 验证 JSON"""
         idx = self._tabs.currentIndex()
         if idx < 0:
@@ -180,7 +188,7 @@ class JsonFixDialog(QDialog):
             QMessageBox.information(self, "全部修复", "所有文件已修复，继续合并。")
             self.accept()
 
-    def _detect_and_highlight(self, idx: int):
+    def _detect_and_highlight(self, idx: int) -> None:
         """检测指定 Tab 的 JSON 错误并更新高亮"""
         editor = self._editors[idx]
         text = editor.toPlainText()
@@ -201,17 +209,17 @@ class JsonFixDialog(QDialog):
         )
         editor.clear_highlights()
 
-    def _ignore_remaining(self):
+    def _ignore_remaining(self) -> None:
         """忽视所有未修复的 Tab，关闭弹窗"""
-        for idx, failure in enumerate(self._failures):
+        for _idx, failure in enumerate(self._failures):
             key = str(failure.file_path)
             if key not in self.resolutions:
                 self.resolutions[key] = {'action': 'ignored'}
         self.reject()
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """关闭窗口等同忽视剩余"""
-        for idx, failure in enumerate(self._failures):
+        for _idx, failure in enumerate(self._failures):
             key = str(failure.file_path)
             if key not in self.resolutions:
                 self.resolutions[key] = {'action': 'ignored'}
