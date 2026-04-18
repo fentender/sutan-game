@@ -416,7 +416,14 @@ def apply_delta(
             base.items[key] = base_afd
 
     # 未知 key 警告
-    if current_def and isinstance(current_def, dict):
+    # dictionary 类型文件的顶层 key 是条目 ID（任意字符串），不应做 known_keys 检查
+    is_dict_toplevel = (
+        schema is not None
+        and field_path == ["_entry"]
+        and isinstance(schema.get("_meta"), dict)
+        and schema["_meta"].get("file_type") == "dictionary"  # type: ignore[union-attr]
+    )
+    if current_def and isinstance(current_def, dict) and not is_dict_toplevel:
         known_keys: set[str] = set()
         fields = current_def.get("__fields__")
         if isinstance(fields, dict):

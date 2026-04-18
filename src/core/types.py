@@ -57,12 +57,28 @@ class ChangeKind(enum.IntFlag):
     @property
     def base_kind(self) -> ChangeKind:
         """提取基础变化类型，去掉修饰标志"""
-        return ChangeKind(self & 0x07)
+        return ChangeKind.__new__(ChangeKind, self._value_ & 0x07)
 
     @property
     def is_multi_mod(self) -> bool:
         """是否被多个 mod 修改过"""
-        return bool(self & ChangeKind.MULTI_MOD)
+        return bool(self._value_ & 8)
+
+    @property
+    def is_origin(self) -> bool:
+        return (self._value_ & 0x07) == 0
+
+    @property
+    def is_added(self) -> bool:
+        return (self._value_ & 0x07) == 1
+
+    @property
+    def is_deleted(self) -> bool:
+        return (self._value_ & 0x07) == 2
+
+    @property
+    def is_changed(self) -> bool:
+        return (self._value_ & 0x07) == 4
 
 
 @dataclass(slots=True)

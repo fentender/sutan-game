@@ -8,6 +8,19 @@ import json
 from .json_parser import _serialize
 from .types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
 
+# json.dumps 缓存（key 字符串 → JSON 编码后的字符串）
+_json_key_cache: dict[str, str] = {}
+
+
+def _dumps_key(key: str) -> str:
+    """缓存版 json.dumps，用于 dict key 序列化"""
+    cached = _json_key_cache.get(key)
+    if cached is not None:
+        return cached
+    result = json.dumps(key, ensure_ascii=False)
+    _json_key_cache[key] = result
+    return result
+
 # ==================== 行级 diff 计算 ====================
 
 
@@ -175,17 +188,17 @@ def _serialize_diffdict_plain(dd: DiffDict, indent: int, level: int) -> str:
     for key in sorted(dd.items.keys()):
         entry = dd.items[key]
         if isinstance(entry, FieldDiff):
-            if entry.kind.base_kind == ChangeKind.DELETED:
+            if entry.kind.is_deleted:
                 continue
-            key_str = json.dumps(key, ensure_ascii=False)
+            key_str = _dumps_key(key)
             val_str = _serialize_value(entry.value, indent, level + 1)
             parts.append(f'{next_ind}{key_str}: {val_str}')
         elif isinstance(entry, DiffDict):
-            key_str = json.dumps(key, ensure_ascii=False)
+            key_str = _dumps_key(key)
             val_str = _serialize_diffdict_plain(entry, indent, level + 1)
             parts.append(f'{next_ind}{key_str}: {val_str}')
         elif isinstance(entry, ArrayFieldDiff):
-            key_str = json.dumps(key, ensure_ascii=False)
+            key_str = _dumps_key(key)
             if entry.is_duplist:
                 for elem_str in _serialize_arraydiff_elements_plain(entry, indent, level + 1):
                     parts.append(f'{next_ind}{key_str}: {elem_str}')
@@ -210,7 +223,7 @@ def _serialize_arraydiff_plain(afd: ArrayFieldDiff, indent: int, level: int) -> 
         if eid == 0 or eid == -1:
             continue
         diff = id_to_diff.get(eid)
-        if diff is None or diff.kind.base_kind == ChangeKind.DELETED:
+        if diff is None or diff.kind.is_deleted:
             continue
         parts.append(next_ind + _serialize_value(diff.value, indent, level + 1))
 
@@ -229,7 +242,7 @@ def _serialize_arraydiff_elements_plain(
         if eid == 0 or eid == -1:
             continue
         diff = id_to_diff.get(eid)
-        if diff is None or diff.kind.base_kind == ChangeKind.DELETED:
+        if diff is None or diff.kind.is_deleted:
             continue
         result.append(_serialize_value(diff.value, indent, level))
     return result
@@ -276,6 +289,12 @@ def _emit_both(
     kind: ChangeKind | None = ChangeKind.ORIGIN,
 ) -> None:
     """将文本按行输出到左右两侧（相同内容）"""
+    if '\n' not in text:
+        left_lines.append(text)
+        right_lines.append(text)
+        left_kinds.append(kind)
+        right_kinds.append(kind)
+        return
     for line in text.split('\n'):
         left_lines.append(line)
         right_lines.append(line)
@@ -290,6 +309,12 @@ def _emit_left_only(
     kind: ChangeKind,
 ) -> None:
     """将文本按行输出到左侧，右侧补填充行"""
+    if '\n' not in text:
+        left_lines.append(text)
+        right_lines.append('')
+        left_kinds.append(kind)
+        right_kinds.append(None)
+        return
     for line in text.split('\n'):
         left_lines.append(line)
         right_lines.append('')
@@ -304,6 +329,12 @@ def _emit_right_only(
     kind: ChangeKind,
 ) -> None:
     """将文本按行输出到右侧，左侧补填充行"""
+    if '\n' not in text:
+        left_lines.append('')
+        right_lines.append(text)
+        left_kinds.append(None)
+        right_kinds.append(kind)
+        return
     for line in text.split('\n'):
         left_lines.append('')
         right_lines.append(line)
@@ -346,7 +377,7 @@ def _get_field_kind(
     - DiffDict/ArrayFieldDiff 类型的条目视为 ORIGIN（内部子字段递归处理）
     """
     if isinstance(entry, FieldDiff):
-        if entry.version == highlight_version and entry.kind.base_kind != ChangeKind.ORIGIN:
+        if entry.version == highlight_version and not entry.kind.is_origin:
             return entry.kind, True
         return ChangeKind.ORIGIN, False
     return ChangeKind.ORIGIN, False
@@ -370,7 +401,7 @@ def _format_diffdict(
     entries: list[tuple[str, FieldDiff | DiffDict | ArrayFieldDiff]] = []
     for key in sorted(dd.items.keys()):
         entry = dd.items[key]
-        if isinstance(entry, FieldDiff) and entry.kind.base_kind == ChangeKind.DELETED:
+        if isinstance(entry, FieldDiff) and entry.kind.is_deleted:
             if entry.version != highlight_version:
                 continue
         entries.append((key, entry))
@@ -382,29 +413,29 @@ def _format_diffdict(
     _emit_both('{', left_lines, right_lines, left_kinds, right_kinds)
 
     for idx, (key, entry) in enumerate(entries):
-        key_str = json.dumps(key, ensure_ascii=False)
+        key_str = _dumps_key(key)
         comma = ',' if idx < len(entries) - 1 else ''
         kind, is_current = _get_field_kind(entry, highlight_version)
 
         if isinstance(entry, FieldDiff):
-            base_kind = entry.kind.base_kind if is_current else ChangeKind.ORIGIN
+            ek = entry.kind if is_current else ChangeKind.ORIGIN
 
-            if base_kind == ChangeKind.ORIGIN:
+            if ek.is_origin:
                 val_str = _serialize_value(entry.value, indent, level + 1)
                 text = f'{next_ind}{key_str}: {val_str}{comma}'
                 _emit_both(text, left_lines, right_lines, left_kinds, right_kinds)
 
-            elif base_kind == ChangeKind.ADDED:
+            elif ek.is_added:
                 val_str = _serialize_value(entry.value, indent, level + 1)
                 text = f'{next_ind}{key_str}: {val_str}{comma}'
                 _emit_right_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
 
-            elif base_kind == ChangeKind.DELETED:
+            elif ek.is_deleted:
                 old_str = _serialize_value(entry.old_value, indent, level + 1)
                 text = f'{next_ind}{key_str}: {old_str}{comma}'
                 _emit_left_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
 
-            elif base_kind == ChangeKind.CHANGED:
+            elif ek.is_changed:
                 old_str = _serialize_value(entry.old_value, indent, level + 1)
                 new_str = _serialize_value(entry.value, indent, level + 1)
                 old_text = f'{next_ind}{key_str}: {old_str}{comma}'
@@ -484,7 +515,7 @@ def _format_arraydiff(
         diff = id_to_diff.get(eid)
         if diff is None:
             continue
-        if diff.kind.base_kind == ChangeKind.DELETED and diff.version != highlight_version:
+        if diff.kind.is_deleted and diff.version != highlight_version:
             continue
         elements.append((eid, diff))
 
@@ -494,7 +525,7 @@ def _format_arraydiff(
             if eid == 0 or eid == -1:
                 continue
             diff = id_to_diff.get(eid)
-            if diff and diff.kind.base_kind == ChangeKind.DELETED and diff.version == highlight_version:
+            if diff and diff.kind.is_deleted and diff.version == highlight_version:
                 deleted_elems[eid] = diff
 
     # 将删除元素按 old_order 位置插入到 elements 的正确位置
@@ -535,24 +566,24 @@ def _format_arraydiff(
 
         comma = ',' if output_idx < total - 1 else ''
         kind, is_current = _get_field_kind(diff, highlight_version)
-        base_kind = diff.kind.base_kind if is_current else ChangeKind.ORIGIN
+        dk = diff.kind if is_current else ChangeKind.ORIGIN
 
-        if base_kind == ChangeKind.ORIGIN:
+        if dk.is_origin:
             val_str = _serialize_value(diff.value, indent, level + 1)
             text = f'{next_ind}{val_str}{comma}'
             _emit_both(text, left_lines, right_lines, left_kinds, right_kinds)
 
-        elif base_kind == ChangeKind.ADDED:
+        elif dk.is_added:
             val_str = _serialize_value(diff.value, indent, level + 1)
             text = f'{next_ind}{val_str}{comma}'
             _emit_right_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
 
-        elif base_kind == ChangeKind.DELETED:
+        elif dk.is_deleted:
             old_str = _serialize_value(diff.old_value, indent, level + 1)
             text = f'{next_ind}{old_str}{comma}'
             _emit_left_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
 
-        elif base_kind == ChangeKind.CHANGED:
+        elif dk.is_changed:
             if isinstance(diff.value, DiffDict):
                 sub_left: list[str] = []
                 sub_right: list[str] = []
@@ -614,7 +645,7 @@ def _format_duplist_field(
         diff = id_to_diff.get(eid)
         if diff is None:
             continue
-        if diff.kind.base_kind == ChangeKind.DELETED and diff.version != highlight_version:
+        if diff.kind.is_deleted and diff.version != highlight_version:
             continue
         elements.append((eid, diff))
 
@@ -623,21 +654,21 @@ def _format_duplist_field(
         comma = trailing_comma if is_last_elem else ','
 
         kind, is_current = _get_field_kind(diff, highlight_version)
-        base_kind = diff.kind.base_kind if is_current else ChangeKind.ORIGIN
+        dk = diff.kind if is_current else ChangeKind.ORIGIN
 
-        if base_kind == ChangeKind.ORIGIN:
+        if dk.is_origin:
             val_str = _serialize_value(diff.value, indent, level + 1)
             text = f'{next_ind}{key_str}: {val_str}{comma}'
             _emit_both(text, left_lines, right_lines, left_kinds, right_kinds)
-        elif base_kind == ChangeKind.ADDED:
+        elif dk.is_added:
             val_str = _serialize_value(diff.value, indent, level + 1)
             text = f'{next_ind}{key_str}: {val_str}{comma}'
             _emit_right_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
-        elif base_kind == ChangeKind.DELETED:
+        elif dk.is_deleted:
             old_str = _serialize_value(diff.old_value, indent, level + 1)
             text = f'{next_ind}{key_str}: {old_str}{comma}'
             _emit_left_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
-        elif base_kind == ChangeKind.CHANGED:
+        elif dk.is_changed:
             old_str = _serialize_value(diff.old_value, indent, level + 1)
             new_str = _serialize_value(diff.value, indent, level + 1)
             old_text = f'{next_ind}{key_str}: {old_str}{comma}'

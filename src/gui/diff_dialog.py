@@ -32,10 +32,10 @@ from ..core.diff_formatter import (
 from ..core.json_parser import _pairs_hook, clean_json_text, format_json
 from ..core.json_store import JsonStore
 from ..core.merger import apply_delta
-from ..core.profiler import profile
+from ..core.profiler import profile, profile_block
 from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
 from ..core.types import ChangeKind, DiffDict, MergeMode
-from .json_editor import CodeEditor, _DiffBlockData, _format_with_comments
+from .json_editor import CodeEditor, _format_with_comments
 
 # diff 行高亮背景色
 _CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（删除的行）
@@ -59,25 +59,16 @@ _COLOR_PRIORITY: dict[int, int] = {
 }
 
 
-def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]) -> None:
-    """为编辑器的每个 block 设置 _DiffBlockData"""
-    block = editor.document().begin()
-    for real_line in line_map:
-        if not block.isValid():
-            break
-        block.setUserData(_DiffBlockData(real_line))
-        block = block.next()
-
-
-def _get_real_text(editor: CodeEditor) -> str:
-    """从编辑器中提取非填充行文本（剥离填充行）"""
+def _get_real_text(editor: CodeEditor, line_map: list[int | None]) -> str:
+    """从编辑器中提取非填充行文本（根据 line_map 跳过填充行）"""
     lines: list[str] = []
     block = editor.document().begin()
+    idx = 0
     while block.isValid():
-        data = block.userData()
-        if not isinstance(data, _DiffBlockData) or data.real_line is not None:
+        if idx >= len(line_map) or line_map[idx] is not None:
             lines.append(block.text())
         block = block.next()
+        idx += 1
     return '\n'.join(lines)
 
 
@@ -150,6 +141,8 @@ class DiffDialog(QDialog):
         self._tab_diff_positions: list[list[int]] = []
         self._tab_current_idx: list[int] = []
         self._tab_nav_widgets: list[tuple[QPushButton, QLabel, QPushButton]] = []
+        # 各 tab 的行映射表（替代 block.setUserData）
+        self._tab_line_maps: list[tuple[list[int | None], list[int | None]]] = []
 
         self.setWindowTitle(f"Diff 对比 - {rel_path}")
         self.resize(1000, 650)
@@ -189,12 +182,14 @@ class DiffDialog(QDialog):
 
             field_path = [root_key] if root_key else None
             mod_version += 1
-            apply_delta(current, delta, schema, field_path,
-                        merge_mode=self._merge_mode, version=mod_version)
+            with profile_block(f"precompute.apply_delta"):
+                apply_delta(current, delta, schema, field_path,
+                            merge_mode=self._merge_mode, version=mod_version)
 
-            left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
-                current, highlight_version=mod_version,
-            )
+            with profile_block(f"precompute.format_delta_json"):
+                left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
+                    current, highlight_version=mod_version,
+                )
 
             # 检查是否存在用户 override
             override = store.get_override(mod_id, self._rel_path)
@@ -228,26 +223,24 @@ class DiffDialog(QDialog):
             for i, (lk, rk) in enumerate(zip(left_kinds, right_kinds, strict=True)):
                 is_change = False
 
-                if lk is not None and lk.base_kind in (
-                    ChangeKind.DELETED, ChangeKind.CHANGED,
-                ):
-                    color = _CLR_CONFLICT if lk.is_multi_mod else _CLR_LEFT_CHANGE
-                    left_highlights.append((i, color))
-                    is_change = True
-                    if lk.is_multi_mod:
-                        has_conflict = True
-                elif lk is None and rk is not None and rk.base_kind != ChangeKind.ORIGIN:
+                if lk is not None:
+                    if lk.is_deleted or lk.is_changed:
+                        color = _CLR_CONFLICT if lk.is_multi_mod else _CLR_LEFT_CHANGE
+                        left_highlights.append((i, color))
+                        is_change = True
+                        if lk.is_multi_mod:
+                            has_conflict = True
+                elif rk is not None and not rk.is_origin:
                     left_highlights.append((i, _CLR_LEFT_CHANGE))
 
-                if rk is not None and rk.base_kind in (
-                    ChangeKind.ADDED, ChangeKind.CHANGED,
-                ):
-                    color = _CLR_CONFLICT if rk.is_multi_mod else _CLR_RIGHT_CHANGE
-                    right_highlights.append((i, color))
-                    is_change = True
-                    if rk.is_multi_mod:
-                        has_conflict = True
-                elif rk is None and lk is not None and lk.base_kind != ChangeKind.ORIGIN:
+                if rk is not None:
+                    if rk.is_added or rk.is_changed:
+                        color = _CLR_CONFLICT if rk.is_multi_mod else _CLR_RIGHT_CHANGE
+                        right_highlights.append((i, color))
+                        is_change = True
+                        if rk.is_multi_mod:
+                            has_conflict = True
+                elif lk is not None and not lk.is_origin:
                     right_highlights.append((i, _CLR_RIGHT_CHANGE))
 
                 # 只记录每个连续变化块的第一行
@@ -305,6 +298,7 @@ class DiffDialog(QDialog):
             self._tab_diff_positions.append([])
             self._tab_current_idx.append(-1)
             self._tab_nav_widgets.append((btn_prev, count_lbl, btn_next))
+            self._tab_line_maps.append(([], []))
 
         self._tabs.currentChanged.connect(self._on_tab_changed)
         layout.addWidget(self._tabs)
@@ -549,17 +543,27 @@ class DiffDialog(QDialog):
             else:
                 right_map.append(None)
 
+        # 存储行映射并设置到编辑器（用 Python list 查表代替 setUserData）
+        self._tab_line_maps[index] = (left_map, right_map)
+        left_edit._diff_line_map = left_map
+        right_edit._diff_line_map = right_map
+
         left_edit.setUpdatesEnabled(False)
         right_edit.setUpdatesEnabled(False)
+        left_edit.blockSignals(True)
+        left_edit.document().blockSignals(True)
+        right_edit.blockSignals(True)
+        right_edit.document().blockSignals(True)
         try:
             left_edit.setPlainText(prev_text)
             right_edit.setPlainText(curr_text)
 
-            _apply_block_userdata(left_edit, left_map)
-            _apply_block_userdata(right_edit, right_map)
-
             self._apply_precomputed_highlights(index)
         finally:
+            left_edit.document().blockSignals(False)
+            left_edit.blockSignals(False)
+            right_edit.document().blockSignals(False)
+            right_edit.blockSignals(False)
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
 
@@ -755,7 +759,8 @@ class DiffDialog(QDialog):
     def _save_override(self, tab_index: int) -> None:
         """验证 JSON 后保存为 override 文件"""
         right_edit = self._tab_edits[tab_index][1]
-        text = _get_real_text(right_edit)
+        _, right_map = self._tab_line_maps[tab_index]
+        text = _get_real_text(right_edit, right_map)
         error_bar = self._tab_error_bars[tab_index]
 
         cleaned = clean_json_text(text)
@@ -782,7 +787,8 @@ class DiffDialog(QDialog):
         """格式化右侧文本，重建填充对齐并更新高亮"""
         left_edit, right_edit = self._tab_edits[tab_index]
 
-        text = _get_real_text(right_edit)
+        _, old_right_map = self._tab_line_maps[tab_index]
+        text = _get_real_text(right_edit, old_right_map)
         formatted = _format_with_comments(text)
 
         _, _, prev_text, _ = self._diff_pairs[tab_index]
@@ -794,19 +800,29 @@ class DiffDialog(QDialog):
          left_map, right_map,
          _, _) = build_padded_texts(left_lines, right_lines, opcodes)
 
+        # 更新行映射
+        self._tab_line_maps[tab_index] = (left_map, right_map)
+        left_edit._diff_line_map = left_map
+        right_edit._diff_line_map = right_map
+
         scroll_val = right_edit.verticalScrollBar().value()
         left_edit.setUpdatesEnabled(False)
         right_edit.setUpdatesEnabled(False)
+        left_edit.blockSignals(True)
+        left_edit.document().blockSignals(True)
+        right_edit.blockSignals(True)
+        right_edit.document().blockSignals(True)
         try:
             left_edit.setPlainText('\n'.join(padded_left))
             right_edit.setPlainText('\n'.join(padded_right))
             right_edit.verticalScrollBar().setValue(scroll_val)
 
-            _apply_block_userdata(left_edit, left_map)
-            _apply_block_userdata(right_edit, right_map)
-
             self._compute_and_apply_highlights(tab_index, left_map, right_map)
         finally:
+            left_edit.document().blockSignals(False)
+            left_edit.blockSignals(False)
+            right_edit.document().blockSignals(False)
+            right_edit.blockSignals(False)
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
 

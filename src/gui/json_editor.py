@@ -126,6 +126,8 @@ def _format_with_comments(text: str) -> str:
 
 class _DiffBlockData(QTextBlockUserData):
     """Diff 模式下的 block 元数据，用于区分真实行和填充行"""
+    __slots__ = ('real_line',)
+
     def __init__(self, real_line: int | None):
         super().__init__()
         self.real_line = real_line  # None = 填充行, int = 原始行号(0-based)
@@ -162,6 +164,10 @@ class CodeEditor(QPlainTextEdit):
         # 填充行背景色（与 diff_dialog._CLR_PADDING 一致）
         self._padding_color = QColor(30, 30, 30)
 
+        # diff 模式下的行映射表（替代 block.setUserData，避免高频跨语言调用）
+        # None 表示非 diff 模式；设置后 paint_line_numbers/paintEvent/copy 使用此表
+        self._diff_line_map: list[int | None] | None = None
+
     def line_number_area_width(self) -> int:
         digits = max(1, len(str(self.blockCount())))
         return 8 + self.fontMetrics().horizontalAdvance("9") * (digits + 1)
@@ -185,10 +191,12 @@ class CodeEditor(QPlainTextEdit):
     def paintEvent(self, event: QPaintEvent) -> None:
         """先正常绘制，再用填充行背景色覆盖选区高亮，使填充行不显示选中状态"""
         super().paintEvent(event)
+        line_map = self._diff_line_map
+        if line_map is None:
+            return
         cursor = self.textCursor()
         if not cursor.hasSelection():
             return
-        # 仅在存在 diff 填充行时才做额外绘制
         block = self.firstVisibleBlock()
         if not block.isValid():
             return
@@ -199,8 +207,8 @@ class CodeEditor(QPlainTextEdit):
             if geom.top() > event.rect().bottom():
                 break
             if geom.bottom() >= event.rect().top():
-                data = block.userData()
-                if isinstance(data, _DiffBlockData) and data.real_line is None:
+                bn = block.blockNumber()
+                if bn < len(line_map) and line_map[bn] is None:
                     painter.fillRect(
                         0, round(geom.top()),
                         self.viewport().width(), round(geom.height()),
@@ -219,17 +227,19 @@ class CodeEditor(QPlainTextEdit):
         block_number = block.blockNumber()
         top = round(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
         bottom = top + round(self.blockBoundingRect(block).height())
+        line_map = self._diff_line_map
 
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
-                data = block.userData()
-                if isinstance(data, _DiffBlockData):
-                    if data.real_line is not None:
-                        painter.drawText(
-                            0, top, self._line_number_area.width() - 4,
-                            self.fontMetrics().height(),
-                            Qt.AlignmentFlag.AlignRight, str(data.real_line + 1)
-                        )
+                if line_map is not None:
+                    if block_number < len(line_map):
+                        real_line = line_map[block_number]
+                        if real_line is not None:
+                            painter.drawText(
+                                0, top, self._line_number_area.width() - 4,
+                                self.fontMetrics().height(),
+                                Qt.AlignmentFlag.AlignRight, str(real_line + 1)
+                            )
                     # 填充行不绘制行号
                 else:
                     painter.drawText(
@@ -276,27 +286,20 @@ class CodeEditor(QPlainTextEdit):
         if not cursor.hasSelection():
             return super().createMimeDataFromSelection()
 
+        line_map = self._diff_line_map
+        if line_map is None:
+            return super().createMimeDataFromSelection()
+
         doc = self.document()
         start_block = doc.findBlock(cursor.selectionStart())
         end_block = doc.findBlock(cursor.selectionEnd())
 
-        # 选区内没有 diff 标记则走默认逻辑
-        has_diff_data = False
-        block = start_block
-        while block.isValid() and block.blockNumber() <= end_block.blockNumber():
-            if isinstance(block.userData(), _DiffBlockData):
-                has_diff_data = True
-                break
-            block = block.next()
-        if not has_diff_data:
-            return super().createMimeDataFromSelection()
-
         # 提取选区内真实行（跳过填充行）
-        lines = []
+        lines: list[str] = []
         block = start_block
         while block.isValid() and block.blockNumber() <= end_block.blockNumber():
-            data = block.userData()
-            if not isinstance(data, _DiffBlockData) or data.real_line is not None:
+            bn = block.blockNumber()
+            if bn >= len(line_map) or line_map[bn] is not None:
                 lines.append(block.text())
             block = block.next()
 
