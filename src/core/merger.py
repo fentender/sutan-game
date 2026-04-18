@@ -1,7 +1,7 @@
 """
 核心合并算法 - 基于 schema 规则的字典合并、实体合并、数组智能匹配
 
-delta 产出使用强类型 DictDelta / ArrayFieldDiff / FieldDiff 树，
+delta 产出使用强类型 DiffDict / ArrayFieldDiff / FieldDiff 树，
 替代旧的 _DELETED 哨兵和 _delta/_new_entry/_deleted 魔法标记。
 """
 import copy
@@ -27,7 +27,7 @@ from .types import (
     ArrayFieldDiff,
     CancelCheck,
     ChangeKind,
-    DictDelta,
+    DiffDict,
     FieldDiff,
 )
 
@@ -90,21 +90,46 @@ def _resolve_merge_strategy(
         return strategy, None
 
     # 无 schema 时的默认策略
-    if isinstance(base_val, dict) and isinstance(override_val, (dict, DictDelta)):
+    if isinstance(base_val, dict) and isinstance(override_val, (dict, DiffDict)):
         return "merge", None
     return "replace", None
 
 
+def _is_modified(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> bool:
+    """判断条目是否已被之前的 mod 修改过。
+
+    - FieldDiff: base_kind != ORIGIN 即已修改
+    - ArrayFieldDiff: 任何元素非 ORIGIN 即认为已修改（保守策略）
+    - DiffDict: 不应在此层判断，由调用方递归到子字段
+    """
+    if entry is None:
+        return False
+    if isinstance(entry, FieldDiff):
+        return entry.kind.base_kind != ChangeKind.ORIGIN
+    if isinstance(entry, ArrayFieldDiff):
+        return any(d.kind.base_kind != ChangeKind.ORIGIN for d in entry.diffs)
+    raise TypeError(f"不应对 DiffDict 调用 _is_modified，应递归到子字段")
+
+
+def _extract_value(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> object:
+    """提取现有条目的值，用于保存为 old_value"""
+    if entry is None:
+        return None
+    if isinstance(entry, FieldDiff):
+        return entry.value
+    return entry  # DiffDict / ArrayFieldDiff 本身
+
+
 def _remap_array_delta(
     delta: ArrayFieldDiff,
-    id_arr: list[tuple[int, object]],
+    base: ArrayFieldDiff,
 ) -> tuple[ArrayFieldDiff, dict[int, int]]:
     """对 ArrayFieldDiff 中的 ADDED 元素 ID 进行重分配。
 
+    基于全状态 base 的最大 ID 进行重映射，避免 ID 冲突。
     返回重映射后的 ArrayFieldDiff 和映射表 {原ID: 新ID}。
-    CHANGED/DELETED 的 ID 必须 <= base_count，否则 raise。
     """
-    cur_max = max((eid for eid, _ in id_arr), default=0)
+    cur_max = max(base.indices, default=0)
     remap: dict[int, int] = {}
     next_id = cur_max + 1
 
@@ -127,92 +152,101 @@ def _remap_array_delta(
         base_count=delta.base_count,
         indices=new_indices,
         order=new_order,
+        is_duplist=delta.is_duplist,
     ), remap
 
 
+
 def apply_array_delta(
-    id_arr: list[tuple[int, object]],
+    base: ArrayFieldDiff,
     delta: ArrayFieldDiff,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
     allow_deletions: bool = False,
-) -> list[tuple[int, object]]:
-    """将 ArrayFieldDiff 应用到带 ID 的数组上。
-
-    内部自动调用 _remap_array_delta 完成 ADDED 元素的 ID 重分配，
-    调用方无需预先 remap。
+    version: int = 0,
+) -> ArrayFieldDiff:
+    """将 ArrayFieldDiff delta 应用到全状态 ArrayFieldDiff 上，原地修改并返回。
 
     参数:
-        id_arr: [(element_id, value), ...] 当前数组状态
-        delta: 要应用的 ArrayFieldDiff
-        schema: schema 规则
-        field_path: 当前字段路径
-        allow_deletions: 是否实际执行删除
-    返回:
-        更新后的 [(element_id, value), ...]
+        base: 全状态 ArrayFieldDiff（所有元素带 ChangeKind 注解）
+        delta: 稀疏 ArrayFieldDiff（仅变化的元素）
+        version: 当前 mod 迭代版本号
     """
     # ID 重分配
-    delta, _ = _remap_array_delta(delta, id_arr)
+    delta, _ = _remap_array_delta(delta, base)
 
-    # 构建 ID → 索引映射
-    id_map: dict[int, int] = {eid: i for i, (eid, _) in enumerate(id_arr)}
+    # 构建 ID → 位置映射
+    id_map: dict[int, int] = {eid: pos for pos, eid in enumerate(base.indices)}
 
     # 应用 CHANGED
     for diff, elem_id in zip(delta.diffs, delta.indices, strict=True):
         if diff.kind != ChangeKind.CHANGED:
             continue
         if elem_id not in id_map:
-            continue  # 元素已不存在，跳过
-        idx = id_map[elem_id]
-        old_eid, old_val = id_arr[idx]
-        if isinstance(diff.value, DictDelta) and isinstance(old_val, dict):
-            apply_delta(old_val, diff.value, schema, field_path,
-                        allow_deletions=allow_deletions)
-            # old_val 已原地修改
-        elif isinstance(diff.value, ArrayFieldDiff) and isinstance(old_val, list):
-            # 嵌套数组变更：递归应用 ArrayFieldDiff
-            if old_val and isinstance(old_val[0], tuple):
-                nested_id_arr: list[tuple[int, object]] = old_val
-            else:
-                nested_id_arr = [(i + 1, elem) for i, elem in enumerate(old_val)]
-            new_nested = apply_array_delta(
-                nested_id_arr, diff.value, schema, field_path,
-                allow_deletions=allow_deletions,
-            )
-            id_arr[idx] = (old_eid, new_nested)
-        elif isinstance(diff.value, FieldDiff):
-            id_arr[idx] = (old_eid, copy.deepcopy(diff.value.value))
-        else:
-            id_arr[idx] = (old_eid, copy.deepcopy(diff.value))
+            continue
+        pos = id_map[elem_id]
+        existing = base.diffs[pos]
+        was_modified = existing.kind.base_kind != ChangeKind.ORIGIN
 
-    # 收集 ADDED 和 DELETED
-    new_items: dict[int, object] = {}
+        if isinstance(diff.value, DiffDict) and isinstance(existing.value, DiffDict):
+            # 嵌套 dict 变更：递归 apply_delta，子字段级别追踪 MULTI_MOD
+            apply_delta(existing.value, diff.value, schema, field_path,
+                        allow_deletions=allow_deletions, version=version)
+            # 更新元素级标记
+            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+            existing.kind = kind
+            existing.version = version
+        elif isinstance(diff.value, ArrayFieldDiff) and isinstance(existing.value, ArrayFieldDiff):
+            # 嵌套数组变更：递归
+            apply_array_delta(existing.value, diff.value, schema, field_path,
+                              allow_deletions=allow_deletions, version=version)
+            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+            existing.kind = kind
+            existing.version = version
+        elif isinstance(diff.value, FieldDiff):
+            # 标量变更（_recursive_delta 返回的 FieldDiff 叶子）
+            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+            base.diffs[pos] = FieldDiff(kind, diff.value.value,
+                                        old_value=existing.value, version=version)
+        else:
+            # 直接值替换
+            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+            base.diffs[pos] = FieldDiff(kind, diff.value,
+                                        old_value=existing.value, version=version)
+
+    # 应用 ADDED 和 DELETED
     deleted_ids: set[int] = set()
     for diff, elem_id in zip(delta.diffs, delta.indices, strict=True):
         if diff.kind == ChangeKind.ADDED:
-            new_items[elem_id] = copy.deepcopy(diff.value)
+            base.diffs.append(FieldDiff(ChangeKind.ADDED, diff.value, version=version))
+            base.indices.append(elem_id)
         elif diff.kind == ChangeKind.DELETED:
             deleted_ids.add(elem_id)
+            if elem_id in id_map:
+                pos = id_map[elem_id]
+                existing = base.diffs[pos]
+                was_modified = existing.kind.base_kind != ChangeKind.ORIGIN
+                if allow_deletions:
+                    kind = ChangeKind.DELETED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+                    base.diffs[pos] = FieldDiff(kind, None,
+                                                old_value=existing.value, version=version)
 
-    # 按 order 重建数组
-    # 策略：delta.order 中的 base 元素 ID（<= base_count）和边界标记（0, -1）
-    # 决定 base 元素的相对顺序。新增 ID 在 order 中指定的位置插入。
-    # current 中已有的非 base 元素（前 mod 新增的）保持原有位置。
+    # 保存旧 order，重建 order
+    base.old_order = list(base.order)
 
-    # 先收集 order 中 base 元素和新增元素的序列（去掉边界标记和已删除的）
-    # 同时保留 current 中前 mod 新增的元素
-    current_ids = [eid for eid, _ in id_arr]
-    current_non_base = {eid for eid in current_ids if eid > delta.base_count}
+    # 找出前 mod 新增的非 base 元素（不含本次 delta 的元素）
+    this_delta_ids = set(delta.indices)
+    current_non_base: set[int] = set()
+    for eid in base.indices:
+        if eid > delta.base_count and eid not in this_delta_ids:
+            current_non_base.add(eid)
 
-    # 按 delta.order 中的相对位置构建最终数组
-    # delta.order 只包含 base 元素和本次新增元素，不包含前 mod 的新增
-    # 需要把前 mod 新增元素插回到它们在 current 中相邻 base 元素之间
-
-    # 步骤 1：从 current 中提取 base 元素间的前 mod 新增元素的位置关系
-    # 记录每个 base ID 后面跟着哪些非 base ID
-    after_base: dict[int, list[int]] = {0: []}  # 0 代表开头之前
+    # 从旧 order 中提取 base 元素和前 mod 非 base 元素的相对位置
+    after_base: dict[int, list[int]] = {0: []}
     last_base_id = 0
-    for eid in current_ids:
+    for eid in base.old_order:
+        if eid == 0 or eid == -1:
+            continue
         if eid <= delta.base_count:
             last_base_id = eid
             if eid not in after_base:
@@ -220,50 +254,53 @@ def apply_array_delta(
         elif eid in current_non_base:
             after_base.setdefault(last_base_id, []).append(eid)
 
-    # 步骤 2：按 delta.order 构建新数组
-    result: list[tuple[int, object]] = []
-    # 重建 id_map（CHANGED 可能已修改值）
-    id_map_final: dict[int, object] = dict(id_arr)
-    # 加入新增元素
-    id_map_final.update(new_items)
+    # 有效 ID 集合
+    valid_ids = set(base.indices)
+    if allow_deletions:
+        valid_ids -= deleted_ids
 
+    # 按 delta.order 构建新 order
+    new_order: list[int] = [0]
     for eid in delta.order:
-        if eid == 0 or eid == -1:
-            # 开头标记后的非 base 元素
-            if eid == 0:
-                for non_base_id in after_base.get(0, []):
-                    if non_base_id not in deleted_ids and non_base_id in id_map_final:
-                        result.append((non_base_id, id_map_final[non_base_id]))
+        if eid == 0:
+            for nb_id in after_base.get(0, []):
+                if nb_id in valid_ids:
+                    new_order.append(nb_id)
             continue
-
+        if eid == -1:
+            continue
         if eid in deleted_ids:
-            if not allow_deletions and eid in id_map_final:
-                result.append((eid, id_map_final[eid]))
+            if not allow_deletions and eid in valid_ids:
+                new_order.append(eid)
             continue
-
-        if eid in id_map_final:
-            result.append((eid, id_map_final[eid]))
-
-        # 在此 base 元素后插入 current 中跟在它后面的非 base 元素
+        if eid in valid_ids:
+            new_order.append(eid)
+        # 在此 base 元素后插入前 mod 新增的非 base 元素
         if eid <= delta.base_count:
-            for non_base_id in after_base.get(eid, []):
-                if non_base_id not in deleted_ids and non_base_id in id_map_final:
-                    result.append((non_base_id, id_map_final[non_base_id]))
+            for nb_id in after_base.get(eid, []):
+                if nb_id in valid_ids:
+                    new_order.append(nb_id)
+    new_order.append(-1)
+    base.order = new_order
 
-    return result
+    return base
 
 
 @profile
 def apply_delta(
-    base: dict[str, object],
-    delta: DictDelta,
+    base: DiffDict,
+    delta: DiffDict,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
     allow_deletions: bool = False,
-) -> dict[str, object]:
-    """将 DictDelta 应用到 base dict 上，原地修改并返回。
+    version: int = 0,
+) -> DiffDict:
+    """将 DiffDict delta 应用到全状态 DiffDict 上，原地修改并返回。
 
-    替代旧的 deep_merge 函数。
+    参数:
+        base: 全状态 DiffDict（所有字段带 ChangeKind 注解）
+        delta: 稀疏 DiffDict（仅变化的字段）
+        version: 当前 mod 迭代版本号
     """
     # 查找当前层的 schema 定义
     current_def: dict[str, object] | None = None
@@ -274,59 +311,94 @@ def apply_delta(
         child_path = field_path + [key] if field_path is not None else None
 
         if isinstance(diff, FieldDiff):
+            existing = base.items.get(key)
+            was_modified = (
+                _is_modified(existing)
+                if isinstance(existing, (FieldDiff, ArrayFieldDiff))
+                else False
+            )
+            old_val = _extract_value(existing)
+
             if diff.kind == ChangeKind.DELETED:
+                # 合法 existing: None、DiffDict、ArrayFieldDiff、FieldDiff(ORIGIN/CHANGED/DELETED)
+                if isinstance(existing, FieldDiff):
+                    assert existing.kind.base_kind in (ChangeKind.ORIGIN, ChangeKind.CHANGED, ChangeKind.DELETED), \
+                        f"DELETED delta 遇到非预期 existing kind: {existing.kind}"
                 if allow_deletions:
-                    base.pop(key, None)
+                    kind = ChangeKind.DELETED | (
+                        ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
+                    )
+                    base.items[key] = FieldDiff(kind, None,
+                                                old_value=old_val, version=version)
             elif diff.kind == ChangeKind.ADDED:
+                # 合法 existing: None 或 FieldDiff(ADDED)
+                assert existing is None or (isinstance(existing, FieldDiff) and existing.kind.base_kind == ChangeKind.ADDED), \
+                    f"ADDED delta 遇到非预期 existing: {type(existing).__name__}" + \
+                    (f" kind={existing.kind}" if isinstance(existing, FieldDiff) else "")
                 # 类型校验
                 child_def = get_field_def(schema, child_path) if schema and child_path else None
                 _, type_warn = _resolve_merge_strategy(child_def, None, diff, key)
                 if type_warn:
                     diag.warn("merge", _build_warn_msg(child_path, type_warn))
-                base[key] = copy.deepcopy(diff.value)
+                kind = ChangeKind.ADDED | (
+                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
+                )
+                base.items[key] = FieldDiff(kind, diff.value,
+                                            old_value=old_val, version=version)
             else:
                 # CHANGED
+                # 合法 existing: None、DiffDict、ArrayFieldDiff、FieldDiff(ORIGIN/CHANGED/DELETED)
+                if isinstance(existing, FieldDiff):
+                    assert existing.kind.base_kind in (ChangeKind.ORIGIN, ChangeKind.CHANGED, ChangeKind.DELETED), \
+                        f"CHANGED delta 遇到非预期 existing kind: {existing.kind}"
                 child_def = get_field_def(schema, child_path) if schema and child_path else None
-                _, type_warn = _resolve_merge_strategy(child_def, base.get(key), diff, key)
+                _, type_warn = _resolve_merge_strategy(
+                    child_def, old_val, diff, key,
+                )
                 if type_warn:
                     diag.warn("merge", _build_warn_msg(child_path, type_warn))
-                base[key] = copy.deepcopy(diff.value)
+                kind = ChangeKind.CHANGED | (
+                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
+                )
+                base.items[key] = FieldDiff(kind, diff.value,
+                                            old_value=old_val, version=version)
 
-        elif isinstance(diff, DictDelta):
-            existing = base.get(key)
-            if isinstance(existing, dict):
+        elif isinstance(diff, DiffDict):
+            # 嵌套 dict 的部分修改——递归 apply_delta
+            existing = base.items.get(key)
+            if isinstance(existing, DiffDict):
                 apply_delta(existing, diff, schema, child_path,
-                            allow_deletions=allow_deletions)
+                            allow_deletions=allow_deletions, version=version)
+            elif isinstance(existing, FieldDiff) and isinstance(existing.value, DiffDict):
+                apply_delta(existing.value, diff, schema, child_path,
+                            allow_deletions=allow_deletions, version=version)
+            elif isinstance(existing, FieldDiff) and isinstance(existing.value, dict):
+                sub = DiffDict.from_dict(existing.value)
+                apply_delta(sub, diff, schema, child_path,
+                            allow_deletions=allow_deletions, version=version)
+                base.items[key] = sub
             else:
-                # base 中不是 dict 或不存在：从 DictDelta 重建
-                new_dict: dict[str, object] = {}
-                apply_delta(new_dict, diff, schema, child_path,
-                            allow_deletions=allow_deletions)
-                base[key] = new_dict
+                sub = DiffDict()
+                apply_delta(sub, diff, schema, child_path,
+                            allow_deletions=allow_deletions, version=version)
+                base.items[key] = sub
 
         elif isinstance(diff, ArrayFieldDiff):
-            # 检查 base[key] 是否已是 id_arr 格式（前一个 mod 留下的）
-            base_arr = base.get(key)
-            was_duplist = isinstance(base_arr, DupList)
-            if isinstance(base_arr, list) and base_arr and isinstance(base_arr[0], tuple):
-                # 已是 id_arr 格式，直接复用
-                id_arr: list[tuple[int, object]] = base_arr
-            elif isinstance(base_arr, list):
-                # 首次转换：普通 list → id_arr
-                id_arr = [(i + 1, elem) for i, elem in enumerate(base_arr)]
+            existing = base.items.get(key)
+            if isinstance(existing, ArrayFieldDiff):
+                base_afd = existing
+            elif isinstance(existing, FieldDiff) and isinstance(existing.value, ArrayFieldDiff):
+                base_afd = existing.value
+            elif isinstance(existing, FieldDiff) and isinstance(existing.value, (list, DupList)):
+                base_afd = ArrayFieldDiff.from_list(existing.value)
             else:
-                id_arr = []
-
-            # 应用 delta（内部自动完成 ID 重分配）
-            new_id_arr = apply_array_delta(
-                id_arr, diff, schema, child_path,
-                allow_deletions=allow_deletions,
-            )
-            # 保留 DupList 类型（重复键序列化需要）
-            if was_duplist:
-                new_id_arr = DupList(new_id_arr)
-            # 保留 id_arr 格式，不剥离 ID（由 merge_file 统一剥离）
-            base[key] = new_id_arr
+                base_afd = ArrayFieldDiff(
+                    diffs=[], base_count=0, indices=[], order=[0, -1],
+                    is_duplist=diff.is_duplist,
+                )
+            apply_array_delta(base_afd, diff, schema, child_path,
+                              allow_deletions=allow_deletions, version=version)
+            base.items[key] = base_afd
 
     # 未知 key 警告
     if current_def and isinstance(current_def, dict):
@@ -362,32 +434,10 @@ def apply_delta(
 # ==================== 文件级合并 ====================
 
 
-def _strip_id_arrays(data: object) -> object:
-    """递归将 id_arr（list[tuple[int, object]]）还原为纯 list。
-
-    apply_delta 在合并过程中以 (element_id, value) 格式保存数组，
-    合并完成后需要统一剥离 ID，恢复为游戏使用的纯 list 格式。
-    """
-    if isinstance(data, dict):
-        for key, val in data.items():
-            data[key] = _strip_id_arrays(val)
-        return data
-    if isinstance(data, list):
-        if data and isinstance(data[0], tuple):
-            # id_arr 格式 → 提取 value 并递归
-            stripped = [_strip_id_arrays(v) for _, v in data]
-            return DupList(stripped) if isinstance(data, DupList) else stripped
-        # 普通 list → 递归处理每个元素
-        for i, elem in enumerate(data):
-            data[i] = _strip_id_arrays(elem)
-        return data
-    return data
-
-
 @profile
 def merge_file(
     base_data: dict[str, object],
-    mod_data_list: list[tuple[str, str, DictDelta, str]],
+    mod_data_list: list[tuple[str, str, DiffDict, str]],
     rel_path: str = "",
     schema: dict[str, object] | None = None,
     allow_deletions: bool = False,
@@ -399,7 +449,6 @@ def merge_file(
         mod_data_list: [(mod_id, mod_name, delta, source_file), ...] 按优先级排序
         rel_path: 文件相对路径（用于判断特殊文件）
         schema: 该文件对应的 schema 规则
-        overrides_dir: 用户 override 文件目录
         allow_deletions: 是否应用删除标记
     """
     result = MergeResult()
@@ -409,27 +458,23 @@ def merge_file(
     if file_name in WHOLE_FILE_REPLACE:
         if mod_data_list:
             _, last_mod_name, _, _ = mod_data_list[-1]
-            # 特殊文件不使用 delta，需要从原始 mod 数据重建——
-            # 但此处传入的已是 delta，无法还原原始数据。
-            # 暂时用 base + 最后一个 delta apply 的方式。
-            current = copy.deepcopy(base_data)
-            for _, _mod_name, delta, _ in mod_data_list:
+            current = DiffDict.from_dict(base_data)
+            for step, (_, _mod_name, delta, _) in enumerate(mod_data_list, 1):
                 apply_delta(current, delta, schema, None,
-                            allow_deletions=allow_deletions)
-            _strip_id_arrays(current)
-            result.merged_data = current
+                            allow_deletions=allow_deletions, version=step)
+            result.merged_data = current.to_dict()
             if len(mod_data_list) > 1:
                 diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {last_mod_name}")
         else:
             result.merged_data = copy.deepcopy(base_data)
         return result
 
-    current = copy.deepcopy(base_data)
+    current = DiffDict.from_dict(base_data)
 
     # 确定 schema 根 key
     root_key = get_schema_root_key(schema) if schema else None
 
-    for mod_id, mod_name, delta, source_file in mod_data_list:
+    for step, (mod_id, mod_name, delta, source_file) in enumerate(mod_data_list, 1):
         # 设置线程本地上下文，供 apply_delta 内部的警告使用
         merge_ctx.mod_name = mod_name
         merge_ctx.mod_id = mod_id
@@ -438,16 +483,14 @@ def merge_file(
 
         fp: list[str] | None = [root_key] if root_key else None
         apply_delta(current, delta, schema, fp,
-                    allow_deletions=allow_deletions)
+                    allow_deletions=allow_deletions, version=step)
 
         # 检查用户 override
-        from .json_store import JsonStore
         override = JsonStore.instance().get_override(mod_id, rel_path)
         if override is not None:
-            current = copy.deepcopy(override)
+            current = DiffDict.from_dict(override)
 
-    _strip_id_arrays(current)
-    result.merged_data = current
+    result.merged_data = current.to_dict()
     return result
 
 
@@ -487,7 +530,7 @@ def merge_all_files(
         schema = resolve_schema(rel_path, schemas) if schemas else None
 
         # 从 store 获取各 mod 的数据，从缓存获取 delta
-        mod_data_list: list[tuple[str, str, DictDelta, str]] = []
+        mod_data_list: list[tuple[str, str, DiffDict, str]] = []
         for mod_id in mod_ids:
             if not store.has_mod(mod_id, rel_path):
                 continue

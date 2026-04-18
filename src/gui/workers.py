@@ -40,7 +40,6 @@ class CancellableWorker(QThread):
 
 class StoreInitWorker(QThread):
     """后台初始化 JsonStore"""
-    finished = Signal()
     error = Signal(str)
 
     def __init__(self, game_config_path: Path,
@@ -53,7 +52,6 @@ class StoreInitWorker(QThread):
         try:
             store = JsonStore.instance()
             store.init(self.game_config_path, self.mod_configs)
-            self.finished.emit()
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
@@ -61,7 +59,6 @@ class StoreInitWorker(QThread):
 class DeltaInitWorker(QThread):
     """后台预计算所有 mod 的 delta"""
     progress = Signal(int, int)  # completed, total
-    finished = Signal()
     error = Signal(str)
 
     def __init__(self, mod_ids: list[str],
@@ -78,14 +75,13 @@ class DeltaInitWorker(QThread):
                 schema_dir=self.schema_dir,
                 progress_cb=self.progress.emit,
             )
-            self.finished.emit()
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
 
 class MergeWorker(CancellableWorker):
     """后台合并线程"""
-    finished = Signal(dict, list)  # 合并结果, 警告列表
+    done = Signal(dict, list)  # 合并结果, 警告列表
     progress = Signal(str)
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
@@ -117,7 +113,7 @@ class MergeWorker(CancellableWorker):
             copy_resources(self.mod_paths, self.output_path,
                            cancel_check=self._check_cancel,
                            remap_tables=self.remap_tables)
-            self.finished.emit(results, warnings_snapshot)
+            self.done.emit(results, warnings_snapshot)
         except _MergeCancelled:
             pass
         except Exception as e:
@@ -126,7 +122,7 @@ class MergeWorker(CancellableWorker):
 
 class AnalyzeWorker(CancellableWorker):
     """后台冲突分析线程"""
-    finished = Signal(list, list)  # overrides, parse_messages
+    done = Signal(list, list)  # overrides, parse_messages
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  schema_dir: Path) -> None:
@@ -145,7 +141,7 @@ class AnalyzeWorker(CancellableWorker):
             self._check_cancel()
 
             parse_msgs = diag.snapshot("parse")
-            self.finished.emit(overrides, parse_msgs)
+            self.done.emit(overrides, parse_msgs)
         except _MergeCancelled:
             pass
         except Exception as e:
@@ -155,7 +151,6 @@ class AnalyzeWorker(CancellableWorker):
 class SchemaWorker(QThread):
     """后台 Schema 生成线程"""
     progress = Signal(int, int, str)  # current, total, name
-    finished = Signal()
     error = Signal(str)
 
     def __init__(self, config_dir: Path, schema_dir: Path) -> None:
@@ -170,15 +165,14 @@ class SchemaWorker(QThread):
                 str(self.config_dir), str(self.schema_dir),
                 progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
             )
-            self.finished.emit()
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
 
 class UpdateCheckWorker(QThread):
     """后台检查更新线程"""
-    finished = Signal(object)  # dict（有新版本）或 None
+    done = Signal(object)  # dict（有新版本）或 None
 
     def run(self) -> None:
         from ..core.updater import check_for_update
-        self.finished.emit(check_for_update(timeout=8))
+        self.done.emit(check_for_update(timeout=8))

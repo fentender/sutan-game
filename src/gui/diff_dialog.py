@@ -2,7 +2,6 @@
 Diff 对比窗口 - 逐级展示游戏本体经各 Mod 覆盖后的行级差异
 左侧只读 CodeEditor 显示合并前状态，右侧可编辑 CodeEditor 显示合并结果
 """
-import copy
 import json
 from pathlib import Path
 
@@ -25,18 +24,26 @@ from PySide6.QtWidgets import (
 from ..config import SCHEMA_DIR
 from ..core.delta_store import ModDelta
 from ..core.diagnostics import diag, merge_ctx
+from ..core.diff_formatter import (
+    build_padded_texts,
+    diff_opcodes,
+    format_delta_json,
+)
 from ..core.json_parser import _pairs_hook, clean_json_text, format_json
 from ..core.json_store import JsonStore
-from ..core.merger import _strip_id_arrays, apply_delta
+from ..core.merger import apply_delta
 from ..core.profiler import profile
 from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
+from ..core.types import ChangeKind, DiffDict
 from .json_editor import CodeEditor, _DiffBlockData, _format_with_comments
 
 # diff 行高亮背景色
-_CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（被修改/删除的行）
-_CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增/修改后的行）
-_CLR_LEFT_CONFLICT = QColor(120, 80, 20)  # 橙底（冲突：左侧对应行）
-_CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（冲突：此行被多个 mod 修改）
+_CLR_LEFT_CHANGE = QColor(80, 30, 30)     # 红底（删除的行）
+_CLR_RIGHT_CHANGE = QColor(30, 80, 30)    # 绿底（新增的行）
+_CLR_CHANGED = QColor(80, 75, 20)         # 浅黄底（修改的行，无冲突）
+_CLR_CONFLICT = QColor(140, 90, 20)       # 橙底/深黄底（冲突：多 mod 修改同一字段）
+_CLR_LEFT_CONFLICT = QColor(120, 80, 20)  # 橙底（旧：文本匹配 fallback 用）
+_CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（旧：文本匹配 fallback 用）
 _CLR_PADDING = QColor(30, 30, 30)         # 填充行背景（略深于编辑器背景）
 _CLR_SEARCH = QColor(40, 100, 180)        # 搜索匹配高亮（亮蓝）
 
@@ -45,147 +52,11 @@ _COLOR_PRIORITY: dict[int, int] = {
     _CLR_PADDING.rgb(): 1,
     _CLR_LEFT_CHANGE.rgb(): 2,
     _CLR_RIGHT_CHANGE.rgb(): 2,
+    _CLR_CHANGED.rgb(): 2,
     _CLR_LEFT_CONFLICT.rgb(): 3,
     _CLR_RIGHT_CONFLICT.rgb(): 3,
+    _CLR_CONFLICT.rgb(): 3,
 }
-
-
-def _normalize_for_diff(line: str) -> str:
-    """去除行尾逗号，避免 JSON 数组元素追加/删除时的纯格式差异被识别为内容修改"""
-    stripped = line.rstrip()
-    if stripped.endswith(','):
-        return stripped[:-1]
-    return stripped
-
-
-def _intern_lines(lines: list[str], table: dict[str, int]) -> list[int]:
-    """将字符串行列表映射为整数 ID 列表，共享 table 跨多次调用复用。
-    对行做尾逗号标准化，使 JSON 格式差异不影响 diff 结果。"""
-    ids = []
-    for line in lines:
-        key = _normalize_for_diff(line)
-        if key not in table:
-            table[key] = len(table)
-        ids.append(table[key])
-    return ids
-
-
-def _fast_opcodes(a_ids: list[int], b_ids: list[int]) -> list[tuple[str, int, int, int, int]]:
-    """使用 rapidfuzz C++ 后端计算 diff opcodes（行哈希整数序列输入）。
-    Indel 只产出 equal/delete/insert，此函数将相邻 delete+insert 合并为 replace
-    以保持与 difflib 兼容的语义。"""
-    from rapidfuzz.distance import Indel
-
-    raw = Indel.opcodes(a_ids, b_ids)
-
-    # 合并相邻 delete+insert 为 replace
-    opcodes: list[tuple[str, int, int, int, int]] = []
-    i = 0
-    n = len(raw)
-    while i < n:
-        op = raw[i]
-        tag = op.tag
-        if tag == "delete" and i + 1 < n and raw[i + 1].tag == "insert":
-            nxt = raw[i + 1]
-            opcodes.append(("replace", op.src_start, op.src_end,
-                            nxt.dest_start, nxt.dest_end))
-            i += 2
-        elif tag == "insert" and i + 1 < n and raw[i + 1].tag == "delete":
-            nxt = raw[i + 1]
-            opcodes.append(("replace", nxt.src_start, nxt.src_end,
-                            op.dest_start, op.dest_end))
-            i += 2
-        else:
-            opcodes.append((tag, op.src_start, op.src_end,
-                            op.dest_start, op.dest_end))
-            i += 1
-    return opcodes
-
-
-def _diff_opcodes(a_lines: list[str], b_lines: list[str]) -> list[tuple]:
-    """行哈希 + rapidfuzz C++ 后端 diff — 31000 行文件仅需 ~1ms"""
-    table: dict[str, int] = {}
-    a_ids = _intern_lines(a_lines, table)
-    b_ids = _intern_lines(b_lines, table)
-    return _fast_opcodes(a_ids, b_ids)
-
-
-def _build_padded_texts(
-    left_lines: list[str],
-    right_lines: list[str],
-    opcodes: list[tuple[str, int, int, int, int]]
-) -> tuple[
-    list[str], list[str],
-    list[int | None], list[int | None],
-    dict[int, int], dict[int, int]
-]:
-    """根据 opcodes 在行数少的一侧插入空行，使两侧总行数一致。
-
-    返回:
-        padded_left, padded_right: 填充后的行列表
-        left_map, right_map: padded_index → 原始行号(0-based)|None
-        left_o2p, right_o2p: 原始行号 → padded_index
-    """
-    padded_left: list[str] = []
-    padded_right: list[str] = []
-    left_map: list[int | None] = []
-    right_map: list[int | None] = []
-    left_o2p: dict[int, int] = {}
-    right_o2p: dict[int, int] = {}
-
-    for tag, i1, i2, j1, j2 in opcodes:
-        left_count = i2 - i1
-        right_count = j2 - j1
-
-        if tag == "equal":
-            for k in range(left_count):
-                idx = len(padded_left)
-                left_o2p[i1 + k] = idx
-                right_o2p[j1 + k] = idx
-                padded_left.append(left_lines[i1 + k])
-                padded_right.append(right_lines[j1 + k])
-                left_map.append(i1 + k)
-                right_map.append(j1 + k)
-
-        elif tag == "insert":
-            for k in range(right_count):
-                idx = len(padded_left)
-                right_o2p[j1 + k] = idx
-                padded_left.append("")
-                padded_right.append(right_lines[j1 + k])
-                left_map.append(None)
-                right_map.append(j1 + k)
-
-        elif tag == "delete":
-            for k in range(left_count):
-                idx = len(padded_left)
-                left_o2p[i1 + k] = idx
-                padded_left.append(left_lines[i1 + k])
-                padded_right.append("")
-                left_map.append(i1 + k)
-                right_map.append(None)
-
-        elif tag == "replace":
-            max_count = max(left_count, right_count)
-            for k in range(max_count):
-                idx = len(padded_left)
-                if k < left_count:
-                    left_o2p[i1 + k] = idx
-                    padded_left.append(left_lines[i1 + k])
-                    left_map.append(i1 + k)
-                else:
-                    padded_left.append("")
-                    left_map.append(None)
-                if k < right_count:
-                    right_o2p[j1 + k] = idx
-                    padded_right.append(right_lines[j1 + k])
-                    right_map.append(j1 + k)
-                else:
-                    padded_right.append("")
-                    right_map.append(None)
-
-    assert len(padded_left) == len(padded_right)
-    return padded_left, padded_right, left_map, right_map, left_o2p, right_o2p
 
 
 def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]) -> None:
@@ -200,7 +71,7 @@ def _apply_block_userdata(editor: CodeEditor, line_map: list[int | None]) -> Non
 
 def _get_real_text(editor: CodeEditor) -> str:
     """从编辑器中提取非填充行文本（剥离填充行）"""
-    lines = []
+    lines: list[str] = []
     block = editor.document().begin()
     while block.isValid():
         data = block.userData()
@@ -214,7 +85,6 @@ def _get_real_text(editor: CodeEditor) -> str:
 def _apply_extra_selections(editor: CodeEditor,
                             highlights: list[tuple[int, QColor]]) -> None:
     """对 CodeEditor 应用行级背景高亮。同一行多种颜色时按优先级保留最高的。"""
-    # 按行去重，冲突色优先
     best: dict[int, tuple[int, QColor]] = {}
     for block_no, color in highlights:
         prio = _COLOR_PRIORITY.get(color.rgb(), 0)
@@ -222,7 +92,7 @@ def _apply_extra_selections(editor: CodeEditor,
         if prev is None or prio > prev[0]:
             best[block_no] = (prio, color)
 
-    selections = []
+    selections: list[QTextEdit.ExtraSelection] = []
     for block_no in sorted(best):
         block = editor.document().findBlockByNumber(block_no)
         if not block.isValid():
@@ -252,14 +122,15 @@ class DiffDialog(QDialog):
         self._array_warnings = array_warnings or []
 
         # 预计算各级合并状态的 JSON 文本
-        self._base_text: str = ""  # 游戏本体原始文本（所有 mod 之前）
-        self._diff_pairs: list[tuple[str, str, str, str]] = []  # (mod_id, mod_name, prev_text, curr_text)
-        # 预计算的高亮数据：[(left_highlights, right_highlights, diff_positions), ...]
+        self._base_text: str = ""
+        self._diff_pairs: list[tuple[str, str, str, str]] = []
         self._precomputed_highlights: list[tuple[
             list[tuple[int, QColor]], list[tuple[int, QColor]], list[int]
         ]] = []
-        # 预计算的 opcodes，供 _load_tab() 构建填充文本时复用
-        self._precomputed_opcodes: list[list[tuple]] = []
+        # 各 tab 的行级 ChangeKind 对（结构化高亮）
+        self._line_kinds_pairs: list[tuple[
+            list[ChangeKind | None], list[ChangeKind | None]
+        ]] = []
         # 各 tab 是否包含冲突行
         self._tab_has_conflict: list[bool] = []
         # 文件级是否有数组合并警告
@@ -290,25 +161,23 @@ class DiffDialog(QDialog):
         """预计算逐级合并的 JSON 文本对 + 行级 diff 高亮，不涉及 UI 操作"""
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
-        self._precomputed_opcodes.clear()
-        diag.snapshot("merge")  # 清空残留的 merge 警告
+        self._line_kinds_pairs.clear()
+        diag.snapshot("merge")
         store = JsonStore.instance()
         base_data = store.get_base(self._rel_path)
 
-        self._base_text = _format_json(base_data)
+        self._base_text = format_json(base_data)
 
         schemas = load_schemas(SCHEMA_DIR)
         schema = resolve_schema(self._rel_path, schemas)
         root_key = get_schema_root_key(schema) if schema else None
 
-        current: dict = copy.deepcopy(base_data)
-        # 缓存上一轮 curr_text，避免重复格式化
-        last_curr_text: str | None = None
+        current = DiffDict.from_dict(base_data)
+        mod_version = 0
         for mod_id, mod_name, config_path in self._mod_configs:
             if not store.has_mod(mod_id, self._rel_path):
                 continue
 
-            # 设置合并上下文，供 apply_delta 内部的警告使用
             merge_ctx.mod_name = mod_name
             merge_ctx.mod_id = mod_id
             merge_ctx.rel_path = self._rel_path
@@ -316,105 +185,92 @@ class DiffDialog(QDialog):
 
             delta = ModDelta.get(mod_id, self._rel_path)
             if not delta:
-                # TODO: 应该报错而不是静默吞掉
                 continue
 
-            # 复用上轮 curr_text 作为本轮 prev_text
-            prev_text = last_curr_text if last_curr_text is not None else _format_json(current)
-
             field_path = [root_key] if root_key else None
-            apply_delta(current, delta, schema, field_path)
+            mod_version += 1
+            apply_delta(current, delta, schema, field_path,
+                        allow_deletions=self._allow_deletions, version=mod_version)
 
-            # 剥离 id_arr 格式后再格式化（current 本身保留 id_arr 供下轮使用）
-            display_state = copy.deepcopy(current)
-            _strip_id_arrays(display_state)
-            curr_text = _format_json(display_state)
+            left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
+                current, highlight_version=mod_version,
+            )
 
             # 检查是否存在用户 override
             override = store.get_override(mod_id, self._rel_path)
             if override is not None:
-                curr_text = _format_json(override)
-                current = copy.deepcopy(override)
-                # override 改变了 current，下轮需要重新格式化
-                last_curr_text = None
-            else:
-                last_curr_text = curr_text
+                override_text = format_json(override)
+                right_lines = override_text.splitlines()
+                right_kinds_override: list[ChangeKind | None] = [None] * len(right_lines)
+                max_len = max(len(left_lines), len(right_lines))
+                while len(left_lines) < max_len:
+                    left_lines.append('')
+                    left_kinds.append(None)
+                while len(right_lines) < max_len:
+                    right_lines.append('')
+                    right_kinds_override.append(None)
+                right_kinds = right_kinds_override
+                current = DiffDict.from_dict(override)
+
+            prev_text = '\n'.join(left_lines)
+            curr_text = '\n'.join(right_lines)
 
             self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
+            self._line_kinds_pairs.append((left_kinds, right_kinds))
 
-        # 收集合并过程中产生的 schema 验证警告
-        self._merge_warnings = [msg for _, msg in diag.snapshot("merge")]
-
-        # 预计算所有 tab 的行级 diff 高亮（行哈希 + rapidfuzz C++ 后端）
-        base_lines = self._base_text.splitlines()
-        intern_table: dict[str, int] = {}
-        base_ids = _intern_lines(base_lines, intern_table)
-
-        for _, _, prev_text, curr_text in self._diff_pairs:
-            left_lines = prev_text.splitlines()
-            right_lines = curr_text.splitlines()
-
-            left_ids = _intern_lines(left_lines, intern_table)
-            right_ids = _intern_lines(right_lines, intern_table)
-
-            # prev vs curr 的 opcodes
-            opcodes = _fast_opcodes(left_ids, right_ids)
-            self._precomputed_opcodes.append(opcodes)
-
-            # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
-            prev_changed_lines: set[int] = set()
-            if left_ids != base_ids:
-                base_opcodes = _fast_opcodes(base_ids, left_ids)
-                for tag, _, _, j1, j2 in base_opcodes:
-                    # TODO：不考虑删除会丢失冲突
-                    if tag in ("replace", "insert"):
-                        for j in range(j1, j2):
-                            prev_changed_lines.add(j)
-
+            # 从 line_kinds 计算高亮
             left_highlights: list[tuple[int, QColor]] = []
             right_highlights: list[tuple[int, QColor]] = []
             diff_positions: list[int] = []
+            has_conflict = False
+            prev_is_change = False
 
-            for tag, i1, i2, j1, j2 in opcodes:
-                if tag == "equal":
-                    continue
-                diff_positions.append(i1)
+            for i, (lk, rk) in enumerate(zip(left_kinds, right_kinds, strict=True)):
+                is_change = False
 
-                is_conflict = (
-                    tag == "replace"
-                    and prev_changed_lines
-                    and any(i in prev_changed_lines for i in range(i1, i2))
-                )
+                if lk is not None and lk.base_kind in (
+                    ChangeKind.DELETED, ChangeKind.CHANGED,
+                ):
+                    color = _CLR_CONFLICT if lk.is_multi_mod else _CLR_LEFT_CHANGE
+                    left_highlights.append((i, color))
+                    is_change = True
+                    if lk.is_multi_mod:
+                        has_conflict = True
+                elif lk is None and rk is not None and rk.base_kind != ChangeKind.ORIGIN:
+                    left_highlights.append((i, _CLR_LEFT_CHANGE))
 
-                if tag in ("replace", "delete"):
-                    # TODO：被修改的行为什么和被删除的一个颜色？应该要有不同才行
-                    color = _CLR_LEFT_CONFLICT if is_conflict else _CLR_LEFT_CHANGE
-                    for i in range(i1, i2):
-                        left_highlights.append((i, color))
+                if rk is not None and rk.base_kind in (
+                    ChangeKind.ADDED, ChangeKind.CHANGED,
+                ):
+                    color = _CLR_CONFLICT if rk.is_multi_mod else _CLR_RIGHT_CHANGE
+                    right_highlights.append((i, color))
+                    is_change = True
+                    if rk.is_multi_mod:
+                        has_conflict = True
+                elif rk is None and lk is not None and lk.base_kind != ChangeKind.ORIGIN:
+                    right_highlights.append((i, _CLR_RIGHT_CHANGE))
 
-                if tag in ("replace", "insert"):
-                    color = _CLR_RIGHT_CONFLICT if is_conflict else _CLR_RIGHT_CHANGE
-                    for j in range(j1, j2):
-                        right_highlights.append((j, color))
+                # 只记录每个连续变化块的第一行
+                if is_change and not prev_is_change:
+                    diff_positions.append(i)
+                prev_is_change = is_change
 
             self._precomputed_highlights.append(
                 (left_highlights, right_highlights, diff_positions)
             )
-            self._tab_has_conflict.append(
-                any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
-            )
+            self._tab_has_conflict.append(has_conflict)
+
+        self._merge_warnings = [msg for _, msg in diag.snapshot("merge")]
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
 
-        # 文件路径标题
         path_label = QLabel(self._rel_path)
         path_label.setStyleSheet("font-weight: bold; font-size: 13px; padding: 2px;")
         path_label.setFixedHeight(24)
         layout.addWidget(path_label)
 
-        # Schema 验证警告条
         self._warn_bar = QLabel()
         self._warn_bar.setWordWrap(True)
         self._warn_bar.setStyleSheet(
@@ -453,7 +309,6 @@ class DiffDialog(QDialog):
         self._tabs.currentChanged.connect(self._on_tab_changed)
         layout.addWidget(self._tabs)
 
-        # 立即加载第一个 tab
         self._load_tab(0)
 
     def _create_empty_tab(self, mod_name: str, tab_index: int) -> tuple[
@@ -665,7 +520,10 @@ class DiffDialog(QDialog):
 
     @profile
     def _load_tab(self, index: int) -> None:
-        """懒加载：首次切换到某 tab 时构建填充文本并应用高亮"""
+        """懒加载：首次切换到某 tab 时设置文本并应用高亮。
+
+        format_delta_json 已产出预对齐文本（含填充行），无需 build_padded_texts。
+        """
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
             return
         self._loaded_tabs.add(index)
@@ -673,58 +531,49 @@ class DiffDialog(QDialog):
         _, _, prev_text, curr_text = self._diff_pairs[index]
         left_edit, right_edit = self._tab_edits[index]
 
-        left_lines = prev_text.splitlines()
-        right_lines = curr_text.splitlines()
-        opcodes = self._precomputed_opcodes[index]
+        left_kinds, right_kinds = self._line_kinds_pairs[index]
+        left_map: list[int | None] = []
+        left_real = 0
+        for k in left_kinds:
+            if k is not None:
+                left_map.append(left_real)
+                left_real += 1
+            else:
+                left_map.append(None)
+        right_map: list[int | None] = []
+        right_real = 0
+        for k in right_kinds:
+            if k is not None:
+                right_map.append(right_real)
+                right_real += 1
+            else:
+                right_map.append(None)
 
-        (padded_left, padded_right,
-         left_map, right_map,
-         left_o2p, right_o2p) = _build_padded_texts(left_lines, right_lines, opcodes)
-
-        # 禁用更新，避免 setPlainText/userdata/highlight 期间多次重绘
         left_edit.setUpdatesEnabled(False)
         right_edit.setUpdatesEnabled(False)
         try:
-            left_edit.setPlainText('\n'.join(padded_left))
-            right_edit.setPlainText('\n'.join(padded_right))
+            left_edit.setPlainText(prev_text)
+            right_edit.setPlainText(curr_text)
 
             _apply_block_userdata(left_edit, left_map)
             _apply_block_userdata(right_edit, right_map)
 
-            self._apply_precomputed_highlights(index, left_o2p, right_o2p, left_map, right_map)
+            self._apply_precomputed_highlights(index)
         finally:
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
 
-    def _apply_precomputed_highlights(self, tab_index: int,
-                                       left_o2p: dict[int, int],
-                                       right_o2p: dict[int, int],
-                                       left_map: list[int | None],
-                                       right_map: list[int | None]) -> None:
-        """应用预计算的高亮数据到编辑器，将原始行号翻译为填充后 block 号"""
+    def _apply_precomputed_highlights(self, tab_index: int) -> None:
+        """应用预计算的高亮数据（结构化对齐模式，行号已是绝对值无需翻译）"""
         left_edit, right_edit = self._tab_edits[tab_index]
         left_hl, right_hl, diff_positions = self._precomputed_highlights[tab_index]
 
-        # 翻译高亮行号到填充后 block 号
-        translated_left_hl = [(left_o2p[ln], color) for ln, color in left_hl if ln in left_o2p]
-        translated_right_hl = [(right_o2p[ln], color) for ln, color in right_hl if ln in right_o2p]
+        _apply_extra_selections(left_edit, left_hl)
+        _apply_extra_selections(right_edit, right_hl)
 
-        # 为填充行添加背景高亮
-        for idx, real_line in enumerate(left_map):
-            if real_line is None:
-                translated_left_hl.append((idx, _CLR_PADDING))
-        for idx, real_line in enumerate(right_map):
-            if real_line is None:
-                translated_right_hl.append((idx, _CLR_PADDING))
-
-        _apply_extra_selections(left_edit, translated_left_hl)
-        _apply_extra_selections(right_edit, translated_right_hl)
-
-        # 翻译 diff 导航位置
-        translated_positions = [left_o2p[p] for p in diff_positions if p in left_o2p]
-        self._tab_diff_positions[tab_index] = translated_positions
+        self._tab_diff_positions[tab_index] = diff_positions
         _, count_label, _ = self._tab_nav_widgets[tab_index]
-        total = len(translated_positions)
+        total = len(diff_positions)
         if total > 0:
             self._tab_current_idx[tab_index] = 0
             count_label.setText(f"1 / {total}")
@@ -740,13 +589,11 @@ class DiffDialog(QDialog):
         仅用于格式化等需要实时重算的场景。"""
         left_edit, right_edit = self._tab_edits[tab_index]
 
-        # 提取真实行（跳过填充行）
         left_real = [left_edit.document().findBlockByNumber(i).text()
                      for i, r in enumerate(left_map) if r is not None]
         right_real = [right_edit.document().findBlockByNumber(i).text()
                       for i, r in enumerate(right_map) if r is not None]
 
-        # 构建原始行号 → 填充后 block 号映射
         left_o2p: dict[int, int] = {}
         right_o2p: dict[int, int] = {}
         for padded_idx, real_line in enumerate(left_map):
@@ -756,14 +603,13 @@ class DiffDialog(QDialog):
             if real_line is not None:
                 right_o2p[real_line] = padded_idx
 
-        # 行哈希加速 diff
-        opcodes = _diff_opcodes(left_real, right_real)
+        opcodes = diff_opcodes(left_real, right_real)
 
         # base vs left — 判断哪些 prev 行已被之前的 mod 修改过
         prev_changed_lines: set[int] = set()
         base_lines = self._base_text.splitlines()
         if left_real != base_lines:
-            base_opcodes = _diff_opcodes(base_lines, left_real)
+            base_opcodes = diff_opcodes(base_lines, left_real)
             for tag, _, _, j1, j2 in base_opcodes:
                 if tag in ("replace", "insert"):
                     for j in range(j1, j2):
@@ -797,7 +643,6 @@ class DiffDialog(QDialog):
                     if j in right_o2p:
                         right_highlights.append((right_o2p[j], color))
 
-        # 为填充行添加背景高亮
         for idx, real_line in enumerate(left_map):
             if real_line is None:
                 left_highlights.append((idx, _CLR_PADDING))
@@ -808,7 +653,6 @@ class DiffDialog(QDialog):
         _apply_extra_selections(left_edit, left_highlights)
         _apply_extra_selections(right_edit, right_highlights)
 
-        # 同步更新 tab 冲突标记颜色
         has_conflict = any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
         self._tab_has_conflict[tab_index] = has_conflict
         if has_conflict:
@@ -864,7 +708,6 @@ class DiffDialog(QDialog):
         left_bar, right_bar = self._tab_search_bars[idx]
         left_edit, right_edit = self._tab_edits[idx]
         left_input, right_input = self._tab_search_inputs[idx]
-        # 判断焦点在哪侧，默认右侧
         if left_edit.hasFocus() or left_input.hasFocus():
             bar, inp = left_bar, left_input
         else:
@@ -896,14 +739,11 @@ class DiffDialog(QDialog):
             editor.setTextCursor(cursor)
             found = editor.find(text, flags)
         if found:
-            # 记录匹配的光标（含选区），用于高亮
             match_cursor = editor.textCursor()
-            # 取消选区但保持光标在匹配末尾，确保下次搜索从此处继续
             end_pos = match_cursor.selectionEnd()
             deselected = QTextCursor(editor.document())
             deselected.setPosition(end_pos)
             editor.setTextCursor(deselected)
-            # 将搜索高亮追加到已有的 diff 高亮之后
             selections = [s for s in editor.extraSelections()
                           if s.format.background().color() != _CLR_SEARCH]
             sel = QTextEdit.ExtraSelection()
@@ -918,7 +758,6 @@ class DiffDialog(QDialog):
         text = _get_real_text(right_edit)
         error_bar = self._tab_error_bars[tab_index]
 
-        # JSON 验证
         cleaned = clean_json_text(text)
         try:
             parsed = json.loads(cleaned, object_pairs_hook=_pairs_hook)
@@ -934,7 +773,6 @@ class DiffDialog(QDialog):
         right_edit.clear_highlights()
 
         mod_id = self._diff_pairs[tab_index][0]
-        parsed = json.loads(cleaned, object_pairs_hook=_pairs_hook)
         store = JsonStore.instance()
         store.set_override(mod_id, self._rel_path, parsed, text)
 
@@ -944,19 +782,17 @@ class DiffDialog(QDialog):
         """格式化右侧文本，重建填充对齐并更新高亮"""
         left_edit, right_edit = self._tab_edits[tab_index]
 
-        # 提取真实文本并格式化
         text = _get_real_text(right_edit)
         formatted = _format_with_comments(text)
 
-        # 重新计算 diff + 填充
         _, _, prev_text, _ = self._diff_pairs[tab_index]
         left_lines = prev_text.splitlines()
         right_lines = formatted.splitlines()
-        opcodes = _diff_opcodes(left_lines, right_lines)
+        opcodes = diff_opcodes(left_lines, right_lines)
 
         (padded_left, padded_right,
          left_map, right_map,
-         _, _) = _build_padded_texts(left_lines, right_lines, opcodes)
+         _, _) = build_padded_texts(left_lines, right_lines, opcodes)
 
         scroll_val = right_edit.verticalScrollBar().value()
         left_edit.setUpdatesEnabled(False)
@@ -1022,7 +858,3 @@ class DiffDialog(QDialog):
                 self._tab_error_bars[i].setVisible(False)
         if current_tab < len(self._diff_pairs):
             self._load_tab(current_tab)
-
-
-def _format_json(data: object) -> str:
-    return format_json(data)

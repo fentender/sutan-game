@@ -89,6 +89,7 @@ def perf_apply_delta_large():
     """大对象递归合并性能"""
     from src.core.delta_store import compute_delta
     from src.core.merger import apply_delta
+    from src.core.types import DiffDict
 
     # 构造 1000 key 的嵌套字典
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
@@ -103,7 +104,7 @@ def perf_apply_delta_large():
 
     start = time.perf_counter()
     for _ in range(10):
-        apply_delta(copy.deepcopy(base), delta)
+        apply_delta(DiffDict.from_dict(base), delta)
     elapsed = time.perf_counter() - start
     log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")

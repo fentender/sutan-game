@@ -34,7 +34,7 @@ from .types import (
     ArrayFieldDiff,
     ArrayMatching,
     ChangeKind,
-    DictDelta,
+    DiffDict,
     FieldDiff,
 )
 
@@ -94,11 +94,11 @@ def _recursive_delta(
     mod: object,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
-) -> DictDelta | ArrayFieldDiff | FieldDiff | None:
+) -> DiffDict | ArrayFieldDiff | FieldDiff | None:
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。
 
     返回类型:
-    - DictDelta: dict 间的部分字段变化
+    - DiffDict: dict 间的部分字段变化
     - ArrayFieldDiff: 数组间的元素级变化
     - FieldDiff: 标量/原子级变化（叶子节点）
     - None: 无差异
@@ -108,7 +108,7 @@ def _recursive_delta(
         return None
 
     if isinstance(base, dict) and isinstance(mod, dict):
-        items: dict[str, FieldDiff | DictDelta | ArrayFieldDiff] = {}
+        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
         for key, mod_val in mod.items():
             child_path = field_path + [key] if field_path is not None else None
             if key not in base:
@@ -132,7 +132,7 @@ def _recursive_delta(
         for key in base:
             if key not in mod:
                 items[key] = FieldDiff(ChangeKind.DELETED, None)
-        return DictDelta(items) if items else None
+        return DiffDict(items) if items else None
 
     # ── 数组归一化：DupList / 标量 → list ──
     if isinstance(base, DupList) or isinstance(mod, DupList):
@@ -146,7 +146,10 @@ def _recursive_delta(
     if isinstance(base, list) and isinstance(mod, list):
         # 从 schema 查询合并策略
         matching = _select_array_matching(base, mod, schema, field_path)
-        return _array_delta_from_matching(base, mod, matching, schema, field_path)
+        return _array_delta_from_matching(
+            base, mod, matching, schema, field_path,
+            is_duplist=isinstance(mod, DupList),
+        )
 
     # 标量比较
     if base == mod:
@@ -198,6 +201,7 @@ def _array_delta_from_matching(
     matching: ArrayMatching,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
+    is_duplist: bool = False,
 ) -> ArrayFieldDiff | None:
     """根据匹配结果计算 ArrayFieldDiff。"""
     base_count = len(base_arr)
@@ -234,7 +238,10 @@ def _array_delta_from_matching(
         return None
 
     order = _build_order(matching, added_id_map)
-    return ArrayFieldDiff(diffs=diffs, base_count=base_count, indices=indices, order=order)
+    return ArrayFieldDiff(
+        diffs=diffs, base_count=base_count, indices=indices, order=order,
+        is_duplist=is_duplist,
+    )
 
 
 # ==================== Delta 计算入口 ====================
@@ -247,8 +254,8 @@ def compute_delta(
     file_type: str,
     schema: dict[str, object] | None = None,
     root_key: str | None = None,
-) -> DictDelta | None:
-    """计算 mod 相对于游戏本体的实际差异，产出 DictDelta。
+) -> DiffDict | None:
+    """计算 mod 相对于游戏本体的实际差异，产出 DiffDict。
 
     只提取 mod 真正修改的部分，忽略与本体完全相同的内容。
     对 dictionary 类型文件按条目级 + 字段级递归 diff，
@@ -259,15 +266,15 @@ def compute_delta(
     if not base_data:
         # 本体无此文件，全部是新增
         result = _recursive_delta({}, mod_data, schema, field_path)
-        if isinstance(result, DictDelta):
+        if isinstance(result, DiffDict):
             return result
-        # 无变化或非 dict 结果，包装为 DictDelta
+        # 无变化或非 dict 结果，包装为 DiffDict
         if result is None:
             # 整个 mod_data 与空 dict 不同，每个 key 都是新增
-            items: dict[str, FieldDiff | DictDelta | ArrayFieldDiff] = {}
+            items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
             for k, v in mod_data.items():
                 items[k] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(v))
-            return DictDelta(items) if items else None
+            return DiffDict(items) if items else None
         return None
 
     if file_type == "dictionary":
@@ -283,11 +290,11 @@ def compute_delta(
         for key in base_data:
             if key not in mod_data:
                 items[key] = FieldDiff(ChangeKind.DELETED, None)
-        return DictDelta(items) if items else None
+        return DiffDict(items) if items else None
     else:
         # entity/config
         result = _recursive_delta(base_data, mod_data, schema, field_path)
-        if isinstance(result, DictDelta):
+        if isinstance(result, DiffDict):
             return result
         return None
 
@@ -296,10 +303,10 @@ def compute_delta(
 
 
 def flatten_delta(
-    delta: DictDelta,
+    delta: DiffDict,
     prefix: tuple[str, ...] = (),
 ) -> list[tuple[tuple[str, ...], FieldDiff]]:
-    """将 DictDelta 树展平为 (路径, FieldDiff) 列表。
+    """将 DiffDict 树展平为 (路径, FieldDiff) 列表。
 
     路径用 tuple[str, ...] 表示，数组元素用 "[{elem_id}]" 格式。
     """
@@ -308,12 +315,12 @@ def flatten_delta(
         path = prefix + (key,)
         if isinstance(diff, FieldDiff):
             result.append((path, diff))
-        elif isinstance(diff, DictDelta):
+        elif isinstance(diff, DiffDict):
             result.extend(flatten_delta(diff, path))
         elif isinstance(diff, ArrayFieldDiff):
             for field_diff, elem_id in zip(diff.diffs, diff.indices, strict=True):
                 elem_path = path + (f"[{elem_id}]",)
-                if isinstance(field_diff.value, DictDelta):
+                if isinstance(field_diff.value, DiffDict):
                     # CHANGED 元素的内部字段变化
                     result.extend(flatten_delta(field_diff.value, elem_path))
                 else:
@@ -334,8 +341,8 @@ class ModDelta:
     启动时调用 init() 预计算所有 delta，后续通过 get() 直接取缓存结果。
     """
 
-    # (mod_id, rel_path) → DictDelta | None
-    _cache: dict[tuple[str, str], DictDelta | None] = {}
+    # (mod_id, rel_path) → DiffDict | None
+    _cache: dict[tuple[str, str], DiffDict | None] = {}
     _progress: tuple[int, int] = (0, 0)
     _lock: threading.Lock = threading.Lock()
 
@@ -371,7 +378,7 @@ class ModDelta:
         if progress_cb:
             progress_cb(0, total)
 
-        def _compute_one(task: tuple[str, str]) -> tuple[str, str, DictDelta | None]:
+        def _compute_one(task: tuple[str, str]) -> tuple[str, str, DiffDict | None]:
             mod_id, rel_path = task
             base_data = store.get_base(rel_path)
             mod_data = store.get_mod(mod_id, rel_path)
@@ -405,7 +412,7 @@ class ModDelta:
                         progress_cb(completed, total)
 
     @classmethod
-    def get(cls, mod_id: str, rel_path: str) -> DictDelta | None:
+    def get(cls, mod_id: str, rel_path: str) -> DiffDict | None:
         """获取缓存的 delta 结果。"""
         return cls._cache[(mod_id, rel_path)]
 

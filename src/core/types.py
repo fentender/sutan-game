@@ -27,11 +27,27 @@ FIELD_SEP: str = '\x01'
 # ── delta 差异描述类型 ──
 
 
-class ChangeKind(enum.IntEnum):
-    """字段变化类型"""
-    ADDED = 1
-    DELETED = 2
-    CHANGED = 3
+class ChangeKind(enum.IntFlag):
+    """字段变化类型（二进制标志位）。
+
+    低 3 位为基础类型（ORIGIN/ADDED/DELETED/CHANGED 四选一），
+    高位为修饰标志（MULTI_MOD 表示被多个 mod 修改）。
+    """
+    ORIGIN    = 0    # 未修改，来自 base
+    ADDED     = 1    # 新增
+    DELETED   = 2    # 删除
+    CHANGED   = 4    # 修改
+    MULTI_MOD = 8    # 标志位：被多个 mod 修改过（冲突标记）
+
+    @property
+    def base_kind(self) -> ChangeKind:
+        """提取基础变化类型，去掉修饰标志"""
+        return ChangeKind(self & 0x07)
+
+    @property
+    def is_multi_mod(self) -> bool:
+        """是否被多个 mod 修改过"""
+        return bool(self & ChangeKind.MULTI_MOD)
 
 
 @dataclass(slots=True)
@@ -42,18 +58,55 @@ class FieldDiff:
     不含路径——嵌套位置本身即路径。
     """
     kind: ChangeKind
-    value: object  # ADDED/CHANGED: 新值; DELETED: None
+    value: object       # ADDED/CHANGED: 新值; DELETED: None; ORIGIN: 当前值
+    old_value: object = None   # CHANGED: 旧值; DELETED: 被删除的值; ADDED/ORIGIN: None
+    version: int = 0    # 哪次 mod 迭代修改了此字段（0=原始）
 
 
 @dataclass
-class DictDelta:
-    """dict 的字段级 delta。
+class DiffDict:
+    """dict 的字段级 delta / 全状态注解树。
 
-    每个 key 映射到叶子(FieldDiff)、嵌套变化(DictDelta)或数组变化(ArrayFieldDiff)。
+    作为稀疏 delta 时（compute_delta 产出）：仅含被修改的 key。
+    作为全状态树时（from_dict 产出）：包含所有 key，每个标注 ChangeKind。
     """
-    items: dict[str, FieldDiff | DictDelta | ArrayFieldDiff] = field(
+    items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = field(
         default_factory=dict,
     )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> DiffDict:
+        """将普通 dict 转换为全状态 DiffDict，每个字段初始为 ORIGIN"""
+        from .json_parser import DupList
+        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        for key, value in data.items():
+            if isinstance(value, dict):
+                items[key] = cls.from_dict(value)
+            elif isinstance(value, (list, DupList)):
+                items[key] = ArrayFieldDiff.from_list(value)
+            else:
+                items[key] = FieldDiff(ChangeKind.ORIGIN, value)
+        return cls(items=items)
+
+    def to_dict(self) -> dict[str, object]:
+        """转换回普通 dict，跳过 DELETED 字段"""
+        result: dict[str, object] = {}
+        for key, diff in self.items.items():
+            if isinstance(diff, FieldDiff):
+                if diff.kind.base_kind == ChangeKind.DELETED:
+                    continue
+                val = diff.value
+                if isinstance(val, DiffDict):
+                    result[key] = val.to_dict()
+                elif isinstance(val, ArrayFieldDiff):
+                    result[key] = val.to_list()
+                else:
+                    result[key] = val
+            elif isinstance(diff, DiffDict):
+                result[key] = diff.to_dict()
+            elif isinstance(diff, ArrayFieldDiff):
+                result[key] = diff.to_list()
+        return result
 
 
 @dataclass
@@ -65,11 +118,56 @@ class ArrayFieldDiff:
     - 新增元素 ID = base_count + 递增序号
     - 特殊值: 0 = 数组开头, -1 = 数组末尾
     - 约束: CHANGED/DELETED 的 ID 必须 <= base_count
+
+    作为全状态时（from_list 产出）：diffs 包含所有元素，每个标注 ChangeKind。
     """
     diffs: list[FieldDiff]    # 每个变化元素的 diff
     base_count: int           # base 数组的元素数量
     indices: list[int]        # diffs 中每个元素的 ID (len == len(diffs))
     order: list[int]          # 应用 delta 后数组的完整顺序（含边界标记 0/-1）
+    is_duplist: bool = False  # 原始数组是否为 DupList（重复键序列化需要）
+    old_order: list[int] | None = None  # apply_array_delta 重建 order 时保存旧 order
+
+    @classmethod
+    def from_list(cls, data: list[object]) -> ArrayFieldDiff:
+        """将普通 list 转换为全状态 ArrayFieldDiff，每个元素初始为 ORIGIN"""
+        from .json_parser import DupList
+        diffs: list[FieldDiff] = []
+        for elem in data:
+            if isinstance(elem, dict):
+                diffs.append(FieldDiff(ChangeKind.ORIGIN, DiffDict.from_dict(elem)))
+            elif isinstance(elem, (list, DupList)):
+                diffs.append(FieldDiff(ChangeKind.ORIGIN, cls.from_list(elem)))
+            else:
+                diffs.append(FieldDiff(ChangeKind.ORIGIN, elem))
+        n = len(data)
+        return cls(
+            diffs=diffs,
+            base_count=n,
+            indices=list(range(1, n + 1)),
+            order=[0, *range(1, n + 1), -1],
+            is_duplist=isinstance(data, DupList),
+        )
+
+    def to_list(self) -> list[object]:
+        """按 order 还原为普通 list，跳过 DELETED 元素"""
+        from .json_parser import DupList
+        id_to_diff = dict(zip(self.indices, self.diffs))
+        result: list[object] = []
+        for eid in self.order:
+            if eid == 0 or eid == -1:
+                continue
+            diff = id_to_diff.get(eid)
+            if diff is None or diff.kind.base_kind == ChangeKind.DELETED:
+                continue
+            val = diff.value
+            if isinstance(val, DiffDict):
+                result.append(val.to_dict())
+            elif isinstance(val, ArrayFieldDiff):
+                result.append(val.to_list())
+            else:
+                result.append(val)
+        return DupList(result) if self.is_duplist else result
 
 
 @dataclass(slots=True)

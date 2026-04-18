@@ -113,11 +113,11 @@ def analyze_file_overrides(
                     array_mod_tracker[arr_path].add(mod_name)
                     break
 
-            if field_diff.kind == ChangeKind.ADDED:
+            if field_diff.kind.base_kind == ChangeKind.ADDED:
                 info.new_entries.append((mod_name, f"新增: {fp}"))
                 continue
 
-            if field_diff.kind == ChangeKind.DELETED:
+            if field_diff.kind.base_kind == ChangeKind.DELETED:
                 info.new_entries.append((mod_name, f"删除: {fp}"))
                 info.deletions.append(DeletionRecord(
                     field_path=fp, base_value=field_diff.value, mod_name=mod_name,

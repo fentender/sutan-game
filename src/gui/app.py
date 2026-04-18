@@ -279,6 +279,8 @@ class MainWindow(QMainWindow):
 
     def _start_delta_init(self, mod_ids: list[str]) -> None:
         """启动后台 delta 预计算，并显示进度对话框"""
+        if self._delta_worker and self._delta_worker.isRunning():
+            self._delta_worker.wait()
         self._delta_worker = DeltaInitWorker(mod_ids, schema_dir=SCHEMA_DIR)
 
         self._delta_progress = QProgressDialog(
@@ -391,7 +393,7 @@ class MainWindow(QMainWindow):
 
         # 取消正在进行的分析，等待线程退出（避免 QThread 被销毁时仍在运行）
         if self._analyze_worker and self._analyze_worker.isRunning():
-            self._analyze_worker.finished.disconnect()
+            self._analyze_worker.done.disconnect()
             self._analyze_worker.error.disconnect()
             self._analyze_worker.cancel()
             self._analyze_worker.wait()
@@ -430,7 +432,7 @@ class MainWindow(QMainWindow):
         self._analyze_worker = AnalyzeWorker(
             self._get_mod_configs(), SCHEMA_DIR,
         )
-        self._analyze_worker.finished.connect(self._on_analyze_finished)
+        self._analyze_worker.done.connect(self._on_analyze_finished)
         self._analyze_worker.error.connect(self._on_analyze_error)
         self._analyze_worker.start()
 
@@ -531,7 +533,7 @@ class MainWindow(QMainWindow):
             remap_tables=self._remap_tables,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
-        self._worker.finished.connect(self._on_merge_finished)
+        self._worker.done.connect(self._on_merge_finished)
         self._worker.error.connect(self._on_merge_error)
         self._worker.start()
 
@@ -701,7 +703,7 @@ class MainWindow(QMainWindow):
         if self._update_worker and self._update_worker.isRunning():
             return
         self._update_worker = UpdateCheckWorker()
-        self._update_worker.finished.connect(
+        self._update_worker.done.connect(
             lambda result: self._on_update_checked(result, silent)
         )
         self._update_worker.start()
