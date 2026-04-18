@@ -24,6 +24,21 @@ CancelCheck = Callable[[], None]
 FIELD_SEP: str = '\x01'
 
 
+# ── 合并模式 ──
+
+
+class MergeMode(enum.Enum):
+    """合并模式枚举。
+
+    NORMAL: 正常合并——全部应用 APPEND/CHANGE/DELETED
+    SMART:  智能合并——APPEND/CHANGE 全部应用，DELETED 按字段规则选择性应用
+    REPLACE: 简单替换——直接用 Mod 文件替换，不做字段级合并
+    """
+    NORMAL = "normal"
+    SMART = "smart"
+    REPLACE = "replace"
+
+
 # ── delta 差异描述类型 ──
 
 

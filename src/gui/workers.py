@@ -13,6 +13,7 @@ from ..core.diagnostics import diag
 from ..core.id_remapper import RemapTable
 from ..core.json_store import JsonStore
 from ..core.merger import merge_all_files
+from ..core.types import MergeMode
 
 
 class _MergeCancelled(Exception):
@@ -86,13 +87,15 @@ class MergeWorker(CancellableWorker):
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  output_path: Path, mod_paths: list[tuple[str, Path]],
-                 allow_deletions: bool = False,
+                 merge_mode: MergeMode = MergeMode.SMART,
+                 mod_merge_modes: dict[str, MergeMode] | None = None,
                  remap_tables: dict[str, RemapTable] | None = None) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
-        self.allow_deletions = allow_deletions
+        self.merge_mode = merge_mode
+        self.mod_merge_modes = mod_merge_modes
         self.remap_tables = remap_tables
 
     def run(self) -> None:
@@ -102,7 +105,8 @@ class MergeWorker(CancellableWorker):
                 self.mod_configs,
                 self.output_path / "config",
                 schema_dir=SCHEMA_DIR,
-                allow_deletions=self.allow_deletions,
+                merge_mode=self.merge_mode,
+                mod_merge_modes=self.mod_merge_modes,
                 cancel_check=self._check_cancel,
             )
             self._check_cancel()

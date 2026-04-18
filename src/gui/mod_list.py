@@ -16,6 +16,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QListWidget,
@@ -134,7 +135,10 @@ class ModListItem(QWidget):
     toggled = Signal(str, bool)  # mod_id, enabled
     move_up = Signal(str)
     move_down = Signal(str)
-    def __init__(self, mod: ModInfo, enabled: bool = True, parent: QWidget | None = None) -> None:
+    merge_mode_changed = Signal(str, str)  # mod_id, mode_value ("" 表示跟随全局)
+
+    def __init__(self, mod: ModInfo, enabled: bool = True,
+                 merge_mode: str = "", parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.mod = mod
 
@@ -156,6 +160,19 @@ class ModListItem(QWidget):
         self.label.setToolTip(f"ID: {mod.mod_id}\n版本: {mod.version}\n文件数: {len(mod.config_files)}")
         layout.addWidget(self.label, 1)
 
+        # per-mod 合并模式
+        self.cmb_mode = QComboBox()
+        self.cmb_mode.setFixedWidth(80)
+        self.cmb_mode.addItem("跟随全局", "")
+        self.cmb_mode.addItem("智能", "smart")
+        self.cmb_mode.addItem("正常", "normal")
+        self.cmb_mode.addItem("替换", "replace")
+        idx = self.cmb_mode.findData(merge_mode)
+        if idx >= 0:
+            self.cmb_mode.setCurrentIndex(idx)
+        self.cmb_mode.currentIndexChanged.connect(self._on_mode_changed)
+        layout.addWidget(self.cmb_mode)
+
         btn_up = QPushButton("▲")
         btn_up.setFixedWidth(28)
         btn_up.clicked.connect(lambda: self.move_up.emit(self.mod.mod_id))
@@ -166,15 +183,21 @@ class ModListItem(QWidget):
         btn_down.clicked.connect(lambda: self.move_down.emit(self.mod.mod_id))
         layout.addWidget(btn_down)
 
+    def _on_mode_changed(self, index: int) -> None:
+        mode_value = self.cmb_mode.itemData(index)
+        self.merge_mode_changed.emit(self.mod.mod_id, mode_value)
+
 class ModListPanel(QWidget):
     """Mod 列表面板"""
     mod_selected = Signal(object)  # ModInfo
     order_changed = Signal()
+    merge_mode_changed = Signal(str, str)  # mod_id, mode_value
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._mods: list[ModInfo] = []
         self._enabled: dict[str, bool] = {}
+        self._merge_modes: dict[str, str] = {}  # per-mod 合并模式
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -200,7 +223,8 @@ class ModListPanel(QWidget):
         layout.addLayout(btn_layout)
 
     def set_mods(self, mods: list[ModInfo], order: list[str] | None = None,
-                 enabled: list[str] | None = None) -> None:
+                 enabled: list[str] | None = None,
+                 merge_modes: dict[str, str] | None = None) -> None:
         """设置 mod 列表"""
         self._mods = list(mods)
 
@@ -215,6 +239,9 @@ class ModListPanel(QWidget):
         else:
             self._enabled = {m.mod_id: True for m in self._mods}
 
+        # 设置 per-mod 合并模式
+        self._merge_modes = dict(merge_modes) if merge_modes else {}
+
         # 未勾选的排到勾选的后面（稳定排序，保持组内相对顺序）
         self._mods.sort(key=lambda m: 0 if self._enabled.get(m.mod_id, True) else 1)
 
@@ -227,10 +254,12 @@ class ModListPanel(QWidget):
 
         for mod in self._mods:
             item = QListWidgetItem()
-            widget = ModListItem(mod, self._enabled.get(mod.mod_id, True))
+            widget = ModListItem(mod, self._enabled.get(mod.mod_id, True),
+                                 merge_mode=self._merge_modes.get(mod.mod_id, ""))
             widget.toggled.connect(self._on_toggle)
             widget.move_up.connect(self._on_move_up)
             widget.move_down.connect(self._on_move_down)
+            widget.merge_mode_changed.connect(self._on_merge_mode_changed)
             item.setSizeHint(widget.sizeHint())
             self.list_widget.addItem(item)
             self.list_widget.setItemWidget(item, widget)
@@ -241,6 +270,17 @@ class ModListPanel(QWidget):
     def _on_toggle(self, mod_id: str, enabled: bool) -> None:
         self._enabled[mod_id] = enabled
         self.order_changed.emit()
+
+    def _on_merge_mode_changed(self, mod_id: str, mode_value: str) -> None:
+        if mode_value:
+            self._merge_modes[mod_id] = mode_value
+        else:
+            self._merge_modes.pop(mod_id, None)
+        self.merge_mode_changed.emit(mod_id, mode_value)
+
+    def get_merge_modes(self) -> dict[str, str]:
+        """获取 per-mod 合并模式"""
+        return dict(self._merge_modes)
 
     def _on_item_moved(self, from_row: int, to_row: int) -> None:
         """拖拽排序后同步数据模型"""

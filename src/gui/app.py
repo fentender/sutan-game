@@ -9,12 +9,13 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
-    QCheckBox,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
     QHBoxLayout,
     QInputDialog,
+    QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
@@ -34,6 +35,7 @@ from ..core.diagnostics import ERROR, INFO, WARNING, diag
 from ..core.id_remapper import RemapTable, remap_mod_configs
 from ..core.json_store import JsonStore
 from ..core.mod_scanner import scan_all_mods
+from ..core.types import MergeMode
 from .log_panel import LogPanel, prefix_mod_title
 from .mod_detail import ModDetailPanel
 from .mod_list import ModListPanel
@@ -124,14 +126,23 @@ class MainWindow(QMainWindow):
 
         btn_layout.addStretch()
 
-        self.chk_allow_deletions = QCheckBox("允许删减")
-        self.chk_allow_deletions.setChecked(self.config.allow_deletions)
-        self.chk_allow_deletions.setToolTip(
-            "勾选后，Mod 中缺少的条目会从合并结果中删除。\n"
-            "默认关闭，兼容未及时跟上游戏版本的 Mod。"
+        btn_layout.addWidget(QLabel("合并模式:"))
+
+        self.cmb_merge_mode = QComboBox()
+        self.cmb_merge_mode.addItem("智能合并", MergeMode.SMART.value)
+        self.cmb_merge_mode.addItem("正常合并", MergeMode.NORMAL.value)
+        self.cmb_merge_mode.addItem("简单替换", MergeMode.REPLACE.value)
+        self.cmb_merge_mode.setToolTip(
+            "智能合并：保守策略，数组元素禁止删除，condition/action/result 内允许删除\n"
+            "正常合并：全部应用 Mod 的增删改\n"
+            "简单替换：直接用 Mod 文件替换，不做字段级合并"
         )
-        self.chk_allow_deletions.toggled.connect(self._on_allow_deletions_changed)
-        btn_layout.addWidget(self.chk_allow_deletions)
+        # 从配置恢复选中项
+        mode_idx = self.cmb_merge_mode.findData(self.config.merge_mode)
+        if mode_idx >= 0:
+            self.cmb_merge_mode.setCurrentIndex(mode_idx)
+        self.cmb_merge_mode.currentIndexChanged.connect(self._on_merge_mode_changed)
+        btn_layout.addWidget(self.cmb_merge_mode)
 
         self.btn_deletion_report = QPushButton("查看删减报告")
         self.btn_deletion_report.clicked.connect(self._show_deletion_report)
@@ -147,6 +158,7 @@ class MainWindow(QMainWindow):
         # 信号连接
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
         self.mod_list_panel.order_changed.connect(self._save_config)
+        self.mod_list_panel.merge_mode_changed.connect(self._on_mod_merge_mode_changed)
         self.override_panel.diff_requested.connect(self._open_diff)
 
     def _setup_statusbar(self) -> None:
@@ -190,6 +202,7 @@ class MainWindow(QMainWindow):
             mods,
             order=self.config.mod_order or None,
             enabled=self.config.enabled_mods or None,
+            merge_modes=self.config.mod_merge_modes or None,
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 
@@ -324,8 +337,34 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"JSON 资源加载失败: {error}")
         self._log_message(ERROR, f"JSON 资源加载失败: {error}")
 
-    def _on_allow_deletions_changed(self, checked: bool) -> None:
-        self.config.allow_deletions = checked
+    def _on_merge_mode_changed(self, index: int) -> None:
+        mode_value = self.cmb_merge_mode.itemData(index)
+        if mode_value:
+            self.config.merge_mode = mode_value
+            self.config.save()
+
+    def _get_merge_mode(self) -> MergeMode:
+        """从配置获取当前全局合并模式"""
+        try:
+            return MergeMode(self.config.merge_mode)
+        except ValueError:
+            return MergeMode.SMART
+
+    def _get_mod_merge_modes(self) -> dict[str, MergeMode]:
+        """从配置获取 per-mod 合并模式覆盖"""
+        result: dict[str, MergeMode] = {}
+        for mod_id, mode_str in self.config.mod_merge_modes.items():
+            try:
+                result[mod_id] = MergeMode(mode_str)
+            except ValueError:
+                continue
+        return result
+
+    def _on_mod_merge_mode_changed(self, mod_id: str, mode_value: str) -> None:
+        if mode_value:
+            self.config.mod_merge_modes[mod_id] = mode_value
+        else:
+            self.config.mod_merge_modes.pop(mod_id, None)
         self.config.save()
 
     def _show_deletion_report(self) -> None:
@@ -442,7 +481,7 @@ class MainWindow(QMainWindow):
         self.override_panel.set_data(
             overrides,
             self._get_mod_configs(),
-            allow_deletions=self.config.allow_deletions
+            merge_mode=self._get_merge_mode(),
         )
         if parse_msgs:
             for level, msg in parse_msgs:
@@ -484,9 +523,8 @@ class MainWindow(QMainWindow):
         dlg = DiffDialog(
             rel_path=rel_path,
             mod_configs=self._get_mod_configs(),
-            allow_deletions=self.config.allow_deletions,
+            merge_mode=self._get_merge_mode(),
             array_warnings=array_warnings,
-            parent=self,
         )
         dlg.exec()
 
@@ -529,7 +567,8 @@ class MainWindow(QMainWindow):
             mod_configs,
             output_path,
             mod_paths,
-            allow_deletions=self.config.allow_deletions,
+            merge_mode=self._get_merge_mode(),
+            mod_merge_modes=self._get_mod_merge_modes(),
             remap_tables=self._remap_tables,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))

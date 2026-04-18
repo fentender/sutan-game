@@ -34,7 +34,7 @@ from ..core.json_store import JsonStore
 from ..core.merger import apply_delta
 from ..core.profiler import profile
 from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
-from ..core.types import ChangeKind, DiffDict
+from ..core.types import ChangeKind, DiffDict, MergeMode
 from .json_editor import CodeEditor, _DiffBlockData, _format_with_comments
 
 # diff 行高亮背景色
@@ -112,13 +112,13 @@ class DiffDialog(QDialog):
 
     def __init__(self, rel_path: str,
                  mod_configs: list[tuple[str, str, Path]],
-                 allow_deletions: bool = False,
+                 merge_mode: MergeMode = MergeMode.SMART,
                  array_warnings: list[str] | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._rel_path = rel_path
         self._mod_configs = mod_configs
-        self._allow_deletions = allow_deletions
+        self._merge_mode = merge_mode
         self._array_warnings = array_warnings or []
 
         # 预计算各级合并状态的 JSON 文本
@@ -190,7 +190,7 @@ class DiffDialog(QDialog):
             field_path = [root_key] if root_key else None
             mod_version += 1
             apply_delta(current, delta, schema, field_path,
-                        allow_deletions=self._allow_deletions, version=mod_version)
+                        merge_mode=self._merge_mode, version=mod_version)
 
             left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
                 current, highlight_version=mod_version,

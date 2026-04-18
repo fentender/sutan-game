@@ -170,8 +170,10 @@ class UserConfig:
     mod_order: list[str] = field(default_factory=list)
     # 启用的 mod 集合
     enabled_mods: list[str] = field(default_factory=list)
-    # 是否允许删减（mod 中缺少的条目从合并结果中删除）
-    allow_deletions: bool = False
+    # 合并模式（normal/smart/replace，默认 smart）
+    merge_mode: str = "smart"
+    # per-mod 合并模式覆盖（key=mod_id，value=模式名）
+    mod_merge_modes: dict[str, str] = field(default_factory=dict)
     # 是否启用性能评估（启用后记录各函数执行时间，输出到日志）
     enable_profiler: bool = False
 
@@ -210,6 +212,11 @@ class UserConfig:
                 diag.warn("config", f"配置文件损坏，使用默认配置: {e}")
                 return cls()
             valid_fields = {f.name for f in cls.__dataclass_fields__.values()}
+            # 迁移旧配置：allow_deletions → merge_mode
+            if "allow_deletions" in data and "merge_mode" not in data:
+                data["merge_mode"] = "normal" if data.pop("allow_deletions") else "smart"
+            else:
+                data.pop("allow_deletions", None)
             filtered = {k: v for k, v in data.items() if k in valid_fields}
             return cls(**filtered)
         return cls()

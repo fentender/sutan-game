@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.conflict import DeletionRecord, FileOverrideInfo
-from ..core.types import FIELD_SEP as SEP
+from ..core.types import FIELD_SEP as SEP, MergeMode
 
 # 颜色
 _CLR_FILE = QColor(180, 210, 255)     # 文件节点：浅蓝
@@ -437,14 +437,14 @@ class DeletionReportDialog(QDialog):
             if delta:
                 mod_data_list_shared.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
-        # 两次合并：allow_deletions=False（保留全部）和 True（执行删除）
+        # 两次合并：SMART 模式（保守删除）和 NORMAL 模式（全部删除）
         result_no_del = merge_file(
             base_data, mod_data_list_shared, rel_path, schema=schema,
-            allow_deletions=False,
+            merge_mode=MergeMode.SMART,
         )
         result_del = merge_file(
             base_data, mod_data_list_shared, rel_path, schema=schema,
-            allow_deletions=True,
+            merge_mode=MergeMode.NORMAL,
         )
 
         # 格式化两份 JSON 文本
