@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.json_parser import clean_json_text
-from ..core.merger import ParseFailure
+from ..core.types import ParseFailure
 from .json_editor import CodeEditor, _format_with_comments
 
 

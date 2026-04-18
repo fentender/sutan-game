@@ -22,10 +22,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import MOD_OVERRIDES_DIR, SCHEMA_DIR
+from ..config import SCHEMA_DIR
+from ..core.delta_store import ModDelta
 from ..core.diagnostics import diag, merge_ctx
-from ..core.json_parser import _pairs_hook, clean_json_text, format_json, load_json
-from ..core.merger import _DELETED, classify_json, compute_mod_delta, deep_merge
+from ..core.json_parser import _pairs_hook, clean_json_text, format_json
+from ..core.json_store import JsonStore
+from ..core.merger import _strip_id_arrays, apply_delta
 from ..core.profiler import profile
 from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
 from .json_editor import CodeEditor, _DiffBlockData, _format_with_comments
@@ -238,15 +240,16 @@ def _apply_extra_selections(editor: CodeEditor,
 class DiffDialog(QDialog):
     """文件 Diff 对比窗口"""
 
-    def __init__(self, rel_path: str, game_config_path: Path,
+    def __init__(self, rel_path: str,
                  mod_configs: list[tuple[str, str, Path]],
                  allow_deletions: bool = False,
+                 array_warnings: list[str] | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._rel_path = rel_path
-        self._game_config_path = game_config_path
         self._mod_configs = mod_configs
         self._allow_deletions = allow_deletions
+        self._array_warnings = array_warnings or []
 
         # 预计算各级合并状态的 JSON 文本
         self._base_text: str = ""  # 游戏本体原始文本（所有 mod 之前）
@@ -259,6 +262,8 @@ class DiffDialog(QDialog):
         self._precomputed_opcodes: list[list[tuple]] = []
         # 各 tab 是否包含冲突行
         self._tab_has_conflict: list[bool] = []
+        # 文件级是否有数组合并警告
+        self._has_array_warning = len(self._array_warnings) > 0
         self._precompute_merge_states()
 
         # 懒加载标记
@@ -287,8 +292,8 @@ class DiffDialog(QDialog):
         self._precomputed_highlights.clear()
         self._precomputed_opcodes.clear()
         diag.snapshot("merge")  # 清空残留的 merge 警告
-        base_file = self._game_config_path / self._rel_path
-        base_data = load_json(base_file, readonly=True) if base_file.exists() else {}
+        store = JsonStore.instance()
+        base_data = store.get_base(self._rel_path)
 
         self._base_text = _format_json(base_data)
 
@@ -296,56 +301,40 @@ class DiffDialog(QDialog):
         schema = resolve_schema(self._rel_path, schemas)
         root_key = get_schema_root_key(schema) if schema else None
 
-        file_type = classify_json(base_data) if base_data else "config"
-
         current: dict = copy.deepcopy(base_data)
         # 缓存上一轮 curr_text，避免重复格式化
         last_curr_text: str | None = None
         for mod_id, mod_name, config_path in self._mod_configs:
-            mod_file = config_path / self._rel_path
-            if not mod_file.exists():
+            if not store.has_mod(mod_id, self._rel_path):
                 continue
 
-            # 设置合并上下文，供 deep_merge 内部的警告使用
+            # 设置合并上下文，供 apply_delta 内部的警告使用
             merge_ctx.mod_name = mod_name
             merge_ctx.mod_id = mod_id
             merge_ctx.rel_path = self._rel_path
-            merge_ctx.source_file = str(mod_file)
+            merge_ctx.source_file = str(config_path / self._rel_path)
 
-            mod_data = load_json(mod_file, readonly=True)
-            delta = compute_mod_delta(base_data, mod_data, file_type,
-                                      schema=schema, root_key=root_key)
+            delta = ModDelta.get(mod_id, self._rel_path)
             if not delta:
+                # TODO: 应该报错而不是静默吞掉
                 continue
 
             # 复用上轮 curr_text 作为本轮 prev_text
             prev_text = last_curr_text if last_curr_text is not None else _format_json(current)
 
             field_path = [root_key] if root_key else None
-            if file_type == "dictionary":
-                next_state = copy.deepcopy(current)
-                for key, value in delta.items():
-                    if value is _DELETED:
-                        next_state.pop(key, None)
-                        continue
-                    if key in next_state:
-                        next_state[key] = deep_merge(next_state[key], value, schema, field_path,
-                                                     _in_place=True)
-                    else:
-                        next_state[key] = copy.deepcopy(value)
-                current = next_state
-            else:
-                merged = deep_merge(current, delta, schema, field_path)
-                assert isinstance(merged, dict)
-                current = merged
+            apply_delta(current, delta, schema, field_path)
 
-            curr_text = _format_json(current)
+            # 剥离 id_arr 格式后再格式化（current 本身保留 id_arr 供下轮使用）
+            display_state = copy.deepcopy(current)
+            _strip_id_arrays(display_state)
+            curr_text = _format_json(display_state)
 
             # 检查是否存在用户 override
-            override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
-            if override_file.exists():
-                curr_text = override_file.read_text(encoding="utf-8")
-                current = json.loads(curr_text, object_pairs_hook=_pairs_hook)
+            override = store.get_override(mod_id, self._rel_path)
+            if override is not None:
+                curr_text = _format_json(override)
+                current = copy.deepcopy(override)
                 # override 改变了 current，下轮需要重新格式化
                 last_curr_text = None
             else:
@@ -377,6 +366,7 @@ class DiffDialog(QDialog):
             if left_ids != base_ids:
                 base_opcodes = _fast_opcodes(base_ids, left_ids)
                 for tag, _, _, j1, j2 in base_opcodes:
+                    # TODO：不考虑删除会丢失冲突
                     if tag in ("replace", "insert"):
                         for j in range(j1, j2):
                             prev_changed_lines.add(j)
@@ -397,6 +387,7 @@ class DiffDialog(QDialog):
                 )
 
                 if tag in ("replace", "delete"):
+                    # TODO：被修改的行为什么和被删除的一个颜色？应该要有不同才行
                     color = _CLR_LEFT_CONFLICT if is_conflict else _CLR_LEFT_CHANGE
                     for i in range(i1, i2):
                         left_highlights.append((i, color))
@@ -449,6 +440,8 @@ class DiffDialog(QDialog):
             self._tabs.addTab(tab, f"↔ {mod_name}")
             if self._tab_has_conflict[idx]:
                 self._tabs.tabBar().setTabTextColor(idx, QColor(255, 180, 50))
+            elif self._has_array_warning:
+                self._tabs.tabBar().setTabTextColor(idx, QColor(255, 220, 80))
             self._tab_edits.append((left_edit, right_edit))
             self._tab_search_bars.append((left_search_w, right_search_w))
             self._tab_search_inputs.append((left_search_in, right_search_in))
@@ -818,10 +811,13 @@ class DiffDialog(QDialog):
         # 同步更新 tab 冲突标记颜色
         has_conflict = any(color == _CLR_RIGHT_CONFLICT for _, color in right_highlights)
         self._tab_has_conflict[tab_index] = has_conflict
-        self._tabs.tabBar().setTabTextColor(
-            tab_index,
-            QColor(255, 180, 50) if has_conflict else QColor(0, 0, 0, 0)
-        )
+        if has_conflict:
+            tab_color = QColor(255, 180, 50)
+        elif self._has_array_warning:
+            tab_color = QColor(255, 220, 80)
+        else:
+            tab_color = QColor(0, 0, 0, 0)
+        self._tabs.tabBar().setTabTextColor(tab_index, tab_color)
 
         self._tab_diff_positions[tab_index] = diff_positions
         _, count_label, _ = self._tab_nav_widgets[tab_index]
@@ -925,7 +921,7 @@ class DiffDialog(QDialog):
         # JSON 验证
         cleaned = clean_json_text(text)
         try:
-            json.loads(cleaned, object_pairs_hook=_pairs_hook)
+            parsed = json.loads(cleaned, object_pairs_hook=_pairs_hook)
         except json.JSONDecodeError as e:
             error_bar.setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             error_bar.setVisible(True)
@@ -938,9 +934,9 @@ class DiffDialog(QDialog):
         right_edit.clear_highlights()
 
         mod_id = self._diff_pairs[tab_index][0]
-        override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
-        override_file.parent.mkdir(parents=True, exist_ok=True)
-        override_file.write_text(text, encoding="utf-8")
+        parsed = json.loads(cleaned, object_pairs_hook=_pairs_hook)
+        store = JsonStore.instance()
+        store.set_override(mod_id, self._rel_path, parsed, text)
 
         self._refresh_all()
 
@@ -981,26 +977,34 @@ class DiffDialog(QDialog):
     def _reset_override(self, tab_index: int) -> None:
         """删除 override 文件并刷新"""
         mod_id, mod_name, _, _ = self._diff_pairs[tab_index]
-        override_file = MOD_OVERRIDES_DIR / mod_id / self._rel_path
-        if not override_file.exists():
+        store = JsonStore.instance()
+        if not store.has_override(mod_id, self._rel_path):
             QMessageBox.information(self, "提示", f"{mod_name} 没有自定义覆盖")
             return
-        override_file.unlink()
-        if override_file.parent.exists() and not any(override_file.parent.iterdir()):
-            override_file.parent.rmdir()
+        store.remove_override(mod_id, self._rel_path)
         self._refresh_all()
 
     def _update_warn_bar(self) -> None:
-        """根据 _merge_warnings 更新警告条"""
+        """根据 _merge_warnings 和 _array_warnings 更新警告条"""
+        parts: list[str] = []
         warnings = getattr(self, "_merge_warnings", [])
         if warnings:
             MAX_SHOW = 10
             lines = [f"  - {w}" for w in warnings[:MAX_SHOW]]
             if len(warnings) > MAX_SHOW:
                 lines.append(f"  ... 还有 {len(warnings) - MAX_SHOW} 条")
-            self._warn_bar.setText(
+            parts.append(
                 f"Schema 验证警告 ({len(warnings)}):\n" + "\n".join(lines)
             )
+        if self._array_warnings:
+            arr_lines = [f"  - {p.replace(chr(1), ' → ')}" for p in self._array_warnings]
+            parts.append(
+                f"数组合并注意 ({len(self._array_warnings)}):\n"
+                "以下数组被多个 Mod 同时修改，合并结果可能需要人工确认:\n"
+                + "\n".join(arr_lines)
+            )
+        if parts:
+            self._warn_bar.setText("\n".join(parts))
             self._warn_bar.setVisible(True)
         else:
             self._warn_bar.setVisible(False)

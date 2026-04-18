@@ -2,16 +2,14 @@
 ID 重分配模块 - 检测并解决多个 Mod 之间的 ID 冲突
 
 在合并前扫描所有 mod，找出被多个 mod 定义的相同 ID，
-为冲突的 ID 分配新值，并在 mod 数据中替换所有引用。
+为冲突的 ID 分配新值，并在 store 中原地替换所有引用。
 """
-import json
 import re
-import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .diagnostics import diag
-from .json_parser import DupList, dump_json, load_json
+from .json_parser import DupList
 from .types import CancelCheck
 
 # 各类型 ID 的分配范围（从起始值向上递增）
@@ -93,8 +91,11 @@ class RemapTable:
 
 # ==================== ID 收集 ====================
 
-def collect_base_ids(game_config_path: Path) -> dict[str, set[str]]:
-    """收集游戏本体的所有 ID"""
+def collect_base_ids() -> dict[str, set[str]]:
+    """收集游戏本体的所有 ID（从 JsonStore 读取）"""
+    from .json_store import JsonStore
+    store = JsonStore.instance()
+
     base_ids: dict[str, set[str]] = {
         "cards": set(), "tag": set(), "tag_id": set(),
         "rite": set(), "event": set(), "over": set(),
@@ -104,26 +105,22 @@ def collect_base_ids(game_config_path: Path) -> dict[str, set[str]]:
 
     # dictionary 类型
     for entity_type, filename in DICT_BASED_TYPES.items():
-        filepath = game_config_path / filename
-        if filepath.exists():
-            try:
-                data = load_json(filepath)
-                base_ids[entity_type] = set(data.keys())
-                if entity_type == "tag":
-                    # 同时收集 tag 的数字 id
-                    for _code, tag_data in data.items():
-                        if isinstance(tag_data, dict) and "id" in tag_data:
-                            base_ids["tag_id"].add(str(tag_data["id"]))
-            except json.JSONDecodeError:
-                pass
+        data = store.get_base(filename)
+        if data:
+            base_ids[entity_type] = set(data.keys())
+            if entity_type == "tag":
+                for _code, tag_data in data.items():
+                    if isinstance(tag_data, dict) and "id" in tag_data:
+                        base_ids["tag_id"].add(str(tag_data["id"]))
 
-    # 文件名即 ID 的类型
+    # 文件名即 ID 的类型（从 store 的 base rel_paths 中过滤）
     for entity_type, dirname in FILE_BASED_TYPES.items():
-        dirpath = game_config_path / dirname
-        if dirpath.exists():
-            for f in dirpath.iterdir():
-                if f.is_file() and f.suffix.lower() == ".json":
-                    base_ids[entity_type].add(f.stem)
+        prefix = dirname + "/"
+        for rel_path in store.base_rel_paths():
+            if rel_path.startswith(prefix) and rel_path.endswith(".json"):
+                stem = rel_path[len(prefix):-5]
+                if "/" not in stem:  # 只取直接子目录下的文件
+                    base_ids[entity_type].add(stem)
 
     return base_ids
 
@@ -136,61 +133,49 @@ class ModIdInfo:
     tag: dict[str, dict[str, object]] = field(default_factory=dict)      # {code: tag_data}
     over: dict[str, dict[str, object]] = field(default_factory=dict)
     rite_template_mappings: dict[str, dict[str, object]] = field(default_factory=dict)
-    # 文件类型：{id_str: file_path}
-    rite: dict[str, Path] = field(default_factory=dict)
-    event: dict[str, Path] = field(default_factory=dict)
-    loot: dict[str, Path] = field(default_factory=dict)
-    rite_template: dict[str, Path] = field(default_factory=dict)
+    # 文件类型：{id_str: rel_path}
+    rite: dict[str, str] = field(default_factory=dict)
+    event: dict[str, str] = field(default_factory=dict)
+    loot: dict[str, str] = field(default_factory=dict)
+    rite_template: dict[str, str] = field(default_factory=dict)
 
 
-def collect_mod_ids(mod_config_path: Path) -> ModIdInfo:
-    """收集单个 mod 的所有 ID 定义"""
+def collect_mod_ids(mod_id: str) -> ModIdInfo:
+    """收集单个 mod 的所有 ID 定义（从 JsonStore 读取）"""
+    from .json_store import JsonStore
+    store = JsonStore.instance()
+
     info = ModIdInfo()
 
     # dictionary 类型
-    cards_file = mod_config_path / "cards.json"
-    if cards_file.exists():
-        try:
-            data = load_json(cards_file)
-            info.cards = {k: v for k, v in data.items() if isinstance(v, dict)}
-        except json.JSONDecodeError:
-            pass
+    if store.has_mod(mod_id, "cards.json"):
+        data = store.get_mod(mod_id, "cards.json")
+        info.cards = {k: v for k, v in data.items() if isinstance(v, dict)}
 
-    tag_file = mod_config_path / "tag.json"
-    if tag_file.exists():
-        try:
-            data = load_json(tag_file)
-            info.tag = {k: v for k, v in data.items() if isinstance(v, dict)}
-        except json.JSONDecodeError:
-            pass
+    if store.has_mod(mod_id, "tag.json"):
+        data = store.get_mod(mod_id, "tag.json")
+        info.tag = {k: v for k, v in data.items() if isinstance(v, dict)}
 
-    over_file = mod_config_path / "over.json"
-    if over_file.exists():
-        try:
-            data = load_json(over_file)
-            info.over = {k: v for k, v in data.items() if isinstance(v, dict)}
-        except json.JSONDecodeError:
-            pass
+    if store.has_mod(mod_id, "over.json"):
+        data = store.get_mod(mod_id, "over.json")
+        info.over = {k: v for k, v in data.items() if isinstance(v, dict)}
 
-    mappings_file = mod_config_path / "rite_template_mappings.json"
-    if mappings_file.exists():
-        try:
-            data = load_json(mappings_file)
-            info.rite_template_mappings = {
-                k: v for k, v in data.items() if isinstance(v, dict)
-            }
-        except json.JSONDecodeError:
-            pass
+    if store.has_mod(mod_id, "rite_template_mappings.json"):
+        data = store.get_mod(mod_id, "rite_template_mappings.json")
+        info.rite_template_mappings = {
+            k: v for k, v in data.items() if isinstance(v, dict)
+        }
 
-    # 文件类型
+    # 文件类型：从 store 的文件列表中过滤
     for entity_type, dirname in FILE_BASED_TYPES.items():
-        dirpath = mod_config_path / dirname
-        if dirpath.exists():
-            mapping: dict[str, Path] = {}
-            for f in dirpath.iterdir():
-                if f.is_file() and f.suffix.lower() == ".json":
-                    mapping[f.stem] = f
-            setattr(info, entity_type, mapping)
+        mapping: dict[str, str] = {}
+        prefix = dirname + "/"
+        for rel_path in store.mod_files(mod_id):
+            if rel_path.startswith(prefix) and rel_path.endswith(".json"):
+                stem = rel_path[len(prefix):-5]
+                if "/" not in stem:
+                    mapping[stem] = rel_path
+        setattr(info, entity_type, mapping)
 
     return info
 
@@ -472,60 +457,37 @@ def replace_in_value(
     return value
 
 
-def apply_remap_to_mod(
-    mod_config_path: Path,
-    remap: RemapTable,
-    output_path: Path,
-) -> None:
+def apply_remap_to_store(mod_id: str, remap: RemapTable) -> None:
+    """将 remap 应用到 store 中该 mod 的所有 JSON 数据（原地更新）。
+
+    遍历该 mod 在 store 中的所有文件，替换 ID 引用并更新 store。
+    文件名即 ID 的类型（如 rite/XXXXX.json）会同时更新 rel_path。
     """
-    将 remap 应用到 mod 的所有文件，输出到 output_path。
-    即使文件本身 ID 不冲突，其中引用的 ID 也可能需要替换。
-    """
+    from .json_store import JsonStore
+    store = JsonStore.instance()
+
     int_lookup = remap.build_int_lookup()
     str_lookup = remap.build_str_lookup()
 
-    if not mod_config_path.exists():
-        return
+    for rel_path in list(store.mod_files(mod_id)):
+        data = store.get_mod(mod_id, rel_path)
 
-    # 遍历 mod 的所有文件
-    for src_file in mod_config_path.rglob("*"):
-        if not src_file.is_file():
-            continue
-
-        rel = src_file.relative_to(mod_config_path)
-        rel_str = str(rel).replace("\\", "/")
-
-        if src_file.suffix.lower() != ".json":
-            # 非 JSON 文件直接复制
-            dst = output_path / rel
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src_file, dst)
-            continue
-
-        # JSON 文件需要处理
-        try:
-            data = load_json(src_file)
-        except json.JSONDecodeError:
-            # 解析失败直接复制
-            dst = output_path / rel
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src_file, dst)
-            continue
-
-        # 确定输出文件名（可能需要重命名）
-        new_rel = _compute_new_rel_path(rel_str, remap)
-        dst = output_path / new_rel
+        # 计算可能的新 rel_path（文件名即 ID 的情况）
+        new_rel = _compute_new_rel_path(rel_path, remap)
 
         # 处理 dictionary 文件的顶层 key 替换
-        data = _remap_dict_keys(rel_str, data, remap)
+        data = _remap_dict_keys(rel_path, data, remap)
 
         # 递归替换所有 value 中的 ID 引用
         replaced = replace_in_value(data, int_lookup, str_lookup)
         if isinstance(replaced, dict):
             data = replaced
 
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        dump_json(data, dst)
+        # 如果 rel_path 变了，先删旧的
+        if new_rel != rel_path:
+            store.remove_mod_file(mod_id, rel_path)
+
+        store.set_mod(mod_id, new_rel, data)
 
 
 def _compute_new_rel_path(rel_str: str, remap: RemapTable) -> str:
@@ -657,47 +619,42 @@ def _remap_dict_keys(rel_str: str, data: dict[str, object], remap: RemapTable) -
 # ==================== 主入口 ====================
 
 def remap_mod_configs(
-    game_config_path: Path,
     mod_configs: list[tuple[str, str, Path]],
-    temp_dir: Path,
     cancel_check: CancelCheck | None = None,
-) -> tuple[list[tuple[str, str, Path]], list[str], dict[str, RemapTable]]:
+) -> tuple[list[str], dict[str, RemapTable]]:
     """
-    检测 ID 冲突并重分配。
+    检测 ID 冲突并重分配，直接更新 store 中的数据。
 
     参数:
-        game_config_path: 游戏本体 config 目录
         mod_configs: [(mod_id, mod_name, mod_config_path), ...] 按优先级排序
-        temp_dir: 临时目录（存放重分配后的 mod 数据）
         cancel_check: 可选的取消检查回调
 
     返回:
-        (new_mod_configs, remap_messages, remap_tables)
-        - new_mod_configs: 更新后的 mod_configs（有冲突的 mod 指向临时目录）
+        (remap_messages, remap_tables)
         - remap_messages: 日志消息列表
         - remap_tables: {mod_id: RemapTable} 各 mod 的重映射表
     """
     messages: list[str] = []
 
     if not mod_configs:
-        return mod_configs, messages, {}
+        return messages, {}
 
     # 1. 收集本体 ID
-    base_ids = collect_base_ids(game_config_path)
+    base_ids = collect_base_ids()
     if cancel_check:
         cancel_check()
 
     # 2. 收集各 mod 的 ID
     mod_ids_list: list[ModIdInfo] = []
-    for _, _, config_path in mod_configs:
-        mod_ids_list.append(collect_mod_ids(config_path))
+    for mod_id, _, _ in mod_configs:
+        mod_ids_list.append(collect_mod_ids(mod_id))
     if cancel_check:
         cancel_check()
 
     # 3. 检测冲突
     conflicts = detect_conflicts(base_ids, mod_ids_list)
     if not conflicts:
-        return mod_configs, messages, {}
+        return messages, {}
 
     # 汇总冲突信息
     type_counts = {t: len(ids) for t, ids in conflicts.items()}
@@ -713,15 +670,14 @@ def remap_mod_configs(
     if cancel_check:
         cancel_check()
 
-    # 5. 为每个有冲突的 mod 构建 remap table 并应用
-    new_mod_configs = list(mod_configs)
+    # 5. 为每个有冲突的 mod 构建 remap table 并应用到 store
     remap_tables: dict[str, RemapTable] = {}
     mods_needing_remap: set[int] = set()
     for (mod_idx, _, _) in remap:
         mods_needing_remap.add(mod_idx)
 
     for mod_idx in sorted(mods_needing_remap):
-        mod_id, mod_name, config_path = mod_configs[mod_idx]
+        mod_id, mod_name, _ = mod_configs[mod_idx]
         table = build_remap_table(remap, mod_idx, mod_ids_list[mod_idx])
 
         if table.is_empty():
@@ -757,15 +713,11 @@ def remap_mod_configs(
             messages.append(msg)
             diag.info("remap", msg)
 
-        # 写入临时目录
-        mod_temp = temp_dir / mod_id
-        apply_remap_to_mod(config_path, table, mod_temp)
-
-        # 更新 mod_configs 指向临时目录
-        new_mod_configs[mod_idx] = (mod_id, mod_name, mod_temp)
+        # 直接更新 store 中的数据
+        apply_remap_to_store(mod_id, table)
         remap_tables[mod_id] = table
 
         if cancel_check:
             cancel_check()
 
-    return new_mod_configs, messages, remap_tables
+    return messages, remap_tables

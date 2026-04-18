@@ -14,15 +14,16 @@ from pathlib import Path
 
 from .diagnostics import diag
 from .dsl_patterns import classify_dsl_key
-from .json_parser import DupList, load_json
+from .json_parser import DupList
+from .json_store import JsonStore
 from .type_utils import classify_json, get_type_str
-from .types import FieldInfo, GlobalFieldEntry
+from .types import FIELD_SEP, FieldInfo, GlobalFieldEntry
 
 # 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典
 DYNAMIC_KEY_THRESHOLD = 100
 
-# 路径分隔符（内部使用，避免和 JSON key 中的点号冲突）
-SEP = '\x01'
+# 路径分隔符（从 types.py 导入的 FIELD_SEP）
+SEP = FIELD_SEP
 ARR_MARKER = '[]'
 
 
@@ -310,7 +311,7 @@ def _validate_type_combination(field_name: str, type_list: list[str]) -> None:
 def _detect_match_key(field_info: FieldInfo) -> list[str] | None:
     """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。
     按 COMMON_MATCH_KEYS 优先级顺序返回第一个命中的字段。"""
-    from .merger import COMMON_MATCH_KEYS
+    from .delta_store import COMMON_MATCH_KEYS
     for key in COMMON_MATCH_KEYS:
         if field_info.get(f"has_{key}"):
             return [key]
@@ -381,7 +382,7 @@ def _detect_match_key_from_global(canonical: str) -> list[str] | None:
     elem_counts = fi.get("elem_child_key_counts", {})
     if not elem_counts:
         return None
-    from .merger import COMMON_MATCH_KEYS
+    from .delta_store import COMMON_MATCH_KEYS
     for key in COMMON_MATCH_KEYS:
         if key in elem_counts:
             return [key]
@@ -646,7 +647,7 @@ def _collect_file_info(filepath: str) -> tuple[str, dict[str, FieldInfo], dict[s
     """收集单个根目录文件的字段信息（不构建 schema）。
     返回 (file_type, info, data) 或 None。
     """
-    data = load_json(filepath)
+    data = JsonStore.parse_file(filepath)
     if data is None:
         return None
     file_type = classify_json(data)
@@ -678,7 +679,7 @@ def _collect_dir_info(dirpath: str) -> tuple[str | None, dict[str, FieldInfo], i
     total = len(files)
 
     def _load(fname: str) -> dict[str, object] | None:
-        return load_json(os.path.join(dirpath, fname))
+        return JsonStore.parse_file(os.path.join(dirpath, fname))
 
     with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
         results = list(pool.map(_load, files))

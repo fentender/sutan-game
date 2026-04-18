@@ -4,8 +4,16 @@
 import json
 
 from rapidfuzz import fuzz
+from rapidfuzz.distance import Levenshtein
 
 from .profiler import profile
+from .types import ArrayMatching
+
+# 对象数组中常见的标识字段（delta_store 也使用）
+COMMON_MATCH_KEYS: tuple[str, ...] = ('guid', 'id', 'tag', 'key')
+
+# 内容字段，用于启发式模糊匹配
+_CONTENT_FIELDS: tuple[str, ...] = ('condition', 'action', 'result', 'result_text')
 
 
 @profile
@@ -141,3 +149,298 @@ def get_key_vals(item: dict[str, object], match_keys: list[str]) -> tuple[object
 def is_obj_array(arr: object) -> bool:
     """判断是否是非空对象数组"""
     return isinstance(arr, list) and bool(arr) and all(isinstance(x, dict) for x in arr)
+
+
+# ==================== 匹配策略函数 ====================
+
+
+@profile
+def match_by_keys(
+    base_arr: list[dict[str, object]],
+    mod_arr: list[dict[str, object]],
+    match_keys: list[str],
+) -> ArrayMatching:
+    """按 match_keys 分组 + resolve_duplicates 配对。
+
+    无 key 的 mod 元素视为 unmatched_mod；
+    base 中有 key 但 mod 中无对应 key 的视为 unmatched_base。
+    """
+    # base 按 key 分组，记录原始 0-based 索引
+    base_groups: dict[tuple[object, ...], list[int]] = {}
+    for i, item in enumerate(base_arr):
+        kv = get_key_vals(item, match_keys)
+        if kv is not None:
+            base_groups.setdefault(kv, []).append(i)
+
+    # mod 按 key 分组
+    mod_groups: dict[tuple[object, ...], list[int]] = {}
+    mod_no_key: list[int] = []
+    for i, item in enumerate(mod_arr):
+        kv = get_key_vals(item, match_keys)
+        if kv is not None:
+            mod_groups.setdefault(kv, []).append(i)
+        else:
+            mod_no_key.append(i)
+
+    pairs: list[tuple[int, int]] = []
+    unmatched_mod: list[int] = []
+    unmatched_base: list[int] = []
+    seen_keys: set[tuple[object, ...]] = set()
+
+    for kv, mod_indices in mod_groups.items():
+        seen_keys.add(kv)
+        base_indices = base_groups.get(kv, [])
+
+        if not base_indices:
+            # 全部新增
+            unmatched_mod.extend(mod_indices)
+            continue
+
+        # 利用 resolve_duplicates 做多对多配对
+        mod_items: list[tuple[int, dict[str, object]]] = [
+            (mi, mod_arr[mi]) for mi in mod_indices
+        ]
+        base_objs: list[object] = [base_arr[bi] for bi in base_indices]
+        base_idx_list = list(range(len(base_indices)))
+        matched, unmatched = resolve_duplicates(mod_items, base_objs, base_idx_list)
+
+        for mod_orig_idx, _, local_idx in matched:
+            pairs.append((base_indices[local_idx], mod_orig_idx))
+
+        for mod_orig_idx, _ in unmatched:
+            unmatched_mod.append(mod_orig_idx)
+
+    # 无 key 的 mod 元素直接作为新增
+    unmatched_mod.extend(mod_no_key)
+
+    # base 中未出现在 seen_keys 中的 = 删除
+    for kv, base_indices in base_groups.items():
+        if kv not in seen_keys:
+            unmatched_base.extend(base_indices)
+
+    return ArrayMatching(pairs=pairs, unmatched_mod=unmatched_mod, unmatched_base=unmatched_base)
+
+
+def match_by_index(
+    base_arr: list[object],
+    mod_arr: list[object],
+) -> ArrayMatching:
+    """按位置索引一一对应。"""
+    min_len = min(len(base_arr), len(mod_arr))
+    pairs = [(i, i) for i in range(min_len)]
+    unmatched_mod = list(range(min_len, len(mod_arr)))
+    unmatched_base = list(range(min_len, len(base_arr)))
+    return ArrayMatching(pairs=pairs, unmatched_mod=unmatched_mod, unmatched_base=unmatched_base)
+
+
+def match_by_consume(
+    base_arr: list[object],
+    mod_arr: list[object],
+) -> ArrayMatching:
+    """消耗式相等匹配。"""
+    pairs: list[tuple[int, int]] = []
+    unmatched_mod: list[int] = []
+    remaining = list(range(len(base_arr)))  # 0-based
+
+    for mi, item in enumerate(mod_arr):
+        found = False
+        for ri, bi in enumerate(remaining):
+            if base_arr[bi] == item:
+                pairs.append((bi, mi))
+                remaining.pop(ri)
+                found = True
+                break
+        if not found:
+            unmatched_mod.append(mi)
+
+    return ArrayMatching(pairs=pairs, unmatched_mod=unmatched_mod, unmatched_base=remaining)
+
+
+def _to_string(val: object) -> str:
+    """将字段值转为字符串，用于模糊匹配。"""
+    if isinstance(val, (dict, list)):
+        return json.dumps(val, sort_keys=True, ensure_ascii=False)
+    return str(val) if val is not None else ""
+
+
+def element_similarity(a: object, b: object) -> float:
+    """计算两个元素的相似度（0.0 ~ 1.0）。
+    标量直接比较，dict 使用序列化字符串相似度。
+    """
+    if a == b:
+        return 1.0
+    if type(a) is not type(b):
+        return 0.0
+    if isinstance(a, (str, int, float, bool)):
+        return 0.0
+    if isinstance(a, dict):
+        # TODO: 实现更精细的 Object 相似度比较
+        return item_similarity(a, b)  # type: ignore[arg-type]
+    return 0.0
+
+
+def match_by_heuristic(
+    base_arr: list[object],
+    mod_arr: list[object],
+) -> ArrayMatching:
+    """启发式数组匹配。
+
+    假设 mod 作者不会调整原有元素之间的相对顺序，只会修改、删除或插入新元素。
+
+    以 base 数组为外层循环，维护候选集 S（mod 中可能匹配当前 base 元素的索引）。
+    每次匹配成功后，下一个 base 元素的 S 从匹配位置+1 开始。
+
+    每个 base 元素的匹配流程：
+    1. COMMON_MATCH_KEYS 精确匹配
+    2. 内容字段模糊匹配（condition, action, result, result_text）
+    3. 兜底：选相似度最高的，或标记为删除
+
+    最后将 unmatched_base 和 unmatched_mod 按位置一一配对。
+    """
+    base_len = len(base_arr)
+    mod_len = len(mod_arr)
+
+    if base_len == 0:
+        return ArrayMatching(
+            pairs=[],
+            unmatched_mod=list(range(mod_len)),
+            unmatched_base=[],
+        )
+    if mod_len == 0:
+        return ArrayMatching(
+            pairs=[],
+            unmatched_mod=[],
+            unmatched_base=list(range(base_len)),
+        )
+
+    pairs: list[tuple[int, int]] = []
+    matched_mod: set[int] = set()
+    unmatched_base: list[int] = []
+    has_fallback = False
+
+    # 滑动窗口起始位置
+    s_start = 0
+
+    for bi in range(base_len):
+        base_elem = base_arr[bi]
+
+        # 构建候选集 S：从 s_start 到末尾，排除已匹配的
+        s = [mi for mi in range(s_start, mod_len) if mi not in matched_mod]
+
+        if not s:
+            unmatched_base.append(bi)
+            continue
+
+        # 非 dict 元素跳过第1、2步，直接进入第3步
+        if not isinstance(base_elem, dict):
+            best_mi = s[0]
+            best_sim = element_similarity(base_elem, mod_arr[s[0]])
+            for mi in s[1:]:
+                sim = element_similarity(base_elem, mod_arr[mi])
+                if sim > best_sim:
+                    best_sim = sim
+                    best_mi = mi
+            pairs.append((bi, best_mi))
+            matched_mod.add(best_mi)
+            s_start = best_mi + 1
+            has_fallback = True
+            continue
+
+        # ── 第1步：COMMON_MATCH_KEYS 精确匹配 ──
+        matched_in_step12 = False
+
+        for key in COMMON_MATCH_KEYS:
+            if key not in base_elem:
+                continue
+            base_val = base_elem[key]
+            hits = [
+                mi for mi in s
+                if isinstance(mod_arr[mi], dict)
+                and key in mod_arr[mi]  # type: ignore[operator]
+                and mod_arr[mi][key] == base_val  # type: ignore[index]
+            ]
+            if len(hits) == 1:
+                pairs.append((bi, hits[0]))
+                matched_mod.add(hits[0])
+                s_start = hits[0] + 1
+                matched_in_step12 = True
+                break
+            if len(hits) > 1:
+                s = hits
+            # hits == 0 → S 不变
+
+        if matched_in_step12:
+            continue
+
+        # ── 第2步：内容字段模糊匹配 ──
+        for field in _CONTENT_FIELDS:
+            if field not in base_elem:
+                continue
+            base_str = _to_string(base_elem[field])
+            if not base_str:
+                continue
+
+            surviving: list[tuple[int, int]] = []  # (mi, distance)
+            for mi in s:
+                mod_elem = mod_arr[mi]
+                if not isinstance(mod_elem, dict) or field not in mod_elem:
+                    continue
+                mod_str = _to_string(mod_elem[field])
+                if not mod_str:
+                    continue
+                dist = Levenshtein.distance(base_str, mod_str)
+                max_len = max(len(base_str), len(mod_str))
+                if dist < max_len * 0.33:
+                    surviving.append((mi, dist))
+
+            if len(surviving) == 1:
+                pairs.append((bi, surviving[0][0]))
+                matched_mod.add(surviving[0][0])
+                s_start = surviving[0][0] + 1
+                matched_in_step12 = True
+                break
+            if len(surviving) > 1:
+                s = [mi for mi, _ in surviving]
+            # surviving == 0 → S 不变
+
+        if matched_in_step12:
+            continue
+
+        # ── 第3步：兜底 ──
+        if s:
+            best_mi = s[0]
+            best_sim = element_similarity(base_elem, mod_arr[s[0]])
+            for mi in s[1:]:
+                sim = element_similarity(base_elem, mod_arr[mi])
+                if sim > best_sim:
+                    best_sim = sim
+                    best_mi = mi
+            pairs.append((bi, best_mi))
+            matched_mod.add(best_mi)
+            s_start = best_mi + 1
+            has_fallback = True
+        else:
+            unmatched_base.append(bi)
+
+    # 未配对的 mod 元素
+    unmatched_mod = [mi for mi in range(mod_len) if mi not in matched_mod]
+
+    # ── 第4步：未配对元素的位置对应 ──
+    if unmatched_base and unmatched_mod:
+        ub_sorted = sorted(unmatched_base)
+        um_sorted = sorted(unmatched_mod)
+        pair_count = min(len(ub_sorted), len(um_sorted))
+        for i in range(pair_count):
+            pairs.append((ub_sorted[i], um_sorted[i]))
+        unmatched_base = ub_sorted[pair_count:]
+        unmatched_mod = um_sorted[pair_count:]
+        has_fallback = True
+
+    confidence = 0.3 if has_fallback else 1.0
+
+    return ArrayMatching(
+        pairs=pairs,
+        unmatched_mod=unmatched_mod,
+        unmatched_base=unmatched_base,
+        confidence=confidence,
+    )

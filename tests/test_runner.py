@@ -9,8 +9,8 @@
 使用项目实际的游戏本体和 Mod 数据。如果数据路径不存在，
 依赖真实数据的测试会自动跳过。
 """
-import sys
 import logging
+import sys
 
 logging.basicConfig(
     level=logging.INFO,

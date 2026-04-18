@@ -2,13 +2,12 @@
 性能测试 - 不启动 GUI，集成 profiler 输出热点报告
 """
 import copy
-import json
 import logging
 import time
 
-from tests.test_runner import run_test, assert_true, skip, TestResult
-from src.config import UserConfig, SCHEMA_DIR
+from src.config import SCHEMA_DIR, UserConfig
 from src.core import profiler
+from tests.test_runner import TestResult, assert_true, run_test, skip
 
 log = logging.getLogger("test")
 
@@ -28,6 +27,23 @@ def _require_real_data():
     if not game_config or not workshop or not workshop.exists():
         skip("真实游戏/workshop 数据不可用")
     return game_config, workshop
+
+
+def _init_store_and_delta(game_config, workshop):
+    """初始化 JsonStore 和 ModDelta，返回 (mod_configs, mod_ids)。"""
+    from src.core.delta_store import ModDelta
+    from src.core.json_store import JsonStore
+    from src.core.mod_scanner import scan_all_mods
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    store = JsonStore.instance()
+    store.init(game_config, mod_configs)
+    mod_ids = [m.mod_id for m in mods]
+    ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
+    return mod_configs, mod_ids
 
 
 # ==================== 性能测试 ====================
@@ -58,35 +74,36 @@ def perf_scan_mods():
 def perf_analyze_all():
     """完整冲突分析性能"""
     game_config, workshop = _require_real_data()
-    from src.core.mod_scanner import scan_all_mods, collect_mod_files
     from src.core.conflict import analyze_all_overrides
 
-    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
-    if not mods:
-        skip("没有可用的 Mod")
-    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
     start = time.perf_counter()
-    overrides = analyze_all_overrides(game_config, mod_configs,
+    overrides = analyze_all_overrides(mod_configs,
                                        schema_dir=SCHEMA_DIR)
     elapsed = time.perf_counter() - start
     log.info("    分析 %d 个文件，耗时 %.3fs", len(overrides), elapsed)
 
 
-def perf_deep_merge_large():
+def perf_apply_delta_large():
     """大对象递归合并性能"""
-    from src.core.merger import deep_merge
+    from src.core.delta_store import compute_delta
+    from src.core.merger import apply_delta
 
     # 构造 1000 key 的嵌套字典
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
                           "nested": {"x": i * 2, "y": i * 3}}
             for i in range(1000)}
-    override = {f"key_{i}": {"sub_a": i * 10}
-                for i in range(0, 1000, 2)}  # 修改偶数 key
+    override = dict(base)
+    for i in range(0, 1000, 2):
+        override[f"key_{i}"] = {**base[f"key_{i}"], "sub_a": i * 10}
+
+    delta = compute_delta(base, override, "config")
+    assert_true(delta is not None, "应有变化")
 
     start = time.perf_counter()
     for _ in range(10):
-        deep_merge(copy.deepcopy(base), override, None, None)
+        apply_delta(copy.deepcopy(base), delta)
     elapsed = time.perf_counter() - start
     log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
@@ -114,16 +131,12 @@ def perf_diff_dialog_tab_load():
     """DiffDialog 打开 + 首次 tab 切换性能（无头 Qt）"""
     import os
     game_config, workshop = _require_real_data()
-    from src.core.mod_scanner import scan_all_mods
     from src.core.conflict import analyze_all_overrides
 
-    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
-    if not mods:
-        skip("没有可用的 Mod")
-    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
     # 挑选最坏情况：被最多 mod 同时修改、且字段 override 数最多的文件
-    overrides, _ = analyze_all_overrides(game_config, mod_configs, schema_dir=SCHEMA_DIR)
+    overrides = analyze_all_overrides(mod_configs, schema_dir=SCHEMA_DIR)
     candidates = [o for o in overrides if len(o.mod_chain) >= 2]
     if not candidates:
         skip("没有多 mod 同时修改的文件")
@@ -149,7 +162,7 @@ def perf_diff_dialog_tab_load():
     from src.gui.diff_dialog import DiffDialog
 
     start = time.perf_counter()
-    dialog = DiffDialog(target.rel_path, game_config, target_mods)
+    dialog = DiffDialog(target.rel_path, target_mods)
     construct_elapsed = time.perf_counter() - start
     log.info("    DiffDialog 构造（含 precompute + tab 0 加载）%.3fs", construct_elapsed)
 
@@ -178,13 +191,9 @@ def perf_merge_all():
     """完整合并流程性能"""
     import tempfile
     game_config, workshop = _require_real_data()
-    from src.core.mod_scanner import scan_all_mods
     from src.core.merger import merge_all_files
 
-    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
-    if not mods:
-        skip("没有可用的 Mod")
-    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         from pathlib import Path
@@ -193,7 +202,7 @@ def perf_merge_all():
 
         start = time.perf_counter()
         results = merge_all_files(
-            game_config, mod_configs, output, schema_dir=SCHEMA_DIR,
+            mod_configs, output, schema_dir=SCHEMA_DIR,
         )
         elapsed = time.perf_counter() - start
         log.info("    合并 %d 个文件，耗时 %.3fs", len(results), elapsed)
@@ -201,7 +210,7 @@ def perf_merge_all():
 
 def perf_json_parse():
     """JSON 解析性能（含逗号修复）"""
-    from src.core.json_parser import load_json, clear_json_cache
+    from src.core.json_store import JsonStore
 
     game_config, workshop = _require_real_data()
 
@@ -221,13 +230,11 @@ def perf_json_parse():
     base_files = list(game_config.rglob("*.json"))
     all_files = base_files + json_files
 
-    clear_json_cache()
-
     start = time.perf_counter()
     repair_count = 0
     for f in all_files:
         try:
-            load_json(f)
+            JsonStore.parse_file(f)
         except Exception:
             repair_count += 1
     elapsed = time.perf_counter() - start
@@ -239,31 +246,18 @@ def perf_full_pipeline_profile():
     """完整合并管线 profile：scan → analyze → merge，输出全函数耗时"""
     import tempfile
     game_config, workshop = _require_real_data()
-    from src.core.mod_scanner import scan_all_mods
     from src.core.conflict import analyze_all_overrides
     from src.core.merger import merge_all_files
-    from src.core.json_parser import clear_json_cache
 
-    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
-    if not mods:
-        skip("没有可用的 Mod")
-
-    # 使用所有 mod（不限于 enabled_mods）
-    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    mod_configs, _ = _init_store_and_delta(game_config, workshop)
     log.info("    使用 %d 个 Mod 进行完整管线 profile", len(mod_configs))
-
-    # 清缓存，确保 load_json 的耗时被完整记录
-    clear_json_cache()
 
     # 阶段 1：冲突分析
     start = time.perf_counter()
-    overrides, _ = analyze_all_overrides(game_config, mod_configs,
+    overrides = analyze_all_overrides(mod_configs,
                                          schema_dir=SCHEMA_DIR)
     analyze_elapsed = time.perf_counter() - start
     log.info("    冲突分析: %.3fs (%d 个文件)", analyze_elapsed, len(overrides))
-
-    # 清缓存，让 merge 阶段也完整记录 load_json
-    clear_json_cache()
 
     # 阶段 2：完整合并
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -272,13 +266,73 @@ def perf_full_pipeline_profile():
         output.mkdir()
 
         start = time.perf_counter()
-        results, _ = merge_all_files(
-            game_config, mod_configs, output, schema_dir=SCHEMA_DIR,
+        results = merge_all_files(
+            mod_configs, output, schema_dir=SCHEMA_DIR,
         )
         merge_elapsed = time.perf_counter() - start
         log.info("    完整合并: %.3fs (%d 个文件)", merge_elapsed, len(results))
 
     log.info("    管线总耗时: %.3fs (分析 + 合并)", analyze_elapsed + merge_elapsed)
+
+
+def perf_delta_init():
+    """ModDelta.init() 性能（含并行计算）"""
+    game_config, workshop = _require_real_data()
+    from src.core.delta_store import ModDelta
+    from src.core.json_store import JsonStore
+    from src.core.mod_scanner import scan_all_mods
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    store = JsonStore.instance()
+    store.init(game_config, mod_configs)
+    mod_ids = [m.mod_id for m in mods]
+
+    ModDelta.clear()
+    start = time.perf_counter()
+    ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
+    elapsed = time.perf_counter() - start
+    completed, total = ModDelta.progress()
+    log.info("    ModDelta.init: %d 个 delta，耗时 %.3fs", total, elapsed)
+    ModDelta.clear()
+
+
+def perf_delta_cache_hit():
+    """ModDelta 缓存命中性能"""
+    game_config, workshop = _require_real_data()
+    from src.core.delta_store import ModDelta
+    from src.core.json_store import JsonStore
+    from src.core.mod_scanner import scan_all_mods
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    store = JsonStore.instance()
+    store.init(game_config, mod_configs)
+    mod_ids = [m.mod_id for m in mods]
+    ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
+
+    # 收集所有缓存 key
+    keys: list[tuple[str, str]] = []
+    for mod_id in mod_ids:
+        for rel_path in store.mod_files(mod_id):
+            keys.append((mod_id, rel_path))
+    if not keys:
+        skip("没有可用的缓存 key")
+
+    iterations = 1000
+    start = time.perf_counter()
+    for _ in range(iterations):
+        for mod_id, rel_path in keys:
+            ModDelta.get(mod_id, rel_path)
+    elapsed = time.perf_counter() - start
+    total_gets = iterations * len(keys)
+    log.info("    缓存命中 %d 次，耗时 %.3fs（%.1f ns/次）",
+             total_gets, elapsed, elapsed / total_gets * 1e9)
+    ModDelta.clear()
 
 
 # ==================== 入口 ====================
@@ -293,9 +347,11 @@ def run_all(result: TestResult):
         ("perf_json_parse", perf_json_parse),
         ("perf_scan_mods", perf_scan_mods),
         ("perf_analyze_all", perf_analyze_all),
-        ("perf_deep_merge_large", perf_deep_merge_large),
+        ("perf_apply_delta_large", perf_apply_delta_large),
         ("perf_resolve_duplicates", perf_resolve_duplicates),
         ("perf_merge_all", perf_merge_all),
+        ("perf_delta_init", perf_delta_init),
+        ("perf_delta_cache_hit", perf_delta_cache_hit),
         ("perf_diff_dialog_tab_load", perf_diff_dialog_tab_load),
         ("perf_full_pipeline_profile", perf_full_pipeline_profile),
     ]

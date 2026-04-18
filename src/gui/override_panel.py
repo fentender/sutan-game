@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.conflict import FileOverrideInfo
-from ..core.schema_generator import SEP
+from ..core.types import FIELD_SEP as SEP
 
 
 class OverridePanel(QWidget):
@@ -26,7 +26,6 @@ class OverridePanel(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._data: list[FileOverrideInfo] = []
-        self._game_config_path: Path | None = None
         self._mod_configs: list[tuple[str, str, Path]] | None = None
         self._allow_deletions: bool = False
         self._filter_mode: str = "all"
@@ -99,8 +98,8 @@ class OverridePanel(QWidget):
             info: FileOverrideInfo = item.data(0, Qt.ItemDataRole.UserRole)
             if info is not None:
                 mode_match = (self._filter_mode == "all" or
-                              (self._filter_mode == "conflict" and info.has_conflict) or
-                              (self._filter_mode == "normal" and not info.has_conflict))
+                              (self._filter_mode == "conflict" and info.has_conflict_or_warning) or
+                              (self._filter_mode == "normal" and not info.has_conflict_or_warning))
             else:
                 mode_match = True
             item.setHidden(not (text_match and mode_match))
@@ -115,17 +114,16 @@ class OverridePanel(QWidget):
         self.diff_requested.emit(info.rel_path)
 
     def set_data(self, overrides: list[FileOverrideInfo],
-                 game_config_path: Path | None = None,
                  mod_configs: list[tuple[str, str, Path]] | None = None,
                  allow_deletions: bool = False) -> None:
         """设置覆盖数据并刷新显示"""
         self._data = overrides
-        self._game_config_path = game_config_path
         self._mod_configs = mod_configs
         self._allow_deletions = allow_deletions
         self.tree.clear()
 
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突
+        warning_color = QColor(255, 220, 80)   # 黄色标记数组潜在冲突
 
         for info in overrides:
             # 文件级节点
@@ -136,6 +134,9 @@ class OverridePanel(QWidget):
             if info.has_conflict:
                 file_item.setForeground(0, conflict_color)
                 file_item.setText(0, f"{info.rel_path} (冲突!)")
+            elif info.has_warning:
+                file_item.setForeground(0, warning_color)
+                file_item.setText(0, f"{info.rel_path} (注意: 数组合并)")
 
             # 字段级子节点
             for fo in info.field_overrides:
@@ -148,6 +149,8 @@ class OverridePanel(QWidget):
                 ])
                 if fo.is_conflict:
                     child.setForeground(0, conflict_color)
+                elif fo.is_array_touched:
+                    child.setForeground(0, warning_color)
                 file_item.addChild(child)
 
             # 新增条目

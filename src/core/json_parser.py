@@ -1,24 +1,25 @@
 """
-JSON 解析器 - 处理带有 JS 风格注释和尾随逗号的 JSON 文件
+JSON 工具 - 文本清洗、格式化、写出
+
+文件读取功能统一由 JsonStore 管理，本模块只提供：
+- DupList 数据类型
+- 文本清洗函数（strip_js_comments 等）
+- 格式化输出（format_json）
+- 文件写出（dump_json）
+- 解析钩子（_pairs_hook）
 """
-import copy
 import json
 import re
 from pathlib import Path
-from typing import cast
 
 from ..accel._fast_json import (
     fix_missing_commas as _c_fix_missing_commas,
     has_duplist as _c_has_duplist,
-    pairs_hook as _pairs_hook,
+    pairs_hook as _pairs_hook,  # noqa: F401  # re-export
     strip_js_comments as _c_strip_js_comments,
     strip_trailing_commas as _c_strip_trailing_commas,
 )
-from .diagnostics import diag
 from .profiler import profile
-
-# JSON 解析缓存：(路径, mtime) → 解析结果
-_json_cache: dict[tuple[str, float], dict[str, object]] = {}
 
 # dump_json 已创建目录缓存，避免重复 mkdir 系统调用
 _created_dirs: set[str] = set()
@@ -72,89 +73,6 @@ def clean_json_text(text: str) -> str:
     text = fix_missing_commas(text)
     text = strip_duplicate_commas(text)
     return text
-
-
-def _try_parse_progressive(raw: str) -> dict[str, object]:
-    """分级尝试解析 JSON 文本。
-
-    按需逐步清洗，成功即停：
-    1. 直接解析原始文本（仅无 // 时尝试，避免白解析后抛异常）
-    2. 仅去 // 注释
-    3. 去注释 + 去尾随逗号
-    4. 完整清洗（去注释 + 去尾随逗号 + 修缺失逗号 + 去连续逗号）
-
-    绝大部分文件在第 2 或第 3 步即可成功，避免全量跑 fix_missing_commas。
-    """
-    has_comment = '//' in raw
-
-    # 第 1 步：直接解析（有 // 时跳过，避免 json.loads 白解析大半文件后抛异常）
-    if not has_comment:
-        try:
-            return cast(dict[str, object], json.loads(raw, object_pairs_hook=_pairs_hook))
-        except json.JSONDecodeError:
-            pass
-
-    # 第 2 步：仅去注释
-    text = strip_js_comments(raw) if has_comment else raw
-    try:
-        return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
-    except json.JSONDecodeError:
-        pass
-
-    # 第 3 步：去注释 + 去尾随逗号
-    text = strip_trailing_commas(text)
-    try:
-        return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
-    except json.JSONDecodeError:
-        pass
-
-    # 第 4 步：完整清洗
-    text = fix_missing_commas(text)
-    text = strip_duplicate_commas(text)
-    return cast(dict[str, object], json.loads(text, object_pairs_hook=_pairs_hook))
-
-
-@profile
-def load_json(file_path: str | Path, readonly: bool = False) -> dict[str, object]:
-    """读取带注释的 JSON 文件并解析，自动修正常见格式问题并记录警告。
-    内置 (路径, mtime) 缓存。
-
-    readonly=True 时直接返回缓存引用，调用方必须保证不修改返回值；
-    默认 False 返回 deepcopy。"""
-    path = Path(file_path)
-    mtime = path.stat().st_mtime
-    cache_key = (str(path), mtime)
-    if cache_key in _json_cache:
-        cached = _json_cache[cache_key]
-        return cached if readonly else copy.deepcopy(cached)
-
-    raw_bytes = path.read_bytes()
-    abnormal_fixes = []
-
-    # 检测并去除 BOM（异常格式，需要报告）
-    if raw_bytes.startswith(b'\xef\xbb\xbf'):
-        abnormal_fixes.append("UTF-8 BOM")
-        raw_bytes = raw_bytes[3:]
-
-    raw = raw_bytes.decode('utf-8')
-
-    # 分级清洗：逐步尝试，成功即停
-    # 大部分文件只需要去注释或去注释+尾逗号，避免对所有文件跑完整清洗
-    result = _try_parse_progressive(raw)
-
-    # 只记录真正异常的格式问题
-    if abnormal_fixes:
-        msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
-        diag.warn("parse", msg)
-
-    _json_cache[cache_key] = result
-    return result if readonly else copy.deepcopy(result)
-
-
-def clear_json_cache() -> None:
-    """清空 JSON 解析缓存"""
-    _json_cache.clear()
-    _created_dirs.clear()
 
 
 def _serialize(obj: object, indent: int = 4, sort_keys: bool = False, _level: int = 0) -> str:

@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .diagnostics import diag
-from .json_parser import load_json
 from .profiler import profile
+from .types import normalize_rel_path
 
 
 @dataclass
@@ -78,7 +78,8 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
     info_file = mod_path / "Info.json"
     if info_file.exists():
         try:
-            data = load_json(info_file)
+            from .json_store import JsonStore
+            data = JsonStore.parse_file(info_file)
             name = data.get("name", mod_id)
             info.name = str(name) if name is not None else mod_id
             desc = data.get("description", "")
@@ -117,11 +118,6 @@ def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> l
                 mods.append(mod)
 
     return mods
-
-
-def normalize_rel_path(path: Path, base: Path) -> str:
-    """计算相对路径并规范化分隔符为 /"""
-    return str(path.relative_to(base)).replace("\\", "/")
 
 
 @profile

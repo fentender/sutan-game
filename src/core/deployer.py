@@ -20,7 +20,8 @@ def generate_info_json(mod_names: list[str], output_path: Path) -> None:
         "description": "由 Mod 合并管理器自动生成。\n包含以下 mod 的合并内容：\n" +
                        "\n".join(f"  - {name}" for name in mod_names),
         "tags": ["Merged"],
-        "version": datetime.now().strftime("%Y%m%d.%H%M%S")
+        "version": datetime.now().strftime("%Y%m%d.%H%M%S"),
+        "synthetic": True,
     }
     output_path.mkdir(parents=True, exist_ok=True)
     (output_path / "Info.json").write_text(
@@ -73,6 +74,7 @@ def deploy_to_workshop(
     merged_output: Path,
     workshop_path: Path,
     mod_names: list[str],
+    synthetic_id: str = SYNTHETIC_MOD_ID,
 ) -> Path:
     """
     将合并结果部署为合成 Mod。
@@ -80,11 +82,11 @@ def deploy_to_workshop(
 
     返回合成 Mod 的路径。
     """
-    target = workshop_path / SYNTHETIC_MOD_ID
+    target = workshop_path / synthetic_id
     # 先复制到同级临时目录（同一文件系统才能原子重命名）
     tmp_dir = Path(tempfile.mkdtemp(dir=workshop_path, prefix="_merge_tmp_"))
     try:
-        tmp_target = tmp_dir / SYNTHETIC_MOD_ID
+        tmp_target = tmp_dir / synthetic_id
         shutil.copytree(merged_output, tmp_target)
         generate_info_json(mod_names, tmp_target)
 
@@ -107,3 +109,28 @@ def clean_synthetic_mod(workshop_path: Path) -> bool:
         shutil.rmtree(target)
         return True
     return False
+
+
+def scan_synthetic_mods(workshop_path: Path) -> list[tuple[str, str, Path]]:
+    """
+    扫描 workshop 目录中所有带 synthetic 标记的合成 Mod。
+
+    返回 [(folder_name, display_name, path), ...] 列表。
+    """
+    results: list[tuple[str, str, Path]] = []
+    if not workshop_path.exists():
+        return results
+    for entry in workshop_path.iterdir():
+        if not entry.is_dir():
+            continue
+        info_path = entry / "Info.json"
+        if not info_path.exists():
+            continue
+        try:
+            data = json.loads(info_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if data.get("synthetic") is True:
+            display_name = data.get("name", entry.name)
+            results.append((entry.name, display_name, entry))
+    return results

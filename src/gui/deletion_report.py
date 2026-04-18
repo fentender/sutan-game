@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.conflict import DeletionRecord, FileOverrideInfo
-from ..core.schema_generator import SEP
+from ..core.types import FIELD_SEP as SEP
 
 # 颜色
 _CLR_FILE = QColor(180, 210, 255)     # 文件节点：浅蓝
@@ -104,7 +104,6 @@ class DeletionReportDialog(QDialog):
     """删减报告对话框"""
 
     def __init__(self, override_data: list[FileOverrideInfo],
-                 game_config_path: Path | None = None,
                  mod_configs: list[tuple[str, str, Path]] | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -114,7 +113,6 @@ class DeletionReportDialog(QDialog):
             self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint
         )
 
-        self._game_config_path = game_config_path
         self._mod_configs = mod_configs
 
         # 收集所有删减记录：{rel_path: [DeletionRecord, ...]}
@@ -401,7 +399,7 @@ class DeletionReportDialog(QDialog):
         record: DeletionRecord | None = item.data(0, _ROLE_RECORD)
         if rel_path is None or record is None:
             return  # 非叶子节点
-        if not self._game_config_path or not self._mod_configs:
+        if not self._mod_configs:
             return
 
         self._open_deletion_preview(rel_path, record)
@@ -412,38 +410,32 @@ class DeletionReportDialog(QDialog):
         from PySide6.QtWidgets import QTextEdit
 
         from ..config import SCHEMA_DIR
-        from ..core.json_parser import format_json, load_json
-        from ..core.merger import classify_json, compute_mod_delta, merge_file
-        from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
+        from ..core.delta_store import ModDelta
+        from ..core.json_parser import format_json
+        from ..core.json_store import JsonStore
+        from ..core.merger import merge_file
+        from ..core.schema_loader import load_schemas, resolve_schema
         from .json_editor import CodeEditor
 
-        # 调用方已确认 _game_config_path 和 _mod_configs 非 None
-        assert self._game_config_path is not None
+        # 调用方已确认 _mod_configs 非 None
         assert self._mod_configs is not None
+        store = JsonStore.instance()
 
-        # 加载游戏本体
-        base_file = self._game_config_path / rel_path
-        base_data = load_json(base_file, readonly=True) if base_file.exists() else {}
-        file_type = classify_json(base_data) if base_data else "config"
+        # 从 store 获取游戏本体数据
+        base_data = store.get_base(rel_path)
 
         # 加载 schema
         schemas = load_schemas(SCHEMA_DIR)
         schema = resolve_schema(rel_path, schemas)
-        root_key = get_schema_root_key(schema) if schema else None
 
-        # 计算一次 delta（不含 allow_deletions 参数，统一产出完整差异）
+        # 从缓存获取 delta
         mod_data_list_shared = []
         for mod_id, mod_name, config_path in self._mod_configs:
-            mod_file = config_path / rel_path
-            if not mod_file.exists():
+            if not store.has_mod(mod_id, rel_path):
                 continue
-            mod_data = load_json(mod_file, readonly=True)
-            delta = compute_mod_delta(
-                base_data, mod_data, file_type,
-                schema=schema, root_key=root_key,
-            )
+            delta = ModDelta.get(mod_id, rel_path)
             if delta:
-                mod_data_list_shared.append((mod_id, mod_name, delta, str(mod_file)))
+                mod_data_list_shared.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         # 两次合并：allow_deletions=False（保留全部）和 True（执行删除）
         result_no_del = merge_file(
