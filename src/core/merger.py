@@ -8,9 +8,6 @@ import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .delta_store import (
-    ModDelta,
-)
 from .diagnostics import diag, merge_ctx
 from .dsl_patterns import classify_dsl_key
 from .json_parser import DupList, dump_json
@@ -20,17 +17,13 @@ from .schema_loader import (
     check_type_match,
     get_field_def,
     get_schema_root_key,
-    load_schemas,
-    resolve_schema,
 )
-from .smart_rules import smart_allow_deletion
 from .types import (
     ArrayFieldDiff,
     CancelCheck,
     ChangeKind,
     DiffDict,
     FieldDiff,
-    MergeMode,
 )
 
 # 需要整文件替换而非合并的文件
@@ -164,7 +157,6 @@ def apply_array_delta(
     delta: ArrayFieldDiff,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
-    merge_mode: MergeMode = MergeMode.SMART,
     version: int = 0,
 ) -> ArrayFieldDiff:
     """将 ArrayFieldDiff delta 应用到全状态 ArrayFieldDiff 上，原地修改并返回。
@@ -193,7 +185,7 @@ def apply_array_delta(
         if isinstance(diff.value, DiffDict) and isinstance(existing.value, DiffDict):
             # 嵌套 dict 变更：递归 apply_delta，子字段级别追踪 MULTI_MOD
             apply_delta(existing.value, diff.value, schema, field_path,
-                        merge_mode=merge_mode, version=version)
+                        version=version)
             # 更新元素级标记
             kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
             existing.kind = kind
@@ -201,7 +193,7 @@ def apply_array_delta(
         elif isinstance(diff.value, ArrayFieldDiff) and isinstance(existing.value, ArrayFieldDiff):
             # 嵌套数组变更：递归
             apply_array_delta(existing.value, diff.value, schema, field_path,
-                              merge_mode=merge_mode, version=version)
+                              version=version)
             kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
             existing.kind = kind
             existing.version = version
@@ -228,13 +220,9 @@ def apply_array_delta(
                 pos = id_map[elem_id]
                 existing = base.diffs[pos]
                 was_modified = existing.kind.base_kind != ChangeKind.ORIGIN
-                # SMART 模式：数组元素禁止删除
-                # NORMAL 模式：允许删除
-                do_delete = (merge_mode == MergeMode.NORMAL)
-                if do_delete:
-                    kind = ChangeKind.DELETED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-                    base.diffs[pos] = FieldDiff(kind, None,
-                                                old_value=existing.value, version=version)
+                kind = ChangeKind.DELETED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
+                base.diffs[pos] = FieldDiff(kind, None,
+                                            old_value=existing.value, version=version)
 
     # 保存旧 order，重建 order
     base.old_order = list(base.order)
@@ -259,11 +247,9 @@ def apply_array_delta(
         elif eid in current_non_base:
             after_base.setdefault(last_base_id, []).append(eid)
 
-    # 有效 ID 集合（NORMAL 模式下已删除的元素从 valid 中移除）
-    allow_del = (merge_mode == MergeMode.NORMAL)
+    # 有效 ID 集合（已删除的元素从 valid 中移除）
     valid_ids = set(base.indices)
-    if allow_del:
-        valid_ids -= deleted_ids
+    valid_ids -= deleted_ids
 
     # 按 delta.order 构建新 order
     new_order: list[int] = [0]
@@ -276,8 +262,6 @@ def apply_array_delta(
         if eid == -1:
             continue
         if eid in deleted_ids:
-            if not allow_del and eid in valid_ids:
-                new_order.append(eid)
             continue
         if eid in valid_ids:
             new_order.append(eid)
@@ -298,7 +282,6 @@ def apply_delta(
     delta: DiffDict,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
-    merge_mode: MergeMode = MergeMode.SMART,
     version: int = 0,
 ) -> DiffDict:
     """将 DiffDict delta 应用到全状态 DiffDict 上，原地修改并返回。
@@ -306,7 +289,6 @@ def apply_delta(
     参数:
         base: 全状态 DiffDict（所有字段带 ChangeKind 注解）
         delta: 稀疏 DiffDict（仅变化的字段）
-        merge_mode: 合并模式（NORMAL/SMART/REPLACE）
         version: 当前 mod 迭代版本号
     """
     # 查找当前层的 schema 定义
@@ -327,29 +309,13 @@ def apply_delta(
             old_val = _extract_value(existing)
 
             if diff.kind == ChangeKind.DELETED:
-                # 合法 existing: None、DiffDict、ArrayFieldDiff、FieldDiff(ORIGIN/CHANGED/DELETED)
-                if isinstance(existing, FieldDiff):
-                    assert existing.kind.base_kind in (ChangeKind.ORIGIN, ChangeKind.CHANGED, ChangeKind.DELETED), \
-                        f"DELETED delta 遇到非预期 existing kind: {existing.kind}"
-                # 根据合并模式判定是否允许删除
-                if merge_mode == MergeMode.NORMAL:
-                    do_delete = True
-                elif merge_mode == MergeMode.SMART:
-                    do_delete = smart_allow_deletion(
-                        child_path or [], is_array_element=False)
-                else:
-                    do_delete = False
-                if do_delete:
-                    kind = ChangeKind.DELETED | (
-                        ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
-                    )
-                    base.items[key] = FieldDiff(kind, None,
-                                                old_value=old_val, version=version)
+                # delta 中出现 DELETED 即意味着应该删除（模式过滤已在 delta 计算阶段完成）
+                kind = ChangeKind.DELETED | (
+                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
+                )
+                base.items[key] = FieldDiff(kind, None,
+                                            old_value=old_val, version=version)
             elif diff.kind == ChangeKind.ADDED:
-                # 合法 existing: None 或 FieldDiff(ADDED)
-                assert existing is None or (isinstance(existing, FieldDiff) and existing.kind.base_kind == ChangeKind.ADDED), \
-                    f"ADDED delta 遇到非预期 existing: {type(existing).__name__}" + \
-                    (f" kind={existing.kind}" if isinstance(existing, FieldDiff) else "")
                 # 类型校验
                 child_def = get_field_def(schema, child_path) if schema and child_path else None
                 _, type_warn = _resolve_merge_strategy(child_def, None, diff, key)
@@ -362,10 +328,6 @@ def apply_delta(
                                             old_value=old_val, version=version)
             else:
                 # CHANGED
-                # 合法 existing: None、DiffDict、ArrayFieldDiff、FieldDiff(ORIGIN/CHANGED/DELETED)
-                if isinstance(existing, FieldDiff):
-                    assert existing.kind.base_kind in (ChangeKind.ORIGIN, ChangeKind.CHANGED, ChangeKind.DELETED), \
-                        f"CHANGED delta 遇到非预期 existing kind: {existing.kind}"
                 child_def = get_field_def(schema, child_path) if schema and child_path else None
                 _, type_warn = _resolve_merge_strategy(
                     child_def, old_val, diff, key,
@@ -383,19 +345,19 @@ def apply_delta(
             existing = base.items.get(key)
             if isinstance(existing, DiffDict):
                 apply_delta(existing, diff, schema, child_path,
-                            merge_mode=merge_mode, version=version)
+                            version=version)
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, DiffDict):
                 apply_delta(existing.value, diff, schema, child_path,
-                            merge_mode=merge_mode, version=version)
+                            version=version)
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, dict):
                 sub = DiffDict.from_dict(existing.value)
                 apply_delta(sub, diff, schema, child_path,
-                            merge_mode=merge_mode, version=version)
+                            version=version)
                 base.items[key] = sub
             else:
                 sub = DiffDict()
                 apply_delta(sub, diff, schema, child_path,
-                            merge_mode=merge_mode, version=version)
+                            version=version)
                 base.items[key] = sub
 
         elif isinstance(diff, ArrayFieldDiff):
@@ -412,7 +374,7 @@ def apply_delta(
                     is_duplist=diff.is_duplist,
                 )
             apply_array_delta(base_afd, diff, schema, child_path,
-                              merge_mode=merge_mode, version=version)
+                              version=version)
             base.items[key] = base_afd
 
     # 未知 key 警告
@@ -462,7 +424,6 @@ def merge_file(
     mod_data_list: list[tuple[str, str, DiffDict, str]],
     rel_path: str = "",
     schema: dict[str, object] | None = None,
-    merge_mode: MergeMode = MergeMode.SMART,
 ) -> MergeResult:
     """合并单个文件。
 
@@ -471,21 +432,9 @@ def merge_file(
         mod_data_list: [(mod_id, mod_name, delta, source_file), ...] 按优先级排序
         rel_path: 文件相对路径（用于判断特殊文件）
         schema: 该文件对应的 schema 规则
-        merge_mode: 合并模式
     """
     result = MergeResult()
     file_name = Path(rel_path).name if rel_path else ""
-
-    # REPLACE 模式：直接用最后一个 mod 的原始数据替换，不做字段级合并
-    if merge_mode == MergeMode.REPLACE:
-        if mod_data_list:
-            last_mod_id, _, _, _ = mod_data_list[-1]
-            store = JsonStore.instance()
-            mod_raw = store.get_mod(last_mod_id, rel_path)
-            result.merged_data = copy.deepcopy(mod_raw) if mod_raw else copy.deepcopy(base_data)
-        else:
-            result.merged_data = copy.deepcopy(base_data)
-        return result
 
     # sfx_config.json 等特殊文件：整文件替换
     if file_name in WHOLE_FILE_REPLACE:
@@ -493,8 +442,7 @@ def merge_file(
             _, last_mod_name, _, _ = mod_data_list[-1]
             current = DiffDict.from_dict(base_data)
             for step, (_, _mod_name, delta, _) in enumerate(mod_data_list, 1):
-                apply_delta(current, delta, schema, None,
-                            merge_mode=merge_mode, version=step)
+                apply_delta(current, delta, schema, None, version=step)
             result.merged_data = current.to_dict()
             if len(mod_data_list) > 1:
                 diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {last_mod_name}")
@@ -515,8 +463,7 @@ def merge_file(
         merge_ctx.source_file = source_file
 
         fp: list[str] | None = [root_key] if root_key else None
-        apply_delta(current, delta, schema, fp,
-                    merge_mode=merge_mode, version=step)
+        apply_delta(current, delta, schema, fp, version=step)
 
         # 检查用户 override
         override = JsonStore.instance().get_override(mod_id, rel_path)
@@ -532,8 +479,6 @@ def merge_all_files(
     mod_configs: list[tuple[str, str, Path]],
     output_path: Path,
     schema_dir: Path | None = None,
-    merge_mode: MergeMode = MergeMode.SMART,
-    mod_merge_modes: dict[str, MergeMode] | None = None,
     cancel_check: CancelCheck | None = None,
 ) -> dict[str, MergeResult]:
     """合并所有文件。
@@ -542,14 +487,13 @@ def merge_all_files(
         mod_configs: [(mod_id, mod_name, mod_config_path), ...] 按优先级排序
         output_path: 输出目录
         schema_dir: schema 规则文件目录
-        merge_mode: 全局合并模式
-        mod_merge_modes: per-mod 合并模式覆盖（key=mod_id）
         cancel_check: 可选的取消检查回调
     """
     diag.snapshot("merge")
 
     store = JsonStore.instance()
-    schemas = load_schemas(schema_dir) if schema_dir else {}
+    from .merge_cache import MergeCache
+    cache = MergeCache.instance()
     mod_ids = [mod_id for mod_id, _, _ in mod_configs]
 
     results: dict[str, MergeResult] = {}
@@ -558,45 +502,38 @@ def merge_all_files(
         if cancel_check:
             cancel_check()
 
-        # 从 store 获取本体数据（不存在时为 {}）
         base_data = store.get_base(rel_path)
 
-        # 查找 schema
-        schema = resolve_schema(rel_path, schemas) if schemas else None
-
-        # 从 store 获取各 mod 的数据，从缓存获取 delta
-        mod_data_list: list[tuple[str, str, DiffDict, str]] = []
-        for mod_id in mod_ids:
-            if not store.has_mod(mod_id, rel_path):
-                continue
-            mod_name = store.mod_name(mod_id)
-
-            # tag.json name 匹配验证
-            if rel_path == "tag.json" and base_data:
+        # tag.json name 匹配验证
+        if rel_path == "tag.json" and base_data:
+            for mod_id in mod_ids:
+                if not store.has_mod(mod_id, rel_path):
+                    continue
+                mod_name = store.mod_name(mod_id)
                 mod_data = store.get_mod(mod_id, rel_path)
                 _validate_tag_names(base_data, [(mod_id, mod_name, mod_data)])
 
-            delta = ModDelta.get(mod_id, rel_path)
-            if delta is not None:
-                mod_data_list.append((mod_id, mod_name, delta, ""))
-
-        if not mod_data_list:
+        # 检查是否有 mod 修改此文件
+        has_mod = any(store.has_mod(mid, rel_path) for mid in mod_ids)
+        if not has_mod:
             continue
 
-        # 合并（per-mod 模式覆盖：取各 mod 的最高优先模式）
-        effective_mode = merge_mode
-        if mod_merge_modes:
-            for mid, _, _, _ in mod_data_list:
-                if mid in mod_merge_modes:
-                    effective_mode = mod_merge_modes[mid]
-        merge_result = merge_file(base_data, mod_data_list, rel_path,
-                                   schema=schema,
-                                   merge_mode=effective_mode)
-        results[rel_path] = merge_result
+        # WHOLE_FILE_REPLACE 警告
+        file_name = Path(rel_path).name if rel_path else ""
+        if file_name in WHOLE_FILE_REPLACE:
+            mod_names = [store.mod_name(mid) for mid in mod_ids
+                         if store.has_mod(mid, rel_path)]
+            if len(mod_names) > 1:
+                diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {mod_names[-1]}")
+
+        # 从缓存获取合并结果
+        state = cache.get(rel_path, mod_configs, schema_dir)
+        result = MergeResult(merged_data=state.final_dict)
+        results[rel_path] = result
 
         # 输出
         out_file = output_path / rel_path
-        dump_json(merge_result.merged_data, out_file)
+        dump_json(result.merged_data, out_file)
 
     return results
 

@@ -22,19 +22,15 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import SCHEMA_DIR
-from ..core.delta_store import ModDelta
-from ..core.diagnostics import diag, merge_ctx
 from ..core.diff_formatter import (
     build_padded_texts,
     diff_opcodes,
-    format_delta_json,
 )
-from ..core.json_parser import _pairs_hook, clean_json_text, format_json
+from ..core.json_parser import _pairs_hook, clean_json_text
 from ..core.json_store import JsonStore
-from ..core.merger import apply_delta
-from ..core.profiler import profile, profile_block
-from ..core.schema_loader import get_schema_root_key, load_schemas, resolve_schema
-from ..core.types import ChangeKind, DiffDict, MergeMode
+from ..core.merge_cache import MergeCache
+from ..core.profiler import profile
+from ..core.types import ChangeKind
 from .json_editor import CodeEditor, _format_with_comments
 
 # diff 行高亮背景色
@@ -103,13 +99,11 @@ class DiffDialog(QDialog):
 
     def __init__(self, rel_path: str,
                  mod_configs: list[tuple[str, str, Path]],
-                 merge_mode: MergeMode = MergeMode.SMART,
                  array_warnings: list[str] | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._rel_path = rel_path
         self._mod_configs = mod_configs
-        self._merge_mode = merge_mode
         self._array_warnings = array_warnings or []
 
         # 预计算各级合并状态的 JSON 文本
@@ -155,63 +149,21 @@ class DiffDialog(QDialog):
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
         self._line_kinds_pairs.clear()
-        diag.snapshot("merge")
+
+        cache = MergeCache.instance()
+        state = cache.get(self._rel_path, self._mod_configs, SCHEMA_DIR)
+
         store = JsonStore.instance()
         base_data = store.get_base(self._rel_path)
-
+        from ..core.json_parser import format_json
         self._base_text = format_json(base_data)
 
-        schemas = load_schemas(SCHEMA_DIR)
-        schema = resolve_schema(self._rel_path, schemas)
-        root_key = get_schema_root_key(schema) if schema else None
+        for step in state.steps:
+            prev_text = '\n'.join(step.left_lines)
+            curr_text = '\n'.join(step.right_lines)
 
-        current = DiffDict.from_dict(base_data)
-        mod_version = 0
-        for mod_id, mod_name, config_path in self._mod_configs:
-            if not store.has_mod(mod_id, self._rel_path):
-                continue
-
-            merge_ctx.mod_name = mod_name
-            merge_ctx.mod_id = mod_id
-            merge_ctx.rel_path = self._rel_path
-            merge_ctx.source_file = str(config_path / self._rel_path)
-
-            delta = ModDelta.get(mod_id, self._rel_path)
-            if not delta:
-                continue
-
-            field_path = [root_key] if root_key else None
-            mod_version += 1
-            with profile_block(f"precompute.apply_delta"):
-                apply_delta(current, delta, schema, field_path,
-                            merge_mode=self._merge_mode, version=mod_version)
-
-            with profile_block(f"precompute.format_delta_json"):
-                left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
-                    current, highlight_version=mod_version,
-                )
-
-            # 检查是否存在用户 override
-            override = store.get_override(mod_id, self._rel_path)
-            if override is not None:
-                override_text = format_json(override)
-                right_lines = override_text.splitlines()
-                right_kinds_override: list[ChangeKind | None] = [None] * len(right_lines)
-                max_len = max(len(left_lines), len(right_lines))
-                while len(left_lines) < max_len:
-                    left_lines.append('')
-                    left_kinds.append(None)
-                while len(right_lines) < max_len:
-                    right_lines.append('')
-                    right_kinds_override.append(None)
-                right_kinds = right_kinds_override
-                current = DiffDict.from_dict(override)
-
-            prev_text = '\n'.join(left_lines)
-            curr_text = '\n'.join(right_lines)
-
-            self._diff_pairs.append((mod_id, mod_name, prev_text, curr_text))
-            self._line_kinds_pairs.append((left_kinds, right_kinds))
+            self._diff_pairs.append((step.mod_id, step.mod_name, prev_text, curr_text))
+            self._line_kinds_pairs.append((step.left_kinds, step.right_kinds))
 
             # 从 line_kinds 计算高亮
             left_highlights: list[tuple[int, QColor]] = []
@@ -220,7 +172,7 @@ class DiffDialog(QDialog):
             has_conflict = False
             prev_is_change = False
 
-            for i, (lk, rk) in enumerate(zip(left_kinds, right_kinds, strict=True)):
+            for i, (lk, rk) in enumerate(zip(step.left_kinds, step.right_kinds, strict=True)):
                 is_change = False
 
                 if lk is not None:
@@ -253,7 +205,7 @@ class DiffDialog(QDialog):
             )
             self._tab_has_conflict.append(has_conflict)
 
-        self._merge_warnings = [msg for _, msg in diag.snapshot("merge")]
+        self._merge_warnings = state.warnings
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -864,6 +816,7 @@ class DiffDialog(QDialog):
     def _refresh_all(self) -> None:
         """重新预计算并刷新所有 tab"""
         current_tab = self._tabs.currentIndex()
+        MergeCache.instance().invalidate(self._rel_path)
         self._precompute_merge_states()
         self._update_warn_bar()
         self._loaded_tabs.clear()

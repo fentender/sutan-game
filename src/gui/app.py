@@ -290,11 +290,27 @@ class MainWindow(QMainWindow):
         # 启动 delta 预计算
         self._start_delta_init(enabled_ids)
 
+    def _refresh_delta(self) -> None:
+        """模式变更后重新计算 delta 并刷新覆盖分析"""
+        from ..core.merge_cache import MergeCache
+        MergeCache.instance().invalidate_all()
+        enabled_ids = [
+            mid for mid in self.config.mod_order
+            if mid in set(self.config.enabled_mods)
+        ]
+        if not enabled_ids:
+            return
+        self._start_delta_init(enabled_ids)
+
     def _start_delta_init(self, mod_ids: list[str]) -> None:
         """启动后台 delta 预计算，并显示进度对话框"""
         if self._delta_worker and self._delta_worker.isRunning():
             self._delta_worker.wait()
-        self._delta_worker = DeltaInitWorker(mod_ids, schema_dir=SCHEMA_DIR)
+        self._delta_worker = DeltaInitWorker(
+            mod_ids, schema_dir=SCHEMA_DIR,
+            merge_mode=self._get_merge_mode(),
+            mod_merge_modes=self._get_mod_merge_modes(),
+        )
 
         self._delta_progress = QProgressDialog(
             "正在预计算差异数据...", "", 0, 0, self,
@@ -342,6 +358,7 @@ class MainWindow(QMainWindow):
         if mode_value:
             self.config.merge_mode = mode_value
             self.config.save()
+            self._refresh_delta()
 
     def _get_merge_mode(self) -> MergeMode:
         """从配置获取当前全局合并模式"""
@@ -366,6 +383,7 @@ class MainWindow(QMainWindow):
         else:
             self.config.mod_merge_modes.pop(mod_id, None)
         self.config.save()
+        self._refresh_delta()
 
     def _show_deletion_report(self) -> None:
         """打开删减报告对话框（懒加载）"""
@@ -378,6 +396,8 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _save_config(self) -> None:
+        from ..core.merge_cache import MergeCache
+        MergeCache.instance().invalidate_all()
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
 
@@ -462,7 +482,9 @@ class MainWindow(QMainWindow):
         from ..core.delta_store import ModDelta
         enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
         ModDelta.invalidate()
-        ModDelta.init(enabled_ids, schema_dir=SCHEMA_DIR)
+        ModDelta.init(enabled_ids, schema_dir=SCHEMA_DIR,
+                      merge_mode=self._get_merge_mode(),
+                      mod_merge_modes=self._get_mod_merge_modes())
 
         self.statusBar().showMessage("正在分析覆盖情况...")
         self.progress_bar.setVisible(True)
@@ -481,7 +503,6 @@ class MainWindow(QMainWindow):
         self.override_panel.set_data(
             overrides,
             self._get_mod_configs(),
-            merge_mode=self._get_merge_mode(),
         )
         if parse_msgs:
             for level, msg in parse_msgs:
@@ -523,7 +544,6 @@ class MainWindow(QMainWindow):
         dlg = DiffDialog(
             rel_path=rel_path,
             mod_configs=self._get_mod_configs(),
-            merge_mode=self._get_merge_mode(),
             array_warnings=array_warnings,
         )
         dlg.exec()
@@ -567,8 +587,6 @@ class MainWindow(QMainWindow):
             mod_configs,
             output_path,
             mod_paths,
-            merge_mode=self._get_merge_mode(),
-            mod_merge_modes=self._get_mod_merge_modes(),
             remap_tables=self._remap_tables,
         )
         self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))

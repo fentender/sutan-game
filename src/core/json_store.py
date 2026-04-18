@@ -395,7 +395,7 @@ class JsonStore:
 
     def set_override(self, mod_id: str, rel_path: str, data: dict[str, object],
                      raw_text: str) -> None:
-        """保存 override：更新内存 + 写磁盘"""
+        """保存 override：更新内存 + 写磁盘 + 清合并缓存"""
         with self._lock:
             if mod_id not in self._override_data:
                 self._override_data[mod_id] = {}
@@ -406,8 +406,11 @@ class JsonStore:
             override_file.parent.mkdir(parents=True, exist_ok=True)
             override_file.write_text(raw_text, encoding="utf-8")
 
+        from .merge_cache import MergeCache
+        MergeCache.instance().invalidate(rel_path)
+
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
-        """删除 override：清除内存 + 删磁盘。返回是否存在并删除成功。"""
+        """删除 override：清除内存 + 删磁盘 + 清合并缓存。返回是否存在并删除成功。"""
         existed = False
         with self._lock:
             mod_overrides = self._override_data.get(mod_id)
@@ -424,6 +427,10 @@ class JsonStore:
                 existed = True
                 if override_file.parent.exists() and not any(override_file.parent.iterdir()):
                     override_file.parent.rmdir()
+
+        if existed:
+            from .merge_cache import MergeCache
+            MergeCache.instance().invalidate(rel_path)
 
         return existed
 

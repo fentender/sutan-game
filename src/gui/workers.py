@@ -63,10 +63,14 @@ class DeltaInitWorker(QThread):
     error = Signal(str)
 
     def __init__(self, mod_ids: list[str],
-                 schema_dir: Path | None = None) -> None:
+                 schema_dir: Path | None = None,
+                 merge_mode: MergeMode = MergeMode.SMART,
+                 mod_merge_modes: dict[str, MergeMode] | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
         self.schema_dir = schema_dir
+        self.merge_mode = merge_mode
+        self.mod_merge_modes = mod_merge_modes
 
     def run(self) -> None:
         from ..core.delta_store import ModDelta
@@ -75,6 +79,8 @@ class DeltaInitWorker(QThread):
                 self.mod_ids,
                 schema_dir=self.schema_dir,
                 progress_cb=self.progress.emit,
+                merge_mode=self.merge_mode,
+                mod_merge_modes=self.mod_merge_modes,
             )
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
@@ -87,15 +93,11 @@ class MergeWorker(CancellableWorker):
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  output_path: Path, mod_paths: list[tuple[str, Path]],
-                 merge_mode: MergeMode = MergeMode.SMART,
-                 mod_merge_modes: dict[str, MergeMode] | None = None,
                  remap_tables: dict[str, RemapTable] | None = None) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
-        self.merge_mode = merge_mode
-        self.mod_merge_modes = mod_merge_modes
         self.remap_tables = remap_tables
 
     def run(self) -> None:
@@ -105,8 +107,6 @@ class MergeWorker(CancellableWorker):
                 self.mod_configs,
                 self.output_path / "config",
                 schema_dir=SCHEMA_DIR,
-                merge_mode=self.merge_mode,
-                mod_merge_modes=self.mod_merge_modes,
                 cancel_check=self._check_cancel,
             )
             self._check_cancel()

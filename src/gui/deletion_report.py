@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.conflict import DeletionRecord, FileOverrideInfo
-from ..core.types import FIELD_SEP as SEP, MergeMode
+from ..core.types import FIELD_SEP as SEP
 
 # 颜色
 _CLR_FILE = QColor(180, 210, 255)     # 文件节点：浅蓝
@@ -410,11 +410,17 @@ class DeletionReportDialog(QDialog):
         from PySide6.QtWidgets import QTextEdit
 
         from ..config import SCHEMA_DIR
-        from ..core.delta_store import ModDelta
+        from ..core.delta_store import ModDelta, compute_delta
         from ..core.json_parser import format_json
         from ..core.json_store import JsonStore
         from ..core.merger import merge_file
-        from ..core.schema_loader import load_schemas, resolve_schema
+        from ..core.schema_loader import (
+            get_schema_root_key,
+            load_schemas,
+            resolve_schema,
+        )
+        from ..core.type_utils import classify_json
+        from ..core.types import MergeMode
         from .json_editor import CodeEditor
 
         # 调用方已确认 _mod_configs 非 None
@@ -428,23 +434,37 @@ class DeletionReportDialog(QDialog):
         schemas = load_schemas(SCHEMA_DIR)
         schema = resolve_schema(rel_path, schemas)
 
-        # 从缓存获取 delta
-        mod_data_list_shared = []
+        # 使用缓存的 delta（已按当前模式过滤）合并 → 无删除版本
+        mod_data_list_cached: list[tuple[str, str, object, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not store.has_mod(mod_id, rel_path):
                 continue
             delta = ModDelta.get(mod_id, rel_path)
             if delta:
-                mod_data_list_shared.append((mod_id, mod_name, delta, str(config_path / rel_path)))
+                mod_data_list_cached.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
-        # 两次合并：SMART 模式（保守删除）和 NORMAL 模式（全部删除）
         result_no_del = merge_file(
-            base_data, mod_data_list_shared, rel_path, schema=schema,
-            merge_mode=MergeMode.SMART,
+            base_data, mod_data_list_cached, rel_path, schema=schema,
         )
+
+        # 计算 NORMAL 模式 delta（包含所有删除）→ 有删除版本
+        file_type = classify_json(base_data) if base_data else "config"
+        root_key = get_schema_root_key(schema) if schema else None
+        mod_data_list_normal: list[tuple[str, str, object, str]] = []
+        for mod_id, mod_name, config_path in self._mod_configs:
+            if not store.has_mod(mod_id, rel_path):
+                continue
+            mod_data = store.get_mod(mod_id, rel_path)
+            delta = compute_delta(
+                base_data, mod_data, file_type,
+                schema=schema, root_key=root_key,
+                merge_mode=MergeMode.NORMAL,
+            )
+            if delta:
+                mod_data_list_normal.append((mod_id, mod_name, delta, str(config_path / rel_path)))
+
         result_del = merge_file(
-            base_data, mod_data_list_shared, rel_path, schema=schema,
-            merge_mode=MergeMode.NORMAL,
+            base_data, mod_data_list_normal, rel_path, schema=schema,
         )
 
         # 格式化两份 JSON 文本

@@ -3,8 +3,6 @@
 """
 from pathlib import Path
 
-from ..core.types import MergeMode
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
@@ -29,7 +27,6 @@ class OverridePanel(QWidget):
         super().__init__(parent)
         self._data: list[FileOverrideInfo] = []
         self._mod_configs: list[tuple[str, str, Path]] | None = None
-        self._merge_mode: MergeMode = MergeMode.SMART
         self._filter_mode: str = "all"
 
         layout = QVBoxLayout(self)
@@ -116,12 +113,10 @@ class OverridePanel(QWidget):
         self.diff_requested.emit(info.rel_path)
 
     def set_data(self, overrides: list[FileOverrideInfo],
-                 mod_configs: list[tuple[str, str, Path]] | None = None,
-                 merge_mode: MergeMode = MergeMode.SMART) -> None:
+                 mod_configs: list[tuple[str, str, Path]] | None = None) -> None:
         """设置覆盖数据并刷新显示"""
         self._data = overrides
         self._mod_configs = mod_configs
-        self._merge_mode = merge_mode
         self.tree.clear()
 
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突

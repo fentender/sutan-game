@@ -30,12 +30,14 @@ from .schema_loader import (
     resolve_schema,
 )
 from .type_utils import classify_json
+from .smart_rules import smart_allow_deletion
 from .types import (
     ArrayFieldDiff,
     ArrayMatching,
     ChangeKind,
     DiffDict,
     FieldDiff,
+    MergeMode,
 )
 
 
@@ -94,6 +96,7 @@ def _recursive_delta(
     mod: object,
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
+    merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> DiffDict | ArrayFieldDiff | FieldDiff | None:
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。
 
@@ -117,7 +120,7 @@ def _recursive_delta(
                     empty_base: DupList | list[object] = (
                         DupList() if isinstance(mod_val, DupList) else []
                     )
-                    sub = _recursive_delta(empty_base, mod_val, schema, child_path)
+                    sub = _recursive_delta(empty_base, mod_val, schema, child_path, merge_mode)
                     if isinstance(sub, ArrayFieldDiff):
                         items[key] = sub
                     else:
@@ -125,12 +128,16 @@ def _recursive_delta(
                 else:
                     items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
             else:
-                sub = _recursive_delta(base[key], mod_val, schema, child_path)
+                sub = _recursive_delta(base[key], mod_val, schema, child_path, merge_mode)
                 if sub is not None:
                     items[key] = sub
         # 删除的字段
         for key in base:
             if key not in mod:
+                if merge_mode == MergeMode.SMART:
+                    child_path = field_path + [key] if field_path is not None else []
+                    if not smart_allow_deletion(child_path, is_array_element=False):
+                        continue
                 items[key] = FieldDiff(ChangeKind.DELETED, None)
         return DiffDict(items) if items else None
 
@@ -149,6 +156,7 @@ def _recursive_delta(
         return _array_delta_from_matching(
             base, mod, matching, schema, field_path,
             is_duplist=isinstance(mod, DupList),
+            merge_mode=merge_mode,
         )
 
     # 标量比较
@@ -202,6 +210,7 @@ def _array_delta_from_matching(
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
     is_duplist: bool = False,
+    merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> ArrayFieldDiff | None:
     """根据匹配结果计算 ArrayFieldDiff。"""
     base_count = len(base_arr)
@@ -213,7 +222,7 @@ def _array_delta_from_matching(
     # 配对元素：递归比较，有差异则记录 CHANGED
     for base_idx, mod_idx in matching.pairs:
         elem_delta = _recursive_delta(
-            base_arr[base_idx], mod_arr[mod_idx], schema, field_path,
+            base_arr[base_idx], mod_arr[mod_idx], schema, field_path, merge_mode,
         )
         if elem_delta is not None:
             base_id = base_idx + 1  # 1-based
@@ -228,11 +237,12 @@ def _array_delta_from_matching(
         added_id_map[mod_idx] = next_added_id
         next_added_id += 1
 
-    # 未匹配的 base 元素 → 删除
-    for base_idx in matching.unmatched_base:
-        base_id = base_idx + 1  # 1-based
-        diffs.append(FieldDiff(ChangeKind.DELETED, None))
-        indices.append(base_id)
+    # 未匹配的 base 元素 → 删除（SMART 模式下数组元素禁删）
+    if merge_mode != MergeMode.SMART:
+        for base_idx in matching.unmatched_base:
+            base_id = base_idx + 1  # 1-based
+            diffs.append(FieldDiff(ChangeKind.DELETED, None))
+            indices.append(base_id)
 
     if not diffs:
         return None
@@ -254,6 +264,7 @@ def compute_delta(
     file_type: str,
     schema: dict[str, object] | None = None,
     root_key: str | None = None,
+    merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> DiffDict | None:
     """计算 mod 相对于游戏本体的实际差异，产出 DiffDict。
 
@@ -265,7 +276,7 @@ def compute_delta(
 
     if not base_data:
         # 本体无此文件，全部是新增
-        result = _recursive_delta({}, mod_data, schema, field_path)
+        result = _recursive_delta({}, mod_data, schema, field_path, merge_mode)
         if isinstance(result, DiffDict):
             return result
         # 无变化或非 dict 结果，包装为 DiffDict
@@ -283,17 +294,15 @@ def compute_delta(
             if key not in base_data:
                 items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
             else:
-                sub = _recursive_delta(base_data[key], mod_val, schema, field_path)
+                sub = _recursive_delta(base_data[key], mod_val, schema, field_path, merge_mode)
                 if sub is not None:
                     items[key] = sub
-        # 删除
-        for key in base_data:
-            if key not in mod_data:
-                items[key] = FieldDiff(ChangeKind.DELETED, None)
+        # dictionary 顶层键是实体 ID，mod 不包含某 ID 不代表删除，
+        # 任何模式下都不产生 DELETED
         return DiffDict(items) if items else None
     else:
         # entity/config
-        result = _recursive_delta(base_data, mod_data, schema, field_path)
+        result = _recursive_delta(base_data, mod_data, schema, field_path, merge_mode)
         if isinstance(result, DiffDict):
             return result
         return None
@@ -352,6 +361,8 @@ class ModDelta:
         mod_ids: list[str],
         schema_dir: Path | None = None,
         progress_cb: ProgressCallback | None = None,
+        merge_mode: MergeMode = MergeMode.SMART,
+        mod_merge_modes: dict[str, MergeMode] | None = None,
     ) -> None:
         """预计算所有 mod 的 delta 并缓存。
 
@@ -359,7 +370,12 @@ class ModDelta:
             mod_ids: 按优先级排序的 mod ID 列表
             schema_dir: schema 规则文件目录
             progress_cb: 进度回调 (completed, total)
+            merge_mode: 全局合并模式
+            mod_merge_modes: per-mod 合并模式覆盖
         """
+        # 延迟导入避免循环依赖（merger → delta_store → merger）
+        from .merger import apply_delta
+
         store = JsonStore.instance()
         schemas = load_schemas(schema_dir) if schema_dir else {}
 
@@ -378,7 +394,20 @@ class ModDelta:
         if progress_cb:
             progress_cb(0, total)
 
-        def _compute_one(task: tuple[str, str]) -> tuple[str, str, DiffDict | None]:
+        def _effective_mode(mod_id: str) -> MergeMode:
+            if mod_merge_modes and mod_id in mod_merge_modes:
+                return mod_merge_modes[mod_id]
+            return merge_mode
+
+        # 检查是否有任何 REPLACE mod
+        has_replace = any(
+            _effective_mode(mid) == MergeMode.REPLACE for mid in mod_ids
+        )
+
+        def _compute_one(
+            task: tuple[str, str],
+            effective: MergeMode,
+        ) -> tuple[str, str, DiffDict | None]:
             mod_id, rel_path = task
             base_data = store.get_base(rel_path)
             mod_data = store.get_mod(mod_id, rel_path)
@@ -386,30 +415,89 @@ class ModDelta:
             schema = resolve_schema(rel_path, schemas) if schemas else None
             root_key = get_schema_root_key(schema) if schema else None
             delta = compute_delta(base_data, mod_data, file_type,
-                                  schema=schema, root_key=root_key)
+                                  schema=schema, root_key=root_key,
+                                  merge_mode=effective)
             return mod_id, rel_path, delta
 
-        # 少量任务串行，大量任务并行
-        if total <= 20:
-            for task in tasks:
-                mod_id, rel_path, delta = _compute_one(task)
-                with cls._lock:
-                    cls._cache[(mod_id, rel_path)] = delta
-                    completed += 1
-                    cls._progress = (completed, total)
-                if progress_cb:
-                    progress_cb(completed, total)
-        else:
-            with ThreadPoolExecutor() as pool:
-                futures = {pool.submit(_compute_one, t): t for t in tasks}
-                for future in as_completed(futures):
-                    mod_id, rel_path, delta = future.result()
+        if has_replace:
+            # 有 REPLACE mod 时需要按文件分组、按 mod 顺序处理
+            # 因为 REPLACE delta 依赖累积合并状态
+            # 按 rel_path 分组
+            from collections import defaultdict
+            tasks_by_file: dict[str, list[str]] = defaultdict(list)
+            for mod_id in mod_ids:
+                for rel_path in store.mod_files(mod_id):
+                    tasks_by_file[rel_path].append(mod_id)
+
+            for rel_path, file_mod_ids in tasks_by_file.items():
+                base_data = store.get_base(rel_path)
+                file_type = classify_json(base_data) if base_data else "config"
+                schema = resolve_schema(rel_path, schemas) if schemas else None
+                root_key = get_schema_root_key(schema) if schema else None
+
+                # 累积合并状态（仅 REPLACE mod 需要）
+                current: DiffDict | None = None
+
+                for mod_id in file_mod_ids:
+                    effective = _effective_mode(mod_id)
+                    mod_data = store.get_mod(mod_id, rel_path)
+
+                    if effective == MergeMode.REPLACE:
+                        # REPLACE: delta 基于累积合并状态
+                        if current is None:
+                            current = DiffDict.from_dict(base_data)
+                        cumulative_data = current.to_dict()
+                        delta = compute_delta(
+                            cumulative_data, mod_data, file_type,
+                            schema=schema, root_key=root_key,
+                        )
+                    else:
+                        # NORMAL/SMART: delta 基于游戏本体
+                        delta = compute_delta(
+                            base_data, mod_data, file_type,
+                            schema=schema, root_key=root_key,
+                            merge_mode=effective,
+                        )
+
                     with cls._lock:
                         cls._cache[(mod_id, rel_path)] = delta
                         completed += 1
                         cls._progress = (completed, total)
                     if progress_cb:
                         progress_cb(completed, total)
+
+                    # 维护累积状态（无论什么模式都需要，因为后续 REPLACE mod 可能依赖）
+                    if delta is not None:
+                        if current is None:
+                            current = DiffDict.from_dict(base_data)
+                        fp: list[str] | None = [root_key] if root_key else None
+                        apply_delta(current, delta, schema, fp)
+        else:
+            # 无 REPLACE mod 时，走原有的并行/串行逻辑
+            if total <= 20:
+                for task in tasks:
+                    effective = _effective_mode(task[0])
+                    mod_id, rel_path, delta = _compute_one(task, effective)
+                    with cls._lock:
+                        cls._cache[(mod_id, rel_path)] = delta
+                        completed += 1
+                        cls._progress = (completed, total)
+                    if progress_cb:
+                        progress_cb(completed, total)
+            else:
+                with ThreadPoolExecutor() as pool:
+                    futures = {
+                        pool.submit(_compute_one, t, _effective_mode(t[0])): t
+                        for t in tasks
+                    }
+                    for future in as_completed(futures):
+                        mod_id, rel_path, delta = future.result()
+                        with cls._lock:
+                            cls._cache[(mod_id, rel_path)] = delta
+                            completed += 1
+                            cls._progress = (completed, total)
+                        if progress_cb:
+                            progress_cb(completed, total)
 
     @classmethod
     def get(cls, mod_id: str, rel_path: str) -> DiffDict | None:
