@@ -10,7 +10,7 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 # JSON 值类型（务实方案：不做完全递归 TypeAlias，避免 mypy 3.10 下的递归类型问题）
 JsonPrimitive = bool | int | float | str | None
@@ -45,40 +45,47 @@ class MergeMode(enum.Enum):
 class ChangeKind(enum.IntFlag):
     """字段变化类型（二进制标志位）。
 
-    低 3 位为基础类型（ORIGIN/ADDED/DELETED/CHANGED 四选一），
-    高位为修饰标志（MULTI_MOD 表示被多个 mod 修改）。
+    低 2 位为基础类型（ORIGIN/ADDED/DELETED/CHANGED 四选一），
+    bit2 为 MULTI_MOD（被多个 mod 修改），
+    bit3 为 OVERRIDE（被用户手动覆写）。
     """
     ORIGIN    = 0    # 未修改，来自 base
     ADDED     = 1    # 新增
     DELETED   = 2    # 删除
-    CHANGED   = 4    # 修改
-    MULTI_MOD = 8    # 标志位：被多个 mod 修改过（冲突标记）
+    CHANGED   = 3    # 修改
+    MULTI_MOD = 4    # 标志位：被多个 mod 修改过（冲突标记）
+    OVERRIDE  = 8    # 标志位：被用户手动覆写
 
     @property
     def base_kind(self) -> ChangeKind:
         """提取基础变化类型，去掉修饰标志"""
-        return ChangeKind.__new__(ChangeKind, self._value_ & 0x07)
+        return ChangeKind.__new__(ChangeKind, self._value_ & 0x03)
 
     @property
     def is_multi_mod(self) -> bool:
         """是否被多个 mod 修改过"""
+        return bool(self._value_ & 4)
+
+    @property
+    def is_override(self) -> bool:
+        """是否被用户手动覆写"""
         return bool(self._value_ & 8)
 
     @property
     def is_origin(self) -> bool:
-        return (self._value_ & 0x07) == 0
+        return (self._value_ & 0x03) == 0
 
     @property
     def is_added(self) -> bool:
-        return (self._value_ & 0x07) == 1
+        return (self._value_ & 0x03) == 1
 
     @property
     def is_deleted(self) -> bool:
-        return (self._value_ & 0x07) == 2
+        return (self._value_ & 0x03) == 2
 
     @property
     def is_changed(self) -> bool:
-        return (self._value_ & 0x07) == 4
+        return (self._value_ & 0x03) == 3
 
 
 @dataclass(slots=True)
@@ -117,6 +124,38 @@ class DiffDict:
                 items[key] = ArrayFieldDiff.from_list(value)
             else:
                 items[key] = FieldDiff(ChangeKind.ORIGIN, value)
+        return cls(items=items)
+
+    def to_delta_dict(self) -> dict[str, object]:
+        """将稀疏 delta DiffDict 序列化为可 JSON 化的 dict（保留 ChangeKind）"""
+        items: dict[str, object] = {}
+        for key, diff in self.items.items():
+            if isinstance(diff, FieldDiff):
+                items[key] = _field_diff_to_delta(diff)
+            elif isinstance(diff, DiffDict):
+                items[key] = {"__kind": "dict_delta", "items": diff.to_delta_dict()}
+            elif isinstance(diff, ArrayFieldDiff):
+                items[key] = diff.to_delta_dict()
+        return items
+
+    @classmethod
+    def from_delta_dict(cls, data: dict[str, object]) -> DiffDict | None:
+        """从序列化的 delta dict 恢复 DiffDict。旧格式（无 __kind）返回 None。"""
+        # 检测旧格式：如果顶层所有值都不含 __kind，认为是旧格式
+        if not data:
+            return cls(items={})
+        has_kind = any(
+            isinstance(v, dict) and "__kind" in v
+            for v in data.values()
+        )
+        if not has_kind:
+            return None
+        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        for key, raw in data.items():
+            if not isinstance(raw, dict) or "__kind" not in raw:
+                # 不应出现，但保险起见跳过
+                continue
+            items[key] = _delta_entry_from_dict(raw)
         return cls(items=items)
 
     def to_dict(self) -> dict[str, object]:
@@ -199,6 +238,98 @@ class ArrayFieldDiff:
             else:
                 result.append(val)
         return DupList(result) if self.is_duplist else result
+
+    def to_delta_dict(self) -> dict[str, object]:
+        """序列化 ArrayFieldDiff 为可 JSON 化的 dict"""
+        return {
+            "__kind": "array_delta",
+            "diffs": [_field_diff_to_delta(d) for d in self.diffs],
+            "base_count": self.base_count,
+            "indices": self.indices,
+            "order": self.order,
+            "is_duplist": self.is_duplist,
+        }
+
+    @classmethod
+    def from_delta_dict(cls, data: dict[str, object]) -> ArrayFieldDiff:
+        """从序列化 dict 恢复 ArrayFieldDiff"""
+        raw_diffs = cast(list[dict[str, object]], data["diffs"])
+        diffs = [_field_diff_from_delta(d) for d in raw_diffs]
+        return cls(
+            diffs=diffs,
+            base_count=cast(int, data["base_count"]),
+            indices=list(cast(list[int], data["indices"])),
+            order=list(cast(list[int], data["order"])),
+            is_duplist=bool(data.get("is_duplist", False)),
+        )
+
+
+# ── delta 序列化辅助函数 ──
+
+_KIND_TO_STR: dict[ChangeKind, str] = {
+    ChangeKind.ORIGIN: "origin",
+    ChangeKind.ADDED: "added",
+    ChangeKind.DELETED: "deleted",
+    ChangeKind.CHANGED: "changed",
+}
+_STR_TO_KIND: dict[str, ChangeKind] = {v: k for k, v in _KIND_TO_STR.items()}
+
+
+def _field_diff_to_delta(fd: FieldDiff) -> dict[str, object]:
+    """FieldDiff → 可 JSON 化的 dict"""
+    base = fd.kind.base_kind
+    result: dict[str, object] = {"__kind": _KIND_TO_STR.get(base, "origin")}
+    if fd.value is not None:
+        if isinstance(fd.value, DiffDict):
+            result["value"] = {"__kind": "dict_delta", "items": fd.value.to_delta_dict()}
+        elif isinstance(fd.value, ArrayFieldDiff):
+            result["value"] = fd.value.to_delta_dict()
+        else:
+            result["value"] = fd.value
+    if fd.old_value is not None:
+        result["old_value"] = fd.old_value
+    return result
+
+
+def _field_diff_from_delta(raw: dict[str, object]) -> FieldDiff:
+    """可 JSON 化的 dict → FieldDiff"""
+    kind_str = str(raw.get("__kind", "origin"))
+    kind = _STR_TO_KIND.get(kind_str, ChangeKind.ORIGIN)
+    value = _maybe_restore_nested(raw.get("value"))
+    old_value = raw.get("old_value")
+    return FieldDiff(kind=kind, value=value, old_value=old_value)
+
+
+def _delta_entry_from_dict(raw: dict[str, object]) -> FieldDiff | DiffDict | ArrayFieldDiff:
+    """根据 __kind 标记恢复对应类型"""
+    kind_str = str(raw.get("__kind", ""))
+    if kind_str == "dict_delta":
+        items_raw = cast(dict[str, object], raw.get("items", {}))
+        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        for k, v in items_raw.items():
+            if isinstance(v, dict) and "__kind" in v:
+                items[k] = _delta_entry_from_dict(v)
+        return DiffDict(items=items)
+    if kind_str == "array_delta":
+        return ArrayFieldDiff.from_delta_dict(raw)
+    # FieldDiff 类型
+    return _field_diff_from_delta(raw)
+
+
+def _maybe_restore_nested(value: object) -> object:
+    """如果 value 是嵌套的 delta dict/array，恢复为对应类型"""
+    if isinstance(value, dict) and "__kind" in value:
+        kind_str = str(value.get("__kind", ""))
+        if kind_str == "dict_delta":
+            items_raw = cast(dict[str, object], value.get("items", {}))
+            items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+            for k, v in items_raw.items():
+                if isinstance(v, dict) and "__kind" in v:
+                    items[k] = _delta_entry_from_dict(v)
+            return DiffDict(items=items)
+        if kind_str == "array_delta":
+            return ArrayFieldDiff.from_delta_dict(value)
+    return value
 
 
 @dataclass(slots=True)

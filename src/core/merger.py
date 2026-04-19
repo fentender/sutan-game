@@ -158,6 +158,7 @@ def apply_array_delta(
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
     version: int = 0,
+    is_override: bool = False,
 ) -> ArrayFieldDiff:
     """将 ArrayFieldDiff delta 应用到全状态 ArrayFieldDiff 上，原地修改并返回。
 
@@ -165,6 +166,7 @@ def apply_array_delta(
         base: 全状态 ArrayFieldDiff（所有元素带 ChangeKind 注解）
         delta: 稀疏 ArrayFieldDiff（仅变化的元素）
         version: 当前 mod 迭代版本号
+        is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
     # ID 重分配
     delta, _ = _remap_array_delta(delta, base)
@@ -182,30 +184,33 @@ def apply_array_delta(
         existing = base.diffs[pos]
         was_modified = existing.kind.base_kind != ChangeKind.ORIGIN
 
+        if is_override:
+            modifier = ChangeKind.OVERRIDE
+        elif was_modified:
+            modifier = ChangeKind.MULTI_MOD
+        else:
+            modifier = ChangeKind.ORIGIN
+
         if isinstance(diff.value, DiffDict) and isinstance(existing.value, DiffDict):
-            # 嵌套 dict 变更：递归 apply_delta，子字段级别追踪 MULTI_MOD
+            # 嵌套 dict 变更：递归 apply_delta，子字段级别追踪
             apply_delta(existing.value, diff.value, schema, field_path,
-                        version=version)
+                        version=version, is_override=is_override)
             # 更新元素级标记
-            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-            existing.kind = kind
+            existing.kind = ChangeKind.CHANGED | modifier
             existing.version = version
         elif isinstance(diff.value, ArrayFieldDiff) and isinstance(existing.value, ArrayFieldDiff):
             # 嵌套数组变更：递归
             apply_array_delta(existing.value, diff.value, schema, field_path,
-                              version=version)
-            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-            existing.kind = kind
+                              version=version, is_override=is_override)
+            existing.kind = ChangeKind.CHANGED | modifier
             existing.version = version
         elif isinstance(diff.value, FieldDiff):
             # 标量变更（_recursive_delta 返回的 FieldDiff 叶子）
-            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-            base.diffs[pos] = FieldDiff(kind, diff.value.value,
+            base.diffs[pos] = FieldDiff(ChangeKind.CHANGED | modifier, diff.value.value,
                                         old_value=existing.value, version=version)
         else:
             # 直接值替换
-            kind = ChangeKind.CHANGED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-            base.diffs[pos] = FieldDiff(kind, diff.value,
+            base.diffs[pos] = FieldDiff(ChangeKind.CHANGED | modifier, diff.value,
                                         old_value=existing.value, version=version)
 
     # 应用 ADDED 和 DELETED
@@ -220,8 +225,13 @@ def apply_array_delta(
                 pos = id_map[elem_id]
                 existing = base.diffs[pos]
                 was_modified = existing.kind.base_kind != ChangeKind.ORIGIN
-                kind = ChangeKind.DELETED | (ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN)
-                base.diffs[pos] = FieldDiff(kind, None,
+                if is_override:
+                    del_modifier = ChangeKind.OVERRIDE
+                elif was_modified:
+                    del_modifier = ChangeKind.MULTI_MOD
+                else:
+                    del_modifier = ChangeKind.ORIGIN
+                base.diffs[pos] = FieldDiff(ChangeKind.DELETED | del_modifier, None,
                                             old_value=existing.value, version=version)
 
     # 保存旧 order，重建 order
@@ -283,6 +293,7 @@ def apply_delta(
     schema: dict[str, object] | None = None,
     field_path: list[str] | None = None,
     version: int = 0,
+    is_override: bool = False,
 ) -> DiffDict:
     """将 DiffDict delta 应用到全状态 DiffDict 上，原地修改并返回。
 
@@ -290,6 +301,7 @@ def apply_delta(
         base: 全状态 DiffDict（所有字段带 ChangeKind 注解）
         delta: 稀疏 DiffDict（仅变化的字段）
         version: 当前 mod 迭代版本号
+        is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
     # 查找当前层的 schema 定义
     current_def: dict[str, object] | None = None
@@ -306,13 +318,18 @@ def apply_delta(
                 if isinstance(existing, (FieldDiff, ArrayFieldDiff))
                 else False
             )
+            # override 不触发 MULTI_MOD，而是标记 OVERRIDE
+            if is_override:
+                modifier = ChangeKind.OVERRIDE
+            elif was_modified:
+                modifier = ChangeKind.MULTI_MOD
+            else:
+                modifier = ChangeKind.ORIGIN
             old_val = _extract_value(existing)
 
             if diff.kind == ChangeKind.DELETED:
                 # delta 中出现 DELETED 即意味着应该删除（模式过滤已在 delta 计算阶段完成）
-                kind = ChangeKind.DELETED | (
-                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
-                )
+                kind = ChangeKind.DELETED | modifier
                 base.items[key] = FieldDiff(kind, None,
                                             old_value=old_val, version=version)
             elif diff.kind == ChangeKind.ADDED:
@@ -321,9 +338,7 @@ def apply_delta(
                 _, type_warn = _resolve_merge_strategy(child_def, None, diff, key)
                 if type_warn:
                     diag.warn("merge", _build_warn_msg(child_path, type_warn))
-                kind = ChangeKind.ADDED | (
-                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
-                )
+                kind = ChangeKind.ADDED | modifier
                 base.items[key] = FieldDiff(kind, diff.value,
                                             old_value=old_val, version=version)
             else:
@@ -334,9 +349,7 @@ def apply_delta(
                 )
                 if type_warn:
                     diag.warn("merge", _build_warn_msg(child_path, type_warn))
-                kind = ChangeKind.CHANGED | (
-                    ChangeKind.MULTI_MOD if was_modified else ChangeKind.ORIGIN
-                )
+                kind = ChangeKind.CHANGED | modifier
                 base.items[key] = FieldDiff(kind, diff.value,
                                             old_value=old_val, version=version)
 
@@ -345,20 +358,19 @@ def apply_delta(
             existing = base.items.get(key)
             if isinstance(existing, DiffDict):
                 apply_delta(existing, diff, schema, child_path,
-                            version=version)
+                            version=version, is_override=is_override)
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, DiffDict):
                 apply_delta(existing.value, diff, schema, child_path,
-                            version=version)
+                            version=version, is_override=is_override)
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, dict):
                 sub = DiffDict.from_dict(existing.value)
                 apply_delta(sub, diff, schema, child_path,
-                            version=version)
+                            version=version, is_override=is_override)
                 base.items[key] = sub
             else:
                 sub = DiffDict()
                 apply_delta(sub, diff, schema, child_path,
-                            version=version)
-                base.items[key] = sub
+                            version=version, is_override=is_override)
 
         elif isinstance(diff, ArrayFieldDiff):
             existing = base.items.get(key)
@@ -374,7 +386,7 @@ def apply_delta(
                     is_duplist=diff.is_duplist,
                 )
             apply_array_delta(base_afd, diff, schema, child_path,
-                              version=version)
+                              version=version, is_override=is_override)
             base.items[key] = base_afd
 
     # 未知 key 警告
@@ -383,7 +395,7 @@ def apply_delta(
         schema is not None
         and field_path == ["_entry"]
         and isinstance(schema.get("_meta"), dict)
-        and schema["_meta"].get("file_type") == "dictionary"  # type: ignore[union-attr]
+        and schema["_meta"].get("file_type") == "dictionary"  # type: ignore[attr-defined]
     )
     if current_def and isinstance(current_def, dict) and not is_dict_toplevel:
         known_keys: set[str] = set()
@@ -465,10 +477,10 @@ def merge_file(
         fp: list[str] | None = [root_key] if root_key else None
         apply_delta(current, delta, schema, fp, version=step)
 
-        # 检查用户 override
-        override = JsonStore.instance().get_override(mod_id, rel_path)
-        if override is not None:
-            current = DiffDict.from_dict(override)
+        # 检查用户 override delta
+        override_delta = JsonStore.instance().get_override(mod_id, rel_path)
+        if override_delta is not None:
+            apply_delta(current, override_delta, schema, fp, version=step)
 
     result.merged_data = current.to_dict()
     return result

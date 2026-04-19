@@ -484,20 +484,22 @@ def match_by_heuristic(
 
             while fwd_sim:
                 best_pair_sim: tuple[int, int, float] | None = None
-                for bi, candidates in fwd_sim.items():
-                    if not candidates:
+                bi_s: int
+                candidates_s: list[tuple[int, float]]
+                for bi_s, candidates_s in fwd_sim.items():
+                    if not candidates_s:
                         continue
-                    best_mi, best_sim = max(candidates, key=lambda x: x[1])
-                    mi_candidates = rev_sim.get(best_mi, [])
-                    if not mi_candidates:
+                    best_mi_s, best_sim_s = max(candidates_s, key=lambda x: x[1])
+                    mi_candidates_s = rev_sim.get(best_mi_s, [])
+                    if not mi_candidates_s:
                         continue
-                    best_bi_for_mi, _ = max(mi_candidates, key=lambda x: x[1])
-                    if best_bi_for_mi == bi:
+                    best_bi_for_mi_s, _ = max(mi_candidates_s, key=lambda x: x[1])
+                    if best_bi_for_mi_s == bi_s:
                         if (
                             best_pair_sim is None
-                            or best_sim > best_pair_sim[2]
+                            or best_sim_s > best_pair_sim[2]
                         ):
-                            best_pair_sim = (bi, best_mi, best_sim)
+                            best_pair_sim = (bi_s, best_mi_s, best_sim_s)
 
                 if best_pair_sim is None:
                     break
@@ -510,10 +512,10 @@ def match_by_heuristic(
                 remaining_mod_set.discard(mi)
                 fwd_sim.pop(bi, None)
                 rev_sim.pop(mi, None)
-                for candidates in fwd_sim.values():
-                    candidates[:] = [(m, s) for m, s in candidates if m != mi]
-                for candidates in rev_sim.values():
-                    candidates[:] = [(b, s) for b, s in candidates if b != bi]
+                for cs in fwd_sim.values():
+                    cs[:] = [(m, s) for m, s in cs if m != mi]
+                for cs in rev_sim.values():
+                    cs[:] = [(b, s) for b, s in cs if b != bi]
                 changed = True
                 has_fallback = True
 
@@ -524,21 +526,21 @@ def match_by_heuristic(
         if isinstance(base_arr[bi], dict):
             continue
         lo, hi = _get_mod_range(bi, base_len, mod_len, pair_map)
-        best_mi: int | None = None
-        best_sim = -1.0
+        best_mi_scalar: int | None = None
+        best_sim_scalar = -1.0
         for mi in remaining_mod_set:
             if mi < lo or mi >= hi:
                 continue
             sim = element_similarity(base_arr[bi], mod_arr[mi])
-            if sim > best_sim:
-                best_sim = sim
-                best_mi = mi
-        if best_mi is not None:
-            pairs.append((bi, best_mi))
-            matched_mod.add(best_mi)
+            if sim > best_sim_scalar:
+                best_sim_scalar = sim
+                best_mi_scalar = mi
+        if best_mi_scalar is not None:
+            pairs.append((bi, best_mi_scalar))
+            matched_mod.add(best_mi_scalar)
             matched_base.add(bi)
-            pair_map[bi] = best_mi
-            remaining_mod_set.discard(best_mi)
+            pair_map[bi] = best_mi_scalar
+            remaining_mod_set.discard(best_mi_scalar)
             has_fallback = True
 
     unmatched_base = [bi for bi in range(base_len) if bi not in matched_base]

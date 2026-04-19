@@ -145,6 +145,14 @@ def analyze_file_overrides(
                     fo.is_array_touched = True
                     break
 
+    # 排序：冲突项在前，数组合并项次之，普通项在后；同类内按字段路径排序
+    info.field_overrides.sort(
+        key=lambda fo: (
+            0 if fo.is_conflict else (1 if fo.is_array_touched else 2),
+            fo.field_path,
+        ),
+    )
+
     return info
 
 

@@ -294,6 +294,15 @@ class MainWindow(QMainWindow):
         """模式变更后重新计算 delta 并刷新覆盖分析"""
         from ..core.merge_cache import MergeCache
         MergeCache.instance().invalidate_all()
+
+        # 合并模式变更，清理所有 override
+        store = JsonStore.instance()
+        all_mod_ids = set(self.config.mod_order)
+        deleted_ids = store.invalidate_overrides(all_mod_ids)
+        if deleted_ids:
+            names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
+            self._log_message(INFO, f"合并模式变更，已清理覆盖编辑: {names}")
+
         enabled_ids = [
             mid for mid in self.config.mod_order
             if mid in set(self.config.enabled_mods)

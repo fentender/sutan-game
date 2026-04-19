@@ -10,7 +10,6 @@ from pathlib import Path
 from .delta_store import ModDelta
 from .diagnostics import diag, merge_ctx
 from .diff_formatter import format_delta_json
-from .json_parser import format_json
 from .json_store import JsonStore
 from .merger import apply_delta
 from .profiler import profile, profile_block
@@ -112,27 +111,18 @@ class MergeCache:
                 apply_delta(current, delta, schema, field_path,
                             version=mod_version)
 
+            # 检查用户 override delta
+            override_delta = store.get_override(mod_id, rel_path)
+            if override_delta is not None:
+                with profile_block("merge_cache.apply_override"):
+                    apply_delta(current, override_delta, schema, field_path,
+                                version=mod_version, is_override=True)
+
             # 产出中间状态（diff_dialog 用）
             with profile_block("merge_cache.format_delta_json"):
                 left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
                     current, highlight_version=mod_version,
                 )
-
-            # 检查用户 override
-            override = store.get_override(mod_id, rel_path)
-            if override is not None:
-                override_text = format_json(override)
-                right_lines = override_text.splitlines()
-                right_kinds_override: list[ChangeKind | None] = [None] * len(right_lines)
-                max_len = max(len(left_lines), len(right_lines))
-                while len(left_lines) < max_len:
-                    left_lines.append('')
-                    left_kinds.append(None)
-                while len(right_lines) < max_len:
-                    right_lines.append('')
-                    right_kinds_override.append(None)
-                right_kinds = right_kinds_override
-                current = DiffDict.from_dict(override)
 
             steps.append(StepState(
                 mod_id=mod_id,

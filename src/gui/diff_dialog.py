@@ -42,6 +42,8 @@ _CLR_LEFT_CONFLICT = QColor(120, 80, 20)  # 橙底（旧：文本匹配 fallback
 _CLR_RIGHT_CONFLICT = QColor(120, 80, 20) # 橙底（旧：文本匹配 fallback 用）
 _CLR_PADDING = QColor(30, 30, 30)         # 填充行背景（略深于编辑器背景）
 _CLR_SEARCH = QColor(40, 100, 180)        # 搜索匹配高亮（亮蓝）
+_CLR_OVERRIDE = QColor(50, 80, 120)       # 蓝底（用户手动覆写）
+_CLR_LEFT_OVERRIDE = QColor(50, 70, 110)  # 蓝底（覆写前）
 
 # 同一行出现多种高亮时，按优先级保留最高的（QColor 不可哈希，用 rgb 整数做 key）
 _COLOR_PRIORITY: dict[int, int] = {
@@ -52,6 +54,8 @@ _COLOR_PRIORITY: dict[int, int] = {
     _CLR_LEFT_CONFLICT.rgb(): 3,
     _CLR_RIGHT_CONFLICT.rgb(): 3,
     _CLR_CONFLICT.rgb(): 3,
+    _CLR_LEFT_OVERRIDE.rgb(): 4,
+    _CLR_OVERRIDE.rgb(): 4,
 }
 
 
@@ -118,6 +122,8 @@ class DiffDialog(QDialog):
         ]] = []
         # 各 tab 是否包含冲突行
         self._tab_has_conflict: list[bool] = []
+        # 各 tab 的原始右侧文本（无填充行），用于 override delta 计算
+        self._tab_original_texts: list[str] = []
         # 文件级是否有数组合并警告
         self._has_array_warning = len(self._array_warnings) > 0
         self._precompute_merge_states()
@@ -149,6 +155,7 @@ class DiffDialog(QDialog):
         self._diff_pairs.clear()
         self._precomputed_highlights.clear()
         self._line_kinds_pairs.clear()
+        self._tab_original_texts.clear()
 
         cache = MergeCache.instance()
         state = cache.get(self._rel_path, self._mod_configs, SCHEMA_DIR)
@@ -165,6 +172,13 @@ class DiffDialog(QDialog):
             self._diff_pairs.append((step.mod_id, step.mod_name, prev_text, curr_text))
             self._line_kinds_pairs.append((step.left_kinds, step.right_kinds))
 
+            # 缓存原始右侧文本（无填充行），供 override delta 计算
+            original_right = '\n'.join(
+                line for line, rk in zip(step.right_lines, step.right_kinds)
+                if rk is not None
+            )
+            self._tab_original_texts.append(original_right)
+
             # 从 line_kinds 计算高亮
             left_highlights: list[tuple[int, QColor]] = []
             right_highlights: list[tuple[int, QColor]] = []
@@ -177,7 +191,12 @@ class DiffDialog(QDialog):
 
                 if lk is not None:
                     if lk.is_deleted or lk.is_changed:
-                        color = _CLR_CONFLICT if lk.is_multi_mod else _CLR_LEFT_CHANGE
+                        if lk.is_override:
+                            color = _CLR_LEFT_OVERRIDE
+                        elif lk.is_multi_mod:
+                            color = _CLR_CONFLICT
+                        else:
+                            color = _CLR_LEFT_CHANGE
                         left_highlights.append((i, color))
                         is_change = True
                         if lk.is_multi_mod:
@@ -187,7 +206,12 @@ class DiffDialog(QDialog):
 
                 if rk is not None:
                     if rk.is_added or rk.is_changed:
-                        color = _CLR_CONFLICT if rk.is_multi_mod else _CLR_RIGHT_CHANGE
+                        if rk.is_override:
+                            color = _CLR_OVERRIDE
+                        elif rk.is_multi_mod:
+                            color = _CLR_CONFLICT
+                        else:
+                            color = _CLR_RIGHT_CHANGE
                         right_highlights.append((i, color))
                         is_change = True
                         if rk.is_multi_mod:
@@ -709,7 +733,7 @@ class DiffDialog(QDialog):
             editor.setExtraSelections(selections)
 
     def _save_override(self, tab_index: int) -> None:
-        """验证 JSON 后保存为 override 文件"""
+        """验证 JSON 后计算 delta 并保存为 override"""
         right_edit = self._tab_edits[tab_index][1]
         _, right_map = self._tab_line_maps[tab_index]
         text = _get_real_text(right_edit, right_map)
@@ -717,7 +741,7 @@ class DiffDialog(QDialog):
 
         cleaned = clean_json_text(text)
         try:
-            parsed = json.loads(cleaned, object_pairs_hook=_pairs_hook)
+            new_json = json.loads(cleaned, object_pairs_hook=_pairs_hook)
         except json.JSONDecodeError as e:
             error_bar.setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             error_bar.setVisible(True)
@@ -729,9 +753,23 @@ class DiffDialog(QDialog):
         error_bar.setVisible(False)
         right_edit.clear_highlights()
 
+        # 解析编辑前的原始文本
+        original_text = self._tab_original_texts[tab_index]
+        old_cleaned = clean_json_text(original_text)
+        old_json = json.loads(old_cleaned, object_pairs_hook=_pairs_hook)
+
+        # 计算 delta
+        from ..core.delta_store import compute_delta
+        from ..core.types import MergeMode
+        delta = compute_delta(old_json, new_json, "config", merge_mode=MergeMode.NORMAL)
+
         mod_id = self._diff_pairs[tab_index][0]
         store = JsonStore.instance()
-        store.set_override(mod_id, self._rel_path, parsed, text)
+        if delta is None:
+            # 无实际变化，移除 override
+            store.remove_override(mod_id, self._rel_path)
+        else:
+            store.set_override(mod_id, self._rel_path, delta)
 
         self._refresh_all()
 

@@ -3,6 +3,7 @@
 """
 from pathlib import Path
 
+from ..core.types import FieldDiff
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
@@ -122,18 +123,30 @@ class OverridePanel(QWidget):
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突
         warning_color = QColor(255, 220, 80)   # 黄色标记数组潜在冲突
 
-        for info in overrides:
+        # 排序：冲突文件在前，数组合并次之，普通文件在后
+        sorted_overrides = sorted(
+            overrides,
+            key=lambda info: (
+                0 if info.has_conflict else (1 if info.has_warning else 2),
+                info.rel_path,
+            ),
+        )
+
+        for info in sorted_overrides:
             # 文件级节点
             chain_text = "[本体] ← " + " ← ".join(info.mod_chain) if info.mod_chain else "[仅本体]"
             file_item = QTreeWidgetItem([info.rel_path, chain_text, ""])
             file_item.setData(0, Qt.ItemDataRole.UserRole, info)
 
-            if info.has_conflict:
+            if info.has_conflict and info.has_warning:
+                file_item.setForeground(0, conflict_color)
+                file_item.setText(0, f"{info.rel_path} (冲突, 数组合并)")
+            elif info.has_conflict:
                 file_item.setForeground(0, conflict_color)
                 file_item.setText(0, f"{info.rel_path} (冲突!)")
             elif info.has_warning:
                 file_item.setForeground(0, warning_color)
-                file_item.setText(0, f"{info.rel_path} (注意: 数组合并)")
+                file_item.setText(0, f"{info.rel_path} (数组合并)")
 
             # 字段级子节点
             for fo in info.field_overrides:
@@ -165,6 +178,9 @@ class OverridePanel(QWidget):
 
 def _format_value(val: object) -> str:
     """格式化值用于显示"""
+    # 解包 FieldDiff，只取其中的 value
+    if isinstance(val, FieldDiff):
+        val = val.value
     if val is None:
         return "null"
     if isinstance(val, str) and len(val) > 30:

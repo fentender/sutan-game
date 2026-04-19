@@ -27,7 +27,7 @@ from .json_parser import (
     strip_trailing_commas,
 )
 from .profiler import profile
-from .types import ParseFailure, normalize_rel_path
+from .types import DiffDict, ParseFailure, normalize_rel_path
 
 
 class JsonStore:
@@ -50,7 +50,7 @@ class JsonStore:
     def __init__(self) -> None:
         self._base_data: dict[str, dict[str, object]] = {}  # rel_path → data
         self._mod_data: dict[str, dict[str, dict[str, object]]] = {}  # mod_id → {rel_path → data}
-        self._override_data: dict[str, dict[str, dict[str, object]]] = {}  # mod_id → {rel_path → data}
+        self._override_data: dict[str, dict[str, DiffDict]] = {}  # mod_id → {rel_path → delta}
         self._overrides_dir: Path | None = None
         self._mod_names: dict[str, str] = {}  # mod_id → mod_name
         self._mod_config_paths: dict[str, Path] = {}  # mod_id → config_path
@@ -361,7 +361,7 @@ class JsonStore:
     # ── Override 管理 ──
 
     def load_overrides(self, overrides_dir: Path, enabled_mod_ids: list[str]) -> None:
-        """扫描 overrides_dir，加载所有启用 mod 的 override JSON 文件"""
+        """扫描 overrides_dir，加载所有启用 mod 的 override delta 文件"""
         with self._lock:
             self._override_data.clear()
             self._overrides_dir = overrides_dir
@@ -376,35 +376,44 @@ class JsonStore:
             for json_file in mod_dir.rglob("*.json"):
                 rel = normalize_rel_path(json_file, mod_dir)
                 try:
-                    data = self._load_json(json_file)
-                except json.JSONDecodeError:
+                    raw = json.loads(json_file.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, OSError):
                     diag.warn("override", f"override 文件解析失败: {json_file}")
+                    continue
+                if not isinstance(raw, dict):
+                    diag.warn("override", f"override 文件格式无效: {json_file}")
+                    continue
+                delta = DiffDict.from_delta_dict(raw)
+                if delta is None:
+                    # 旧格式，跳过并删除
+                    diag.warn("override", f"旧格式 override 已清理: {json_file}")
+                    json_file.unlink(missing_ok=True)
                     continue
                 with self._lock:
                     if mod_id not in self._override_data:
                         self._override_data[mod_id] = {}
-                    self._override_data[mod_id][rel] = data
+                    self._override_data[mod_id][rel] = delta
 
-    def get_override(self, mod_id: str, rel_path: str) -> dict[str, object] | None:
-        """获取 override 数据，不存在返回 None"""
+    def get_override(self, mod_id: str, rel_path: str) -> DiffDict | None:
+        """获取 override delta，不存在返回 None"""
         return self._override_data.get(mod_id, {}).get(rel_path)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
         """是否存在 override"""
         return rel_path in self._override_data.get(mod_id, {})
 
-    def set_override(self, mod_id: str, rel_path: str, data: dict[str, object],
-                     raw_text: str) -> None:
-        """保存 override：更新内存 + 写磁盘 + 清合并缓存"""
+    def set_override(self, mod_id: str, rel_path: str, delta: DiffDict) -> None:
+        """保存 override delta：更新内存 + 写磁盘 + 清合并缓存"""
         with self._lock:
             if mod_id not in self._override_data:
                 self._override_data[mod_id] = {}
-            self._override_data[mod_id][rel_path] = data
+            self._override_data[mod_id][rel_path] = delta
 
         if self._overrides_dir is not None:
             override_file = self._overrides_dir / mod_id / rel_path
             override_file.parent.mkdir(parents=True, exist_ok=True)
-            override_file.write_text(raw_text, encoding="utf-8")
+            serialized = json.dumps(delta.to_delta_dict(), ensure_ascii=False, indent=2)
+            override_file.write_text(serialized, encoding="utf-8")
 
         from .merge_cache import MergeCache
         MergeCache.instance().invalidate(rel_path)
