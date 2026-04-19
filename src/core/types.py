@@ -20,6 +20,9 @@ JsonObject = dict[str, object]
 # cancel_check 回调类型（无参数、无返回值）
 CancelCheck = Callable[[], None]
 
+# 进度回调类型 (completed, total)
+ProgressCallback = Callable[[int, int], None]
+
 # 路径分隔符（内部使用，避免和 JSON key 中的点号冲突）
 FIELD_SEP: str = '\x01'
 

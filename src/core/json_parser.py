@@ -25,6 +25,11 @@ from .profiler import profile
 _created_dirs: set[str] = set()
 
 
+def reset_dir_cache() -> None:
+    """清空目录创建缓存。在删除输出目录后调用，避免后续写入时跳过 mkdir。"""
+    _created_dirs.clear()
+
+
 class DupList(list):
     """JSON 重复键展开后的值列表。
 

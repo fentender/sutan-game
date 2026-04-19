@@ -24,6 +24,7 @@ from .types import (
     ChangeKind,
     DiffDict,
     FieldDiff,
+    ProgressCallback,
 )
 
 # 需要整文件替换而非合并的文件
@@ -492,6 +493,7 @@ def merge_all_files(
     output_path: Path,
     schema_dir: Path | None = None,
     cancel_check: CancelCheck | None = None,
+    progress_cb: ProgressCallback | None = None,
 ) -> dict[str, MergeResult]:
     """合并所有文件。
 
@@ -510,9 +512,13 @@ def merge_all_files(
 
     results: dict[str, MergeResult] = {}
 
-    for rel_path in sorted(store.all_rel_paths()):
+    all_paths = sorted(store.all_rel_paths())
+    total = len(all_paths)
+    for i, rel_path in enumerate(all_paths):
         if cancel_check:
             cancel_check()
+        if progress_cb:
+            progress_cb(i, total)
 
         base_data = store.get_base(rel_path)
 
@@ -547,6 +553,8 @@ def merge_all_files(
         out_file = output_path / rel_path
         dump_json(result.merged_data, out_file)
 
+    if progress_cb:
+        progress_cb(total, total)
     return results
 
 

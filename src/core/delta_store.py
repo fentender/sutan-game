@@ -8,7 +8,6 @@
 """
 import copy
 import threading
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -29,8 +28,8 @@ from .schema_loader import (
     load_schemas,
     resolve_schema,
 )
-from .type_utils import classify_json
 from .smart_rules import smart_allow_deletion
+from .type_utils import classify_json
 from .types import (
     ArrayFieldDiff,
     ArrayMatching,
@@ -38,6 +37,7 @@ from .types import (
     DiffDict,
     FieldDiff,
     MergeMode,
+    ProgressCallback,
 )
 
 
@@ -338,10 +338,6 @@ def flatten_delta(
 
 
 # ==================== 全局 Delta 缓存 ====================
-
-
-# 进度回调类型
-ProgressCallback = Callable[[int, int], None]
 
 
 class ModDelta:

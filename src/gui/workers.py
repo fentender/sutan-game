@@ -89,7 +89,8 @@ class DeltaInitWorker(QThread):
 class MergeWorker(CancellableWorker):
     """后台合并线程"""
     done = Signal(dict, list)  # 合并结果, 警告列表
-    progress = Signal(str)
+    progress = Signal(int, int)  # completed, total
+    stage = Signal(str)  # 阶段描述
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  output_path: Path, mod_paths: list[tuple[str, Path]],
@@ -102,18 +103,19 @@ class MergeWorker(CancellableWorker):
 
     def run(self) -> None:
         try:
-            self.progress.emit("正在合并 JSON 文件...")
+            self.stage.emit("正在合并 JSON 文件...")
             results = merge_all_files(
                 self.mod_configs,
                 self.output_path / "config",
                 schema_dir=SCHEMA_DIR,
                 cancel_check=self._check_cancel,
+                progress_cb=lambda c, t: self.progress.emit(c, t),
             )
             self._check_cancel()
 
             # 在工作线程内快照警告，避免跨线程竞态
             warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
-            self.progress.emit("正在复制资源文件...")
+            self.stage.emit("正在复制资源文件...")
             copy_resources(self.mod_paths, self.output_path,
                            cancel_check=self._check_cancel,
                            remap_tables=self.remap_tables)

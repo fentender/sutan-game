@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         self._store_worker: StoreInitWorker | None = None
         self._delta_worker: DeltaInitWorker | None = None
         self._delta_progress: QProgressDialog | None = None
+        self._merge_progress: QProgressDialog | None = None
         self._update_worker: UpdateCheckWorker | None = None
         self._pending_action: Callable[[], None] | None = None
 
@@ -596,12 +597,24 @@ class MainWindow(QMainWindow):
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_paths = [(m.name, m.path) for m in enabled]
 
+        # 清空目录创建缓存，避免清理后残留缓存导致写入失败
+        from ..core.json_parser import reset_dir_cache
+        reset_dir_cache()
+
         # 切换按钮为「取消合并」
         self.btn_merge.setText("取消合并")
         self.btn_merge.clicked.disconnect()
         self.btn_merge.clicked.connect(self._cancel_merge)
-        self.progress_bar.setVisible(True)
-        self.progress_bar.setRange(0, 0)  # 不确定进度
+
+        # 模态进度对话框
+        self._merge_progress = QProgressDialog(
+            "正在合并 JSON 文件...", "取消", 0, 0, self,
+        )
+        self._merge_progress.setWindowTitle("执行合并")
+        self._merge_progress.setMinimumDuration(0)
+        self._merge_progress.setWindowModality(Qt.WindowModality.WindowModal)
+        self._merge_progress.canceled.connect(self._cancel_merge)
+        self._merge_progress.show()
 
         self._merge_output_path = output_path
         self._worker = MergeWorker(
@@ -610,7 +623,8 @@ class MainWindow(QMainWindow):
             mod_paths,
             remap_tables=self._remap_tables,
         )
-        self._worker.progress.connect(lambda msg: self.statusBar().showMessage(msg))
+        self._worker.progress.connect(self._on_merge_progress)
+        self._worker.stage.connect(self._on_merge_stage)
         self._worker.done.connect(self._on_merge_finished)
         self._worker.error.connect(self._on_merge_error)
         self._worker.start()
@@ -649,7 +663,24 @@ class MainWindow(QMainWindow):
         self.btn_merge.setEnabled(True)
         self.btn_merge.clicked.disconnect()
         self.btn_merge.clicked.connect(self._execute_merge)
-        self.progress_bar.setVisible(False)
+        if hasattr(self, '_merge_progress') and self._merge_progress is not None:
+            self._merge_progress.close()
+            self._merge_progress = None
+
+    def _on_merge_progress(self, completed: int, total: int) -> None:
+        """更新合并进度"""
+        if hasattr(self, '_merge_progress') and self._merge_progress is not None:
+            self._merge_progress.setMaximum(total)
+            self._merge_progress.setValue(completed)
+
+    def _on_merge_stage(self, msg: str) -> None:
+        """更新合并阶段描述"""
+        if hasattr(self, '_merge_progress') and self._merge_progress is not None:
+            self._merge_progress.setLabelText(msg)
+            # 资源复制阶段切回不确定进度
+            self._merge_progress.setMaximum(0)
+            self._merge_progress.setValue(0)
+        self.statusBar().showMessage(msg)
 
     def _on_merge_finished(self, results: dict[str, object], warnings: list[str]) -> None:
         self._restore_merge_btn()
