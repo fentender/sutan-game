@@ -286,6 +286,12 @@ class MainWindow(QMainWindow):
 
         self.statusBar().showMessage("JSON 资源加载完成")
 
+        # 计算 Mod 与本体的重叠状态（用于过时风险分级）
+        from ..core.overlap import compute_all_overlaps
+        all_mod_ids = [m.mod_id for m in self.mod_list_panel._mods]
+        overlap_map = compute_all_overlaps(store, all_mod_ids)
+        self.mod_list_panel.update_overlap(overlap_map)
+
         # 加载用户 override 文件
         enabled_ids = [
             mid for mid in self.config.mod_order

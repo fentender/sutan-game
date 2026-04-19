@@ -141,6 +141,7 @@ class ModListItem(QWidget):
 
     def __init__(self, mod: ModInfo, enabled: bool = True,
                  merge_mode: str = "", game_update_time: int | None = None,
+                 has_base_overlap: bool | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.mod = mod
@@ -159,7 +160,16 @@ class ModListItem(QWidget):
             from datetime import datetime, timezone
             mod_date = datetime.fromtimestamp(mod.update_time, tz=timezone.utc).strftime("%Y-%m-%d")
             game_date = datetime.fromtimestamp(game_update_time, tz=timezone.utc).strftime("%Y-%m-%d")
-            if mod.update_time < MAJOR_UPDATE_TS:
+            if has_base_overlap is False:
+                # 过时但纯增量，风险低
+                self._warn_label.setText('<b style="color:#1976d2; font-size:14px;">ℹ</b>')
+                self._warn_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self._warn_label.setToolTip(
+                    f"该 Mod 已过时，但仅包含增量内容（未修改本体），风险较低\n"
+                    f"Mod 最后更新: {mod_date}\n"
+                    f"游戏最后更新: {game_date}"
+                )
+            elif mod.update_time < MAJOR_UPDATE_TS:
                 # 严重：Mod 更新在大版本之前
                 self._warn_label.setText('<b style="color:#d32f2f; font-size:16px;">❗</b>')
                 self._warn_label.setToolTip(
@@ -246,6 +256,7 @@ class ModListPanel(QWidget):
         self._mods: list[ModInfo] = []
         self._enabled: dict[str, bool] = {}
         self._merge_modes: dict[str, str] = {}  # per-mod 合并模式
+        self._overlap: dict[str, bool] = {}  # mod_id → has_base_overlap
         self._game_update_time: int | None = None
 
         layout = QVBoxLayout(self)
@@ -307,7 +318,8 @@ class ModListPanel(QWidget):
             item = QListWidgetItem()
             widget = ModListItem(mod, self._enabled.get(mod.mod_id, True),
                                  merge_mode=self._merge_modes.get(mod.mod_id, ""),
-                                 game_update_time=self._game_update_time)
+                                 game_update_time=self._game_update_time,
+                                 has_base_overlap=self._overlap.get(mod.mod_id))
             widget.toggled.connect(self._on_toggle)
             widget.move_up.connect(self._on_move_up)
             widget.move_down.connect(self._on_move_down)
@@ -383,4 +395,9 @@ class ModListPanel(QWidget):
     def get_enabled_ids(self) -> list[str]:
         """获取启用的 mod ID 列表"""
         return [mid for mid, en in self._enabled.items() if en]
+
+    def update_overlap(self, overlap: dict[str, bool]) -> None:
+        """更新重叠状态并刷新列表图标"""
+        self._overlap = overlap
+        self._refresh_list()
 

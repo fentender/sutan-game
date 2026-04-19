@@ -27,6 +27,8 @@ class ModInfo:
     resource_files: list[str] = field(default_factory=list)
     # Steam 上的最后更新时间（Unix 时间戳），来自 .acf 文件
     update_time: int | None = None
+    # 是否修改了本体内容（True=有重叠, False=纯增量, None=未检测）
+    has_base_overlap: bool | None = None
 
 
 def find_preview(mod_path: Path) -> str | None:
