@@ -61,7 +61,7 @@ def _run(cmd: list[str], *, dry_run: bool = False, check: bool = True) -> subpro
     if PROXY:
         env.setdefault("HTTPS_PROXY", PROXY)
         env.setdefault("HTTP_PROXY", PROXY)
-    return subprocess.run(cmd, check=check, capture_output=True, text=True, cwd=str(ROOT), env=env)
+    return subprocess.run(cmd, check=check, capture_output=True, text=True, cwd=str(ROOT), env=env, encoding="utf-8", errors="replace")
 
 
 def _check_prerequisites() -> None:
@@ -96,10 +96,13 @@ def _check_prerequisites() -> None:
         sys.exit(1)
 
 
-def _git_push(dry_run: bool) -> None:
-    """推送代码和标签到 origin 和 gitee"""
-    _run(["git", "push", "origin", "master", "--tags"], dry_run=dry_run)
-    _run(["git", "push", "gitee", "master", "--tags"], dry_run=dry_run)
+def _git_push(version: str, dry_run: bool) -> None:
+    """推送代码和新标签到 origin 和 gitee"""
+    tag = f"v{version}"
+    _run(["git", "push", "origin", "master"], dry_run=dry_run)
+    _run(["git", "push", "origin", tag], dry_run=dry_run)
+    _run(["git", "push", "gitee", "master"], dry_run=dry_run)
+    _run(["git", "push", "gitee", tag], dry_run=dry_run)
 
 
 def _create_tag(version: str, dry_run: bool) -> None:
@@ -289,7 +292,7 @@ def main() -> None:
 
     # 3. 推送
     print("\n[3/6] 推送到 GitHub 和 Gitee...")
-    _git_push(dry_run)
+    _git_push(version, dry_run)
 
     # 4. 打包
     print("\n[4/6] 编译并打包...")
