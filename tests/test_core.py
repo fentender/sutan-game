@@ -303,8 +303,45 @@ def test_override_after_mod_insert() -> None:
     )
 
 
+def test_override_insert_element() -> None:
+    """Override 保存：在 settlement 数组中间插入新元素后能正确保留
+
+    回归测试：之前 apply_array_delta 的 override 路径没有把 ADDED 元素
+    加入 base.order，导致新增元素在输出中被丢弃。
+    """
+    mod_configs, store, cache = _init_merge_env()
+
+    if not store.has_mod(WQDYMOD_ID, RITE_REL_PATH):
+        skip(f"mod {WQDYMOD_ID} 无 {RITE_REL_PATH}")
+
+    old_json = _get_step_right_json(cache, mod_configs, RITE_REL_PATH,
+                                    WQDYMOD_ID)
+    new_json = copy.deepcopy(old_json)
+
+    # 在 settlement 数组中间复制一个元素并插入
+    settlement = new_json.get("settlement")
+    assert isinstance(settlement, list), "缺少 settlement 数组"
+    assert_true(len(settlement) >= 5, "settlement 元素不足")
+
+    # 复制第 3 个元素，插入到第 4 个位置
+    copied = copy.deepcopy(settlement[2])
+    if isinstance(copied, dict):
+        copied["__test_inserted__"] = True
+    settlement.insert(3, copied)
+
+    old_len = len(old_json.get("settlement", []))  # type: ignore[union-attr]
+    new_len = len(settlement)
+    assert_eq(new_len, old_len + 1, "插入后长度应 +1")
+
+    _apply_override_and_verify(
+        store, cache, mod_configs, RITE_REL_PATH, WQDYMOD_ID,
+        old_json, new_json, "插入新元素",
+    )
+
+
 def run_all(result: TestResult) -> None:
     run_test("heuristic_insert_delete", test_heuristic_insert_delete, result)
     run_test("override_single_field", test_override_single_field, result)
     run_test("override_multi_element", test_override_multi_element, result)
     run_test("override_after_mod_insert", test_override_after_mod_insert, result)
+    run_test("override_insert_element", test_override_insert_element, result)

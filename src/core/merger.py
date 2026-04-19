@@ -242,10 +242,26 @@ def apply_array_delta(
 
     # 应用 ADDED 和 DELETED
     deleted_ids: set[int] = set()
+    added_remap: dict[int, int] = {}  # override 用：delta added_id → 重分配 ID
+
+    # override 的 ADDED ID 可能与全状态已有 ID 冲突，需要重分配
+    if is_override:
+        max_existing = max(base.indices) if base.indices else 0
+        next_new_id = max_existing + 1
+    else:
+        next_new_id = 0  # 不使用
+
     for diff, elem_id in zip(delta.diffs, delta.indices, strict=True):
         if diff.kind == ChangeKind.ADDED:
-            base.diffs.append(FieldDiff(ChangeKind.ADDED, diff.value, version=version))
-            base.indices.append(elem_id)
+            if is_override:
+                new_id = next_new_id
+                next_new_id += 1
+                added_remap[elem_id] = new_id
+                base.diffs.append(FieldDiff(ChangeKind.ADDED | ChangeKind.OVERRIDE, diff.value, version=version))
+                base.indices.append(new_id)
+            else:
+                base.diffs.append(FieldDiff(ChangeKind.ADDED, diff.value, version=version))
+                base.indices.append(elem_id)
         elif diff.kind == ChangeKind.DELETED:
             deleted_ids.add(elem_id)
             if elem_id in id_map:
@@ -264,9 +280,36 @@ def apply_array_delta(
     # override 不重建 order：override delta 的 base_count 基于展开后数组，
     # 与全状态的 base_count 不一致，用 delta.order 重建会破坏元素排列。
     if is_override:
+        base.old_order = list(base.order)
         if deleted_ids:
-            base.old_order = list(base.order)
             base.order = [eid for eid in base.order if eid not in deleted_ids]
+        if added_remap:
+            # 通过 delta.order 确定新增元素应插入的位置
+            # flat_to_eid: delta 中的 flat position → 全状态 element ID
+            flat_order_cur = [eid for eid in base.order if eid not in (0, -1)]
+            flat_to_eid_cur: dict[int, int] = {
+                pos + 1: eid for pos, eid in enumerate(flat_order_cur)
+            }
+            delta_body = [x for x in delta.order if x not in (0, -1)]
+            for i, did in enumerate(delta_body):
+                new_id = added_remap.get(did)
+                if new_id is None:
+                    continue
+                # 找前一个非 added 的已有元素作为锚点
+                anchor_eid = 0  # 默认：插在开头（0 标记之后）
+                for j in range(i - 1, -1, -1):
+                    prev_did = delta_body[j]
+                    if prev_did not in added_remap:
+                        anchor_eid = flat_to_eid_cur.get(prev_did, 0)
+                        break
+                # 在 base.order 中 anchor_eid 之后插入
+                try:
+                    anchor_pos = base.order.index(anchor_eid)
+                    base.order.insert(anchor_pos + 1, new_id)
+                except ValueError:
+                    # fallback: 插在 -1 之前
+                    end_pos = len(base.order) - 1
+                    base.order.insert(end_pos, new_id)
         return base
 
     # 保存旧 order，重建 order

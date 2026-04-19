@@ -68,7 +68,8 @@ def _check_prerequisites() -> None:
     """检查前置条件"""
     # git 工作区是否干净
     result = subprocess.run(
-        ["git", "status", "--porcelain"], capture_output=True, text=True, cwd=str(ROOT)
+        ["git", "status", "--porcelain"], capture_output=True, text=True, cwd=str(ROOT),
+        encoding="utf-8", errors="replace"
     )
     if result.stdout.strip():
         print("错误: git 工作区有未提交的更改:")
@@ -80,7 +81,8 @@ def _check_prerequisites() -> None:
         print("错误: 未找到 gh CLI，请先安装: https://cli.github.com/")
         sys.exit(1)
 
-    result = subprocess.run([GH_CMD, "auth", "status"], capture_output=True, text=True)
+    result = subprocess.run([GH_CMD, "auth", "status"], capture_output=True, text=True,
+                            encoding="utf-8", errors="replace")
     if result.returncode != 0:
         print("错误: gh CLI 未认证，请先执行: gh auth login")
         sys.exit(1)
@@ -98,23 +100,21 @@ def _check_prerequisites() -> None:
 
 def _git_push(version: str, dry_run: bool) -> None:
     """推送代码和新标签到 origin 和 gitee"""
-    tag = f"v{version}"
     _run(["git", "push", "origin", "master"], dry_run=dry_run)
-    _run(["git", "push", "origin", tag], dry_run=dry_run)
+    _run(["git", "push", "origin", version], dry_run=dry_run, check=False)
     _run(["git", "push", "gitee", "master"], dry_run=dry_run)
-    _run(["git", "push", "gitee", tag], dry_run=dry_run)
+    _run(["git", "push", "gitee", version], dry_run=dry_run, check=False)
 
 
 def _create_tag(version: str, dry_run: bool) -> None:
     """创建 git tag（已存在则跳过）"""
-    tag = f"v{version}"
     result = subprocess.run(
-        ["git", "tag", "-l", tag], capture_output=True, text=True, cwd=str(ROOT)
+        ["git", "tag", "-l", version], capture_output=True, text=True, cwd=str(ROOT)
     )
-    if tag in result.stdout.strip().splitlines():
-        print(f"  标签 {tag} 已存在，跳过")
+    if version in result.stdout.strip().splitlines():
+        print(f"  标签 {version} 已存在，跳过")
         return
-    _run(["git", "tag", tag], dry_run=dry_run)
+    _run(["git", "tag", version], dry_run=dry_run)
 
 
 def _build(dry_run: bool) -> None:
@@ -148,8 +148,7 @@ def _make_zip(version: str, dry_run: bool) -> Path:
 
 def _github_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> None:
     """通过 gh CLI 创建 GitHub Release"""
-    tag = f"v{version}"
-    title = f"V{version}"
+    title = f"[v{version}] Mod 冲突合并工具"
 
     if not dry_run:
         # 检查 release 是否已存在
@@ -158,15 +157,15 @@ def _github_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> 
             env.setdefault("HTTPS_PROXY", PROXY)
             env.setdefault("HTTP_PROXY", PROXY)
         result = subprocess.run(
-            [GH_CMD, "release", "view", tag], capture_output=True, text=True, cwd=str(ROOT), env=env
+            [GH_CMD, "release", "view", version], capture_output=True, text=True, cwd=str(ROOT), env=env
         )
         if result.returncode == 0:
-            print(f"  GitHub Release {tag} 已存在，跳过")
+            print(f"  GitHub Release {version} 已存在，跳过")
             return
 
     _run(
         [
-            GH_CMD, "release", "create", tag,
+            GH_CMD, "release", "create", version,
             str(zip_path),
             "--title", title,
             "--notes", notes,
@@ -179,11 +178,10 @@ def _github_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> 
 def _gitee_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> None:
     """通过 Gitee REST API 创建 Release 并上传附件"""
     token = os.environ.get("GITEE_TOKEN", "")
-    tag = f"v{version}"
-    title = f"V{version}"
+    title = f"[v{version}] Mod 冲突合并工具"
     api_base = f"https://gitee.com/api/v5/repos/{GITEE_OWNER}/{GITEE_REPO}"
 
-    print(f"  → 创建 Gitee Release {tag}")
+    print(f"  → 创建 Gitee Release {version}")
     if dry_run:
         print(f"  → 上传附件 {zip_path.name} 到 Gitee Release")
         return
@@ -196,7 +194,7 @@ def _gitee_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> N
     # 创建 release
     create_data = json.dumps({
         "access_token": token,
-        "tag_name": tag,
+        "tag_name": version,
         "name": title,
         "body": notes,
         "target_commitish": "master",
@@ -273,7 +271,6 @@ def main() -> None:
 
     dry_run: bool = args.dry_run
     version = _read_version()
-    tag = f"v{version}"
 
     print(f"{'[DRY RUN] ' if dry_run else ''}发布 V{version}")
     print("=" * 50)
@@ -287,7 +284,7 @@ def main() -> None:
         print("\n[1/6] 检查前置条件... (跳过)")
 
     # 2. 创建 tag
-    print(f"\n[2/6] 创建标签 {tag}...")
+    print(f"\n[2/6] 创建标签 {version}...")
     _create_tag(version, dry_run)
 
     # 3. 推送
@@ -323,8 +320,8 @@ def main() -> None:
 
     print("\n" + "=" * 50)
     print(f"{'[DRY RUN] ' if dry_run else ''}发布 V{version} 完成！")
-    print(f"  GitHub: https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases/tag/{tag}")
-    print(f"  Gitee:  https://gitee.com/{GITEE_OWNER}/{GITEE_REPO}/releases/tag/{tag}")
+    print(f"  GitHub: https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases/tag/{version}")
+    print(f"  Gitee:  https://gitee.com/{GITEE_OWNER}/{GITEE_REPO}/releases/tag/{version}")
 
 
 if __name__ == "__main__":
