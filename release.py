@@ -34,6 +34,9 @@ GITEE_REPO = "sutan-game"
 # 代理设置（访问 GitHub/Gitee API 时使用）
 PROXY = os.environ.get("HTTPS_PROXY", os.environ.get("HTTP_PROXY", ""))
 
+# gh CLI 完整路径（Windows 安装后可能不在 PATH 中）
+GH_CMD = shutil.which("gh") or r"C:\Program Files\GitHub CLI\gh.exe"
+
 
 # ── 工具函数 ──────────────────────────────────────────────────────────
 
@@ -73,11 +76,11 @@ def _check_prerequisites() -> None:
         sys.exit(1)
 
     # gh CLI
-    if not shutil.which("gh"):
+    if not os.path.isfile(GH_CMD):
         print("错误: 未找到 gh CLI，请先安装: https://cli.github.com/")
         sys.exit(1)
 
-    result = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True)
+    result = subprocess.run([GH_CMD, "auth", "status"], capture_output=True, text=True)
     if result.returncode != 0:
         print("错误: gh CLI 未认证，请先执行: gh auth login")
         sys.exit(1)
@@ -147,8 +150,12 @@ def _github_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> 
 
     if not dry_run:
         # 检查 release 是否已存在
+        env = os.environ.copy()
+        if PROXY:
+            env.setdefault("HTTPS_PROXY", PROXY)
+            env.setdefault("HTTP_PROXY", PROXY)
         result = subprocess.run(
-            ["gh", "release", "view", tag], capture_output=True, text=True, cwd=str(ROOT)
+            [GH_CMD, "release", "view", tag], capture_output=True, text=True, cwd=str(ROOT), env=env
         )
         if result.returncode == 0:
             print(f"  GitHub Release {tag} 已存在，跳过")
@@ -156,7 +163,7 @@ def _github_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> 
 
     _run(
         [
-            "gh", "release", "create", tag,
+            GH_CMD, "release", "create", tag,
             str(zip_path),
             "--title", title,
             "--notes", notes,
