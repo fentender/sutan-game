@@ -1,7 +1,7 @@
 """
 Mod 列表面板 - 左侧面板，显示所有 mod 并支持排序和启用/禁用
 """
-from PySide6.QtCore import QMimeData, QPoint, Qt, Signal
+from PySide6.QtCore import QEvent, QMimeData, QPoint, Qt, Signal
 from PySide6.QtGui import (
     QColor,
     QDrag,
@@ -22,11 +22,13 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPushButton,
+    QToolTip,
     QVBoxLayout,
     QWidget,
 )
 
 from ..core.mod_scanner import ModInfo
+from ..core.steam_time import MAJOR_UPDATE_TS
 
 
 class DraggableModList(QListWidget):
@@ -138,12 +140,47 @@ class ModListItem(QWidget):
     merge_mode_changed = Signal(str, str)  # mod_id, mode_value ("" 表示跟随全局)
 
     def __init__(self, mod: ModInfo, enabled: bool = True,
-                 merge_mode: str = "", parent: QWidget | None = None) -> None:
+                 merge_mode: str = "", game_update_time: int | None = None,
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.mod = mod
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(4, 2, 4, 2)
+
+        # 过时警告图标（用富文本渲染带颜色的感叹号）
+        self._warn_label = QLabel()
+        self._warn_label.setFixedWidth(18)
+        self._warn_label.setTextFormat(Qt.TextFormat.RichText)
+        # 大版本更新时间常量来自 steam_time.MAJOR_UPDATE_TS
+        if (mod.update_time is not None
+                and game_update_time is not None
+                and mod.update_time < game_update_time):
+            from datetime import datetime, timezone
+            mod_date = datetime.fromtimestamp(mod.update_time, tz=timezone.utc).strftime("%Y-%m-%d")
+            game_date = datetime.fromtimestamp(game_update_time, tz=timezone.utc).strftime("%Y-%m-%d")
+            if mod.update_time < MAJOR_UPDATE_TS:
+                # 严重：Mod 更新在大版本之前
+                self._warn_label.setText('<b style="color:#d32f2f; font-size:16px;">❗</b>')
+                self._warn_label.setToolTip(
+                    f"⚠ 该 Mod 严重过时（早于大版本更新）\n"
+                    f"Mod 最后更新: {mod_date}\n"
+                    f"游戏大版本更新: 2026-03-31\n"
+                    f"游戏最后更新: {game_date}"
+                )
+            else:
+                # 轻微：Mod 在大版本之后更新过，但早于游戏最新更新
+                self._warn_label.setText('<b style="color:#e8a200; font-size:14px;">⚠</b>')
+                self._warn_label.setToolTip(
+                    f"该 Mod 可能过时\n"
+                    f"Mod 最后更新: {mod_date}\n"
+                    f"游戏最后更新: {game_date}"
+                )
+        else:
+            self._warn_label.setText("")
+        # 让警告图标的 tooltip 立即显示（无延迟）
+        self._warn_label.installEventFilter(self)
+        layout.addWidget(self._warn_label)
 
         self.checkbox = QCheckBox()
         self.checkbox.setStyleSheet("""
@@ -187,6 +224,17 @@ class ModListItem(QWidget):
         mode_value = self.cmb_mode.itemData(index)
         self.merge_mode_changed.emit(self.mod.mod_id, mode_value)
 
+    def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
+        """拦截警告图标的 ToolTip 事件，立即显示（无系统延迟）。"""
+        if obj is self._warn_label and event.type() == QEvent.Type.ToolTip:
+            tip = self._warn_label.toolTip()
+            if tip:
+                from PySide6.QtGui import QHelpEvent
+                help_event: QHelpEvent = event  # type: ignore[assignment]
+                QToolTip.showText(help_event.globalPos(), tip, self._warn_label)
+                return True
+        return super().eventFilter(obj, event)
+
 class ModListPanel(QWidget):
     """Mod 列表面板"""
     mod_selected = Signal(object)  # ModInfo
@@ -198,6 +246,7 @@ class ModListPanel(QWidget):
         self._mods: list[ModInfo] = []
         self._enabled: dict[str, bool] = {}
         self._merge_modes: dict[str, str] = {}  # per-mod 合并模式
+        self._game_update_time: int | None = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -224,9 +273,11 @@ class ModListPanel(QWidget):
 
     def set_mods(self, mods: list[ModInfo], order: list[str] | None = None,
                  enabled: list[str] | None = None,
-                 merge_modes: dict[str, str] | None = None) -> None:
+                 merge_modes: dict[str, str] | None = None,
+                 game_update_time: int | None = None) -> None:
         """设置 mod 列表"""
         self._mods = list(mods)
+        self._game_update_time = game_update_time
 
         # 按照保存的顺序排列
         if order:
@@ -255,7 +306,8 @@ class ModListPanel(QWidget):
         for mod in self._mods:
             item = QListWidgetItem()
             widget = ModListItem(mod, self._enabled.get(mod.mod_id, True),
-                                 merge_mode=self._merge_modes.get(mod.mod_id, ""))
+                                 merge_mode=self._merge_modes.get(mod.mod_id, ""),
+                                 game_update_time=self._game_update_time)
             widget.toggled.connect(self._on_toggle)
             widget.move_up.connect(self._on_move_up)
             widget.move_down.connect(self._on_move_down)

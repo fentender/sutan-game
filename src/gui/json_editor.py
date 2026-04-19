@@ -281,7 +281,7 @@ class CodeEditor(QPlainTextEdit):
         self.setExtraSelections([])
 
     def createMimeDataFromSelection(self) -> QMimeData:
-        """复制时自动剥离 diff 填充行"""
+        """复制时自动剥离 diff 填充行，并正确处理部分选中"""
         cursor = self.textCursor()
         if not cursor.hasSelection():
             return super().createMimeDataFromSelection()
@@ -291,16 +291,35 @@ class CodeEditor(QPlainTextEdit):
             return super().createMimeDataFromSelection()
 
         doc = self.document()
-        start_block = doc.findBlock(cursor.selectionStart())
-        end_block = doc.findBlock(cursor.selectionEnd())
+        sel_start = cursor.selectionStart()
+        sel_end = cursor.selectionEnd()
+        start_block = doc.findBlock(sel_start)
+        end_block = doc.findBlock(sel_end)
 
-        # 提取选区内真实行（跳过填充行）
+        # 提取选区内真实行（跳过填充行），首尾行只取选中部分
         lines: list[str] = []
         block = start_block
         while block.isValid() and block.blockNumber() <= end_block.blockNumber():
             bn = block.blockNumber()
-            if bn >= len(line_map) or line_map[bn] is not None:
-                lines.append(block.text())
+            if bn < len(line_map) and line_map[bn] is None:
+                # 填充行，跳过
+                block = block.next()
+                continue
+            text = block.text()
+            block_pos = block.position()
+            # 首行：截取选区起点之后的部分
+            if bn == start_block.blockNumber():
+                offset = sel_start - block_pos
+                text = text[offset:]
+            # 尾行：截取选区终点之前的部分
+            if bn == end_block.blockNumber():
+                offset = sel_end - block_pos
+                if bn == start_block.blockNumber():
+                    # 首尾同行：从原始 text 中截取
+                    text = block.text()[sel_start - block_pos:sel_end - block_pos]
+                else:
+                    text = text[:offset]
+            lines.append(text)
             block = block.next()
 
         mime = QMimeData()

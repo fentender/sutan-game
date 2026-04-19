@@ -198,11 +198,17 @@ class MainWindow(QMainWindow):
                 if lm.mod_id not in existing_ids:
                     mods.append(lm)
 
+        # 读取游戏更新时间（用于过时检测）
+        from ..core.steam_time import get_game_update_time, get_steamapps_from_workshop
+        steamapps = get_steamapps_from_workshop(self.config.workshop_dir)
+        game_update_time = get_game_update_time(steamapps)
+
         self.mod_list_panel.set_mods(
             mods,
             order=self.config.mod_order or None,
             enabled=self.config.enabled_mods or None,
             merge_modes=self.config.mod_merge_modes or None,
+            game_update_time=game_update_time,
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 

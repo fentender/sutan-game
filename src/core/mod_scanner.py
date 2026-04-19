@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .diagnostics import diag
 from .profiler import profile
+from .steam_time import get_mod_update_times, get_steamapps_from_workshop
 from .types import normalize_rel_path
 
 
@@ -24,6 +25,8 @@ class ModInfo:
     config_files: list[str] = field(default_factory=list)
     # 该 mod 包含的非配置资源文件
     resource_files: list[str] = field(default_factory=list)
+    # Steam 上的最后更新时间（Unix 时间戳），来自 .acf 文件
+    update_time: int | None = None
 
 
 def find_preview(mod_path: Path) -> str | None:
@@ -116,6 +119,12 @@ def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> l
             mod = scan_single_mod(entry)
             if mod:
                 mods.append(mod)
+
+    # 从 .acf 文件批量注入 Mod 更新时间
+    steamapps = get_steamapps_from_workshop(workshop_path)
+    update_times = get_mod_update_times(steamapps)
+    for mod in mods:
+        mod.update_time = update_times.get(mod.mod_id)
 
     return mods
 
