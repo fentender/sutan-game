@@ -91,6 +91,8 @@ class MainWindow(QMainWindow):
         help_menu = menubar.addMenu("帮助")
         help_menu.addAction(f"检查更新 (当前: v{APP_VERSION})", self._check_update)
 
+        menubar.addAction("使用教程", self._show_manual)
+
     def _setup_ui(self) -> None:
         central = QWidget()
         self.setCentralWidget(central)
@@ -803,6 +805,13 @@ class MainWindow(QMainWindow):
     def _auto_check_update(self) -> None:
         """启动时自动检查更新（静默模式）"""
         self._do_check_update(silent=True)
+
+    def _show_manual(self) -> None:
+        """打开使用教程对话框"""
+        from src.gui.manual_dialog import ManualDialog
+
+        dlg = ManualDialog(self)
+        dlg.exec()
 
     def _check_update(self) -> None:
         """用户手动触发检查更新"""

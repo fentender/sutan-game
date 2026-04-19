@@ -60,7 +60,14 @@ _COLOR_PRIORITY: dict[int, int] = {
 
 
 def _get_real_text(editor: CodeEditor, line_map: list[int | None]) -> str:
-    """从编辑器中提取非填充行文本（根据 line_map 跳过填充行）"""
+    """从编辑器中提取非填充行文本（根据 line_map 跳过填充行）。
+
+    当编辑器内容被用户修改过时，line_map 不再可靠（用户可能编辑了
+    填充行位置的内容，或插入/删除行导致行号偏移），直接返回全部文本。
+    JSON 中的空行不影响解析。
+    """
+    if editor.document().isModified():
+        return editor.toPlainText()
     lines: list[str] = []
     block = editor.document().begin()
     idx = 0
@@ -329,12 +336,12 @@ class DiffDialog(QDialog):
         btn_prev.clicked.connect(lambda: self._goto_diff(tab_index, -1))
         btn_next.clicked.connect(lambda: self._goto_diff(tab_index, 1))
 
-        # 格式化、保存、重置按钮
-        btn_format = QPushButton("格式化")
-        btn_format.setFixedWidth(60)
-        btn_format.setAutoDefault(False)
-        btn_format.clicked.connect(lambda: self._format_override(tab_index))
-        label_layout.addWidget(btn_format)
+        # 保存、重置按钮（格式化按钮暂时禁用，待修复 override 场景下的对齐问题）
+        # btn_format = QPushButton("格式化")
+        # btn_format.setFixedWidth(60)
+        # btn_format.setAutoDefault(False)
+        # btn_format.clicked.connect(lambda: self._format_override(tab_index))
+        # label_layout.addWidget(btn_format)
 
         btn_save = QPushButton("保存")
         btn_save.setFixedWidth(50)
@@ -543,6 +550,8 @@ class DiffDialog(QDialog):
             right_edit.blockSignals(False)
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
+            # 重置 modified 标志，以便 _get_real_text 区分"程序设置"和"用户编辑"
+            right_edit.document().setModified(False)
 
     def _apply_precomputed_highlights(self, tab_index: int) -> None:
         """应用预计算的高亮数据（结构化对齐模式，行号已是绝对值无需翻译）"""
@@ -816,6 +825,7 @@ class DiffDialog(QDialog):
             right_edit.blockSignals(False)
             left_edit.setUpdatesEnabled(True)
             right_edit.setUpdatesEnabled(True)
+            right_edit.document().setModified(False)
 
     def _reset_override(self, tab_index: int) -> None:
         """删除 override 文件并刷新"""
@@ -855,6 +865,10 @@ class DiffDialog(QDialog):
     def _refresh_all(self) -> None:
         """重新预计算并刷新所有 tab"""
         current_tab = self._tabs.currentIndex()
+        # 记录当前滚动位置
+        scroll_val = 0
+        if current_tab < len(self._tab_edits):
+            scroll_val = self._tab_edits[current_tab][1].verticalScrollBar().value()
         MergeCache.instance().invalidate(self._rel_path)
         self._precompute_merge_states()
         # 暂时关闭顶部提示条
@@ -867,3 +881,7 @@ class DiffDialog(QDialog):
                 self._tab_error_bars[i].setVisible(False)
         if current_tab < len(self._diff_pairs):
             self._load_tab(current_tab)
+            # 恢复滚动位置
+            left_edit, right_edit = self._tab_edits[current_tab]
+            left_edit.verticalScrollBar().setValue(scroll_val)
+            right_edit.verticalScrollBar().setValue(scroll_val)

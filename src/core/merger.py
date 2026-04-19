@@ -169,8 +169,34 @@ def apply_array_delta(
         version: 当前 mod 迭代版本号
         is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
-    # ID 重分配
-    delta, _ = _remap_array_delta(delta, base)
+    if is_override:
+        # override delta 的 indices 是基于展开后 flat 数组的 1-based 位置，
+        # 而全状态的 indices 是 element ID 体系。需要通过 base.order 做映射。
+        # base.order 形如 [0, eid1, eid2, ..., -1]，去掉 0 和 -1 后就是展开顺序。
+        flat_order = [eid for eid in base.order if eid not in (0, -1)]
+        # flat_pos (1-based) → element_id 的映射
+        flat_to_eid: dict[int, int] = {
+            pos + 1: eid for pos, eid in enumerate(flat_order)
+        }
+        # 将 delta 的 indices 从 flat position 映射为 element ID
+        remapped_indices: list[int] = []
+        for idx in delta.indices:
+            eid = flat_to_eid.get(idx)
+            if eid is not None:
+                remapped_indices.append(eid)
+            else:
+                # flat position 超出当前 order 范围，保留原值（ADDED 等场景）
+                remapped_indices.append(idx)
+        delta = ArrayFieldDiff(
+            diffs=delta.diffs,
+            base_count=delta.base_count,
+            indices=remapped_indices,
+            order=delta.order,
+            is_duplist=delta.is_duplist,
+        )
+    else:
+        # 非 override：ID 重分配（处理 ADDED 元素的 ID 冲突）
+        delta, _ = _remap_array_delta(delta, base)
 
     # 构建 ID → 位置映射
     id_map: dict[int, int] = {eid: pos for pos, eid in enumerate(base.indices)}
@@ -234,6 +260,14 @@ def apply_array_delta(
                     del_modifier = ChangeKind.ORIGIN
                 base.diffs[pos] = FieldDiff(ChangeKind.DELETED | del_modifier, None,
                                             old_value=existing.value, version=version)
+
+    # override 不重建 order：override delta 的 base_count 基于展开后数组，
+    # 与全状态的 base_count 不一致，用 delta.order 重建会破坏元素排列。
+    if is_override:
+        if deleted_ids:
+            base.old_order = list(base.order)
+            base.order = [eid for eid in base.order if eid not in deleted_ids]
+        return base
 
     # 保存旧 order，重建 order
     base.old_order = list(base.order)

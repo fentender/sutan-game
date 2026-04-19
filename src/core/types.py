@@ -169,6 +169,9 @@ class DiffDict:
                 if diff.kind.base_kind == ChangeKind.DELETED:
                     continue
                 val = diff.value
+                # 解包嵌套的 FieldDiff
+                while isinstance(val, FieldDiff):
+                    val = val.value
                 if isinstance(val, DiffDict):
                     result[key] = val.to_dict()
                 elif isinstance(val, ArrayFieldDiff):
@@ -234,6 +237,9 @@ class ArrayFieldDiff:
             if diff is None or diff.kind.base_kind == ChangeKind.DELETED:
                 continue
             val = diff.value
+            # 解包嵌套的 FieldDiff
+            while isinstance(val, FieldDiff):
+                val = val.value
             if isinstance(val, DiffDict):
                 result.append(val.to_dict())
             elif isinstance(val, ArrayFieldDiff):
