@@ -307,8 +307,10 @@ def _collect_all_used_ids(
 def _next_available_id(start: int, used: set[str]) -> int:
     """从 start 开始找到下一个未使用的 ID"""
     candidate = start
-    while str(candidate) in used:
+    candidate_str = str(candidate)
+    while candidate_str in used:
         candidate += 1
+        candidate_str = str(candidate)
     return candidate
 
 

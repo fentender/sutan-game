@@ -336,6 +336,120 @@ def perf_delta_cache_hit():
     ModDelta.clear()
 
 
+def perf_id_remap_conflict():
+    """ID 重分配线性查找性能"""
+    from src.core.id_remapper import _next_available_id
+
+    # 构造 10000 个连续已占用 ID
+    used = {str(i) for i in range(10000)}
+
+    start = time.perf_counter()
+    for _ in range(1000):
+        _next_available_id(0, used)
+    elapsed = time.perf_counter() - start
+    log.info("    _next_available_id ×1000（10000 已占用），耗时 %.3fs", elapsed)
+    assert_true(elapsed < 1, f"ID 线性查找超时: {elapsed:.3f}s")
+
+
+def perf_merge_cache_compute():
+    """MergeCache 首次计算 vs 缓存命中"""
+    game_config, workshop = _require_real_data()
+    from src.core.conflict import analyze_all_overrides
+    from src.core.merge_cache import MergeCache
+
+    mod_configs, _ = _init_store_and_delta(game_config, workshop)
+
+    overrides = analyze_all_overrides(mod_configs, schema_dir=SCHEMA_DIR)
+    candidates = [o for o in overrides if len(o.mod_chain) >= 2]
+    if not candidates:
+        skip("没有多 mod 同时修改的文件")
+    candidates.sort(key=lambda o: len(o.field_overrides), reverse=True)
+    target = candidates[0]
+    log.info("    目标文件 %s (%d mods, %d field overrides)",
+             target.rel_path, len(target.mod_chain), len(target.field_overrides))
+
+    cache = MergeCache.instance()
+    cache.invalidate_all()
+
+    # 首次计算
+    start = time.perf_counter()
+    cache.get(target.rel_path, mod_configs, SCHEMA_DIR)
+    first_elapsed = time.perf_counter() - start
+    log.info("    首次计算: %.3fs", first_elapsed)
+
+    # 缓存命中
+    start = time.perf_counter()
+    for _ in range(100):
+        cache.get(target.rel_path, mod_configs, SCHEMA_DIR)
+    cached_elapsed = time.perf_counter() - start
+    log.info("    缓存命中 ×100: %.3fs（%.6fs/次）",
+             cached_elapsed, cached_elapsed / 100)
+    assert_true(cached_elapsed < first_elapsed,
+                f"缓存命中应快于首次计算: {cached_elapsed:.3f}s vs {first_elapsed:.3f}s")
+
+
+def perf_compute_all_overlaps():
+    """全量 Mod 重叠检测性能"""
+    game_config, workshop = _require_real_data()
+    from src.core.json_store import JsonStore
+    from src.core.overlap import compute_all_overlaps
+
+    _, mod_ids = _init_store_and_delta(game_config, workshop)
+    store = JsonStore.instance()
+
+    start = time.perf_counter()
+    results = compute_all_overlaps(store, mod_ids)
+    elapsed = time.perf_counter() - start
+    overlap_count = sum(1 for v in results.values() if v)
+    log.info("    %d 个 mod 重叠检测，%d 个有重叠，耗时 %.3fs",
+             len(results), overlap_count, elapsed)
+    assert_true(elapsed < 5, f"重叠检测超时: {elapsed:.3f}s")
+
+
+def perf_format_delta_json_deep():
+    """大型 DiffDict 格式化性能"""
+    from src.core.diff_formatter import format_delta_json
+    from src.core.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
+
+    def _build_nested(depth: int, width: int, version: int) -> DiffDict:
+        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        for i in range(width):
+            if depth > 0:
+                items[f"level{depth}_key{i}"] = _build_nested(depth - 1, width, version)
+            else:
+                kind = ChangeKind.CHANGED if i % 3 == 0 else ChangeKind.ORIGIN
+                items[f"leaf_{i}"] = FieldDiff(
+                    kind=kind, value=f"val_{i}", old_value=f"old_{i}",
+                    version=version if kind == ChangeKind.CHANGED else 0,
+                )
+        return DiffDict(items=items)
+
+    dd = _build_nested(depth=3, width=10, version=1)
+
+    start = time.perf_counter()
+    for _ in range(100):
+        format_delta_json(dd, highlight_version=1)
+    elapsed = time.perf_counter() - start
+    log.info("    4 层 ×10 DiffDict 格式化 ×100，耗时 %.3fs", elapsed)
+    assert_true(elapsed < 5, f"DiffDict 格式化超时: {elapsed:.3f}s")
+
+
+def perf_smart_allow_deletion():
+    """智能删除规则高频调用吞吐"""
+    from src.core.smart_rules import smart_allow_deletion
+
+    field_path = ["root", "entries", "0", "condition", "sub1", "sub2",
+                  "sub3", "sub4", "sub5", "leaf"]
+
+    start = time.perf_counter()
+    for _ in range(100000):
+        smart_allow_deletion(field_path, False)
+    elapsed = time.perf_counter() - start
+    log.info("    smart_allow_deletion ×100000，耗时 %.3fs（%.1f ns/次）",
+             elapsed, elapsed / 100000 * 1e9)
+    assert_true(elapsed < 0.5, f"smart_allow_deletion 超时: {elapsed:.3f}s")
+
+
 # ==================== 入口 ====================
 
 def run_all(result: TestResult):
@@ -355,6 +469,11 @@ def run_all(result: TestResult):
         ("perf_delta_cache_hit", perf_delta_cache_hit),
         ("perf_diff_dialog_tab_load", perf_diff_dialog_tab_load),
         ("perf_full_pipeline_profile", perf_full_pipeline_profile),
+        ("perf_id_remap_conflict", perf_id_remap_conflict),
+        ("perf_merge_cache_compute", perf_merge_cache_compute),
+        ("perf_compute_all_overlaps", perf_compute_all_overlaps),
+        ("perf_format_delta_json_deep", perf_format_delta_json_deep),
+        ("perf_smart_allow_deletion", perf_smart_allow_deletion),
     ]
     for name, func in tests:
         run_test(name, func, result)

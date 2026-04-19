@@ -545,7 +545,7 @@ def merge_all_files(
                 diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {mod_names[-1]}")
 
         # 从缓存获取合并结果
-        state = cache.get(rel_path, mod_configs, schema_dir)
+        state = cache.get(rel_path, mod_configs, schema_dir, need_steps=False)
         result = MergeResult(merged_data=state.final_dict)
         results[rel_path] = result
 

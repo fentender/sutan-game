@@ -42,7 +42,7 @@ class OverridePanel(QWidget):
 
         # 筛选按钮组
         self._filter_buttons: dict[str, QPushButton] = {}
-        for label, mode in [("所有", "all"), ("普通", "normal"), ("冲突", "conflict")]:
+        for label, mode in [("所有", "all"), ("普通", "normal"), ("数组合并", "warning"), ("冲突", "conflict")]:
             btn = QPushButton(label)
             btn.setCheckable(True)
             btn.setFixedWidth(50)
@@ -98,7 +98,8 @@ class OverridePanel(QWidget):
             info: FileOverrideInfo = item.data(0, Qt.ItemDataRole.UserRole)
             if info is not None:
                 mode_match = (self._filter_mode == "all" or
-                              (self._filter_mode == "conflict" and info.has_conflict_or_warning) or
+                              (self._filter_mode == "conflict" and info.has_conflict) or
+                              (self._filter_mode == "warning" and info.has_warning) or
                               (self._filter_mode == "normal" and not info.has_conflict_or_warning))
             else:
                 mode_match = True

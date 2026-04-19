@@ -247,7 +247,8 @@ class DiffDialog(QDialog):
         )
         self._warn_bar.setVisible(False)
         layout.addWidget(self._warn_bar)
-        self._update_warn_bar()
+        # 暂时关闭顶部提示条
+        # self._update_warn_bar()
 
         QShortcut(QKeySequence("Ctrl+F"), self, self._toggle_search)
 
@@ -266,7 +267,7 @@ class DiffDialog(QDialog):
             if self._tab_has_conflict[idx]:
                 self._tabs.tabBar().setTabTextColor(idx, QColor(255, 180, 50))
             elif self._has_array_warning:
-                self._tabs.tabBar().setTabTextColor(idx, QColor(255, 220, 80))
+                self._tabs.tabBar().setTabTextColor(idx, QColor(100, 180, 255))
             self._tab_edits.append((left_edit, right_edit))
             self._tab_search_bars.append((left_search_w, right_search_w))
             self._tab_search_inputs.append((left_search_in, right_search_in))
@@ -638,7 +639,7 @@ class DiffDialog(QDialog):
         if has_conflict:
             tab_color = QColor(255, 180, 50)
         elif self._has_array_warning:
-            tab_color = QColor(255, 220, 80)
+            tab_color = QColor(100, 180, 255)
         else:
             tab_color = QColor(0, 0, 0, 0)
         self._tabs.tabBar().setTabTextColor(tab_index, tab_color)
@@ -856,7 +857,8 @@ class DiffDialog(QDialog):
         current_tab = self._tabs.currentIndex()
         MergeCache.instance().invalidate(self._rel_path)
         self._precompute_merge_states()
-        self._update_warn_bar()
+        # 暂时关闭顶部提示条
+        # self._update_warn_bar()
         self._loaded_tabs.clear()
         for i in range(len(self._diff_pairs)):
             if i < len(self._tab_edits):
