@@ -13,7 +13,7 @@ from .types import ArrayMatching
 COMMON_MATCH_KEYS: tuple[str, ...] = ('guid', 'id', 'tag', 'key')
 
 # 内容字段，用于启发式模糊匹配
-_CONTENT_FIELDS: tuple[str, ...] = ('condition', 'action', 'result', 'result_text')
+_CONTENT_FIELDS: tuple[str, ...] = ('result_text', 'condition', 'action', 'result', 'result_title')
 
 
 @profile
@@ -400,7 +400,7 @@ def match_by_heuristic(
                 if not isinstance(base_elem, dict) or field not in base_elem:
                     continue
                 base_str = _to_string(base_elem[field])
-                if not base_str:
+                if not base_str or len(base_str) < 2:
                     continue
 
                 lo, hi = _get_mod_range(bi, base_len, mod_len, pair_map)
