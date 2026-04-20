@@ -3,10 +3,10 @@
 """
 from pathlib import Path
 
-from ..core.types import FieldDiff
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QLineEdit,
     QPushButton,
@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.conflict import FileOverrideInfo
-from ..core.types import FIELD_SEP as SEP
+from ..core.types import FIELD_SEP as SEP, FieldDiff
 
 
 class OverridePanel(QWidget):
@@ -29,6 +29,7 @@ class OverridePanel(QWidget):
         self._data: list[FileOverrideInfo] = []
         self._mod_configs: list[tuple[str, str, Path]] | None = None
         self._filter_mode: str = "all"
+        self._outdated_mod_names: set[str] = set()
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -42,16 +43,29 @@ class OverridePanel(QWidget):
 
         # 筛选按钮组
         self._filter_buttons: dict[str, QPushButton] = {}
-        for label, mode in [("所有", "all"), ("普通", "normal"), ("数组合并", "warning"), ("冲突", "conflict")]:
+        for label, mode in [("所有", "all"), ("普通", "normal"), ("数组合并", "warning"),
+                            ("严重过时Mod", "outdated"), ("冲突", "conflict")]:
             btn = QPushButton(label)
             btn.setCheckable(True)
-            btn.setFixedWidth(50)
+            if mode == "outdated":
+                btn.setFixedWidth(80)
+            elif mode == "conflict":
+                btn.setFixedWidth(50)
+                btn.setStyleSheet("color: #e8a200;")
+            else:
+                btn.setFixedWidth(50)
             btn.clicked.connect(lambda _, m=mode: self._set_filter_mode(m))
             header_layout.addWidget(btn)
             self._filter_buttons[mode] = btn
         self._filter_buttons["all"].setChecked(True)
 
         header_layout.addStretch()
+
+        self._mod_combo = QComboBox()
+        self._mod_combo.setFixedWidth(160)
+        self._mod_combo.addItem("全部 Mod", "")
+        self._mod_combo.currentIndexChanged.connect(lambda _: self._apply_filter())
+        header_layout.addWidget(self._mod_combo)
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("搜索文件名或 mod 名...")
@@ -86,6 +100,7 @@ class OverridePanel(QWidget):
 
     def _apply_filter(self) -> None:
         text = self.search_input.text().lower()
+        selected_mod: str = self._mod_combo.currentData() or ""
         for i in range(self.tree.topLevelItemCount()):
             item = self.tree.topLevelItem(i)
             if item is None:
@@ -100,10 +115,14 @@ class OverridePanel(QWidget):
                 mode_match = (self._filter_mode == "all" or
                               (self._filter_mode == "conflict" and info.has_conflict) or
                               (self._filter_mode == "warning" and info.has_warning) or
-                              (self._filter_mode == "normal" and not info.has_conflict_or_warning))
+                              (self._filter_mode == "normal" and not info.has_conflict_or_warning) or
+                              (self._filter_mode == "outdated" and
+                               any(m in self._outdated_mod_names for m in info.mod_chain)))
+                mod_match = (not selected_mod or selected_mod in info.mod_chain)
             else:
                 mode_match = True
-            item.setHidden(not (text_match and mode_match))
+                mod_match = True
+            item.setHidden(not (text_match and mode_match and mod_match))
 
     def _on_item_double_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         # 只响应文件级节点（顶层节点）
@@ -115,10 +134,22 @@ class OverridePanel(QWidget):
         self.diff_requested.emit(info.rel_path)
 
     def set_data(self, overrides: list[FileOverrideInfo],
-                 mod_configs: list[tuple[str, str, Path]] | None = None) -> None:
+                 mod_configs: list[tuple[str, str, Path]] | None = None,
+                 outdated_mod_names: set[str] | None = None) -> None:
         """设置覆盖数据并刷新显示"""
         self._data = overrides
         self._mod_configs = mod_configs
+        self._outdated_mod_names = outdated_mod_names or set()
+
+        # 更新 Mod 下拉筛选框
+        self._mod_combo.blockSignals(True)
+        self._mod_combo.clear()
+        self._mod_combo.addItem("全部 Mod", "")
+        if mod_configs:
+            for _, mod_name, _ in mod_configs:
+                self._mod_combo.addItem(mod_name, mod_name)
+        self._mod_combo.blockSignals(False)
+
         self.tree.clear()
 
         conflict_color = QColor(255, 180, 80)  # 橙色标记冲突

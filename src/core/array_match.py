@@ -478,7 +478,7 @@ def match_by_heuristic(
                     if mi < lo or mi >= hi:
                         continue
                     sim = element_similarity(base_arr[bi], mod_arr[mi])
-                    if sim > 0.3:
+                    if sim > 0.5:
                         fwd_sim.setdefault(bi, []).append((mi, sim))
                         rev_sim.setdefault(mi, []).append((bi, sim))
 

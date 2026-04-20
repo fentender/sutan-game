@@ -524,9 +524,15 @@ class MainWindow(QMainWindow):
     def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
                              parse_msgs: list[tuple[str, str]]) -> None:
         self.progress_bar.setVisible(False)
+        from ..core.steam_time import MAJOR_UPDATE_TS
+        enabled = self.mod_list_panel.get_enabled_mods()
+        outdated = {m.name for m in enabled
+                    if m.update_time is not None
+                    and m.update_time < MAJOR_UPDATE_TS}
         self.override_panel.set_data(
             overrides,
             self._get_mod_configs(),
+            outdated,
         )
         if parse_msgs:
             for level, msg in parse_msgs:
