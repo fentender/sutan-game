@@ -1,0 +1,129 @@
+ {
+        "id": 5006802,
+        "name": "战士之间",
+        "text": "最好的战士总会想要挑战最好的战士。",       
+        "tips": "",
+        "mapping_id":8001553,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "野外:[1,6]", 
+        "icon": "rite_17", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["体魄","战斗"],
+            "type":"fight_result"
+        },
+        "tips_text":[
+            "不用太在意胜负",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"奈布哈尼和古利斯战作一团",
+                "type":"fight_result",
+                "type_tips":"古利斯的战斗和体魄提供的骰子数受到奈布哈尼的影响。",
+                "low_target": 2,
+                "low_target_tips": "你至少需要2点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"5b9be2b3-8b0d-4d95-8d24-b18a42230db2",
+                "condition":
+                {
+                    "r1:战斗+体魄-e(战斗+体魄)>=":[2,5]
+                },
+                "result_title":"古利斯赢了",
+                "result_text": "他点到为止，刀尖在奈布哈尼前胸一寸处停下，一点都没有划破王城剑士漂亮的肌肤。而奈布哈尼稍愣了一下，接着就爆发出一阵大笑。\n“看啊，看啊！”他一把抓起古利斯的胳膊，把这位奴隶展示给所有围观这场战斗的贵族女性看，“这里有一位最勇猛、最厉害的英俊战士！你们是不是还不认识他呢，可爱的美人们！”\n女人们大笑起来，她们开始问古利斯各种问题，多大啦？在哪里学的战斗？之前侍奉过女主人吗？这些问题把古利斯搞得面红耳赤，他赶忙拖着作为战利品的鳄鱼就走……奈布哈尼则一边和女人们聊着天，一边慢悠悠地跟着。\n这场游猎会十分成功，关于它的故事在贵族圈里传了很久。",
+                "result": 
+                {    
+                    "s1+战斗":1,  
+                    "s2+魅力":1,
+                    "counter+7100003":1, 
+                    "card": 2001301, //野味             
+                },
+                "action":
+                {
+                }
+            },
+            {
+                "guid":"190738bd-cea8-4100-adb3-a131893faf84",
+                "condition":
+                {
+                    "r1:战斗+体魄-e(战斗+体魄)<":[2,5]
+                },
+                "result_title":"奈布哈尼赢了",
+                "result_text": "奈布哈尼已经赢得了整场游猎会中最大的猎物——所有淑女的心！\n贵妇们扑上来和他搭话，问他有没有受伤，古利斯被挤到了一边……奈布哈尼则笑着把那位奴隶又拽到了自己身旁，抓着他的手，冲所有女士说：\n“看啊，这也是一位值得你们注目的英俊勇士！”\n……古利斯面红耳赤地跟着奈布哈尼穿过脂粉的陷阱，他们俩一起拖着作为战利品的鳄鱼，拖的部分主要由古利斯负责。\n这真是一场最快乐的游猎。",
+                "result": 
+                {      
+                    "s1+魅力":1,
+                    "s2+社交":1,
+                    "counter+7100003":1, 
+                    "card": 2001301, //野味             
+                },
+                "action":
+                {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"4cb5d998-20e9-4a22-9b89-e61de6154433",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000064,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"一位战士"
+                },
+            "s2":
+                {
+                    "guid":"ebb9bc24-294d-4fdf-9a99-a0d5aedeb4d3",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000114,//古利斯
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"另一位战士",                   
+                },
+            "s3":
+                {
+                    "guid":"29c6c196-29df-46f5-b39d-4b12976e9f7d",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"消耗品"
+                }
+        }
+    } 

@@ -1,0 +1,241 @@
+ {
+        "id": 5006179,
+        "name": "眼球花馕",
+        "text": "先派一个人去吸引眼球的注意力，其他人趁机偷吃！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"50ed4192-f115-4a57-b20f-5760788706c3",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "因为这些眼球实在是太碍事了，大家一致同意给它们抹上了辣椒酱。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+智慧":2,
+                    "s3+智慧":2,
+                    "s4+智慧":2,
+                    "s5+智慧":2,
+                    "s2+吃眼球花馕":1,
+                    "s3+吃眼球花馕":1,
+                    "s4+吃眼球花馕":1,
+                    "s5+吃眼球花馕":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"5d42421a-9054-4d0f-9200-d3c2b3323165",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000123, //鲁梅拉
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“只要在看不见的地方，\n我们就能够忍受任何撕咬。\n只要在看不见的地方，即使被吃掉了也没有关系。”鲁梅拉听了之后，若有所思……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000123+社交":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"7c7aae58-df26-4bea-8b86-dc5565bb6acd",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000123,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“只要在看不见的地方，\n我们就能够忍受任何撕咬。\n只要在看不见的地方，即使被吃掉了也没有关系。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"f75294fb-7283-4b6b-88ca-cc4dec999c2a",
+                "condition": {
+                    "s2.吃眼球花馕>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000493,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e7b44d71-792f-49cd-8698-950e3a786c72",
+                "condition": {
+                    "s3.吃眼球花馕>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000493,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"4efee7cd-60df-4154-a33a-9ddd5bd29c0a",
+                "condition": {
+                    "s4.吃眼球花馕>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000493,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"c99ff61c-3b78-46be-b55a-af5db6bdfcdd",
+                "condition": {
+                    "s5.吃眼球花馕>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s5.name]体内已经积累了太多……最终，[s5.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000493,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"fcc2b8cc-06a8-415d-95f6-03302382d90c",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001335
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"48719926-4e71-4976-aba9-ea51c26e1218",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"e2de9faa-c41b-40c1-90bc-3f69d4cc098a",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"1fdadda7-c803-4bf8-a6dc-826f0145a9b3",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"f33f885e-4812-423a-ad58-8cbfc87e6d6b",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

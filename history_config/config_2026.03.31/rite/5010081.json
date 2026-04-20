@@ -1,0 +1,76 @@
+ {
+        "id": 5010081,
+        "name": "废墟之上（废弃）",
+        "text": "在苏丹失败的那一瞬间，你就感觉到了某种羁绊的消解——那个束缚你，操控你，逼迫你的游戏被你亲手打破了。现在，你拼命追逐断裂的线头，想要抓住它的主人……",       
+        "tips": "",
+        "mapping_id":8001520,
+        "once_new":-1,
+        "round_number": 1, //立即结算
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "结局:6", 
+        "type":"END",
+        "icon": "rite_ex_2", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你能对她有什么办法呢？"
+        ],
+        "open_conditions": [
+        ],
+        "random_text": {      
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+        ],                
+        "settlement": [
+
+        ],                
+        "settlement_extre": [ 
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"90c775f4-b33b-48c6-b184-3605fc94baaa",
+                "condition":
+                {
+                    "神性":1         
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"神性"
+            },
+            "s2":
+            {
+                "guid":"b8371487-ac10-49f5-b5ab-21f9e2152ee3",
+                "condition":
+                {
+                    "type":"item",
+                    "any":{
+                        "is":2000960, //光明之眼
+                        "is":2000961, //黑暗之眼
+                        "is":2001034, //克制女术士之物
+                        "is":2001031, //被困的星神
+                    }       
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"可能的消灭女术士的手段"
+            },
+        }
+    } 

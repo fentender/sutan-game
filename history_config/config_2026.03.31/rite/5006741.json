@@ -1,0 +1,128 @@
+ {
+        "id": 5006741,
+        "name": "绳索的锤炼",
+        "text": "阅读可以提升自己，养成阅读的习惯吧。",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"2eaf311a-1244-43f9-a46e-8ad9888bf96e",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "对异界之物来说，凡人的灵魂是锤炼一条绳索的材料。这绳索可以用来爬入其他世界……",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+魔力":2,
+                    "pop.5006741_01.s2": "愿你我灵魂强大，无惧无怖。"                               
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"b307badd-56d6-4245-aacf-c08d62207079",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001234,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"60e5a3b6-6379-4b38-9e8c-ca2b48760138",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006741_s2_01.self":"我喜欢绳子！它能记住时间、记住重要的事。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000019 //热娜
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006741_s2_02.self":"我会六十七种不同的编绳技法！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000021 //伊曼
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006741_s2_03.self":"一线断时，落落磊磊……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000022 //拜铃耶
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006741_s2_04.self":"我有很多种方法可以让我们更接近伟大的密神。"
+                                }
+                            }
+                        }                        
+                    ]
+                }
+        }
+    } 

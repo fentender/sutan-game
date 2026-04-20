@@ -1,0 +1,32 @@
+{
+    "id": 5321260,
+    "text": "旅行的妹妹6",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                 "counter+7100006":1, //金骰子
+                "prompt": {
+                    "id": "prompt_5321260_01",
+                    "text": "一位蒙着面纱、佩戴着铃铛脚镯的舞姬找到了你。\n她姿态轻盈地向你行礼，而后向你转达了阿图娜尔的口信：\n“我现在很健康，很快乐，今天我与许多舞姬一起在太阳下跳舞，一直到晚上，我都无法入睡，因为我感觉自己实在是过于幸福。谢谢你，[player.name]哥哥。”",
+                   "icon":["pic/2000129"],
+                },
+                "success": {
+                    "event_off": 5321260
+                }
+      
+            }
+        }
+
+    ]
+}

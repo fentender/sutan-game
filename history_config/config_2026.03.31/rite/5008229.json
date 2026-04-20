@@ -1,0 +1,76 @@
+ {
+        "id": 5008229,
+        "name": "最后的谈话",
+        "text": "你在家门口见到了梅姬，而她只是冷冷地看了你一眼。",       
+        "tips": "",
+        "mapping_id":8001159, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":0, 
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_10",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [  
+           
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"3665d86b-bcab-41e6-976d-9cf82f647a26",
+                
+                "condition": {
+                },
+                "result_title":"您还真是喜欢她啊",
+                "result_text": "丢下这句夹枪带棒的讽刺之后，梅姬冷眼看了看你，接着就转身离去了。\n你等了很久、又很久，终于，你意识到梅姬不会回来了——再也不会回来了。她彻底地离开了你，什么行李都没带，只带走了一颗被深深伤透了的心。",
+                "result": 
+                { 
+                     "s1-追随者":1,
+                     "s1-妻子":1,
+                    "s1+梅姬离开":1,
+                },
+                "action": {
+                    
+                }
+            }
+
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"a4797d04-b7fc-4ebd-b9d1-ccb8d8d8cadf",
+                "condition":
+                {
+                    "type":"char",
+                    "妻子":1
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"梅姬"
+            }
+            
+          
+        }
+    } 

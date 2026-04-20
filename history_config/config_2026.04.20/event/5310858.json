@@ -1,0 +1,23 @@
+{
+        "id": 5310858,
+        "text": "奈费勒",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 5010073
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":5310886, //君权
+                "event_on":5310887, //昼夜
+                "event_on":5310888, //纪元
+            }
+        }
+    ]
+} 

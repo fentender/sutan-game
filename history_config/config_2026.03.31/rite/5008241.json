@@ -1,0 +1,145 @@
+ {
+        "id": 5008241,
+        "name": "细鳞鱼干",
+        "text": "阿图娜尔亲手捕的海鱼、亲自做成的鱼干。千里迢迢地，她托人将之送给了你。快叫大家来尝尝吧！",       
+        "tips": "",
+        "mapping_id":8001130, 
+        "once_new":0,
+        "round_number": 1, //立即执行
+        "waiting_round":3,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,  //自动执行
+        "auto_result": 0, 
+        "location": "自宅:[2,12]", 
+        "icon": "rite_18",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            "你可以与自己的追随者一起享用"
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"e3b95d68-49a6-4d11-897d-b3c2b416907f",
+                "condition": {
+
+                       "s1":1,
+                       "s2":1
+
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "太神奇了，这鱼就像是没有鳞一样！它的肉质哪怕是风干之后都依旧富于弹性，油脂也多得出奇，不需要任何烹饪，就这样将鱼肉一条条撕下来吃，就已经足够美味了。",
+                "result": 
+                {  
+                    "s2+战斗":2,
+                    "s2+魅力":2,
+                    "s3+战斗":2,
+                    "s3+魅力":2,
+                    "s4+战斗":2,
+                    "s4+魅力":2,
+                    "s5+战斗":2,
+                    "s5+魅力":2,
+                    "clean.s1":1
+                    
+                },
+                "action": {
+                }
+            }
+
+        ],
+        "cards_slot":
+        {
+           "s1":
+            {
+                "guid":"a0e4131e-d33d-4e41-a37f-6a7868bbb8dc",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001316
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+            "s2":
+            {
+                "guid":"423d3500-980b-413b-b27e-2b2bb9a5db2b",
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s3":
+            {
+                "guid":"8fc3acc9-5f9d-42aa-aca3-996fc3a58e68",
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s4":
+            {
+                "guid":"51ccb360-a89b-4481-ba5d-6b4d93906317",
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s5":
+            {
+                "guid":"a79b180f-e04f-4f63-9ce8-d78c3ef387fa",
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            }
+        }
+    } 

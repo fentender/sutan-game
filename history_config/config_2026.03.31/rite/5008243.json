@@ -1,0 +1,78 @@
+ {
+        "id": 5008243,
+        "name": "散落的果实",
+        "text": "当你这日在宫门前真正见到阿图娜尔的身影时，你才突然意识到，你已经忽视她许多天了。",       
+        "tips": "",
+       "mapping_id":8001008,
+        "once_new":0,
+        "round_number": 1, //立即执行
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin":1,  //自动执行
+        "auto_result": 0, 
+        "location": "宫廷:[2,6]", 
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+           
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"ff30dabb-4d4e-46b7-894b-b5ec8af4e483",
+                "condition": {
+
+                       "s1":1
+                    
+                },
+                "result_title":"",
+                "result_text": "你见到阿图娜尔的时候，她正被一群阉奴领着通过正门旁边的用到往后宫走去。你抓住一个相熟的阉奴，问他这是怎么回事。\n“您说那位新来的美人？她是个奴隶，但她太美了，还有舞蹈的技艺，很适合被招到陛下身边去，所以我们就以合理的价格把她买下来了；您有什么意见吗，大人？”\n你难以置信地瞪着眼睛望着宁肯把自己卖作奴隶也要入宫的阿图娜尔走入了金碧辉煌的宫殿之中……但你什么都不能做，你总不能要苏丹放弃刚刚买来的甜点吧？\n而阉奴对你们之间的微妙气氛一无所觉——又或者，他根本不在乎，只是冲你客气地点点头，就也转身离去了。在你身边，仍萦绕着阿图娜尔身上熏香的芬芳余韵，但是，她再也没有回头望过你哪怕一眼。",
+                "result": 
+                {  
+                    "s1-追随者":1,
+                    "s1+反对": 1 ,//反对置为1
+                    "s1=支持": 0,  //支持置为0
+                    "s1=激情": 0,  //激情为0
+                    "s1.uprare":-1, //降低为石品级
+                    
+                },
+                "action": {
+                    "event_on":5321269 //开启宫斗
+                }
+            }
+
+        ],
+        "cards_slot":
+        {
+           "s1":
+            {
+                "guid":"e40e772f-bdd5-4968-ab39-26471d28eeda",
+                "condition": 
+                {
+                
+                    "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"阿图娜尔"
+            }
+        }
+    } 

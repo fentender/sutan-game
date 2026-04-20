@@ -1,0 +1,84 @@
+ {
+        "id": 5006808,
+        "name": "涓滴希望",
+        "text": "这个石像丑陋而破败，隐约能看出是只有躯干部份的女性身体；这雕像中似乎蕴藏着某种原始的生命力……",       
+        "tips": "",
+        //"mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"8db94ac4-c85d-4b75-82d1-ea46b34a6f57",
+                "condition": {
+                },
+                "result_title":"[s2.gender]吸收了石像的魔力",
+                "result_text": "[s2.name]对这个神秘的礼物感到诧异。但仅仅是一次接触，那石像中的力量就令其内脏感到了温暖……也许那些被拐走的奴隶正是靠着这份魔力挣扎求生的？可惜现在已经无法考证它的来历了。",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "s2+体魄":1,  
+                    "s2+魅力":1,  
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"95a21293-3ef1-41ad-bbf5-e732907786e4",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001308
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"一个丑陋的东西……"
+            },
+        "s2":
+        {
+            "guid":"de3784ac-abae-443f-988a-2518cd6d750a",
+            "condition": 
+            {
+                "type":"char",
+                "女性":1,
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"愿这件物品能够保佑她们"
+        }
+        }
+    } 

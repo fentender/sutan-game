@@ -1,0 +1,172 @@
+ {
+        "id": 5006175,
+        "name": "辣子鸡丁",
+        "text": "哈比卜用了如此多的辣椒来烹饪这道菜，以至于找到肉需要过一个生存检定。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"10cac794-4605-441b-91dd-4beeca63265f",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "辣死了！但真的好好吃！",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+体魄":1,
+                    "s3+体魄":1,
+                    "s4+体魄":1,
+                    "s5+体魄":1,
+                    "s2+魔力":1,
+                    "s3+魔力":1,
+                    "s4+魔力":1,
+                    "s5+魔力":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"68b10b02-8526-409a-90e4-f25eb973346d",
+                "condition": {
+                    
+                    "is":2000433, //小安
+                },
+                "result_title":"小安吃得默不作声",
+                "result_text": "这东西里有神秘的力量……这是安熟悉的，啊怎么可能！",
+                "result": 
+                {  
+           
+                    "2000433+社交":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"080bb994-6aa6-4522-8fd3-687a605d36c6",
+                "condition": {
+                    "is":2000460, //哈桑
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "他被辣得不断哈气，但还是断断续续地念出了一首诗：“自食其果的痛苦,\n人们往往只记得今日的唇舌，而忽略了明日的屁股……”\n大家听得都哈哈大笑了起来。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "7000722+魅力":1,
+                },
+                "action": {
+                }
+            }
+            
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"c546dfd8-18d4-45c4-bb16-fb32a11dd10d",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001329
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"4b4d05f0-76d3-4181-919c-c7bb954b4610",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"7446fc91-678a-42ad-886e-19655d0a49fd",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"0d897edc-0653-45a4-8bc6-4ccdd21bf24c",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"8f3d520f-e769-46e1-81c6-1b41c327b015",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

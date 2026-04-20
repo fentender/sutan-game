@@ -1,0 +1,76 @@
+{
+    "id": 5006120,
+    "name": "医典编修中",
+    "text": "编纂这部医典耗费了比萨米尔想象中更多的时间。",       
+    "tips": "",
+    "mapping_id":8001550,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "上城区:[1,12]",
+    "icon": "rite_7",  
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+       
+    },
+    "tips_text":[
+
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+         {
+            "guid":"851867bb-a419-4c0c-981a-91a96480ac1e",
+            "condition": {
+                
+            },
+            "result_title":"这天黎明，萨米尔终于等来了需要的样本",
+            "result_text": "又埋头工作了不知多久，萨米尔终于完成了医典第二篇章的编纂。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006119  //医典第三章
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"102e4d10-660b-42d3-9450-2107860c6055",
+            "condition":
+            {
+                "is":2000011,
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔"
+        }
+    }
+} 

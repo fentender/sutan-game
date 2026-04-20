@@ -1,0 +1,238 @@
+ {
+        "id": 5006685,
+        "name": "造币",
+        "text": "王权在天上的表征为神明的祝福，在地上是宫殿与纪念碑，在人间则为铸币权。",       
+        "tips": "",
+        "mapping_id":8001302,
+        "once_new":0,
+        "round_number": 3,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0, 
+        "location": "自宅:[2,12]", 
+        "icon": "rite_4", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["体魄","智慧","社交","隐匿"],
+            "type":"normal_result"
+        },        
+        "tips_text":[
+            "工匠与助手的智慧与体魄决定了能造出多少枚假币",
+            "善后者的社交与隐匿决定了是否会走漏风声"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"操弄火与铅，就仿佛在对苏丹处刑……",
+                "type":"normal_result",
+                "type_tips":"你的体魄和智慧为你提供了完整的骰子数量。",
+                "low_target": 3,
+                "low_target_tips": "你至少需要3点成功"
+            },
+            "r2":{
+                "text":"遮掩烟尘，掩蔽进出货物，处理垃圾……",
+                "type":"normal_result",
+                "type_tips":"你的社交和隐匿为你提供了完整的骰子数量。",
+                "low_target": 2,
+                "low_target_tips": "你至少需要2点成功"
+            },
+        },
+        "settlement_prior": [
+            {
+                "guid":"69597102-f347-4aba-aa89-85bea8cc8407",
+                "condition": {
+                     "any":{
+                        "all":{
+                            "s1.is":2000352, //玛希尔
+                            "s2.is":2000005 //巴拉特
+                        },
+                        "all":{
+                            "s2.is":2000352, //玛希尔
+                            "s1.is":2000005 //巴拉特
+                        }
+                    }
+                },
+                "result_title":"假作真时真亦假",
+                "result_text": "丰富的造假经验与极致工艺的结合……你们不得不用小锤“纠正”一下这些假币，否则它们看起来比苏丹的真币质量还好了……",
+                "result": 
+                { 
+                    "card":[2001190,"数量+20"]
+                },
+                "action": {
+                    "rite":5006685, //重新生成自己
+                }
+            },
+        ],                
+        "settlement": [
+            {
+                "guid":"fc9bacf2-8ea8-4717-9ddb-71506e775c6c",
+                "condition": {
+                    "r1:s1.体魄+s1.智慧+s2.体魄+s2.智慧+s5.体魄+s5.智慧>=":[8,5] //大成功
+                },
+                "result_title":"这就是炼金术",
+                "result_text": "把铅变成黄金，好像也没那么难啊……你从水里捞起一枚金币，它还是温热的，仿佛刚刚降生的婴儿……多么可爱啊，每一枚都是从苏丹的大腿上割下来的肉！",
+                "result": 
+                { 
+                    "card":[2001190,"数量+20"]
+                },
+                "action": {
+                    "rite":5006685, //重新生成自己
+                }
+            },
+            {
+                "guid":"a7f40911-c018-4c46-aad9-856761d47179",
+                "condition": {
+                    "r1:s1.体魄+s1.智慧+s2.体魄+s2.智慧+s5.体魄+s5.智慧>=":[5,5]
+                },
+                "result_title":"黄金逐渐稀薄，宛如贵血一般",
+                "result_text": "据说人类最初是有黄金的族裔统帅，最后，因为贪婪与欲望，那受祝福的血脉逐渐混杂，于是诸多恶劣之人也能盘踞王座……就仿佛你现在做的一样，在黄金之中掺杂铅块与铁锡，然后让它们游荡人间。",
+                "result": 
+                { 
+                    "card":[2001190,"数量+15"]
+                },
+                "action": {
+                    "rite":5006685, //重新生成自己
+                }
+            },
+            {
+                "guid":"4002eb55-d6bc-49dd-b194-85330b6f1f93",
+                "condition": {
+                    "r1:s1.体魄+s1.智慧+s2.体魄+s2.智慧+s5.体魄+s5.智慧>=":[3,5]
+                },
+                "result_title":"就图一个给苏丹添乱",
+                "result_text": "形状不规则，镀金层太厚，苏丹的浮雕太丑……等种种原因，你们浪费了几乎同等价值的真金币，才做出了这批假币……",
+                "result": 
+                { 
+                    "card":[2001190,"数量+10"]
+                },
+                "action": {
+                    "rite":5006685, //重新生成自己
+                }
+            },
+            {
+                "guid":"c42dbe2d-27bd-4804-8c47-b3833906f412",
+                "condition": {
+                    "r1:s1.体魄+s1.智慧+s2.体魄+s2.智慧+s5.体魄+s5.智慧<":[3,5]
+                },
+                "result_title":"手滑了",
+                "result_text": "你们做出了一坨铅和黄金混合起来的垃圾，现在，还要花十倍的力气把它们给分离开……这次算是亏大了，得让专业一点的人来做这件事！",
+                "result": 
+                { 
+                    "card":2001190, //就1枚
+                },
+                "action": {
+                    "rite":5006685, //重新生成自己
+                }
+            },
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"95e9d7c0-1835-4fd9-b4ad-31ec78dc92ba",
+                "condition": {
+                    "r2:s4.社交+s4.隐匿+s5.社交+s5.社交>=":[2,5]
+                },
+                "result_title":"神不知鬼不觉",
+                "result_text": "这可是[player.name]大人的宅邸！能有什么问题？谁敢查他的问题？",
+                "result": 
+                { 
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"2aa40050-ee93-4584-a02f-7243aa9fdd46",
+                "condition": {
+                    "r2:s4.社交+s4.隐匿+s5.社交+s5.社交<":[2,5]
+                },
+                "result_title":"似乎有风声泄露出去了",
+                "result_text": "可能是某一个多嘴的仆人，也可能是你们偷偷倒出了太多的炉渣，亦或是那有毒的废水污染了周围的井……总之，你们的行动引起了捉贼人的注意。",
+                "result": 
+                { 
+                    "card":2000558, //罪证
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"c3f30cf7-23bd-401f-837e-2dacfe2c06f4",
+                "condition": 
+                {
+                    "type":"char",
+                    "!怪物":1,
+                    "!动物":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"工匠"
+            },
+            "s2":
+            {
+                "guid":"2522a347-91d4-49a8-8ad4-89d469d680fb",
+                "condition": 
+                {
+                    "type":"char",
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"助手"
+            },
+            "s3":
+            {
+                "guid":"44035c8e-2b75-448e-a077-6a25b01c3e31",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2000029,
+                    "cost.金币":10,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"总得有点真金吧…10枚金币"
+            },
+            "s4":
+            {
+                "guid":"9872aa20-1bc9-4927-be61-ec719ba17965",
+                "condition": 
+                {
+                    "type":"char",
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"善后者"
+            },
+            "s5":
+            {
+                "guid":"c4555c41-4f5f-45ca-aa2d-d1773c5c1f75",
+                "condition": 
+                {
+                    "type":"item",
+                    "cost.消耗品=":1,
+                    "!金币":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"消耗品"
+            }
+        }
+    } 

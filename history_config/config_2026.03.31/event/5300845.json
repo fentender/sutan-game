@@ -1,0 +1,29 @@
+{
+    "id": 5300845,
+    "text": "支持领主小筹失败",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1,
+    },
+    "condition": { //条件
+        "table_have.2001182":1,  //小筹空闲
+        "f:counter.7000707-counter.7000706<":0,  //物性小于人性
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite":5000350,  //以人为镜
+                "prompt": {
+                    "id": "5300845_prompt_1",
+                    "text": "你知道，大部分敌人都只是受到了[xiaochou.name]的蛊惑——于是命令军队尽量生擒了大部分的俘虏。\n其实，当军队溃散的时候，你就能感觉到，[xiaochou.name]的力量已经没有停留在这些人身上了，他们心中的迷障被撤走，不知所措，不明白自己为什么会在这里战斗……\n但是，冥冥中，你知道，[xiaochou.gender]还活着……你们之间仍有某种羁绊。",
+                    "icon": "pic/2001182"
+                },
+                "event_off":[5300844,5300845]  //关闭
+            }
+        }
+    ]
+}

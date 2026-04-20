@@ -1,0 +1,22 @@
+{
+        "id": 5311032,
+        "text": "飞升线鲁梅拉星灵成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000545":1,  //星灵鲁梅拉
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000545+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

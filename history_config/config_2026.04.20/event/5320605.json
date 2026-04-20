@@ -1,0 +1,26 @@
+{
+    "id": 5320605,
+    "text": "贵族珠宝订单的开始",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "counter+7000817":1,  //可以接到贵族珠宝订单的计数器                
+                "event_on":5320610,  //开启三个贵族珠宝订单完成后的启动幕后
+                "event_off":5320605
+            }
+        }
+
+    ]
+}

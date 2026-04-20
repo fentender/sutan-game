@@ -1,0 +1,175 @@
+{
+    "id": 8000234,
+    "name": "",
+    "tips": "",
+    "bg": "mj_04_bg",
+    "fg": null,
+    "fg_in_slot_index": 0,
+    "nomal_slot_bg": "",
+    "bg_pos": {
+        "x": 0,
+        "y": 210
+    },
+    "title_pos": {
+        "x": 1692,
+        "y": -233
+    },
+    "title_bg_hide": false,
+    "title_help_btn_hide": false,
+    "slots": {
+        "s1": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1517,
+                "y": 755
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s2": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1317,
+                "y": 699
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s3": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1719,
+                "y": 697
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s4": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1118,
+                "y": 669
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s5": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1919,
+                "y": 669
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s6": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1408,
+                "y": 1217
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s7": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1614,
+                "y": 1217
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s8": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1830,
+                "y": 1217
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s9": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1198,
+                "y": 1217
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s10": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 1517,
+                "y": 1576
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        },
+        "s11": {
+            "is_hide_bg": false,
+            "is_set_card_hide_bg": false,
+            "slot_bg": "sp_3",
+            "pos": {
+                "x": 896,
+                "y": 1520
+            },
+            "scale": {
+                "x": 0.7,
+                "y": 0.7
+            },
+            "rotation_z": 0
+        }
+    }
+}

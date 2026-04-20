@@ -1,0 +1,56 @@
+{
+    "id": 5320367,
+    "text": "更深的塑造",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "option": {
+                    "id":"5320367_option_1", //事件触发计数
+                    "text": "你已经有了想法，便叫来马尔基娜",
+                    "icon": ["pic/2000001","","cards/2000459"],
+                    "items": [
+                        {
+                            "text": "给她看善人的样子",
+                            "tag": "op1"
+                        },
+                        {
+                            "text": "给她看恶人的样子",
+                            "tag": "op2"
+                        },
+                        {
+                            "text": "给她看权贵的样子",
+                            "tag": "op3"
+                        },
+                        {
+                            "text": "给她看侠义之士的样子",
+                            "tag": "op4"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "loot":6000301
+                },
+                "case:op2": {
+                    "loot":6000204
+                },
+                "case:op3": {
+                    "loot":6000205
+                },
+                "case:op4": {
+                    "loot":6000206
+                }
+            }
+        }
+
+    ]
+}

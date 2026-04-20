@@ -1,0 +1,28 @@
+{
+    "id": 5320321,
+    "text": "命运变动",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.命运变动":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "loot":6000202,
+                "prompt":{
+                    "id":"5320321_prompt_01",
+                    "text":"梦的颜色，云的形状，水洼中的倒影，茶叶漂浮的图形——每当现实被修改的时候，那些多余的颜料与墨渍就会溢出在这些凡人往往视而不见的地方……而你纵然有所察觉，却也只能任其变化。",
+                    "icon":"pic/2000001"
+                }
+            }
+        }
+
+    ]
+}

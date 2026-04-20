@@ -1,0 +1,28 @@
+{
+    "id": 5311004,
+    "text": "结算墨色褪去是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010203
+    },
+    "condition": {
+        "counter.7000938<": 3 //如果墨色褪去成功计数器不足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311004_prompt_01",
+                    "text": "还不够，快！羊肉炉已经领先了！如果祂比你先到达终点，那一切都结束了！",
+                },
+                "rite":5010203,  //重启墨色褪去
+                "focus.5010203":[1700,1],
+                "event_off":5311004
+            },
+        }
+    ]
+}

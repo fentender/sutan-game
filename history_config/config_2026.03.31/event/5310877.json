@@ -1,0 +1,30 @@
+{
+        "id": 5310877,
+        "text": "结局-龙眼-娜依拉-非大敌",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.2000055.追随者=0+追随者":1,
+                "prompt":{
+                    "id":"5310877_prompt_01",
+                    "text":"娜依拉来了，她穿着自己最风骚的衣服，戴着最华贵的首饰——她还没试过对神明献媚呢！她一定要试试！",
+                    "icon":"cards/2000055"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

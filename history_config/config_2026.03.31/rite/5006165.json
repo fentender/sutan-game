@@ -1,0 +1,128 @@
+{
+    "id": 5006165,
+    "name": "流光溢彩的丝绸",
+    "text": "娜依拉随手送给你的丝绸，品相极好。你打算把它送给谁？",
+    "tips": "",
+    "mapping_id":8001325, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_12",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        
+    ],
+    "open_conditions": [   
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+       
+    ],
+    "settlement": [
+        {
+            "guid":"54ae8709-eaf1-4891-9b63-a64b663a605d",
+            "condition": {
+                "s2.妻子":1,
+                "have.2000055":1 //娜依拉存活
+            },
+            "result_title": "",
+            "result_text": "……娜依拉看见这条美丽的丝绸出现在梅姬头上的时候，简直气得要爆炸了！她甚至顾不上体面，差点就要伸手把它狠狠地从梅姬头上拽下来——但是很快，不知道想到了什么，她奇怪地笑了起来，又坐回软垫里若有所思地绕着自己的头发。就在当晚，一张薰着浓香的信笺来到了你的桌案：“什么时候轮到她？”",
+            "result": {
+                "s2+魅力":1,
+                "clean.s1":1
+            },
+            "action": {
+              
+            }
+        },
+        {
+            "guid":"9e75d35e-fbe0-4282-9eea-5602372b0ac1",
+            "condition": {
+                "s2.主角":1, //是自己亲自用
+                "have.2000055":1 //娜依拉存活
+            },
+            "result_title": "",
+            "result_text": "娜依拉对你搭配这条绸缎的品味颇感嫌弃，但你把它披在身上的行为大大地取悦了她。她在你的脸上留下了一枚精巧的唇印，接着咯咯笑着催促你，快帮她把剩下的女人解决掉。",
+            "result": {
+                "s2+魅力":1,
+                "clean.s1":1
+            },
+            "action": {
+              
+            }
+        },
+        {
+            "guid":"40b7faaf-f6b0-4012-ab20-4076fe624ff9",
+            "condition": {                
+                "s2.is":2000055 //送给了娜依拉
+            },
+            "result_title": "",
+            "result_text": "你把丝绸送还给娜依拉，这让她很不高兴：“怎么，你看不上我送你的礼物？”\n你连连摆手，说最美的丝绸，当然要配最美的女人，她这才开心地大笑起来，当即命人把这匹绸缎拿去做一条新的面纱了。",
+            "result": {
+                "s2+魅力":1,                
+                "clean.s1":1
+            },
+            "action": {
+              
+            }
+        },
+       {
+            "guid":"8e9c5b04-4a1a-459b-96c6-f1a1b4ebdbc3",
+            "condition": {
+               
+            },
+            "result_title": "",
+            "result_text": "[s2.name]高兴地收下了这匹难得一见的好绸缎，离开之前[s2.gender]就已经想好了要怎么用它装扮自己了！",
+            "result": {
+                "s2+魅力":1,
+                "clean.s1":1
+            },
+            "action": {
+              
+            }
+        }
+    ],
+    "settlement_extre": [
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"33d999b0-78d5-45a5-bc6a-2522aeb45f7b",
+            "condition": {
+                "type": "item",
+                "is":2000697
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "丝绸"
+            
+        },
+        "s2": {
+            "guid":"74a428ae-3d58-4518-a1e9-9d2501acde29",
+            "condition": {
+                "type": "char",
+                "!动物":1,
+                "!怪物":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你打算把它送给谁"         
+        }
+    }
+}

@@ -1,0 +1,245 @@
+ {
+        "id": 5006182,
+        "name": "空壳酿肉",
+        "text": "快来吃啊！用了好多肉才填满的呢！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"cacc7bac-0d70-4b8d-8646-2db76f545363",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "不同位置的形状的壳会让里面的肉馅变成不同的质地，虽然有些部分看起来怪瘆人的，但也更加的美味！",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+战斗":1,
+                    "s3+战斗":1,
+                    "s4+战斗":1,
+                    "s5+战斗":1,
+                    "s2+社交":1,
+                    "s3+社交":1,
+                    "s4+社交":1,
+                    "s5+社交":1,
+                    "s2+吃空壳酿肉":1,
+                    "s3+吃空壳酿肉":1,
+                    "s4+吃空壳酿肉":1,
+                    "s5+吃空壳酿肉":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"77e84f75-6404-4b26-a6fe-56a9afb94973",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000772, //索拉薇儿
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“也许我们都是空壳，\n一生都在把自己填满，\n也许我们都是空壳，\n但放入我们的东西，\n会变得甘美。”真是一首奇怪的诗，但似乎索拉薇儿意外地很喜欢它。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000772+隐匿":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e6741199-0a98-45a3-8a8b-0d39673cd54d",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000772,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“也许我们都是空壳，\n一生都在把自己填满，\n也许我们都是空壳，\n但放入我们的东西，\n会变得甘美。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"6248cad5-1305-4104-acc2-7e606a92aa79",
+                "condition": {
+                    "s2.吃空壳酿肉>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000496,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"524e0700-0693-41d5-a509-fd8a1532edf2",
+                "condition": {
+                    "s3.吃空壳酿肉>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000496,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"55d6a71b-a438-4076-85b6-2c1a1f5d1400",
+                "condition": {
+                    "s4.吃空壳酿肉>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000496,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"2729a2cb-8959-4b58-843b-f01c931f8229",
+                "condition": {
+                    "s5.吃空壳酿肉>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s5.name]体内已经积累了太多……最终，[s5.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000496,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"fdaa8f77-6c9e-4251-964f-db79678cd12e",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001338
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"085a6086-f464-45e4-8723-8887a868ab06",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"db863697-04cf-4dd6-8812-dd22f35d365f",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"f496e8b8-c721-4cd0-a76f-b0936aa36094",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"e886d5f1-ca8b-40d4-9f65-8176c7ac953b",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

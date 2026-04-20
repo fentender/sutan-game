@@ -1,0 +1,125 @@
+ {
+        "id": 5006804,
+        "name": "捉捕大岩羊",
+        "text": "据说，只要不是垂直的山壁，岩羊就可以如履平地……但这里几乎就是垂直的。",       
+        "tips": "",
+        "mapping_id":8001046,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "野外:[1,6]", 
+        "icon": "rite_17", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["生存","隐匿"],
+            "type":"normal_result"
+        },
+        "tips_text":[
+            "这只是一次狩猎，不用太在意",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"他们会成功吗",
+                "type":"normal_result",
+                "type_tips":"己方的生存和隐匿提供完整的骰子数量",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"043780a8-6367-417b-ba6b-c3f7c5a08fe1",
+                "condition":
+                {
+                    "r1:生存+隐匿>=":[5,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，哲巴尔和古利斯回来了！\n他们俩骄傲地共同扛着两根木棍，其上吊着他们捕获的巨大岩羊。这羊实在是太大了，人们惊讶极了，纷纷凑到近处看着；哲巴尔大笑着向所有人一遍又一遍地讲述他们是怎么蹑手蹑脚地深入巢穴，怎么骗过岩羊灵敏的耳朵，又是怎么在陡峭的岩壁上险象环生地将之擒住……也多亏了古利斯协助，才没在最后关头被羊顶出悬崖，说是救命之恩也不为过。在回家之前，他掏出了五枚金币，塞进古利斯手中。",
+                "result": 
+                {    
+                    "s1+隐匿":1,  
+                    "s2+生存":1,
+                    "counter+7100003":1,             
+                },
+                "action":
+                {
+                }
+            },
+            {
+                "guid":"7c3e0976-4b51-463c-91e1-5dad0fcf5810",
+                "condition":
+                {
+                    "r1:战斗+体魄<":[5,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，哲巴尔和古利斯回来了！\n只不过……哲巴尔是躺着回来的，古利斯将这位将军放在一块木板上，而后一路把他拖了回来……\n哲巴尔勉强撑起身，他告诉你，自己在追捕岩羊时不小心摔下了山崖，还好你这位猎仆带了绳索，把自己吊下去救了哲巴尔。但哲巴尔还是摔断了腿，而猎物自然也早就逃之夭夭了。\n游猎会上的意外不少见，所以人们并不怎么在意；但哲巴尔坚持要给古利斯一大笔赏钱，作为他救了自己的命的报酬。\n在被他自己的仆人抬回家之前，他掏出了五枚金币，塞进古利斯手中。",
+                "result": 
+                {      
+                    "s1+equip":2000098,    
+                },
+                "action":
+                {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"cabe3e51-9415-42bc-9ac1-78a1cbfc9805",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000054,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"一位猎人"
+                },
+            "s2":
+                {
+                    "guid":"e8d799b9-ab88-4bf4-8f58-26a1c4376590",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000114,//古利斯
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"一位猎人",                   
+                },
+            "s3":
+                {
+                    "guid":"819ce500-38cd-4451-bf28-bc560a0ce636",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"消耗品"
+                }
+        }
+    } 

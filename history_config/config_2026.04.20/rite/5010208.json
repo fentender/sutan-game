@@ -1,0 +1,98 @@
+ {
+        "id": 5010208,
+        "name": "终极问题",
+        "text": "这是你离开旧世界的最后一步，也是你踏足新世界的第一步。混沌泛起了涟漪，那最初的问题在两个世界之间，在你的灵魂之中回荡：“你是谁？你是谁？……是谁？……是谁……谁……”",       
+        "tips": "",
+        "mapping_id":8001595,
+        "once_new":-1,
+        "round_number": 0,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0,
+        "location": "结局:13", 
+        "icon": "rite_ac_1",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "这是最后的选择了，真的。"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"19d4ac77-fe7a-4519-ab18-91b517de6bc5",
+                "condition": {
+                    "any":{
+                        "s1.妻子":1,
+                        "s1.is":2000689
+                    },
+                },
+                "result_title":"到此方知我非我",
+                "result_text":"循着这问题，你愕然回首——你看到了你自己，那不是[player.name]，那本就不是属于你的东西……是暴戾者许给你的、是爱人让给你的、是怀有期待之人心甘情愿捧给你的……在这些后面，还有那无量的众生，那历史的洪流，那无数的光……而你就是它们折射的集合。\n带着这种明悟，你看到了身后的道路，那回家的路……裹挟着足以创造世界的力量，你奔跑着，哭泣着，开始归返——\n当你走到门前时，梅姬亲自为你打开了房门。",
+                "result": 
+                {
+                    "counter+7001076":1, //标识纠正一切的结局
+                    "steam_achievement": "ACHIEVEMENT_008", //steam创造
+                },
+                "action": {
+                    "over":286  //纠正一切结局
+                }
+            },
+            {
+                "guid":"cd100428-bd4b-4399-abb2-2191ef66d730",
+                "condition": {
+                    "s1.主角":1
+                },
+                "result_title":"到此方知我是我",
+                "result_text":"你迈步向前，以行动代替言语，行在混沌的水面上。从指尖最细小的皮肤纹理，到回忆中无法言说的散碎思绪，你的一切，都开始变大……\n无数次轮回的游戏，仿佛螺旋形的金丝，之前被紧紧封在你的心底，现在，它们开始伸展，释放那蓄积的命运之力。原来如此！原来一切都是为了这一刻准备的！在一个不思议的角度，你看见自己解离，飞散，仿佛成熟的果实……每一片记忆，每一滴血肉，都无声地融入混沌，随后，开始生长，变幻，开始了创造世界的工序。\n神说，要有[player.name]，于是，你找到了自我。",
+                "result": 
+                {
+                    "counter+7001077":1, //标识诸神的面容的结局
+                    "steam_achievement": "ACHIEVEMENT_008", //steam创造
+                },
+                "action": {
+                    "over":287  //诸神的面容结局
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"9a9b4967-35d1-47e3-9752-f1bd4259465e",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "any":{
+                        "主角":1,
+                        "妻子":1,
+                        "is":2000689  //幸福感
+                    }
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"给世界一个回答"
+            }
+           
+    }
+    } 

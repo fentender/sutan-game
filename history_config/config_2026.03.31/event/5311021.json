@@ -1,0 +1,23 @@
+{
+        "id": 5311021,
+        "text": "飞升线娜依拉成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000055":1,
+            "table_have.2000055.命运的羁绊":1,  //娜依拉拥有羁绊
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000055+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

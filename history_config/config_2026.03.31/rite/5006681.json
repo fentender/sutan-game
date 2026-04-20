@@ -1,0 +1,191 @@
+ {
+        "id": 5006681,
+        "name": "审问",
+        "text": "这位异国商人……你的租客，似乎很可疑。也许你需要一点技巧才能撬开他的嘴。",       
+        "tips": "",
+        "mapping_id":8001555,
+        "once_new":0,
+        "round_number": 0,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+            {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                { 
+                    "clean.s1":1,//移除巴拉特
+                    "card":2001190, //获得一个假币
+                    "counter+7000713":1, //标识巴拉特畏罪潜逃
+                    "prompt":{
+                        "id":"5006681_prompt_1",
+                        "text":"巴拉特不告而别了，你来到租住给他的房间，在地下室的地上，你发现了一枚“金币”卡在了石板的缝隙里……从地面的痕迹上看，他就是在这里进行的假币铸造工作——为了避免给自己惹麻烦，你只好停止了追查，甚至主动帮他销毁了所有残存的痕迹。",
+                        "icon":"cards/2000005"
+                    }
+                },
+                "action": {
+                    "event_off":5300088, //关闭异国商人商店
+                }
+            }
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0, 
+        "location": "自宅:[2,12]", 
+        "icon": "rite_8", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["体魄","社交"],
+            "type":"normal_result"
+        },        
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"你打算套出巴拉特的话",
+                "type":"normal_result",
+                "type_tips":"你的社交为你提供了完整的骰子数量。",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            },
+            "r2":{
+                "text":"冥顽不灵的家伙，看来需要上点手段",
+                "type":"normal_result",
+                "type_tips":"你的体魄为你提供了完整的骰子数量。",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"611565b5-0844-4fea-9de4-f9bf6bc2b1c3",
+                "condition": {
+                    "r1:社交>=":[5,5]
+                },
+                "result_title":"虚张声势",
+                "result_text": "现在是最后的机会了，[s2.name]警告巴拉特——并暗示苏丹的卫兵随时都可能会查到这里。\n他害怕了，双腿不住颤抖，最后决定向你们坦白一切。",
+                "result": 
+                { 
+                },
+                "action": {
+                    "rite":5006680, //吐露真相
+                }
+            },
+            {
+                "guid":"e998e4c5-6a8d-4111-8b4c-aabe86a47989",
+                "condition": {
+                    "r1:社交<":[5,5]
+                },
+                "result_title":"他老奸巨猾",
+                "result_text": "任凭[s2.name]怎么威胁他，这个商人都无动于衷，显然，他一定是有问题的，普通人在这个时候早该害怕了才对！",
+                "result": 
+                { 
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"90e481d9-b759-4803-85d4-69c3e298af37",
+                "condition": {
+                    "r1:社交<":[5,5],
+                    "r2:体魄>=":[5,5]
+                },
+                "result_title":"给他点颜色看看",
+                "result_text": "于是，[s3.name]只好掐住了巴拉特的脖子，如果他嘴巴里吐不出一点关于这假币的事情，那就干脆不要呼吸好了！\n终于，他在被憋死之前，点头同意开口……",
+                "result": 
+                { 
+                },
+                "action": {
+                    "rite":5006680, //吐露真相
+                }
+            },
+            {
+                "guid":"912878c7-59cc-4082-a5ce-171d4d9f5b65",
+                "condition": {
+                    "r1:社交<":[5,5],
+                    "r2:体魄<":[5,5]
+                },
+                "result_title":"装死",
+                "result_text": "于是，[s3.name]只好掐住了巴拉特的脖子，如果他嘴巴里吐不出一点关于这假币的事情，那就干脆不要呼吸好了！\n可惜，巴拉特拼命挣扎，却是半句话也不肯说……[s2.name]怕真的闹出人命，只好暂时作罢。",
+                "result": 
+                { 
+                },
+                "action": {
+                    "event_off":5300088, //关闭异国商人商店
+                    "event_on":5320283, //巴拉特跑路
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"e1a6e044-4f3c-4bbd-94a8-1e66ac133ea4",
+                "condition": 
+                {
+                    "is":2000005
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"可疑的巴拉特"
+            },
+            "s2":
+            {
+                "guid":"b9d96bb7-f310-4fd8-bc67-1a313cc87415",
+                "condition": 
+                {
+                    "type":"char",
+                    "!怪物":1,
+                    "!动物":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"谁来“询问”"
+            },
+            "s3":
+            {
+                "guid":"7f3b015e-8644-4e71-8138-f0ce88040f7c",
+                "condition": 
+                {
+                    "type":"char",
+                    "!怪物":1,
+                    "!动物":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"谁来“询问”"
+            },
+            "s4":
+            {
+                "guid":"c33b1117-889b-4f73-aba7-11dd352151dc",
+                "condition": 
+                {
+                    "type":"item",
+                    "cost.消耗品=":1,
+                    "!金币":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"消耗品"
+            }
+        }
+    } 

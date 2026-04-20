@@ -1,0 +1,48 @@
+{
+    "id": 5320384,
+    "text": "百科全书--全收集",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000199":1, //还活着
+        "any":{
+            "all":{
+                "global_counter.7230019>=":1,
+                "global_counter.7230020>=":1,
+                "global_counter.7230021>=":1,
+                "global_counter.7230022>=":1,
+                "global_counter.7230023>=":1,
+                "global_counter.7230024>=":1,
+                "global_counter.7230025>=":1,
+                "global_counter.7230026>=":1,
+                "global_counter.7230027>=":1,
+                "global_counter.7230028>=":1,
+                "global_counter.7230029>=":1,
+            },
+            "counter.7000752>=":11,
+        }
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "global_counter=7230030":1, //全收集计数,这里用全局计数，如果不希望玩家下次进来不走百科全书线也可以触发对应结局的化，可以看下面的局内计数
+                "counter+7000839":1, //全收集的局内计数
+                "card":2001296,
+                "steam_achievement": "ACHIEVEMENT_004", //steam知识
+                "prompt":{
+                    "id":"5320384_prompt_01",
+                    "text":"阿萨尔兴奋极了，他捧着厚厚的一本书找到你——但，这并不是一本书，而是一整套书的目录。\n“完成了——完成了！我已经见过这世间所有事物、所有书籍、所有的奇珍异宝！用我这双眼睛——多亏了您！”\n他突然抱着你嚎啕大哭起来，几乎说不出完整的话。你尴尬地努力安慰了他一番，过了很久，他总算是稍微哭够了，才更加尴尬地冲你行了个最大的礼，以示感谢，他把这本目录送给了你……嗯，脱离开百科全书，它毫无意义，但这是世间智慧和知识的证明，它在某些特殊的时刻一定能派上用场。",
+                    "icon":"cards/2000199"
+                }
+            }
+        }
+
+    ]
+}

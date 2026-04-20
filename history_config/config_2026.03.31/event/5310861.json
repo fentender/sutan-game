@@ -1,0 +1,23 @@
+{
+        "id": 5310861,
+        "text": "星之战士",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 5010075
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "event_on":5310883, //昼夜
+                "event_on":5310884, //纪元
+                "event_on":5310885, //君权
+            }
+        }
+    ]
+} 

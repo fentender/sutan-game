@@ -1,0 +1,31 @@
+{
+    "id": 5320622,
+    "text": "热娜被带走了",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+        "table_have.2000019":1  //热娜闲置
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006152,  //开启苏丹的征召
+                "prompt":{
+                    "id":"5320622_prompt_1",
+                    "text":"热娜的作品让整个宫廷都印象深刻，就此，她的名字在青金石宫殿里彻底为人熟知，但她先等来的不是雪片般的订单和金币，而是一名苏丹的信使。\n什么都来不及交待，她直接被卫兵们带去了王宫。",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320622  //关闭自己
+            }
+        }
+
+    ]
+}

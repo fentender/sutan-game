@@ -1,0 +1,170 @@
+ {
+        "id": 5006135,
+        "name": "暗夜之饮",
+        "text": "美酒已经酿成，是时候邀请朋友们试试味道了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人尝尝吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+       
+                "guid":"8e1335b2-df34-4a2f-8039-4057e25328d2",
+       
+                "condition": {
+
+                    "s1.is":2001221  //夜咖饮
+                    
+                },
+                "result_title":"很快，你们就醉了……",
+                "result_text": "谁也没想到会醉得这么快！就好像黑夜兜头蒙了下来，你们就失去了意识……第二天醒来后，你们都变得有点不太一样了，但又说不上来。也许，这就是夜晚的恩赐吧。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+智慧":2,  
+                    "s5+体魄":2,  
+                    "s2+隐匿":2, 
+                    "s3+战斗":2
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"dec5b972-6cd5-46e9-87d8-8693470d8a34",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                },
+                "result_title":"醉后当歌",
+                "result_text": "你们都听见了哈桑的笑声和吟诗的咏叹，但是你们谁也没记住他究竟写下了什么样的大作——就连哈桑本人都没有。他赌咒发誓自己醉倒之前绝对写了篇什么旷世之作——你们也连连点头——但现场除了凌乱衣衫和残羹冷炙之外什么也没有。羊肉炉也一脸冷漠，拒不为此担责。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+             
+                "guid":"e455c669-e061-4e52-ad3b-05c20950291c",
+             
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001221
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+      
+        "guid":"2377f059-08ed-45dc-81ae-66f4fc5692ba",
+      
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+      
+        "guid":"9f5d26a2-1e70-4164-b27e-2959cc45bb15",
+      
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+      
+        "guid":"30c31622-dd46-45f0-a8e7-b51666f19dcd",
+      
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+ 
+        "guid":"296b3542-8c8e-49f7-bafc-cee225c46129",
+ 
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

@@ -1,0 +1,28 @@
+{
+    "id": 5320383,
+    "text": "百科全书--阿萨尔",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "!have.2000199":1, //还活着
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "clean.rite":5006718, //移除百科全书仪式
+                "prompt":{
+                    "id":"5320383_prompt_01",
+                    "text":"阿萨尔死了，再也没有人可以编纂这部伟大的百科全书了。",
+                    "icon":"cards/2000199"
+                }
+            }
+        }
+
+    ]
+}

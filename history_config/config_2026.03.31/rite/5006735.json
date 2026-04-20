@@ -1,0 +1,129 @@
+ {
+        "id": 5006735,
+        "name": "伊萨尔远征记",
+        "text": "阅读可以提升自己，养成阅读的习惯吧。",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"92b72055-86a5-4ba1-84ac-b3103d2e5a9e",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "作者在序言中写道：“鄙人从残卷中复原了这个故事，原以为它会随我之老朽而再度归于尘土，无人在意，但小星星女士告诉我，这些歌和故事很美，她愿意赞助它出版……其中的善意与智慧，令我频频落泪。”",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+魅力":1,
+                    "s2+战斗":2,
+                    "pop.5006735_01.s2": "终于，伊萨尔回到了他忠诚的宫廷。"                                 
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"5de9c115-98c2-432a-8d64-d16986454c91",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001256,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"1ea4ca15-e743-4b98-929c-3dc84f969ed9",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006735_s2_01.self":"有时候是虚构的传奇还是真实的历史并不重要。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000065 //法里斯
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006735_s2_02.self":"首先需要有一匹足以击败狮子的忠诚烈马。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000064 //奈布哈尼
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006735_s2_03.self":"被活捉却没有被立即处死的秘诀就是有一张英俊的脸。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "妻子": 1 //妻子
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006735_s2_04.self":"先告诉我，是圆满的结局么？"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

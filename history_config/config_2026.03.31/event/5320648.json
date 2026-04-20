@@ -1,0 +1,26 @@
+{
+    "id": 5320648,
+    "text": "小留监听心灵之战9",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000434":1,  //场上有小留
+        "table_have.2000434.追随者":1,
+        "counter.7000887<":1,  //没有开启制作笼子
+        "counter.7000886>=":1  //完成过心灵之战9
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":5320651,
+                "event_off":5320648
+            }
+        }
+    ]
+}

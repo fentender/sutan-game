@@ -1,0 +1,76 @@
+{
+    "id": 5006118,
+    "name": "医典编修中",
+    "text": "编纂这部医典耗费了比萨米尔想象中更多的时间。",       
+    "tips": "",
+    "mapping_id":8001550,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "上城区:[1,12]",
+    "icon": "rite_7",  
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+       
+    },
+    "tips_text":[
+
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+         {
+            "guid":"90c340b6-cb24-4335-8df2-02bcf38fd0db",
+            "condition": {
+                
+            },
+            "result_title":"御医房间里的蜡烛没有一刻熄灭",
+            "result_text": "终于，萨米尔完成了医典第一篇章的编纂。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006117  //医典第二章
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"5abd5ef4-abcd-44d7-98b3-ce8045ee20ec",
+            "condition":
+            {
+                "is":2000011,
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔"
+        }
+    }
+} 

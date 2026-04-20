@@ -1,0 +1,30 @@
+{
+    "id": 5320607,
+    "text": "贵公子的订单",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006145,  //开启给贵公子的订单
+                "prompt":{
+                    "id":"5320607_prompt_1",
+                    "text":"一位贵公子给热娜送来了订单，他想要一只祖母绿戒指，设计什么的不重要，重点是宝石要显得越大越好！",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320607  //关闭自己订单后再来开启
+            }
+        }
+
+    ]
+}

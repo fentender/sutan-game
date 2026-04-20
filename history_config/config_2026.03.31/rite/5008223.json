@@ -1,0 +1,73 @@
+ {
+        "id": 5008223,
+        "name": "更适合的差事",
+        "text": "你决心疏远阿图娜尔，所以你为她安排了一份远离都城的工作……",       
+        "tips": "",
+        "mapping_id":8001253,
+        "once_new":0,
+        "round_number":3,
+        "waiting_round":0, 
+        "waiting_round_end_action":[
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"野外:[9,14]",
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [  
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"8ddec94a-4890-443d-9092-36891821cdd3",
+                
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "阿图娜尔被你安排去你的领地做其他一些无关紧要的杂事了。希望她能从你的这一举动中明白你没有挑明的疏远。",
+                "result": 
+                { 
+                },
+                "action": {
+                   "event_on":5321233
+                }
+            }
+
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"014a3e46-b36e-4e75-b916-2f49567ea107",
+                "condition":
+                {
+                    "type":"char",
+                    "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"阿图娜尔"
+            },
+            
+          
+        }
+    } 

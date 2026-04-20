@@ -1,0 +1,240 @@
+ {
+        "id": 5006183,
+        "name": "咬人馍",
+        "text": "小心，抓稳了，别被馍反过来追着满屋跑。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"7afc7345-2e81-4b66-bb47-1b4a30de3961",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "最后，你们发现，只要给一些馍里塞上青椒，其他的馍就会攻击它……于是你们就这样开始把馍们关在铁笼子里打淘汰赛……嗯，最后的冠军非常非常美味。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+战斗":3,
+                    "s3+战斗":3,
+                    "s4+战斗":3,
+                    "s5+战斗":3,
+                    "s2+吃咬人馍":1,
+                    "s3+吃咬人馍":1,
+                    "s4+吃咬人馍":1,
+                    "s5+吃咬人馍":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"26b8988c-ffe0-4c43-92fa-5c313c1ddf73",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000369, //铁头
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“馍拼命地吞噬着肉，\n却不知……自己马上也要被人吞食。”铁头听了这句话，心中若有所思……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000369+社交":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"c82aaeca-f41f-4750-9db5-3177e65729ae",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000369,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“馍拼命地吞噬着肉，\n却不知……自己马上也要被人吞食。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },{
+                "guid":"4b4cbab3-75ad-4354-83c8-9c23ba48a116",
+                "condition": {
+                    "s2.吃咬人馍>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000498,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"71c46f97-bd53-462b-9a32-5a103fc7c448",
+                "condition": {
+                    "s3.吃咬人馍>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000498,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"359aa910-44b3-44e9-a295-1a659a65b402",
+                "condition": {
+                    "s4.吃咬人馍>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000498,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"bf27401f-2bfa-4e5d-90d7-a2dadcd2af60",
+                "condition": {
+                    "s5.吃咬人馍>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s5.name]体内已经积累了太多……最终，[s5.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000498,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"2a2181b8-b9f6-4e56-b8c9-44593faa5c6b",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001339
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"4cf5a1ff-5185-42ed-bce1-e14453e40602",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"da391372-ade2-4ad0-a886-543272391506",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"63627b88-9550-4db8-978b-550a87a1886d",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"97c1476e-80a7-43c9-8653-608ec70f3e77",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

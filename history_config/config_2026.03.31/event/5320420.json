@@ -1,0 +1,30 @@
+{
+    "id": 5320420,
+    "text": "移除誓言之证的情况",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start_init": [1],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "rite_end": 1,
+        "round_begin_ba":1,
+    },
+    "condition":{
+        "!have.2000013":1, //流浪剑客无了
+        "table_have.2000913":1, //誓言之证闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.clean.2000913":1, //移除誓言之证
+                "prompt":{
+                    "id":"5320420_prompt_1",
+                    "text":"高原之国最后的合法继承人，被群星所眷顾的王子已经不在了，那些写满誓言神圣契约现在不过是一些被掌纹涂污的废纸。\n你失去了用故国的名义推翻苏丹的正当性。",
+                    "icon":"cards/2000913"
+                }
+            }
+        }
+
+    ]
+}

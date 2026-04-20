@@ -1,0 +1,25 @@
+{
+    "id": 5320665,
+    "text": "开启女王的逃亡",     
+    "is_replay": 0,
+    "auto_start":false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "counter.7000891>=":5  //祝福过5次后
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.妖精女王~equip":["妖精女王"],  //装备了妖精女王的人脱下妖精女王
+                "counter=7000891":0, //次数归零
+                "rite":5006178  //开启女王的逃亡
+            }
+        }
+
+    ]
+}

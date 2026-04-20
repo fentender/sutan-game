@@ -1,0 +1,30 @@
+{
+    "id": 5320659,
+    "text": "关妖精的笼子开启",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "counter.7000887<":1  //关妖精的笼子还未开启
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "counter+7000887":1,  //标识仪式已经开启
+                "rite":5006171,  //开启关妖精的笼子
+                "prompt":{
+                    "id":"5320659_prompt_1",
+                    "text":"妖精女王曾经给你的冒险队留下了十分深刻的印象……要征服一个这样强大的异界生物需要做哪些准备呢？你挥挥手，示意小安细说……",
+                    "icon":"cards/2000433"
+                },
+                "event_off":[5320658,5320659,5320660]
+            }
+        }
+
+    ]
+}

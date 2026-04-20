@@ -1,0 +1,80 @@
+{
+    "id": 5008256,
+    "name": "唯一的宠妃",
+    "text": "你听说，阿图娜尔所获的宠爱更上了一层楼。",       
+    "tips": "",
+    "mapping_id":8001373, 
+    "once_new":0,
+    "round_number": 1,
+    "waiting_round":1,
+    "waiting_round_end_action":[
+        
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "宫廷:[2,6]", 
+    "icon": "rite_8", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+    },
+    "tips_text":[
+
+    ],
+    "open_conditions": [
+    
+    ],
+    "random_text":{
+    },
+    "random_text_up":{
+    },
+    "settlement_prior": [
+    
+    ],                
+    "settlement": [
+        {
+            "guid":"3fe64bab-c0d6-4547-9034-ae08c65c344f",
+            "condition":
+            {
+               
+            },
+            "result_title":"",
+            "result_text": "终于，阿图娜尔妃搬进了莎姬曾经住过的房间。这房间就在穿越后宫的小溪源头，距离青金石王庭最近，房前种满了散发浓香的玫瑰。\n她原本以为自己会与整个帝国最会取悦苏丹的女人来一场白刃战……但现在，她最大的对手消失了。\n阿图娜尔妃花了好几天来品味自己的胜利……当然，这几天里，苏丹夜夜都留宿在她的房间。",
+            "result": 
+            {     
+               "s1.uprare": 1
+            },
+            "action":
+            {
+               
+                 "event_on":5321282 //舞姬赢了
+            }
+
+        }
+        
+    ],                
+    "settlement_extre": [
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+
+            "guid":"f568d38f-3e49-4e40-8274-48b565585658",
+
+            "condition": 
+            {
+                "type":"char",
+                "is":2000129
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"阿图娜尔妃" 
+        }
+       
+    }
+} 

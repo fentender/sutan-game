@@ -1,0 +1,23 @@
+{
+        "id": 5311041,
+        "text": "飞升线法拉杰成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.法拉杰":1,  
+            "table_have.法拉杰.命运的羁绊":1,  //法拉杰拥有羁绊
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.法拉杰+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

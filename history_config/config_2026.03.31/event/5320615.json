@@ -1,0 +1,23 @@
+{
+    "id": 5320615,
+    "text": "废弃",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000008":1,  //安苏亚还活着 
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+              
+            }
+        }
+
+    ]
+}

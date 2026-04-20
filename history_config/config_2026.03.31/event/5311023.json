@@ -1,0 +1,23 @@
+{
+        "id": 5311023,
+        "text": "飞升线阿迪莱成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000061":1,
+            "counter.7000186>=":1  //完成屠龙的勇行
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000061+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

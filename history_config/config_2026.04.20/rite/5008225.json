@@ -1,0 +1,195 @@
+ {
+        "id": 5008225,
+        "name": "突然的坦白",
+        "text": "就在你顺利折断纵欲卡离开王宫，提心吊胆地推开家门时，你看见阿图娜尔正坐在梅姬身边，似乎正与她聊着些什么……",       
+        "tips": "",
+        "mapping_id":8001209, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":5, 
+        "waiting_round_end_action":[
+            {
+                "condition": {  
+                },
+                "result_title": "",
+                "result_text":"", 
+                "result": 
+                {
+                    "card":2000083, //妻子的不满
+                },
+                "action": {
+                    "rite":5008226, //愧疚与宝石
+                    "rite":5008227,  //你值得更好
+                    "prompt": {
+                        "id": "prompt_5008225_01",
+                        "text": "你装作什么都没看见，但这样就能当做什么都没发生么？你最好妥善地处理好这件事的首尾，不然的话……",
+                        "icon":"cards/2000006"
+                    }
+                
+                }
+            }
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_12",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        "tips":["社交","魅力"],
+        "type":"fight_result"
+        },
+        "tips_text":[
+
+          
+                 
+        ],
+        "open_conditions": [  
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+             "r1":{
+            "text":"来不及解释了，你得赶紧想办法应对梅姬的怒火",
+            "type":"fight_result",
+            "type_tips":"你的社交和魅力为你提供的骰子数量受梅姬对应属性的影响。",
+            "low_target": 5,
+            "low_target_tips": "你至少需要5点成功才能令她稍微冷静下来"
+        }
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"8c25bd7a-c4e0-4337-9297-72217e27b974",
+                
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "一见到你，阿图娜尔脸上就流露出些许歉疚之色。她似乎有些尴尬，向你和梅姬行过礼之后飞快地离开了。而梅姬脸上礼貌而得体的微笑消失了，一下子变得十分难看。\n“所以，她是您的妹妹？”她冷冷地注视着你，“一个外室生的私生女，一张纵欲卡……真是令人感动的兄妹情啊，我亲爱的丈夫！”",
+                "result": 
+                { 
+               
+                },
+                "action": {
+
+                }
+            },
+
+        ],                
+        "settlement_extre": [
+            {
+                
+                "guid":"0ef777d3-7bd5-4790-a103-ac2fb3aa15d4",
+                
+                "condition": {
+
+                  "r1:s3.社交+s3.魅力-s2.社交+s2.魅力>=":[5,5]
+            
+                },
+                "result_title":"",
+                "result_text": "你努力地让梅姬相信你事先也不知道她的身份，而那场纵欲你也是有苦衷的……梅姬也许信了，也许没有，她只是失望地看着你，离开的时候一句话都没有说。但不论如何，你应该妥善地处理一下这件事，不过话说回来，你应该先想办法让梅姬开心一点，还是先去和阿图娜尔谈谈？",
+                "result": 
+                { 
+               
+                },
+                "action": {
+                   "rite":5008226, //愧疚与宝石
+                   "rite":5008227  //你值得更好
+                }
+            },
+            {
+                
+                "guid":"dd9cb7cb-0464-40b0-9ebf-f145dbb3f39a",
+                
+                "condition": {
+
+                  "r1:s3.社交+s3.魅力-s2.社交+s2.魅力<":[5,5]
+            
+                },
+                "result_title":"",
+                "result_text": "你的辩解苍白无力，呃……毕竟……谁也没法逼你把自己的下体塞到什么地方去……\n梅姬对你很是不悦，但为了维持体面——主要是你的体面——她什么都没说。但不论如何，你应该妥善地处理一下这件事。不过话说回来，你应该先想办法哄好梅姬，还是先去和阿图娜尔谈谈？",
+                "result": 
+                { 
+                  "card":2000083, //妻子的不满
+                },
+                "action": {
+                    "rite":5008226, //愧疚与宝石
+                    "rite":5008227  //你值得更好
+                }
+            }
+           
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            { 
+                "guid":"e956f4c6-5ba4-48ea-8aff-9d33cc562fd0", 
+                "condition":
+                {
+                   "type":"char",
+                   "is":2000129
+                   
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"阿图娜尔"
+            },
+            "s2":
+            {
+                "guid":"87997181-b54b-4ad5-b936-66c6a6cb8566",
+                "condition":
+                {
+                    "type":"char",
+                     "妻子": 1
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"梅姬"
+            },
+            "s3":
+            { 
+                "guid":"27c8445c-1f08-4987-8848-f79dad86fcbc", 
+                "condition":
+                {
+                   "type":"char",
+                    "主角":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"你必须亲自周旋"
+            },
+             "s4":
+            { 
+                "guid":"3e50f354-3cb3-48ec-adb3-a70c2bdeaced", 
+                "condition":
+                {
+                   "type":"item",
+                    "cost.消耗品=":1,
+                    "!金币":1
+                   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"可以帮助你检定的东西"
+            }
+        }
+    } 

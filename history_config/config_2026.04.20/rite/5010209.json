@@ -1,0 +1,73 @@
+ {
+        "id": 5010209,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:15", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你还有6回合时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"82c0b683-6435-481d-8106-d4fa432e7ba6",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":6  //第二天结束时
+                },
+                "result_title":"裂分之羊",
+                "result_text":"在虚空中，无色烈焰平等地灼烧着你们。羊肉炉不断地喷出云雾，去对抗这般烈焰——但你也看到了更多祂裸露出来的躯体。\n那是无数宫室，神庙与雕塑……有被祂们囚禁的无名神祇，也有无数像蚂蚁一般攀附在其中的凡人。甚至，你看到了仿佛自己的巨像，也看到了某一次被你用龙卷风击毁的塔楼……那无数次轮回中积累的收藏品，都在祂狂乱的加速中被抛弃，泄露，烧毁在虚空中……",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1 //羊肉炉飞升计数器
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_03" ,
+                    "rite":5010210  //生成第三天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"203fe5b1-c779-4a29-9b55-f8a12e688738",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你还有6回合时间成为造物主"
+            }
+            
+    }
+    } 

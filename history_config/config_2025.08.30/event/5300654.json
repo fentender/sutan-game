@@ -1,0 +1,21 @@
+{
+        "id": 5300654,
+        "text": "众筹道具-生命之心-奈费勒死亡",
+        "is_replay": 1, 
+        "auto_start_init": [1], 
+        "start_trigger": false, 
+        "on":{   
+            "card_clean":2000312,
+        },
+        "condition":{   
+        },
+        "settlement": [    //当玩家选择换牌，引导玩家拖动卡牌
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "card":2001159, //奈费勒的墓碑
+            }
+        }
+        ]
+    } 

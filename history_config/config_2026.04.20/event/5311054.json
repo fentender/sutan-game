@@ -1,0 +1,26 @@
+{
+        "id": 5311054,
+        "text": "飞升线哈比卜成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000014":1, 
+            "any":{
+                "table_have.2000014.密教徒":1,   //哈比卜是密教徒
+                "counter.7000402>=":1  
+            }
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000014+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

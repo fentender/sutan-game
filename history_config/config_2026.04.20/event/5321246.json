@@ -1,0 +1,36 @@
+{
+    "id": 5321246,
+    "text": "苏丹的兴致",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+
+    
+        "table_have.2000129.追随者":1, //舞姬闲置
+         "!have.2000129.入宫":1,  //没有入宫标签
+        
+        // "!rite":5001001, //场上没有权力的游戏
+      //   "rite":5001004,   //场上有群龙无首
+      //  "table_have.2000024":1, //苏丹闲置
+     
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "rite":5008235,
+                "success": {
+                    "event_off": 5321246
+                }
+      
+            }
+        }
+
+    ]
+}

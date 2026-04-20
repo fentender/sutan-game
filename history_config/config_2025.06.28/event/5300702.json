@@ -1,0 +1,26 @@
+{
+    "id": 5300702,
+    "text": "马衔倒计时每天",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+        "hand_have.马衔使用者":1 //使用马衔的人在手牌
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.马衔使用者~equip":["被驯服的人"],  //装备了马衔的人脱下马衔人
+                "success":{
+                    "rite":5000202  //开启解除马衔的仪式
+                }
+            }
+        }
+
+    ]
+}

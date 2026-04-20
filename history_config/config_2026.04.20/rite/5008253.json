@@ -1,0 +1,77 @@
+{
+    "id": 5008253,
+    "name": "无头之舞",
+    "text": "很快，你们就都知道了莎姬妃向苏丹许下了怎样的心愿。",       
+    "tips": "",
+    "mapping_id":8001105, 
+    "once_new":0,
+    "round_number": 1,
+    "waiting_round":1,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "宫廷:[2,6]", 
+    "icon": "rite_11", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+    },
+    "tips_text":[
+
+    ],
+    "open_conditions": [
+    
+    ],
+    "random_text":{
+    },
+    "random_text_up":{
+    },
+    "settlement_prior": [
+    
+    ],                
+    "settlement": [
+        {
+            "guid":"71f85082-16eb-4b6c-9f93-364be3468cff",
+            "condition":
+            {
+            },
+            "result_title":"",
+            "result_text": "“我想要阿图娜尔的头！她多美啊——她不是觉得自己比我美吗？我想要她那颗美丽的头颅！”\n就这样，阿图娜尔被处决了，甚至是当着你的面。那颗美丽的头颅被侍卫斩下，可奇怪的是，阿图娜尔被斩首的身躯却没有倒下，正相反，她的肢体抽搐着，扭动着，然后像是被什么东西控制了一般，跳了有史以来最美妙的一支舞蹈……你的，莎姬的，越来越多无头的身体加入了这场梦幻的表演，在纯净者的祭司施展法术焚烧你们之前，在你狂乱的意识消散的终末，你只听到了苏丹的狂笑声。",
+            "result": 
+            {     
+                "clean.s1":1, 
+               
+            },
+            "action":
+            {
+                "over":13 //通用死亡
+            }
+
+        }
+    ],                
+    "settlement_extre": [
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+
+            "guid":"d6f75a5f-6884-4035-b5be-e612093ec36d",
+
+            "condition": 
+            {
+                "type":"char",
+                "is":2000129
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"阿图娜尔" 
+        }
+       
+    }
+} 

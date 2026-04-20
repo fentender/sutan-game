@@ -1,0 +1,30 @@
+{
+        "id": 5310875,
+        "text": "结局-龙眼-哲瓦德-非大敌",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.2000057.追随者=0+追随者":1,
+                "prompt":{
+                    "id":"5310875_prompt_01",
+                    "text":"哲瓦德当然不会错过这样的大事——他可眼馋教会的财富很久了！现在，这将有一个全新的，侍奉神的岗位！",
+                    "icon":"cards/2000057"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

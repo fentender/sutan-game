@@ -28,7 +28,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import APP_VERSION, MOD_OVERRIDES_DIR, SCHEMA_DIR, SYNTHETIC_MOD_ID, UserConfig
+from ..config import (
+    APP_VERSION,
+    HISTORY_DIR,
+    MOD_OVERRIDES_DIR,
+    SCHEMA_DIR,
+    SYNTHETIC_MOD_ID,
+    UserConfig,
+)
 from ..core.conflict import FileOverrideInfo
 from ..core.deployer import generate_info_json, scan_synthetic_mods
 from ..core.diagnostics import ERROR, INFO, WARNING, diag
@@ -133,10 +140,12 @@ class MainWindow(QMainWindow):
 
         self.cmb_merge_mode = QComboBox()
         self.cmb_merge_mode.addItem("智能合并", MergeMode.SMART.value)
+        self.cmb_merge_mode.addItem("自适应合并", MergeMode.ADAPTIVE.value)
         self.cmb_merge_mode.addItem("正常合并", MergeMode.NORMAL.value)
         self.cmb_merge_mode.addItem("简单替换", MergeMode.REPLACE.value)
         self.cmb_merge_mode.setToolTip(
             "智能合并：保守策略，数组元素禁止删除，condition/action/result 内允许删除\n"
+            "自适应合并：基于 Mod 更新时间匹配历史游戏版本计算差异，合并行为同智能合并\n"
             "正常合并：全部应用 Mod 的增删改\n"
             "简单替换：直接用 Mod 文件替换，不做字段级合并"
         )
@@ -334,6 +343,8 @@ class MainWindow(QMainWindow):
             mod_ids, schema_dir=SCHEMA_DIR,
             merge_mode=self._get_merge_mode(),
             mod_merge_modes=self._get_mod_merge_modes(),
+            mod_update_times=self._get_mod_update_times(),
+            history_dir=HISTORY_DIR,
         )
 
         self._delta_progress = QProgressDialog(
@@ -400,6 +411,11 @@ class MainWindow(QMainWindow):
             except ValueError:
                 continue
         return result
+
+    def _get_mod_update_times(self) -> dict[str, int]:
+        """获取所有启用 mod 的 update_time 映射"""
+        enabled = self.mod_list_panel.get_enabled_mods()
+        return {m.mod_id: m.update_time for m in enabled if m.update_time is not None}
 
     def _on_mod_merge_mode_changed(self, mod_id: str, mode_value: str) -> None:
         if mode_value:
@@ -508,7 +524,9 @@ class MainWindow(QMainWindow):
         ModDelta.invalidate()
         ModDelta.init(enabled_ids, schema_dir=SCHEMA_DIR,
                       merge_mode=self._get_merge_mode(),
-                      mod_merge_modes=self._get_mod_merge_modes())
+                      mod_merge_modes=self._get_mod_merge_modes(),
+                      mod_update_times=self._get_mod_update_times(),
+                      history_dir=HISTORY_DIR)
 
         self.statusBar().showMessage("正在分析覆盖情况...")
         self.progress_bar.setVisible(True)

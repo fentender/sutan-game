@@ -1,0 +1,21 @@
+{
+        "id": 5310536,
+        "text": "结局-君权神授",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{        
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+                "over":273
+            }
+        }
+    ]
+} 

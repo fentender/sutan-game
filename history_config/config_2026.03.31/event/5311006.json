@@ -1,0 +1,28 @@
+{
+    "id": 5311006,
+    "text": "结算虚空之火是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010205
+    },
+    "condition": {
+        "counter.7000964<": 3 //如果虚空之火成功计数器不足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311006_prompt_01",
+                    "text": "你仍然在被灼烧，你还能坚持多久？快，不要让羊肉炉抢在前面……",
+                },
+                "rite":5010205,  //重启
+                "focus.5010205":[1700,1],
+                "event_off":5311006
+            },
+        }
+    ]
+}

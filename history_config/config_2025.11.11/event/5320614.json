@@ -1,0 +1,30 @@
+{
+    "id": 5320614,
+    "text": "给苏丹的珠宝",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006151,  //开启给苏丹的珠宝
+                "prompt":{
+                    "id":"5320614_prompt_1",
+                    "text":"一位王家侍卫给你送来了苏丹草草写下的手谕：\n<size=+10><font=\"Title SDF\"><b>“听说你有个不错的珠宝匠。”</b></font></size>\n只有这一句话，但也只需要这一句话。\n你得马上把热娜请到你的宅邸来，取悦苏丹是至关重要的，一个不好，也会是危及生命的。",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320614  //关闭自己
+            }
+        }
+
+    ]
+}

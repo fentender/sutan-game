@@ -1,0 +1,177 @@
+ {
+        "id": 5006811,
+        "name": "盐烤牛心",
+        "text": "真正的勇士要用徒手撕开牛心——对，这就是我不给你们叉子的理由。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"f25921ef-64d6-48f7-b264-6fc33173c109",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "最后还是妥协了，用刀把牛心切碎了给大家吃",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+体魄":3,  
+                    "s5+体魄":3,  
+                    "s2+体魄":3, 
+                    "s3+体魄":3,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"d5101517-b3fb-4a8d-ad41-e1a7cf68bb58",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000114, //古利斯
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我的心意哦，\n要怎么传达给您？\n如果是需要用盐与火，来炙烤我的真心的话！\n如果仅仅是用盐与火炙烤就可以的话！”\n古利斯说，他们过去的部落，也有类似的情歌唱给姑娘们听——这是你第一次听古利斯讲他过去的故事。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000114+智慧":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"a4d5bd76-403e-4510-b833-4f699ebe6d20",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000114,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我的心意哦，\n要怎么传达给您？\n如果是需要用盐与火，来炙烤我的真心的话！\n如果仅仅是用盐与火炙烤就可以的话！”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"9585703f-5d9c-4728-a525-a278334214a7",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001313
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"090a9603-623a-4f4e-83f2-050fc569351a",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"1eec16d0-cfc0-43fd-8b64-acc3aba174de",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"362b02f2-697d-4a0d-811d-64ab4e32a8a1",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"d253e9a2-52f0-4ccf-9492-8cce28d305db",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

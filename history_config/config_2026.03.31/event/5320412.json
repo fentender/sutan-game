@@ -1,0 +1,31 @@
+{
+    "id": 5320412,
+    "text": "可疑的钱币",     
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 7
+    },
+    "condition":{
+        "counter.7100003>=":5, //权势
+        "counter.7100004>=":3, //侠名
+        "have.2000005":1, //巴拉特存活
+        "counter.7001068<":1, //标识还没完成吐露真相
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "card":2001190, //假币
+                "prompt":{
+                    "id":"5320412_prompt_1",
+                    "text":"又一枚奇怪的金币流进了你的口袋。\n你端详着这枚钱币反面的苏丹侧面像，思考着，这会是谁做出来的呢……？",
+                    "icon":"cards/2000029"
+                }
+            }
+        }
+
+    ]
+}

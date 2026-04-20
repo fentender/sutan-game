@@ -1,0 +1,534 @@
+ {
+        "id": 5010066,
+        "name": "魔力熔炉",
+        "text": "根据玛希尔的说法，因为失去了龙本身的魔力，所以龙眼“凝固”了，失去了可塑性，我们需要用强大的魔力之火去重新让它变得柔软——还等什么呢！快去找燃料啊！任何有魔力的东西都可以！",       
+        "tips": "",
+        "mapping_id":8001569,
+        "once_new":1,
+        "round_number": 3,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0,
+        "location": "黑街:[1,9]", 
+        "icon": "rite_19", 
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+            "tips":["魔力"],
+            "type":"normal_result"
+        },
+        "tips_text":[
+            "你需要凑齐至少50点魔力的燃料",
+        ],
+        "open_conditions": [
+            {
+            "condition": {
+                    "f:s4.魔力+s5.魔力+s6.魔力+s7.魔力+s8.魔力+s9.魔力+s10.魔力+s11.魔力>=":50
+                },
+                "tips": "燃料不足" 
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+         
+        ],                
+        "settlement": [
+
+        ],               
+        "settlement_extre": [
+//------------前戏---------------------
+            {
+                "guid":"1f589e4e-ec4e-4f21-8cfb-75dd9df940f9",
+                "condition": {
+                },
+                "result_title":"玛希尔穿上了自己最好的衣服",
+                "result_text": "那当然是超厚的全包式防火服啦！甚至还防止魔法损伤皮肤呢！根据她的说法，等到龙眼开始软化的时候，房间内温度会变得非常高。\n不过，真正让龙眼恢复活性的并非高温，而是其中蕴含的魔力——多么可悲啊，人类要用尽全力，才能模拟出龙仅仅是呼吸就可以创造的魔法环境。她一边感叹着，一边点燃了昂贵的乙太，回头看向你：[player.name]老爷，炉子热了，该加薪了。",
+                "result": 
+                {
+                    "clean.s3":1  //消耗乙太
+                },
+                "action": {
+                }
+            },
+//------------投入燃料---------------------
+            //---------s4---------------
+            {
+                "guid":"fd914c33-44ec-44b1-a463-72d83fab013c",
+                "condition": {
+                    "s4.type":"char"
+                },
+                "result_title":"你将与这件伟大的作品一同不朽",
+                "result_text": "[s4.name]被绑了起来，顺着滑轨塞进了充满蓝色火焰的熔炉里。还好，没有太多的挣扎和焦臭味……而另一边，玛希尔根本没有回头，仍然专注地监测着数十个联结着龙眼的长管和仪表。“继续，让魔力以这个势头提升！”",
+                "result": 
+                {
+                    "clean.s4":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"cd20840d-e7b2-4c93-a6e6-22db1eebcb9b",
+                "condition": {
+                    "s4.type":"item",
+                    "!s4.消耗品":1,
+                },
+                "result_title":"经费在燃烧",
+                "result_text": "你把这件价值不菲的宝物扔进了熔炉……它只用了几秒钟就成为了一团蓝色的烟气，让火焰变得更加浓郁……",
+                "result": 
+                {
+                    "clean.s4":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"41f29057-704f-43ae-a1a1-b8c95025592a",
+                "condition": {
+                    "s4.type":"item",
+                    "s4.消耗品":1,
+                },
+                "result_title":"机魂大悦",
+                "result_text": "颂念，敲击，讲述，施法……按照玛希尔的指示，你导引魔力，鼓舞熔炉燃烧的核心……",
+                "result": 
+                {
+                },
+                "action": {
+                }
+            },
+            //---------s5---------------
+            {
+                "guid":"34dcc38e-9822-4153-8956-8125c26d8375",
+                "condition": {
+                    "s5.type":"char"
+                },
+                "result_title":"哭也没用",
+                "result_text": "紧接着，轮到[s5.name]了，[s5.gender]的眼睛里充满了不甘……不过，玛希尔保证过，这乙太圣焰连灵魂都会烧得干干净净，保证不会有冤魂作祟！只管给我加！",
+                "result": 
+                {
+                    "clean.s5":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"68bd54c7-5d4d-4215-8daa-03e9e5676a3c",
+                "condition": {
+                    "s5.type":"item",
+                    "!s5.消耗品":1,
+                },
+                "result_title":"刹那芳华",
+                "result_text": "你又把[s5.name]扔进了熔炉……本来，也许它会是一件流传千古的宝物，但现在，它也不过是玛希尔表盘上一个变化的数字罢了。",
+                "result": 
+                {
+                    "clean.s5":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"610f4941-4e93-4576-b3f0-ab415b6f704f",
+                "condition": {
+                    "s5.type":"item",
+                    "s5.消耗品":1,
+                },
+                "result_title":"鸣大钟二十次",
+                "result_text": "当你念咒时，这巨大的熔炉仿佛活了过来，要将你吞噬……而玛希尔的操作指南上甚至写了这种情况应该怎么做——你赶紧拉开了排气口，灼热的气流驱动着巨大的钟摆，代替钢铁熔炉唱起了举重劝力之歌……",
+                "result": 
+                {
+                },
+                "action": {
+                }
+            },
+            //---------s6---------------
+            {
+                "guid":"8ba4e8cb-781d-432a-8511-fab57f62cf5e",
+                "condition": {
+                    "s6.type":"char"
+                },
+                "result_title":"继续",
+                "result_text": "到了这时候，你已经麻木了……你的精神，你的一切，都只维系在玛希尔面前的魔力计数器上，只要能提升它，哪怕一点点……一切都无所谓了。",
+                "result": 
+                {
+                    "clean.s6":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"9790c94b-e295-41fc-abf6-3ae52700d19b",
+                "condition": {
+                    "s6.type":"item",
+                    "!s6.消耗品":1,
+                },
+                "result_title":"继续",
+                "result_text": "到了这时候，你已经麻木了……你的精神，你的一切，都只维系在玛希尔面前的魔力计数器上，只要能提升它，哪怕一点点……一切都无所谓了。",
+                "result": 
+                {
+                    "clean.s6":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"ddfa71c8-3c25-4eae-be2e-5a240e3070cd",
+                "condition": {
+                    "s6.type":"item",
+                    "s6.消耗品":1,
+                },
+                "result_title":"继续",
+                "result_text": "到了这时候，你已经麻木了……你的精神，你的一切，都只维系在玛希尔面前的魔力计数器上，只要能提升它，哪怕一点点……一切都无所谓了。",
+                "result": 
+                {
+                },
+                "action": {
+                }
+            },
+            //---------s7---------------
+            {
+                "guid":"1e6ff189-2962-4e94-836d-bf997c981de5",
+                "condition": {
+                    "s7.type":"char"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s7":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"c47985e7-5bc6-404e-93f9-fe8016b1df4b",
+                "condition": {
+                    "s7.type":"item"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s7":1
+                },
+                "action": {
+                }
+            },
+            //---------s8---------------
+            {
+                "guid":"92298932-5d42-4678-82a6-8e71c5afd285",
+                "condition": {
+                    "s8.type":"char"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s8":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"b3a6d06a-0ead-4380-baf1-1c26e81c2493",
+                "condition": {
+                    "s8.type":"item"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s8":1
+                },
+                "action": {
+                }
+            },
+            //---------s9---------------
+            {
+                "guid":"bc5a5c8c-bcdd-468f-b0d6-03fd4c655b2f",
+                "condition": {
+                    "s9.type":"char"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s9":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"b1be9e8d-7632-4e94-9b01-a454b5456e9f",
+                "condition": {
+                    "s9.type":"item"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s9":1
+                },
+                "action": {
+                }
+            },
+            //---------s10---------------
+            {
+                "guid":"b9cbc916-5215-4eec-ab92-cd2911b4943a",
+                "condition": {
+                    "s10.type":"char"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s10":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"d5977db2-5c1c-4912-b493-edb775605284",
+                "condition": {
+                    "s10.type":"item"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s10":1
+                },
+                "action": {
+                }
+            },
+            //---------s11---------------
+            {
+                "guid":"c20c7280-8012-4946-aab9-6396b5f74791",
+                "condition": {
+                    "s11.type":"char"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s11":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"cb080b67-376c-4aba-a2c2-6516e9c394e1",
+                "condition": {
+                    "s11.type":"item"
+                },
+                "result_title":"",
+                "result_text": "烧吧……",
+                "result": 
+                {
+                    "clean.s11":1
+                },
+                "action": {
+                }
+            },
+//---------结束---------------
+            {
+                "guid":"cf8c1bc2-4047-4fa9-8e57-188fbbee0bb0",
+                "condition": {
+                },
+                "result_title":"它活过来了",
+                "result_text": "当玛希尔的仪表稳定在某个数值之后，奇迹发生了——你亲眼看到那炉火中的龙眼慢慢地改变了颜色，那上面斑驳的结晶，粗糙的岩块，统统变成了血肉，随着眼球的蠕动而流转——火光一闪，那属于龙的竖瞳抖动了起来……玛希尔赶紧调低了火焰，让它回到了生命与矿物之间的状态沉睡……可以被人类的工具加工的状态。",
+                "result": 
+                {
+                    "s2+魔力":1,
+                    "s2+体魄":1
+                },
+                "action": {
+                    "rite":5010067 //雕琢
+                }
+            }
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"bf3074a2-11aa-4a36-b68d-d2098f3a7453",
+                "condition": 
+                {
+                   "is":2000668, //龙眼
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1, 
+                "text":"龙眼"
+            },
+            "s2":
+            {
+                "guid":"12f0e6b7-5b49-49c1-be4c-96b8a20919c7",
+                "condition": 
+                {
+                    "is":2000352, 
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1, 
+                "text":"玛希尔必须亲自控制火候"
+            },
+            "s3":
+            {
+                "guid":"a387faba-fe19-4bd3-b194-cbdc983625e5",
+                "condition": 
+                {
+                    "is":2000986,
+                    "cost.可堆叠=":1  
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1, 
+                "text":"使用乙太作为催化剂"
+            },
+            "s4":
+            {
+                "guid":"acba6258-01f7-44a1-bd2d-b9f66647bc0c",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s5":
+            {
+                "guid":"6f7c8dee-a237-499e-8af5-7efbd960c875",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s6":
+            {
+                "guid":"6a11120c-e3f2-42f7-86b5-b2e35b9bf2fd",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s7":
+            {
+                "guid":"14b3a403-97fb-4ef9-9f5d-2e5c2381a393",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s8":
+            {
+                "guid":"fdf8dfa7-fa76-43c1-81fa-345a776b8bef",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s9":
+            {
+                "guid":"f58a4653-20e3-4c3e-9b34-c9a86d107e9f",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s10":
+            {
+                "guid":"f9a55e6a-7631-4c2f-b5cf-92715d405696",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            },
+            "s11":
+            {
+                "guid":"37925831-3586-4331-b1c5-1a44f3d1c079",
+                "condition": 
+                {
+                    "any":{
+                        "type":"char",
+                        "type":"item"
+                    },
+                    "魔力>=":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0, 
+                "text":"充满魔力的薪柴"
+            }
+         
+    }
+    } 

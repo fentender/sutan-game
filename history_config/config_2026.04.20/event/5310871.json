@@ -1,0 +1,31 @@
+{
+        "id": 5310871,
+        "text": "结局-龙眼-神职人员",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.2000021.追随者=0+追随者":1,
+                "table.2000022.追随者=0+追随者":1,
+                "prompt":{
+                    "id":"5310871_prompt_01",
+                    "text":"作为神职人员，很少有人能见证新神诞生的奇迹……他们颤抖地看着天空，等待着你对这个世界做出裁定。",
+                    "icon":"cards/2000001"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

@@ -1,0 +1,22 @@
+{
+        "id": 5311062,
+        "text": "飞升线奈费勒失败",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000312":1, 
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000312+飞升特殊失败":1
+            },            
+        }
+    ]
+} 

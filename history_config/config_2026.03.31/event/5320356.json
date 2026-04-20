@@ -1,0 +1,28 @@
+{
+    "id": 5320356,
+    "text": "盗版横行",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 2
+    },
+    "condition":{
+        "have.2000199":1, //书店老板还存活
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "coin":2,
+                "prompt":{
+                    "id":"5320356_prompt_01",
+                    "text":"盗版横行，后续版费就不用想了。",
+                    "icon":"cards/2000199"
+                } 
+            }
+        }
+
+    ]
+}

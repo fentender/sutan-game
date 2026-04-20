@@ -1,0 +1,33 @@
+{
+    "id": 5320638,
+    "text": "小薇的战斗判定",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 6 //时间间隔
+    },
+    "condition":{
+        "any":{
+            "all":{
+                "!table_have.2000432":1,  //场上没有小薇
+                "table_have.小薇":1  //装备小薇的人闲置，该状态小薇是追随者
+            },
+            "all":{
+                "table_have.2000432":1,  //场上有小薇
+                "have.2000432.追随者":1  //小薇是追随者
+            }
+        }
+        
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.小薇~equip":["小薇"],  //装备了小薇的人脱下小薇
+                "rite":5006166,  //开启小薇检定战斗
+            }
+        }
+    ]
+}

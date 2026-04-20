@@ -1,0 +1,21 @@
+{
+        "id": 5310899,
+        "text": "移除疯癫与幻觉",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010068
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "clean.rite":[5004809,5004810,5004811,5004812,5004813,5004814,5004815],  //关闭疯癫与幻觉
+            },            
+        }
+    ]
+} 

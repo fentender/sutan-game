@@ -1,0 +1,28 @@
+{
+    "id": 5320394,
+    "text": "古利斯-虎皮献给苏丹后",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{  //条件
+        "table_have.不举的传言":1 //主角闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.不举的传言-equip":2000681, //移除不举的传言
+                "prompt":{
+                    "id":"5320394_prompt_01",
+                    "text":"苏丹很喜欢你进献的虎皮，但第二天他就毫不服输地自己也去猎了一头，把你最需要——他认为你最需要的部分装在血淋淋的盒子里赏给了你。嗯……这根新鲜热辣的虎鞭当晚就治好了你假装的阳痿，感谢苏丹的大恩大德吧！",
+                    "icon":"cards/sudan"
+                }
+            }
+        }
+
+    ]
+}

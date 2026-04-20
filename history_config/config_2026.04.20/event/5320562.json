@@ -1,0 +1,24 @@
+{
+    "id": 5320562,
+    "text": "萨米尔的十回合倒计时",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 10
+    },
+    "condition":{
+        
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_off":5320562,
+                "event_on":5320563
+            }
+        }
+
+    ]
+}

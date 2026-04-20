@@ -1,0 +1,26 @@
+{
+        "id": 5311028,
+        "text": "飞升线贾丽拉成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000081":1,
+            "any":{
+                "counter.7000418>=":1,  //为贾丽拉赎身
+                "counter.7000988>=":1   //贾丽拉继续自营业
+            }
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000081+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

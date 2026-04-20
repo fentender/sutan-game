@@ -1,0 +1,177 @@
+ {
+        "id": 5006142,
+        "name": "香烤肥鸽",
+        "text": "大餐已经出锅，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+       
+                "guid":"878fb407-bcd2-49da-a817-fe9e04f65376",
+       
+                "condition": {
+
+                    "s1.is":2001284  //烤鸽子
+                    
+                },
+                "result_title":"你享受了一顿美味的香烤肥鸽",
+                "result_text": "浓香的油脂包裹着整只鸽子，外脆里嫩，实在是不可多得的佳肴。",
+                "result": 
+                {
+                    "clean.s1":1,  //吃了
+                    "s2+体魄":1, 
+                    "s3+体魄":1,
+                    "s4+体魄":1,  
+                    "s5+体魄":1, 
+                },
+                "action": {
+                    
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"a85b32b0-6ffe-4667-a80b-b006eb3c4062",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "哈桑品尝了这道佳肴，并为此写了几句诗。他在席间大声朗诵：\n“飞吧，你这鸽子！\n你从天空啄下蓝宝石\n又从泉水中取出钻石\n你的羽毛上镀着祖母绿\n你的喙啄穿了水晶\n飞吧，你这鸽子！”",
+                "result": 
+                {  
+                    "choose":{
+                        "s2+智慧":1,
+                        "s3+智慧":1,
+                        "s4+智慧":1,
+                        "s5+智慧":1,
+                    },
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+            "s1":
+                {
+                
+                    "guid":"d25e1a02-915e-4104-8193-2c3ccf797667",
+                
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001284 //鸽子
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"今天的菜肴"
+                },
+            "s2":
+            {
+            
+                "guid":"dd09471f-a329-42c5-a9ae-fec798668cc6",
+            
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s3":
+            {
+            
+                "guid":"4409ed00-8660-4f04-8901-09b410286d6f",
+            
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s4":
+            {
+            
+                "guid":"d78388e8-97a5-4896-8afb-de72947d63ce",
+            
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            },
+            "s5":
+            {
+        
+                "guid":"af3f960c-d241-4a66-b920-809b7f9c69e0",
+        
+                "condition": 
+                {
+                    "type":"char"
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以亲自，或邀请追随者前来品尝"
+            }
+        }
+    } 

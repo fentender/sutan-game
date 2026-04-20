@@ -1,0 +1,23 @@
+{
+        "id": 5310859,
+        "text": "承阳剑",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 5010073
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":5310889, //君权
+                "event_on":5310890, //昼夜
+                "event_on":5310891, //纪元
+            }
+        }
+    ]
+} 

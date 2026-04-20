@@ -1,0 +1,37 @@
+{
+    "id": 6000205,
+    "name": "更深的塑造-掌权者的样子",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "counter.7100003>=":8,
+                "counter.7000811<":1
+            },
+            "num" : "1",
+            "id" : "5006745", 
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100003>=":8,
+                "counter.7000811>=":1              
+            },
+            "num" : "1",
+            "id" : "5320374",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100003<":8,
+            },
+            "num" : "1",
+            "id" : "5320370",
+            "type" : "event",
+            "weight" : 60
+        }
+    ]
+}

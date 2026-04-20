@@ -1,0 +1,39 @@
+{
+    "id": 5321229,
+    "text": "阿图娜尔的身世",     
+    "is_replay":1, //是否可以重复触发
+     "auto_start_init": [1],
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+    "round_begin_ba":1
+    },
+    "condition":{  //条件
+
+
+   
+    "counter.7000848>=":1,  // 阿图娜尔治理家业，洗澡，去买书一次计数器
+    "table_have.2000129": 1,   //阿图娜尔闲置
+    "have.2000129.新剧情":1,
+    "!have.2000129.贬斥":1,
+     "!have.2000129.入宫":1, 
+       
+        
+        
+    },
+    "settlement": [    //效果 
+    {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{    
+     
+            "rite":5008221, //流落的血脉
+
+             "success": {
+                    "event_off": 5321229
+                }
+      
+            }
+        }
+
+    ]
+}

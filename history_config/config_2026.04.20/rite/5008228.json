@@ -1,0 +1,158 @@
+ {
+        "id": 5008228,
+        "name": "落幕之舞",
+        "text": "在一场宴会的末尾，出乎所有人——甚至包括你的意料，阿图娜尔来到了台前，笑着说要为你们献上最后一舞。",       
+        "tips": "",
+        "mapping_id":8001339, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":1, 
+        "waiting_round_end_action":[
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_12",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        "tips":["体魄","战斗"],
+        "type":"fight_result"
+        },
+        "tips_text":[                 
+        ],
+        "open_conditions": [  
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+             "r1":{
+            "text":"然而，你看得清清楚楚——比她的眼睛更亮的，是一截短短的，直刺向你的刀锋！",
+            "type":"fight_result",
+            "type_tips":"你的体魄和战斗为你提供的骰子数量受阿图娜尔对应属性的影响。",
+            "low_target": 1,
+            "low_target_tips": "你至少需要1点成功才能成功。"
+        }
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+            
+        ],                
+        "settlement": [
+            {
+                "guid":"20326411-b7f1-4447-8855-37e0a07c8395",
+                "condition": {
+                    
+                },
+                "result_title":"终舞",
+                "result_text": "腕上的铃铛清脆地响起，应和着乐曲的节拍。肢体，容貌，目光，每一样都是她华光湛然的武器。人们近乎痴迷地望着阿图娜尔袅娜的身姿，肖想着这个你今天刚刚宣之于众、刚刚纵欲过的女人。那些美丽的绸缎、精致的妆容下藏着多少吻痕、咬痕？你们做得有多激烈？她昨晚也如此热情么，她的腰肢也扭得这么带劲么？她是怎么拒绝你、怎么迎合你、怎么臣服于你的？看看她那双眼睛，喔——在灯光下，在帷幕下，她凝视着你的眼睛多亮啊！",
+                "result": 
+                {
+                    
+                },
+                "action": {
+                    
+                }
+            }
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"7f63bcbb-7f3c-4f5f-95b0-defd15ff8182",
+                "condition": {
+                    "r1:体魄+战斗-e(体魄+战斗)>=":[1,5]
+                },
+                "result_title":"落幕",
+                "result_text": "这太不自量力了，不是吗？她是舞姬，不是战士；她是女人，不是男人。她赢不了你，昨天不行，今天也不行。你微笑着折断了她的匕首，把她按在杯盘狼藉的桌上，人们兴奋地起哄，想围观你再次征服这个女人，而你却扫兴地发现她不知何时用破碎的瓷片割开了自己的喉咙。奔涌而出的血很快就冷却了，而那双明眸里的恨意，也就此凝固成不值一提的永恒。",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "clean.s2":1
+                },
+                "action": {
+                    
+                }
+            },
+            {           
+                "guid":"3239b174-b7ce-4297-961b-0cf74a86d520",           
+                "condition": {
+                    "r1:体魄+战斗-e(体魄+战斗)<":[1,5]
+                },
+                "result_title":"落幕",
+                "result_text": "太迟了！那把刀子利落地扎进你的喉咙，接着是手心、下巴、眼眶、胸口……饱满的、浓烈的恨意像骤雨一般刺痛着你，在生命流逝的瞬间，你只看见她冰冷的双眼。她的脸上溅着猩红的血点，让她显得扭曲、疯狂、恐怖。但实际上，她正轻柔地笑着呢。\n“你和你父亲没什么区别呢，亲爱的哥哥。”她用匕首对准了你的眼眶，“如果我妈妈当年也像我现在这样对你父亲这么做，不就没这么多事了么？”\n这是你看到的最后场景。这是你听到的最后一句话。",
+                "result": 
+                {
+                    
+                },
+                "action": {
+                    "over":4
+                }
+            }
+        ],
+        "cards_slot":
+        {
+           
+            "s1":
+            { 
+                "guid":"42908406-d88a-4856-97b4-24efd9b0f81c", 
+                "condition":
+                {
+                   "type":"char",
+                   "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"阿图娜尔"
+            },
+            "s2":
+            { 
+                "guid":"c7c161fd-e002-4830-8d99-2fc7158ff1d1", 
+                "condition":
+                {
+                  "type":"item",
+                 "is":2001307
+                   
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"阿图娜尔的决心"
+            },
+             "s3":
+            {
+                "guid":"bc1ed1c0-3e25-4b45-8603-3597524d41ee",
+                "condition":
+                {
+                    "type":"char",
+                     "主角": 1
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"你是这场宴会的主持者"
+            },
+             "s4":
+            { 
+                "guid":"5bcd1e57-9375-4b73-82e8-2ec0acd42736", 
+                "condition":
+                {
+                   "type":"item",
+                    "cost.消耗品=":1,
+                    "!金币":1
+                   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"派得上用场的消耗品"
+            }
+          
+        }
+    } 

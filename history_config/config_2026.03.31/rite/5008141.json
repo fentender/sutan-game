@@ -1,0 +1,182 @@
+ {
+        "id": 5008141,
+        "name": "圣餐饼",
+        "text": "餐点已经出炉，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"a812c87c-2956-46d1-b1b8-12d137768e46",
+                "condition": {
+
+                    "s1.is":2001014//圣餐饼
+                    
+                },
+                "result_title":"有难同当",
+                "result_text": "经过一系列复杂冗长的仪式，你们终于吃上了这块平平无奇的硬饼子。它比《圣训六十篇》还难啃。",
+                "result": 
+                {
+                  
+                  
+                    "clean.s1":1,  //消耗原材料
+                    "s4+社交":1,  
+                    "s5+社交":1,  
+                    "s2+社交":1, 
+                    "s3+社交":1
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"389117c4-c6a5-471c-89dd-747a3f414c15",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000021,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“神圣的一切都索然无味，\n因为一旦神圣成了一种趣味，\n那么，\n趣味就是可以消逝的了。”\n这诗句听在伊曼耳中，令他心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000021+魔力":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"cf8c86c2-ddc9-42a9-b6d6-968aae2227af",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000021,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“神圣的一切都索然无味，\n因为一旦神圣成了一种趣味，\n那么，\n趣味就是可以消逝的了。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"56d6a0d6-8d71-4047-ba52-ea59c71582ba",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001014
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"e020bb26-f23e-4546-b83a-8444a04c3f86",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"2a99216a-b89e-46b0-9e64-53df30621bfa",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"bd75c71a-7a7c-4436-933f-0fef54c7af99",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"7d40ded2-b42f-4015-9b25-afd1899de9e0",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

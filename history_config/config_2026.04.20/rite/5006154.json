@@ -1,0 +1,75 @@
+{
+    "id": 5006154,
+    "name": "帝国最好的珠宝匠",
+    "text": "热娜又来拜访你了，她是专程来道谢的。",
+    "tips": "",
+    "mapping_id":8001002, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_22",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+
+    ],
+    "settlement": [
+         {
+            "guid":"2ed0d36c-ddd9-46cd-8aa3-48077d981485",
+            "condition": {
+                
+            },
+            "result_title": "",
+            "result_text": "如今热娜已经是整个帝国最炽手可热的珠宝师，她的工坊每天接待的客人要把地毯都磨花了！而这一切都离不开你一直以来无私的帮助。\n“我觉得，我大概可以自称为这个国家——对，是这个国家，而不仅仅是这座城市——最好的珠宝匠了，是吧？我碰过苏丹的宝冠，我研磨过穷人的护身符，我还把一种新的宝石带到了所有人面前……”她双眼向窗外望去，过了好久，才继续开口。\n“但这已经不够了……远远不够！我还有那么多事要做了——还有那么多地方可去，一想到这些，哦，我就觉得真开心！”她站起身拥抱了你，不需要多说什么，你也知道，她与你之间的友谊已经牢不可破。",
+            "result": {
+                "s1+命运的羁绊":1,
+                "s1.uprare":2,  //热娜升级为金卡
+                "s1+体魄":1,
+                "s1+智慧":1,
+                "s1+魅力":1,
+                "s1+社交":1,
+                "s1+战斗":1,
+                "s1+隐匿":1,
+                "s1+生存":1,
+                "s1+魔力":1,
+                "counter+7000925":1 //热娜成为最好的珠宝商的计数器
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"667d7215-9753-4664-9bd0-06ad0a3a2e32",
+            "condition": {
+                "type": "char",
+                "is":2000019 //热娜
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "热娜",
+        }
+    }
+}

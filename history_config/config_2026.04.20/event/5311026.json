@@ -1,0 +1,24 @@
+{
+        "id": 5311026,
+        "text": "飞升线麦娜尔成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "counter.7000507>=":1,  //麦娜尔去了中国，发邀请给了你
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "no_prompt":{
+                    "card":[2000069,"追随者+1","飞升特殊成功+1"]  //去中国的麦娜尔不会在之前入手，因此此处生成
+                }
+            },            
+        }
+    ]
+} 

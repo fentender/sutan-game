@@ -1,0 +1,143 @@
+ {
+        "id": 5006733,
+        "name": "小星星",
+        "text": "阅读可以提升自己，养成阅读的习惯吧。",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"f25f9cfe-f62b-469b-9f6e-87f3e888d700",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "你发现里面有一首名为《小星星》的诗，是孩子们写给赞助他们和他们的父亲或者母亲出书的神秘女士的：\n“小星星\n您是一颗小星星\n月亮在的时候\n太阳不在的时候\n其他所有星星不是您\n您是我们的小星星！”",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+智慧":1,
+                    "s2+魅力":1,
+                    "pop.5006733_01.s2": "一闪一闪亮晶晶~"                              
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"4b3e5712-24a5-4b09-9255-b2b478742832",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001254,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"a97875ce-bd75-4585-842d-e5dfe8b5c2fc",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006733_s2_01.self":"呀！阿萨尔先生付梓之前没告诉我会用这首诗作为书名……！ "
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "妻子": 1 //妻子
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006733_s2_02.self":"童言稚语，读来也很有趣。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000057 //哲瓦德
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006733_s2_03.self":"我要给我的小小阿鲁米娜也出一本诗集，用最好的装饰师和雕金匠！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000064 //奈布哈尼
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006733_s2_04.self":"多动人的句子，竟然出自孩子们的笔下……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "主角": 1, //主角
+                                "any":{
+                                    "rite":5006676, //苗圃
+                                    "rite":5006677,
+                                },
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006733_s2_05.self":"是不是可以给苗圃的孩子们做一本优秀课业集锦？"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

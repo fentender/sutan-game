@@ -1,0 +1,137 @@
+﻿{
+  "1": {
+    "id": 1,
+    "name": "胜利",
+    "text": "在《苏丹的游戏》中，这可以说是真正的胜利。",
+    "icon": "achievement/mastery",
+    "lock_icon": "achievement/lock/mastery",
+    "is_hidden": false,
+    "sort": 6
+  },
+  "2": {
+    "id": 2,
+    "name": "体验",
+    "text": "游戏才刚刚开始……",
+    "icon": "achievement/taste",
+    "lock_icon": "achievement/lock/taste",
+    "is_hidden": false,
+    "sort": 1
+  },
+  "3": {
+    "id": 3,
+    "name": "欲望",
+    "text": "是神的欲望，也终将是你的。",
+    "icon": "achievement/desire",
+    "lock_icon": "achievement/lock/desire",
+    "is_hidden": false,
+    "sort": 9
+  },
+  "4": {
+    "id": 4,
+    "name": "知识",
+    "text": "知识让我们知道自己依旧不知道。",
+    "icon": "achievement/rationality",
+    "lock_icon": "achievement/lock/rationality",
+    "is_hidden": false,
+    "sort": 14
+  },
+  "5": {
+    "id": 5,
+    "name": "自我",
+    "text": "到最后，只剩下你自己……",
+    "icon": "achievement/individuality",
+    "lock_icon": "achievement/lock/individuality",
+    "is_hidden": false,
+    "sort": 13
+  },
+  "6": {
+    "id": 6,
+    "name": "自由",
+    "text": "拥有的越少，往往越自由。",
+    "icon": "achievement/freedom",
+    "lock_icon": "achievement/lock/freedom",
+    "is_hidden": false,
+    "sort": 4
+  },
+  "7": {
+    "id": 7,
+    "name": "领袖",
+    "text": "想做国王的人都不适合做国王。",
+    "icon": "achievement/leadership",
+    "lock_icon": "achievement/lock/leadership",
+    "is_hidden": false,
+    "sort": 2
+  },
+  "8": {
+    "id": 8,
+    "name": "创造",
+    "text": "你可以创造一切，包括你自己。",
+    "icon": "achievement/creativity",
+    "lock_icon": "achievement/lock/creativity",
+    "is_hidden": false,
+    "sort": 15
+  },
+  "9": {
+    "id": 9,
+    "name": "浪漫",
+    "text": "自我牺牲，这是人类所能拥有的最浪漫之事。",
+    "icon": "achievement/romanticism",
+    "lock_icon": "achievement/lock/romanticism",
+    "is_hidden": false,
+    "sort": 8
+  },
+  "10": {
+    "id": 10,
+    "name": "调和",
+    "text": "让一个大胆的决定拯救另一个大胆的决定。",
+    "icon": "achievement/​harmony",
+    "lock_icon": "achievement/lock/​harmony",
+    "is_hidden": false,
+    "sort": 7
+  },
+  "11": {
+    "id": 11,
+    "name": "得利",
+    "text": "你通过这个游戏得到了这么多，好玩的还在后面呢！",
+    "icon": "achievement/prosperity",
+    "lock_icon": "achievement/lock/prosperity",
+    "is_hidden": false,
+    "sort": 3
+  },
+  "12": {
+    "id": 12,
+    "name": "对等",
+    "text": "在能够被毁灭这方面，神与凡人对等。",
+    "icon": "achievement/equality",
+    "lock_icon": "achievement/lock/equality",
+    "is_hidden": false,
+    "sort": 10
+  },
+  "13": {
+    "id": 13,
+    "name": "宽容",
+    "text": "免了他的罪，也免了我们众人的罪",
+    "icon": "achievement/forgiveness",
+    "lock_icon": "achievement/lock/forgiveness",
+    "is_hidden": false,
+    "sort": 11
+  },
+  "14": {
+    "id": 14,
+    "name": "理想",
+    "text": "所有理想在实现之前都是一种诅咒",
+    "icon": "achievement/idealism",
+    "lock_icon": "achievement/lock/idealism",
+    "is_hidden": false,
+    "sort": 5
+  },
+  "15": {
+    "id": 15,
+    "name": "慈爱",
+    "text": "哦，亲爱的，你永远可以温和地走进这个良夜……",
+    "icon": "achievement/compassion",
+    "lock_icon": "achievement/lock/compassion",
+    "is_hidden": false,
+    "sort": 12
+  }
+}

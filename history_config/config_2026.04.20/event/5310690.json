@@ -1,0 +1,22 @@
+{
+        "id": 5310690,
+        "text": "百科全书成就",
+        "is_replay": 0, 
+        "auto_start_init": [1], 
+        "start_trigger": false,  //立即触发
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "global_counter.7230030":1, //全收集百科全书
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+               "steam_achievement": "ACHIEVEMENT_004", //steam知识
+            }
+        }
+    ]
+} 

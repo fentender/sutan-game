@@ -1,0 +1,23 @@
+{
+        "id": 5311029,
+        "text": "飞升线夏玛成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000082":1,
+            "counter.7000419>=":1,  //为夏玛赎身或夏玛成为领主
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000082+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

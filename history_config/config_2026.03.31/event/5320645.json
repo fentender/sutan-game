@@ -1,0 +1,25 @@
+{
+    "id": 5320645,
+    "text": "小留的检查三",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000434":1,  //场上有小留
+        "table_have.2000434.追随者":1,
+        "hand_have.金币>=":100,
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006170,
+                "event_off":[5320643,5320644,5320645]
+            }
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{
+    "id": 5300827,
+    "text": "金币的归返1",
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1,
+    },
+    "condition": { //条件
+        "!hand_have.小筹的金币":1,  //回合开始时监听到手上没有小筹的金币了
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "event_on":5300828,  //开启7天后金币归返
+                "event_off":5300827  //关闭自己
+            }
+        }
+    ]
+}

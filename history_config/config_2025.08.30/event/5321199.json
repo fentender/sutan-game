@@ -1,0 +1,27 @@
+{
+    "id": 5321199,
+    "text": "阿里木修建苗圃幕后",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba": 1
+    },
+    "condition": { //条件
+
+    "counter.7000379<":1,  //场上没有其他苗圃
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "counter+7000379":1,  //阿里木修建了苗圃
+                "rite":5006677, //苗圃
+                "success":{
+                    "event_off":5321199
+                }
+            }
+        }
+    ]
+}

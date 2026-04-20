@@ -1,0 +1,30 @@
+{
+        "id": 5310879,
+        "text": "结局-龙眼-铁头-大敌",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.clean.2000369":1,
+                "prompt":{
+                    "id":"5310879_prompt_01",
+                    "text":"在你降临的时候，铁头就带着族人逃走了，没关系，你还记得这个叛徒……",
+                    "icon":"cards/2000369"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

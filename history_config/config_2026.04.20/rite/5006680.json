@@ -1,0 +1,158 @@
+ {
+        "id": 5006680,
+        "name": "吐露真相",
+        "text": "异国商人将你带到你租借给他的宅邸，异国商人终于承认了，这些假币是由他制造的。你还没来得及表示什么，他马上追了一句：“就是在您租给我的宅邸的地下室造的。”这家伙是在威胁你啊——如果他的事情败露，人们会认为租给他别墅的你也参与其中……现在该怎么办？",       
+        "tips": "",
+        "mapping_id":8001554,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0, 
+        "location": "自宅:[2,12]", 
+        "icon": "rite_12", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            "选择一种处置他的方式"
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "any":{
+                        "s2":1,
+                        "s3":1,
+                        "s4":1,
+                    },
+                },
+                "tips": "你打算如何处置他"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"873b8d84-a9c6-451e-b9dc-9ef3f1e32658",
+                "condition": {
+                    "s2":1 //杀了他
+                },
+                "result_title":"他必须死",
+                "result_text": "如果要让苏丹相信你与此事完全无关，只有两个办法，一是直接杀掉犯人，二是上交一笔可观的罚金。显然，只要满足了第一条，不难在他的遗产里寻得第二条。",
+                "result": 
+                { 
+                    "clean.s1":1
+                },
+                "action": {
+                    "rite":5006682, //搜刮地下室
+                }
+            },
+            {
+                "guid":"110a45b2-e095-4ff7-b494-26eebc589070",
+                "condition": {
+                    "s3":1 //共谋
+                },
+                "result_title":"来一起造他妈苏丹的狗币",
+                "result_text": "造假币听起来是门稳赚不赔的生意……\n你三言两语就打消了异国商人的恐惧——关键就是，你比他更有理由憎恨苏丹、厌恶苏丹，也比他更想、也更容易赚苏丹的便宜……他以全副精神、热情地向你讲解起这门生意的奥秘。\n他建议你打通黑白两道的关系，好封锁那些假币的消息，避免再次惊动苏丹的鹰犬……\n一旦你准备好了，地下室的铸币机就会再次启动，为你们带来源源不断的财富。\n（要安全地展开这门掉脑袋的生意，需要你达到权势15，侠名10。）",
+                "result": 
+                { 
+                    "counter+7001068":1, //标识完成
+                },
+                "action": {
+                    "event_on":5320289, //诺言
+                    "event_on":5320290 //诺言,非盟友的前提
+
+                }
+            },
+            {
+                "guid":"12642d9d-9c4f-4a1c-a0b1-b0752d5f1abf",
+                "condition": {
+                    "s4":1 //滚
+                },
+                "result_title":"滚",
+                "result_text": "他知道你这是给他机会逃亡——并且也知道，如果把你牵扯了进去，绝不会有什么好下场。",
+                "result": 
+                { 
+                    "clean.s1":1,
+                },
+                "action": {
+                    "event_off":5300088, //关闭异国商人商店
+                    "event_on":5320291 //阔别已久
+                }
+            }
+        ],               
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"2a4ee45d-d6cb-456d-b172-fce38c63be36",
+                "condition": 
+                {
+                    "is":2000005
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"巴拉特等待着你的处罚"
+            },
+            "s2":
+            {
+                "guid":"ac0e528f-6db6-4674-b04c-a2c17d089056",
+                "condition": 
+                {
+                    "type":"char",
+                    "主角":1,
+                    "!s3":1,
+                    "!s4":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"杀了他"
+            },
+            "s3":
+            {
+                "guid":"ceb31091-3474-4510-85ab-7ff034c71ac8",
+                "condition": 
+                {
+                    "type":"char",
+                    "主角":1,
+                    "!s2":1,
+                    "!s4":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"这么赚钱不带上我？"
+            },
+            "s4":
+            {
+                "guid":"475c21a4-2c94-4eb0-a8c3-d82b19f4a450",
+                "condition": 
+                {
+                    "type":"char",
+                    "主角":1,
+                    "!s2":1,
+                    "!s3":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"快滚！"
+            }
+        }
+    } 

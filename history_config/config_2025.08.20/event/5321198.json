@@ -1,0 +1,30 @@
+{
+    "id": 5321198,
+    "text": "纯洁之纱",
+    "is_replay": 1, //是否可以重复触发
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba": 1
+    },
+    "condition": { //条件
+
+    "have.欲蛇之纱":1,  //欲蛇之纱存在
+    "have.教领":1  //如果玩家是教领  
+
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite": 5008194,
+                "success": {
+                    "event_off": 5321198
+                }
+            }
+        }
+    ]
+}

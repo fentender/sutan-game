@@ -1,0 +1,40 @@
+{
+    "id": 5320407,
+    "text": "古利斯地兴趣-闲逛",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "option": {
+                    "id":"5320407_option_1", //事件触发计数
+                    "text": "古利斯在到处闲逛，闲逛并不需要花钱，但兜里没钱的时候，闲逛也确实没什么意思。\n他玩的很开心，直到有个小孩突然撞了他一下……",
+                    "icon":"pic/2000114",
+                    "items": [
+                        {
+                            "text": "???",
+                            "tag": "op1"
+                        },
+                    ]
+                },
+                "case:op1": {
+                    "counter+7000857":5,
+                    "prompt":{
+                        "id":"5320407_prompt_1",
+                        "text":"……完了，古利斯一摸口袋，钱包果然不见了。\n他垂头丧气地回了家，也失去了继续培养“兴趣”的资本。",
+                        "icon": "pic/2000114",
+                    }
+                },
+            }
+        }
+
+    ]
+}

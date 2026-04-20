@@ -359,6 +359,8 @@ class ModDelta:
         progress_cb: ProgressCallback | None = None,
         merge_mode: MergeMode = MergeMode.SMART,
         mod_merge_modes: dict[str, MergeMode] | None = None,
+        mod_update_times: dict[str, int] | None = None,
+        history_dir: Path | None = None,
     ) -> None:
         """预计算所有 mod 的 delta 并缓存。
 
@@ -368,12 +370,25 @@ class ModDelta:
             progress_cb: 进度回调 (completed, total)
             merge_mode: 全局合并模式
             mod_merge_modes: per-mod 合并模式覆盖
+            mod_update_times: mod_id → update_time（ADAPTIVE 模式需要）
+            history_dir: history_config 目录路径（ADAPTIVE 模式需要）
         """
         # 延迟导入避免循环依赖（merger → delta_store → merger）
         from .merger import apply_delta
 
         store = JsonStore.instance()
         schemas = load_schemas(schema_dir) if schema_dir else {}
+
+        # ADAPTIVE 模式：解析历史版本目录
+        from .history_config import find_base_version, parse_history_versions
+        history_versions = parse_history_versions(history_dir) if history_dir else []
+        # 预计算每个 mod 对应的历史基准目录（mod_id → Path | None）
+        _adaptive_base_dirs: dict[str, Path | None] = {}
+        if history_versions and mod_update_times:
+            for mod_id in mod_ids:
+                ut = mod_update_times.get(mod_id)
+                if ut is not None:
+                    _adaptive_base_dirs[mod_id] = find_base_version(ut, history_versions)
 
         # 收集所有需要计算的 (mod_id, rel_path) 任务
         tasks: list[tuple[str, str]] = []
@@ -406,13 +421,25 @@ class ModDelta:
         ) -> tuple[str, str, DiffDict | None]:
             mod_id, rel_path = task
             base_data = store.get_base(rel_path)
+
+            # ADAPTIVE：尝试用历史版本的 base_data 替代当前本体
+            delta_mode = effective
+            if effective == MergeMode.ADAPTIVE:
+                hist_dir = _adaptive_base_dirs.get(mod_id)
+                if hist_dir is not None:
+                    hist_file = hist_dir / rel_path
+                    if hist_file.exists():
+                        base_data = JsonStore.parse_file(hist_file)
+                # 合并行为等同 SMART
+                delta_mode = MergeMode.SMART
+
             mod_data = store.get_mod(mod_id, rel_path)
             file_type = classify_json(base_data) if base_data else "config"
             schema = resolve_schema(rel_path, schemas) if schemas else None
             root_key = get_schema_root_key(schema) if schema else None
             delta = compute_delta(base_data, mod_data, file_type,
                                   schema=schema, root_key=root_key,
-                                  merge_mode=effective)
+                                  merge_mode=delta_mode)
             return mod_id, rel_path, delta
 
         if has_replace:
@@ -446,6 +473,19 @@ class ModDelta:
                         delta = compute_delta(
                             cumulative_data, mod_data, file_type,
                             schema=schema, root_key=root_key,
+                        )
+                    elif effective == MergeMode.ADAPTIVE:
+                        # ADAPTIVE: delta 基于历史版本，合并行为同 SMART
+                        adaptive_base = base_data
+                        hist_dir = _adaptive_base_dirs.get(mod_id)
+                        if hist_dir is not None:
+                            hist_file = hist_dir / rel_path
+                            if hist_file.exists():
+                                adaptive_base = JsonStore.parse_file(hist_file)
+                        delta = compute_delta(
+                            adaptive_base, mod_data, file_type,
+                            schema=schema, root_key=root_key,
+                            merge_mode=MergeMode.SMART,
                         )
                     else:
                         # NORMAL/SMART: delta 基于游戏本体

@@ -1,0 +1,76 @@
+ {
+        "id": 5010214,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:20", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而这是你最后的机会"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"4759fe96-de2a-46d4-af4e-8ff280cd572c",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":1  //第七天结束时
+                },
+                "result_title":"餐前礼仪",
+                "result_text":"祂在你之前到达了那陶土之门！当然，祂不准备使用钥匙开门。那巨大的身躯开始塌缩，星云漫卷，一切有形之躯入灭，神圣的光辉也如同日蚀一般趋于黯淡……祂要直接吞噬这新世界的种子。\n就在你绝望的时候，却发现，无论那黑洞在虚空中制造多少毁灭，吸入多少物质，陶土之门与他的距离都没有改变——这是最后的秘密，没有人可以独自创造世界，当然，也不可以独自吞吃世界。\n于是，无奈地，残存的神圣光辉开始在暗面上勾勒出生灵的面容，有一头贪婪狡诈的羊，有一只暴虐威武的雄狮，还有一个，像是人，像是[player.name]你自身……",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1, //羊肉炉飞升计数器  
+                },
+                "action": {
+                    "delay":{
+                        "id":50102141,
+                        "round":1, 
+                        "event_on":5311003  //开启结算是否over的event
+                    },
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"66694c6a-6d7c-4243-b458-9ac36210f7ac",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"这是你最后的机会"
+            }
+            
+    }
+    } 

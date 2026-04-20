@@ -1,0 +1,249 @@
+ {
+        "id": 5006729,
+        "name": "故事的赞助人",
+        "text": "按照你和鲁梅拉的约定，你可以把版税收入交给她。她希望能用这些钱去赞助一些有价值的新书出版。",
+        "mapping_id":8001063,      
+        "tips": "",
+        "once_new":0,
+        "round_number": 3,
+        "waiting_round":2,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "商业区:[10,19]", 
+        "icon": "rite_4", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "给或者不给都没关系"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"9f4caaf3-8ee4-42cc-bc11-135a42493957",
+                "condition":
+                {
+                    "counter.7000772<":1,
+                },
+                "result_title":"第一本书",
+                "result_text": "“垂钓者”书店今天推出了由一位匿名女士赞助出版的新书，现在去书店，就可以买到这本作品。\n仿佛印证你的猜想，这本书隔天就出现在了你的案头。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001251                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"4d70dc26-62d8-45d2-afd5-88b974d49608",
+                "condition":
+                {
+                    "counter.7000772=":1,
+                },
+                "result_title":"第二本书",
+                "result_text": "神秘赞助人又出现了！上一本书成绩不错，第二本书据说卖得更好。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001252                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"eae6d987-af2c-4d61-b7b3-7c6b8d0a68df",
+                "condition":
+                {
+                    "counter.7000772=":2,
+                },
+                "result_title":"第三本书",
+                "result_text": "“垂钓者”推出了神秘赞助人支持的第三本书。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001253                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"9b328811-7d98-42f1-bead-c1b18ff6082b",
+                "condition":
+                {
+                    "counter.7000772=":3,
+                },
+                "result_title":"第四本书",
+                "result_text": "这本书您不得不收藏——它是神秘女士赞助的第四本书，而且这里面还有为她而写的诗呢！",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001254                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"7b6d52ae-d9ef-4852-a52d-09459424084b",
+                "condition":
+                {
+                    "counter.7000772=":4,
+                },
+                "result_title":"第五本书",
+                "result_text": "“小星星”女士最近又赞助了一本书——“垂钓者”的读者们现在都这么称呼她。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001255                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"88bc0c07-ca98-435a-9694-10c3154c53d6",
+                "condition":
+                {
+                    "counter.7000772=":5,
+                },
+                "result_title":"第六本书",
+                "result_text": "“小星星”女士居然都已经赞助出版了这么多书了……阿萨尔专门为她赞助的书籍做了个柜台，今天，这个柜台上又有了一本新作。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001256                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"c5a2c9db-14f3-4ee2-a1a6-50a0607b09b3",
+                "condition":
+                {
+                    "counter.7000772=":6,
+                },
+                "result_title":"第七本书",
+                "result_text": "最近，关于小星星女士的真实身份有许多的猜疑。人们都涌到“垂钓者”的柜台前读她最新赞助的书，想从中看出什么端倪。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001257                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"c5ead553-39d4-4541-86d6-982d6742497a",
+                "condition":
+                {
+                    "counter.7000772=":7,
+                },
+                "result_title":"第八本书",
+                "result_text": "这一次，小星星女士赞助了一本原本无人问津的书——由阿萨尔所著的《垂钓者与我》。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001258                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"8c58d4ab-be09-484b-9f7e-bd49d81562b6",
+                "condition":
+                {
+                    "counter.7000772=":8,
+                },
+                "result_title":"第九本书",
+                "result_text": "小星星女士赞助的书籍已经摞成了厚厚一摞，除了其作者以外，为这些书出力的人还有很多，这本新书就讲述了他们的故事。",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001259                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            },
+            {
+                "guid":"a0006750-d6a1-4a95-8642-5009a45a5ed1",
+                "condition":
+                {
+                    "counter.7000772=":9,
+                },
+                "result_title":"第十本书",
+                "result_text": "据说，小星星女士自己都没想到有这么多书可以出……",
+                "result": 
+                {      
+                    "counter+7000772":1,   
+                    "card": 2001260                     
+                },
+                "action":
+                {
+                    "event_off":5320361, //避免重复触发
+                }
+            }
+
+
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"e79331ef-1efa-4d52-aba1-9e6203da07dd",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.金币":3                 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"3枚金币"  
+                },
+            "s2":
+                {
+                    "guid":"671b7142-ce56-40d2-895e-261f2cb8d1db",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000123                 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"鲁梅拉"  
+                }
+        }
+    } 

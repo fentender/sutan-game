@@ -1,0 +1,31 @@
+{
+    "id": 5320355,
+    "text": "第一次版税",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 3
+    },
+    "condition":{
+        "counter.7000770<":1,//没有用杀戮卡杀了盗版书商
+        "have.2000199":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "coin":3,
+                "event_on":5320358, //也许该分享给她
+                "event_on":5320360, //后续版税
+                "prompt":{
+                    "id":"5320355_prompt_01",
+                    "text":"阿萨尔为你带来了那本书的版税。你握着那一小袋金子，思索着，也许，你应该把这些钱交给书的作者鲁梅拉？",
+                    "icon":"cards/2000199"
+                }
+            }
+        }
+
+    ]
+}

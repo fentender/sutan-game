@@ -1,0 +1,75 @@
+{
+    "id": 5008252,
+    "name": "我想要她美丽的头颅",
+    "text": "很快，你们就都知道了莎姬妃向苏丹许下了怎样的心愿。",       
+    "tips": "",
+    "mapping_id":8001105, 
+    "once_new":0,
+    "round_number": 1,
+    "waiting_round":1,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "宫廷:[2,6]", 
+    "icon": "rite_11", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+    },
+    "tips_text":[
+
+    ],
+    "open_conditions": [
+    
+    ],
+    "random_text":{
+    },
+    "random_text_up":{
+    },
+    "settlement_prior": [
+    
+    ],                
+    "settlement": [
+        {
+            "guid":"94dde2da-4317-4f97-aabc-e2a74ecce745",
+            "condition":
+            {
+            },
+            "result_title":"",
+            "result_text": "“我想要阿图娜尔的头！她多美啊——她不是觉得自己比我美吗？我想要她那颗美丽的头颅！”\n就这样，阿图娜尔被处决了。她的头颅被摆在莎姬的闺阁里，死不瞑目地注视着苏丹和莎姬当夜的每一次结合。",
+            "result": 
+            {     
+                "clean.s1":1, //
+               
+            },
+            "action":
+            {
+            }
+        }
+    ],                
+    "settlement_extre": [
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+
+            "guid":"80dda2d5-0eee-4855-815c-a1163ec0ab06",
+
+            "condition": 
+            {
+                "type":"char",
+                "is":2000129
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"阿图娜尔" 
+        }
+       
+    }
+} 

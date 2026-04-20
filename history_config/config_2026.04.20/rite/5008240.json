@@ -1,0 +1,170 @@
+ {
+        "id": 5008240,
+        "name": "太阳之舞",
+        "text": "一名远道而来的舞姬为你带来了阿图娜尔的口信，也为你准备了一支阿图娜尔的舞。",       
+        "tips": "",
+         "mapping_id":8001213, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":5, 
+        "waiting_round_end_action":[
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_8",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+
+            
+        },
+        "tips_text":[
+       
+
+        ],
+        "open_conditions": [  
+
+   
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+
+           
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"313a2995-d2ea-41d4-a628-f8a9362691f4",
+                
+                "condition": {
+                    
+                 
+         
+                },
+                "result_title":"",
+                "result_text": "把仆从都唤来之后，她拉开架势，配合着鼓点，为你跳了一支舞……这是阿图娜尔编的舞，是她教这位舞姬跳的，是她叮嘱自己的伙伴“一定要跳给我哥哥看”的。\n当鼓点结束，你心头又酸又暖。",
+                "result": 
+                { 
+                    "s1+体魄":1,
+                    "s2+体魄":1,
+                    "s3+体魄":1,
+                    "s4+体魄":1,
+                    "s1+魅力":1,
+                    "s2+魅力":1,
+                    "s3+魅力":1,
+                    "s4+魅力":1,
+                    "counter+7100006":1,  
+                    "counter+7100006":1,  //获得2个金骰子
+
+                },
+                "action": {   
+
+                 "global_counter+7200258":1, //旅行的妹妹成就
+
+                }
+            }
+                   
+        ],                
+        "settlement_extre": [
+            {
+                
+                "guid":"9b7ecb55-fc6a-469e-80d7-f7a1124a8729",
+                
+                "condition": {       
+                    "any":{
+                        "s1.妻子":1,
+                        "s2.妻子":1,
+                        "s3.妻子":1,
+                        "s4.妻子":1
+                    }         
+                },
+                "result_title":"",
+                "result_text": "梅姬开心极了，这支舞里的温暖和幸福感染了她，而那名舞姬见到她，问过“您就是梅姬夫人吗？”之后，就拉起梅姬的手，一起来到了地毯的正中间。\n千万里之外的阳光和清风落在了梅姬的眉宇和眼睛里面，那多美啊！你情不自禁地也站起身来，加入其中，许许多多的宾客也跟着摆动起腰肢、踢踏起步子，你们一起欢呼、歌唱，这一幕此后常常出现在你的梦里，令你每每想起，都倍感幸福。",
+                "result": 
+                { 
+                    "card":2000689   //获得幸福感
+                },
+                "action": {   
+
+
+                }
+            }
+      
+        ],
+        "cards_slot":
+        {
+            "s1":
+            { 
+                "guid":"06cfef92-ede4-4d9f-a4fc-c4f59a8e5425", 
+                "condition":
+                {
+                    "type":"char",
+                    "主角":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"这一舞是献给你的"
+            },
+           "s2":
+            {
+                "guid":"37049c2b-8c12-40e8-9620-63c533a59924",
+                "condition": 
+                {
+                    "type":"char",
+                    "追随者":1
+                    
+
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你还可以再邀请一位欣赏者"
+            },
+            "s3":
+            {
+                "guid":"60a67f05-81bf-46fe-a0fd-a1e4f03014fa",
+                "condition": 
+                {
+                    "type":"char",
+                     "追随者":1
+                    
+
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你还可以再邀请一位欣赏者"
+            },
+              "s4":
+            {
+                "guid":"feaec291-5c9f-40c7-8d29-6e7ee9f304ee",
+                "condition": 
+                {
+                    "type":"char",
+                     "追随者":1
+                    
+
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你还可以再邀请一位欣赏者"
+            }
+          
+        }
+    } 

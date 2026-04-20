@@ -1,0 +1,24 @@
+{
+    "id": 5320565,
+    "text": "开启宫廷中的调查",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7000736<":1  //还没完成宫廷中的调查
+        
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006111
+            }
+        }
+
+    ]
+}

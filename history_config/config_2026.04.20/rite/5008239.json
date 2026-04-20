@@ -1,0 +1,248 @@
+ {
+        "id": 5008239,
+        "name": "流浪的果实",
+        "text": "阿图娜尔决定离开了。她想去做一名旅行舞者，去见识这片大陆所有的舞蹈，和所有的舞者一起跳舞。你无法挽留她，但你可以为她最后做一点什么……",       
+        "tips": "",
+         "mapping_id":8001213, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":3, 
+        "waiting_round_end_action":[
+            {
+            "condition": { 
+            },
+            "result_title": "",
+            "result_text":"", 
+            "result": 
+            {
+                "s1-追随者":1,
+                "s1+流浪舞姬":1,
+
+            },
+            "action": {   
+                
+                "prompt": {
+                    "id": "prompt_5008239_01",
+                    "text": "无需你多做什么，阿图娜尔离开了你的宅邸，离开了首都。你们之间的羁绊和纠葛永远不会断，只会随着她远行的脚步而被越扯越长……",
+                    "icon":["pic/2000129"],
+                } ,
+                "delay": {  //延迟执行
+                    "id":50082391,
+                    "round":4,
+                    "event_on":5321249  //一封信
+                }                      
+            }
+        }
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"野外:[9,14]",
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "随从需要一位非贵族身份的追随者"
+        ],
+        "open_conditions": [  
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+
+           
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+              
+        ],                
+        "settlement_extre": [
+            {
+                
+                "guid":"02efcb83-db33-4436-8939-f45413226de3",
+                
+                "condition": {              
+                 "s2":1        //送了钱 
+                },
+                "result_title":"你慷慨解囊",
+                "result_text": "你叫住阿图娜尔，给了她一个装满了金子和珠宝的钱袋。\n“那我就不客气地收下了，”她掂了掂这包钱，灿烂地笑了，“这就是有哥哥的感觉咯？真不赖，我都想多来几个哥哥了！”\n她甚至会跟你开这样的玩笑了！",
+                "result": 
+                { 
+
+                },
+                "action": {   
+
+                  "counter+7000864":1,   //给了钱计数器
+
+                }
+            },
+            {
+                
+                "guid":"658ee716-dd3f-4656-92e2-9893135c967b",
+                
+                "condition": {              
+                    "s3":1        //派了随从 
+                },
+                "result_title":"你让[s3.name]陪她一起上路",
+                "result_text": "阿图娜尔很是惊讶，毕竟这就意味着你要额外多失去一个帮手，但你已经决定了，因为你实在不放心她一个人流浪。\n最后，她望着[s3.name]，眼神中透出了许多的快乐。\n“真没想到——我竟然会有个伴儿，我从小就没有什么玩伴……我想，我们会处得很好。”",
+                "result": 
+                { 
+                    "s3-追随者":1,
+                    "s3+流浪的人":1,
+                },
+                "action": {   
+
+                    "counter+7000865":1,   //给了随从计数器
+                }
+            },
+            {
+                
+                "guid":"5b5b5c0c-de66-48f6-b4a7-089deda5eecc",
+                
+                "condition": {              
+                 "s4":1        //亲自证明她是家族的血脉 
+                },
+                "result_title":"最后，你给了她一个承诺",
+                "result_text": "你告诉她，既然她也是父亲的孩子，那么，她也应该是贵族。你会公开承认她的的身份，把她吸纳入你的家族，一个贵族女性在路上遇到的麻烦会明显少很多，官员们也会更愿意帮助她。\n阿图娜尔惊讶地望着你，而后，她又一言不发地苦笑起来。",
+                "result": 
+                { 
+
+                },
+                "action": {   
+
+                 "counter+7000866":1,   //给了头衔计数器
+
+                }
+            },
+            {
+                
+                "guid":"615b94c6-419b-4ebb-bd60-d3fc16d41b51",
+                
+                "condition": {              
+                  "any":{
+                    "!s2":1,
+                    "!s3":1,  
+                    "!s4":1
+                  }           //任意一样东西没给
+                },
+                "result_title":"就这样，阿图娜尔离开了",
+                "result_text": "你们之间的羁绊和纠葛永远不会断，只会随着她远行的脚步而被越扯越长……",
+                "result": 
+                {                   
+                    "s1-追随者":1,
+                    "s1+流浪舞姬":1,
+                },
+                "action": {  
+                    "counter+7001100":1,    //标识流浪但没羁绊 
+                    "delay": {  //延迟执行
+                        "id":50082392,
+                        "round":4,
+                        "event_on":5321249  //一封信
+                    }    
+                }
+                
+            },
+            {
+                
+                "guid":"4bc9930f-4626-4073-835c-0471979d5fa1",
+                
+                "condition": {              
+                    "s2":1,
+                    "s3":1,  
+                    "s4":1          //给了所有东西 
+                },
+                "result_title":"就这样，阿图娜尔离开了",
+                "result_text": "你们之间的羁绊和纠葛永远不会断，只会随着她远行的脚步而被越扯越长……",
+                "result": 
+                { 
+                    "s1+命运的羁绊":1,
+                    "s1-追随者":1,
+                    "s1+流浪舞姬":1,
+                    "s1.uprare":1, //舞姬品级提升了  
+                    "s1=图片":1,  ////立绘设置
+                },
+                "action": { 
+                   
+                    "counter+7000867":1,    //给了所有东西计数器
+                    "delay": {  //延迟执行
+                        "id":50082393,
+                        "round":4,
+                        "event_on":5321249  //一封信
+                    } 
+                }
+            }
+  
+        ],
+        "cards_slot":
+        {
+            "s1":
+            { 
+                "guid":"214e6777-3d7c-47dc-b6c3-75832ac53a8f", 
+                "condition":
+                {
+                   "type":"char",
+                   "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"阿图娜尔"
+            },
+           "s2":
+            {
+                "guid":"6217fcce-14be-4f73-9977-672ca1e97974",
+                "condition": 
+                {
+                    "type":"item",
+                    "cost.金币":10
+
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以资助她一笔旅费，10枚金币就够了"
+            },
+             "s3":
+            { 
+                "guid":"fa48c1a4-4424-4553-833d-ef070f65fb0f", 
+                "condition":
+                {
+                   "type":"char",
+                    "!贵族":1,
+                    "追随者":1,
+                   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以安排一个人做她的随从、同伴"
+            },
+             "s4":
+            { 
+                "guid":"a7aefc92-c62b-4a4e-9e8e-58a6ee7c5004", 
+                "condition":
+                {
+                   "type":"char",
+                    "主角":1
+                   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"你可以公开承认她的身份，但这必须你亲自来才有说服力"
+            }
+          
+        }
+    } 

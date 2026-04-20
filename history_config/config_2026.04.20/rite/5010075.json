@@ -1,0 +1,376 @@
+ {
+        "id": 5010075,
+        "name": "蚁群",
+        "text": "你突然想起，在年幼之时，你也曾经进行过这样的游戏——投掷诱饵，让虫子们倾巢而出，看它们互相残杀……",       
+        "tips": "",
+        "mapping_id":8001578,
+        "final_pin":true,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+            {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {
+                },
+                "action": {    
+                    "prompt":{
+                        "id":"prompt_5010075_01",
+                        "text":"那人间的帝王用军队清剿了你的信徒，你再次于虚空中失去了方向……",
+                        "icon":"cards/sudan"
+                    },
+                    "over":275  //在真空中
+                }
+            },
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0,
+        "location": "黑街:[1,9]", 
+        "type":"END",
+        "icon": "rite_ex_2", 
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "祝福那些追随你的蝼蚁吧",
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "部队":1,
+                },
+                "tips": "你至少需要有一支军队参与"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{        
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"9bdd03c7-6892-43ec-8733-ca3f5ea17d2c",
+                "condition": {
+                },
+                "result_title":"国之大事，在祀与戎",
+                "result_text": "它们聚集了起来，朝着[s1.name]的旗帜，向着你赐予的光芒……蝼蚁虫豸，面目模糊，不计其数，漫山遍野，呼唤着你的圣名。\n千万虫豸的低鸣终于汇集成为了海潮般的巨响，上达你的天听，将最卑微的与最神圣的存在连接在一起——虫子不再是虫子，它们构成了大群。\n成为神明以来第一次，你感到了自己几乎彻底进入了这个世界——那密密麻麻的人群构成了你的身躯，你的眼，你的手……天空中传来了神圣的歌谣，那是你喜悦的呻吟；而白云也化作了你的面容，宛若首脑一般，开始驱动自己庞大的躯体……",
+                "result": 
+                {
+                },
+                "action": { 
+                    "event_on":5310861, //星之战士
+                    "event_on":5310862,//土丘(苏丹的部队还没生成)
+                    "event_on":5310904,//土丘(苏丹的部队已经生成过)
+                }
+            },
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"1506c649-bc72-4218-a87e-cac7814fd95b",
+                "condition": {
+                    "s3":1, //变身神选冠军
+                },
+                "result_title":"蜜水",
+                "result_text": "你撒下了一些甜美的甘露，将这琼浆膏在了[s3.name]头上。\n[s3.gender]吸收了这份祝福，变成了一只更加强大，更加凶猛的虫子……去吧，我的斗士！",
+                "result": 
+                {
+                    "s3.uprare":3,
+                    "s3+战斗":5,
+                    "s3+体魄":5,
+                    "s3+魔力":5,
+                    "s3+神选冠军":1,
+                },
+                "action": { 
+                }
+            },
+            {
+                "guid":"c58a7823-8e18-4eea-8e4f-31d6de5a86aa",
+                "condition": {
+                    "s4":1, //神兽变身
+                },
+                "result_title":"饵料",
+                "result_text": "就像曾经喂食过它们一样，你再次将一些属于神明的废弃物投落到虫子之中。它们中抢食最快，最饥渴的那一些得到了你的青睐与祝福……\n[s4.name]的体积开始膨胀，筋肉扭曲，长出额外的眼珠与牙齿，在士兵的欢呼声中，仿佛高塔一般缓缓立起……",
+                "result": 
+                {
+                    "s4.uprare":3,
+                    "s4+战斗":5,
+                    "s4+体魄":5,
+                    "s4+魔力":5,
+                    "s4+部队":1,
+                    "s4+圣兽":1,
+                },
+                "action": { 
+                }
+            },
+            {
+                "guid":"552dd108-514f-47ef-bbee-f8e0458dbd08",
+                "condition": {
+                    "s5":1, //神兽变身
+                },
+                "result_title":"",
+                "result_text": "你看到它们撕扯的情景，看到[s5.name]因为争夺你的赏赐而扭动的身躯，看到其他更小的虫子被你巨大的宠物踏碎的样子……这份乐趣，对于幼童，对于神明，都从未改变，令你产生了最原始的欣喜。",
+                "result": 
+                {
+                    "s5.uprare":3,
+                    "s5+战斗":5,
+                    "s5+体魄":5,
+                    "s5+魔力":5,
+                    "s5+部队":1,
+                    "s5+圣兽":1,
+                },
+                "action": { 
+                }
+            },
+            {
+                "guid":"288d0e8d-6c10-467f-a0aa-3560ae8c3589",
+                "condition": {
+                    "any":{ //放了部队
+                        "s6":1,
+                        "s7":1,
+                        "s8":1,
+                        "s9":1,
+                        "s10":1,
+                        "s11":1,
+                    }
+                },
+                "result_title":"不胜其忿而蚁附之",
+                "result_text": "前方，那蝼蚁花费漫长岁月所堆积的土丘沉默着。仿佛被另外的虫王所束缚，它们竟然对你的大群，你的神威，你在天上的面容保持了沉默。\n于是，仿佛所有幼童一般，你躁动了起来，那属于你的虫群也随机奋进——没有战术，没有诡计，只有最原始的快乐与狂热，以孩童推倒蚁穴的热情，以被称之为信仰的情绪——向着那不信者的巢穴进军。",
+                "result": 
+                {
+                    "s6+战斗":2,
+                    "s7+战斗":2,
+                    "s8+战斗":2,
+                    "s9+战斗":2,
+                    "s10+战斗":2,
+                    "s11+战斗":2,
+                    "s6+体魄":2,
+                    "s7+体魄":2,
+                    "s8+体魄":2,
+                    "s9+体魄":2,
+                    "s10+体魄":2,
+                    "s11+体魄":2,
+                },
+                "action": {       
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"78981078-5757-4422-8182-e40232ec06b0",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "神的代言人":1
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"它会替你聚集信众"
+                },
+            "s2":
+                {
+                    "guid":"0a311a47-8fb6-4c50-b8c9-cfc3534b290d",
+                    "condition": 
+                    {
+                        "神性":1
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"你的力量，如今已经显现在天空上"
+                },
+            "s3":
+                {
+                    "guid":"2807b021-ce29-4e4f-acce-1c6a4238a931",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!妻子":1,
+                        "!动物":1,  //看是否需要排除
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"喂食最强大的虫子，你的神圣斗士"
+                },
+            "s4":
+                {
+                    "guid":"cb634d75-e727-45a9-85ff-9f5398ce11ea",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"char",
+                            "type":"item",
+                        },
+                        "any":{
+                            "动物":1,
+                            "怪物":1,
+                        },
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"制造属于自己的怪兽与传说"
+                },
+            "s5":
+                {
+                    "guid":"fd848579-bdac-4315-b0c3-7c04ee9bdbc2",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"char",
+                            "type":"item",
+                        },
+                        "any":{
+                            "动物":1,
+                            "怪物":1,
+                        },
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"制造属于自己的怪兽与传说"
+                },
+            "s6":
+                {
+                    "guid":"e180b02a-712a-47a6-8d97-34a6432c3ecd",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+            "s7":
+                {
+                    "guid":"31454d47-4c98-44be-8465-31c3a18bca70",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+            "s8":
+                {
+                    "guid":"31ea46f5-0810-4409-b171-57d353172ec4",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+            "s9":
+                {
+                    "guid":"0d39f3e1-1d6d-473e-b5ec-16c73267a88c",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+            "s10":
+                {
+                    "guid":"2e6341fd-52bf-4e03-8382-9cdbe74e0903",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+            "s11":
+                {
+                    "guid":"a3998daa-ae08-4e0c-9dd5-0592f50ed1d7",
+                    "condition": 
+                    {
+                        "any":{
+                            "type":"item",
+                            "type":"char",
+                        },
+                        "部队":1,                   
+                        "!is":2000428, //不是龙卷风
+                        "!is":2000429,
+                        "!is":2000430,
+                        "!is":2000431, 
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"群聚的蝼蚁"
+                },
+        }
+    } 

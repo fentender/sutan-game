@@ -1,0 +1,27 @@
+{
+    "id": 5320361,
+    "text": "故事的赞助人",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000199":1,
+        "have.2000123":1,
+        "counter.7000771>=":1, //标识完成思考之后
+        "counter.7000772<":10, //还没凑够10本书
+        "!rite":5006729
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "rite":5006729 //故事的赞助人                
+            }
+        }
+
+    ]
+}

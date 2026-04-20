@@ -3,6 +3,7 @@
 """
 from pathlib import Path
 
+from ..core.json_store import JsonStore
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
@@ -117,7 +118,8 @@ class OverridePanel(QWidget):
                               (self._filter_mode == "warning" and info.has_warning) or
                               (self._filter_mode == "normal" and not info.has_conflict_or_warning) or
                               (self._filter_mode == "outdated" and
-                               any(m in self._outdated_mod_names for m in info.mod_chain)))
+                               any(m in self._outdated_mod_names for m in info.mod_chain) and
+                               JsonStore.instance().has_base(info.rel_path)))
                 mod_match = (not selected_mod or selected_mod in info.mod_chain)
             else:
                 mode_match = True

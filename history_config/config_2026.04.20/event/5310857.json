@@ -1,0 +1,27 @@
+{
+        "id": 5310857,
+        "text": "监听代言人死活",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 1
+        },
+        "condition":{
+            "!have.神的代言人":1, //代言人无了
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "prompt":{
+                    "id":"5310857_prompt_01",
+                    "text":"你在人间的代言人死去了，随之消逝的还有你的人性。神威如海，而那名为[player.name]的波澜已然消逝。你仍将长存，但这些文字将不会书写在这个故事之中了。",
+                    "icon":["pic/2000001","","pic/2000861"], 
+                },
+                "over":276
+            }
+        }
+    ]
+} 

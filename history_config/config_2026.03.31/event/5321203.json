@@ -1,0 +1,27 @@
+{
+    "id": 5321203,
+    "text": "拉伊德的索要",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false, 
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "rite_end": 5000002
+    },
+    "condition": { //条件
+    },
+    "settlement": [ //效果 
+    {
+        "tips_resource":"", 
+        "tips_text":"",
+        "action":{
+            "no_prompt":{
+                        "table.2000195-事件提示":1
+                    },
+            "counter+7000743": 1, //本体触发+1
+            "card":2001223,
+            "rite":5008196 //拉伊德的索要
+        }
+    }
+
+]
+}

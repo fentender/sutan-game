@@ -1,0 +1,66 @@
+{
+    "id": 5006168,
+    "name": "人类魔法",
+    "text": "凡有的，还要加给他，叫他有余；凡没有的，连他所有的也要夺去。",
+    "tips": "",
+    "mapping_id":8001002, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_1",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        
+    ],
+    "open_conditions": [   
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+       
+    ],
+    "settlement": [
+        {
+            "guid":"c50f1006-6070-4972-bcaa-d9ff78a886d5",
+            "condition": {
+               
+            },
+            "result_title": "你现在已经是一枚成熟的金币了，快繁殖啊！",
+            "result_text": "看！这是就是祝福的力量！只有在人类的世界才能够生效的魔法。小留痴痴地看着这些在阳光下闪光的粉尘，看它们一点点地落在你的金币堆里，变成一颗小小的，新的金块——之后它还会蜕壳，变大，成为真正的合法货币……这是你所知的所有魔法里最棒的一个，真心的。",
+            "result": {
+                "金币":5  
+            },  
+            "action": {
+              
+            }
+        }
+    ],
+    "settlement_extre": [
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"f04995ab-37c9-4d93-967e-010c22d98379",
+            "condition": {
+                "type": "char",
+                "is":2000434  //自动吸
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "它应许了祝福，现在，它来了"
+        }
+    }
+}

@@ -1,0 +1,66 @@
+{
+    "id": 5006152,
+    "name": "苏丹的征召",
+    "text": "什么都来不及交待，热娜直接被苏丹的信使和卫兵们带去了王宫。",
+    "tips": "",
+    "mapping_id":8001258, 
+    "once_new": 0,
+    "round_number": 3,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "宫廷:[2,6]",
+    "icon": "rite_14",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+      
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+
+    ],
+    "settlement": [
+         {
+            "guid":"4d05aa47-d4a2-4d55-a5f0-ad2d4fa9f9ec",
+            "condition": {
+                
+            },
+            "result_title": "你终于打听到了热娜的消息",
+            "result_text": "原来，苏丹征召热娜，是为了调整一下王冠：他又有了几处新的领地，又收获了一些最稀有的宝石。作为帝国的至高无上的象征，他的宝冠必须一年比一年更奢华。于是这一年，这个任务就落在了热娜的肩膀上……好吧，这确实是个很光荣，也很容易掉脑袋的工作。你在心中为热娜祈祷。",
+            "result": {
+                
+            },
+            "action": {
+               "event_on":5320623  //启动后续
+            }
+        }
+    ],
+    "settlement_extre": [
+
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"5adada78-f623-4c46-8abe-0a10248c60fe",
+            "condition": {
+                "type": "char",
+                "is":2000019 //热娜
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "热娜",
+        }
+    }
+}

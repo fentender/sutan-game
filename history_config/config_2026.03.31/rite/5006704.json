@@ -1,0 +1,136 @@
+ {
+        "id": 5006704,
+        "name": "喵，喵喵",
+        "text": "贝姬夫人从门缝里溜进了你的书房，它完全不在乎你的情绪，大咧咧地爬上你的膝盖，然后翻开了自己雪白的肚皮。看着这只可爱的猫儿，你心有所感，把自己的困扰告诉了它……",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 0,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_4", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{        
+        },        
+        "tips_text":[
+            "也许这次谈话可以消解一些折磨你，或者你的追随者的东西。",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"8995a1f9-3363-457f-ab84-84420a49e909",
+                "condition": {
+                    "!s2":1,
+                },
+                "result_title":"猫是世界的宠儿",
+                "result_text": "贝姬夫人翻了个身。\n贝姬夫人睡着了。\n……你在指望什么呢。",
+                "result": 
+                {  
+                    "card":2000042
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"be328982-820d-477f-8c62-9efb7ed11f69",
+                "condition": {
+                    "s2.受伤":1,
+                },
+                "result_title":"猫是世界的宠儿",
+                "result_text": "贝姬夫人翻了个身。\n贝姬夫人睡着了。\n……你在指望什么呢，它只是只小——等等，困扰着你的那件事是不是——消失了？！",
+                "result": 
+                {  
+                    "s2-equip":2000098,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"84edd683-a651-4c20-8840-6a8a41883053",
+                "condition": {
+                    "s2.诅咒":1,
+                },
+                "result_title":"猫是世界的宠儿",
+                "result_text": "贝姬夫人翻了个身。\n贝姬夫人睡着了。\n……你在指望什么呢，它只是只小——等等，困扰着你的那件事是不是——消失了？！",
+                "result": 
+                {  
+                    "s2-equip":2000163,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"c8b7f031-e643-495a-9e9e-9d4c28c44fb0",
+                "condition": {
+                    "any":{
+                        "s2.is":2000680, //猜忌
+                        "s2.is":2000326, //疯狂                        
+                    },
+                },
+                "result_title":"猫是世界的宠儿",
+                "result_text": "贝姬夫人翻了个身。\n贝姬夫人睡着了。\n……你在指望什么呢，它只是只小——等等，困扰着你的那件事是不是——消失了？！",
+                "result": 
+                {  
+                    "clean.s2":1,
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"f33361a4-655b-4607-bdb6-1a5df3c4832a",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000461
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"贝姬夫人"
+                },
+            "s2":
+                {
+                    "guid":"751216c6-7688-419c-b4eb-6a7be7c6c2b6",
+                    "condition": 
+                    {
+                        "any":{
+                            "all":{
+                                "type":"char",
+                                "受伤":1,
+                            },
+                            "all":{
+                                "type":"char",
+                                "诅咒":1,    
+                            },
+                            "is":2000680, //猜忌
+                            "is":2000326, //疯狂
+                        }
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"疯狂，猜忌，受伤和诅咒都可以消解"
+                }
+        }
+    } 

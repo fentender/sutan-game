@@ -65,12 +65,16 @@ class DeltaInitWorker(QThread):
     def __init__(self, mod_ids: list[str],
                  schema_dir: Path | None = None,
                  merge_mode: MergeMode = MergeMode.SMART,
-                 mod_merge_modes: dict[str, MergeMode] | None = None) -> None:
+                 mod_merge_modes: dict[str, MergeMode] | None = None,
+                 mod_update_times: dict[str, int] | None = None,
+                 history_dir: Path | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
         self.schema_dir = schema_dir
         self.merge_mode = merge_mode
         self.mod_merge_modes = mod_merge_modes
+        self.mod_update_times = mod_update_times
+        self.history_dir = history_dir
 
     def run(self) -> None:
         from ..core.delta_store import ModDelta
@@ -81,6 +85,8 @@ class DeltaInitWorker(QThread):
                 progress_cb=self.progress.emit,
                 merge_mode=self.merge_mode,
                 mod_merge_modes=self.mod_merge_modes,
+                mod_update_times=self.mod_update_times,
+                history_dir=self.history_dir,
             )
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")

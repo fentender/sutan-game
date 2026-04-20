@@ -1,0 +1,180 @@
+ {
+        "id": 5008139,
+        "name": "精力套餐",
+        "text": "大餐已经出锅，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"ad545adf-1d72-4185-95d9-83dbc1aade04",
+                "condition": {
+
+                    "s1.is":2001012 //精力套餐
+                    
+                },
+                "result_title":"虽然需要一些勇气",
+                "result_text": "只要闭上眼睛努力忽视它异样的外观和气味，凭心而论……反正你们谁都没有说它不好吃，只是一个劲儿劝其他人都来尝尝。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+魅力":2,  
+                    "s5+魅力":2,  
+                    "s2+魅力":2, 
+                    "s3+魅力":2
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"b84b9d50-7bb0-4745-a5b8-8c587086caac",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000370,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“享用美食的要点在于闭上你的眼，\n就好比，\n享受爱情的要点在于别用你的脑子。”\n这诗句听在快脚耳中，令他心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000370+智慧":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"a498e5b2-aa69-4bb4-914f-20e39bd1ba32",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000370,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“享用美食的要点在于闭上你的眼，\n就好比，\n享受爱情的要点在于别用你的脑子。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"78743d22-49dd-4ee0-8190-b44c7460b40a",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001012
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"a63ca8af-1836-4ac4-b055-eebc349264d8",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"e6202d40-c784-465b-a2a9-435a5a3fb222",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"331f7d46-5416-4ddf-8251-b5dcd2ecb1d5",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"0fc34189-3db9-4f6e-9d5a-6376b4b714d1",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

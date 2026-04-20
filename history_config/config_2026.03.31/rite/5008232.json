@@ -1,0 +1,170 @@
+ {
+        "id": 5008232,
+        "name": "遍野流言",
+        "text": "关于阿图娜尔的流言不胫而走，毕竟，作为区区一名低贱的舞姬，她的舞姿实在太优美，容貌也太过妩媚，在你的面前又如此谦卑和柔顺……人人都喜欢议论——或者说中伤，或者说羞辱——漂亮的女人，特别是没人撑腰的那种。",       
+        "tips": "",
+         "mapping_id":8001125, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":3, 
+        "waiting_round_end_action":[
+            {
+                "condition": { 
+                },
+                "result_title": "",
+                "result_text":"", 
+                "result": 
+                {
+                },
+                "action": {                    
+                    "total.2000129+黑化":1,
+                    "prompt": {
+                        "id": "prompt_5008232_01",
+                        "text": "你无力遏止……又或者说，你无意遏止流言的传播。就让他们说去吧！反正又不会伤害你半分。正相反，那么多令人叹为观止的刺激故事，搞不好你正为此暗爽无比呢。",
+                        "icon":"cards/2000001"
+                    }              
+                }
+            }               
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"商业区:[10,19]",
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [  
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {                
+                "guid":"6923934f-ae0a-4b92-879d-b1bd2dd862ae",                
+                "condition": {
+                    
+                    "!s1.妻子":1  //派了其他人
+                },
+                "result_title":"",
+                "result_text": "[s1.name]大声地告诉[s1.gender]认识的、能够说得上话的所有人，说你对这些传言是很不喜欢的，如果不想惹恼了[player.name]大人的话，最好就此住口。\n不管是因为恐惧，还是因为敬意——总之，关于阿图娜尔的传言变少了许多。",
+                "result": 
+                { 
+                },
+                "action": {   
+                
+                }
+            },
+            {                
+                "guid":"240d6084-dff3-4401-aec3-4c805ce24ef4",                
+                "condition": {
+                    
+                    "s1.妻子":1,  //派了妻子
+                    "counter.7000853<":1   //没有和阿图娜尔纵欲
+                },
+                "result_title":"",
+                "result_text": "梅姬静静地听完了你的困扰，而后摇着头轻笑起来。她没有问你谣言有几分真假，只是告诉你，这种损害你家名誉的东西，她自然有办法处理。\n果然，几天后，关于阿图娜尔的谣言突然就平息下去了。\n你在卧室里问过梅姬，她是使了什么魔法吗？人人都喜欢嚼舌根，她是怎么一下子就让他们放弃了这种爱好的？\n“哦……我只是告诉大家，每个人都有些值得被拿出来嚼嚼的事，”梅姬一边翻着书，一边轻描淡写地回答，“而如果我再继续听到和那位舞姬有关的事，我是不介意跟大家好好讲点故事的……有些人家父亲和儿媳不清楚，有些人家私刑杀了平民，还有些人家把掏钱的手伸到了苏丹的口袋里……”\n她又翻动了一页书，而后稍微抬眼望了望你。\n“他们相信我真的知道，所以他们就闭了嘴，事情就这么简单，我亲爱的丈夫。”",
+                "result": 
+                { 
+                },
+                "action": {
+                  
+                }
+            },
+            {
+                
+                "guid":"16f9c920-259e-4229-8fec-5035cb6396b9",
+                
+                "condition": {
+                    
+                    "s1.妻子":1,  //派了妻子
+                    "counter.7000853>=":1   //和阿图娜尔纵欲过
+                },
+                "result_title":"",
+                "result_text": "你知道你的妻子不会任由这种损害你家名誉的流言继续传播，而她确实也令它们平息了，不管她是怎么做到的，毫无疑问，这些流言——关于你和阿图娜尔的种种恶意的、暧昧的、不正当的、可偏偏又歪打正着的揣测——再次刺伤了梅姬本就伤痕累累的心。",
+                "result": 
+                { 
+                    "card":2000083, //妻子的不满
+                },
+                "action": { 
+                }
+            }
+            
+        ],                
+        "settlement_extre": [
+            
+      
+        ],
+        "cards_slot":
+        {
+            "s1":
+            { 
+                "guid":"39726da2-954d-40d3-a4d5-854dcdf35784", 
+                "condition":
+                {
+                    "type":"char",
+                    "追随者":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"够了，你决定派人去平息这些流言"
+            },
+           "s2": {
+
+              "guid":"dde4a4f1-e5c3-4366-984c-c80ee3da15a1",
+
+              "condition": {
+                  "type": "item",
+                  "情报": 1,
+                  "rare>=": 3
+              },
+              "open_adsorb": 0,
+              "is_key": 0,
+              "is_empty": 0,
+              "is_enemy": 0,
+              "text": "用于转移注意力的情报和流言"
+           },
+            "s3": {
+
+              "guid":"35b68582-dacf-45e8-ba30-413ad5d20612",
+
+              "condition": {
+                  "type": "item",
+                  "情报": 1,
+                  "rare>=": 3
+              },
+              "open_adsorb": 0,
+              "is_key": 0,
+              "is_empty": 0,
+              "is_enemy": 0,
+              "text": "用于转移注意力的情报和流言"
+           },
+            "s4": {
+
+              "guid":"32c97b69-3179-416a-9ad6-cce8aa625da7",
+
+              "condition": {
+                  "type": "item",
+                  "情报": 1,
+                  "rare>=": 3
+              },
+              "open_adsorb": 0,
+              "is_key": 0,
+              "is_empty": 0,
+              "is_enemy": 0,
+              "text": "用于转移注意力的情报和流言"
+           },
+           
+          
+        }
+    } 

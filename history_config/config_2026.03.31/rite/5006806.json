@@ -1,0 +1,125 @@
+ {
+        "id": 5006806,
+        "name": "猎人的陷阱",
+        "text": "古利斯与扎齐伊遭遇了一些偷猎者的伏击……",       
+        "tips": "",
+        "mapping_id":8001553,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "野外:[1,6]", 
+        "icon": "rite_17", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["社交","战斗"],
+            "type":"normal_result"
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"他们会成功吗",
+                "type":"normal_result",
+                "type_tips":"己方的社交和战斗提供完整的骰子数量",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"ed4e1d67-fe7e-4d13-b87d-6a8f0d5732a8",
+                "condition":
+                {
+                    "r1:社交+战斗>=":[5,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "扎齐伊和古利斯击退了猎人们，把他们捆起来，强迫他们冷静点。\n扎齐伊告诉他们，那熊是带崽的母熊，他们不能杀了它。但他也明白猎人们需要钱来养家，于是他用三枚金币买下了熊。\n之后，他和古利斯一起往陷阱里堆土和木头，又躲到一边，看着母熊带着孩子慢慢地爬了出来，而后消失在树林中。\n他们回到了猎场外围，给所有人讲了这个故事，大家都认为他做得很好——肯定也有不少人更想看到血淋淋的战利品，但至少他们表面上也在交口称赞。\n扎齐伊骄傲极了，古利斯虽然没说话，但你看得出，这位奴隶也赞同你的学生的做法。",
+                "result": 
+                {    
+                    "s1+战斗":1,  
+                    "s2+社交":1,      
+                },
+                "action":
+                {
+                    "event_on":5320408,//教育扎齐伊
+                }
+            },
+            {
+                "guid":"d3d4d621-6939-4bcc-9f3b-0cac4454d029",
+                "condition":
+                {
+                    "r1:社交+战斗<":[5,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "扎齐伊和古利斯没能阻止猎人——他们只保住了自己的性命，在他们仓皇逃出猎人的围攻之时，背后传来了母熊绝望的怒吼。\n他们俩沮丧地找到了正在猎场外等待的你……无论如何，他们至少试过了，而这已经是一场颇为成功的游猎。",
+                "result": 
+                {      
+                    "counter+7100003":1,   
+                    "card":2000045, //洞察 
+                },
+                "action":
+                {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"d622330b-270b-4ca0-af76-599b220b1a62",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000063,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"猎人，猎物，还是拯救者？"
+                },
+            "s2":
+                {
+                    "guid":"baad3e11-c24a-471f-ba50-6b9866747a61",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000114,//古利斯
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"猎人，猎物，还是拯救者？",                   
+                },
+            "s3":
+                {
+                    "guid":"b736f1fb-d892-43f1-bd6c-75933ce710fb",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"消耗品"
+                }
+        }
+    } 

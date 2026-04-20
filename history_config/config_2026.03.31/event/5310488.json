@@ -1,0 +1,23 @@
+{
+        "id": 5310488,
+        "text": "结局-追忆之国",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{
+            "counter.7000446>=":1, //平衡
+            "counter.7001069<":1, //没有用百科全书
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+                "over":222
+            }
+        }
+    ]
+} 

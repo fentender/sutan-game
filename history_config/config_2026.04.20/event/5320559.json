@@ -1,0 +1,26 @@
+{
+    "id": 5320559,
+    "text": "萨米尔与安妮塔",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000011":1,  //萨米尔还活着
+        "table_have.2001200":1,  //有纸条
+        "table_have.2001193":1  //有安妮塔
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006106,  //开启萨米尔与安妮塔
+                "event_off":5320559
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,68 @@
+ {
+        "id": 5010086,
+        "name": "神座",
+        "text": "于尘世边沿，你孤悬天际。不需要神魔侍奉，不需要恢弘庙宇，你只想尽量地注视这个世界……",       
+        "tips": "",
+        "mapping_id":8001602,  
+        "once_new":-1,
+        "round_number": 1, //立即结算
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "奇珍:6", 
+        "icon": "rite_4", //临时icon
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text": {      
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"ffb3d4d2-ef34-4e1f-9872-81416870ba20",
+                "condition": {
+                },
+                "result_title":"你再次找到了那些记忆中的虫子",
+                "result_text": "你仍然认得它们，而它们仍然记着你。\n靠着这份羁绊，你的力量如同蜜糖一般涓滴流淌，渗透进这个世界，令虫群为之喜悦，为之飞舞。",
+                "result": 
+                {
+                    "counter+7100006":1, //金骰子
+                },
+                "action": {
+                    "rite": 5010086, //重复生成
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"639a5f3c-c175-47e6-bbd7-84b6555f9c79",
+                "condition":
+                {
+                    "主角":1,
+                    "神明":1         
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"你已经无法再亲自踏足人间"
+            },
+        }
+    } 

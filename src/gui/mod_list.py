@@ -212,6 +212,7 @@ class ModListItem(QWidget):
         self.cmb_mode.setFixedWidth(80)
         self.cmb_mode.addItem("跟随全局", "")
         self.cmb_mode.addItem("智能", "smart")
+        self.cmb_mode.addItem("自适应", "adaptive")
         self.cmb_mode.addItem("正常", "normal")
         self.cmb_mode.addItem("替换", "replace")
         idx = self.cmb_mode.findData(merge_mode)

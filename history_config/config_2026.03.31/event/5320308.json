@@ -1,0 +1,40 @@
+{
+    "id": 5320308,
+    "text": "时机成熟了",     
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": [2,3]
+    },
+    "condition":{
+        "counter.7000726<":3, //标识鸽了羊肉炉的次数
+        "any":{
+            "counter.7100004>=":10,
+            "all":{
+                "any":{
+                    "rite":5006676, //苗圃
+                    "rite":5006677,
+                },
+                "!have.2000312.大敌":1,
+                "have.2000312":1, 
+            },
+            "all":{
+                "counter.7100003>=":10,
+                "have.2000349":1,                
+            },
+            "counter.7100002>=":10,
+        }
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "event_off":5320308, 
+                "loot":6000201,         
+            }
+        }
+
+    ]
+}

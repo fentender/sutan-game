@@ -1,0 +1,126 @@
+ {
+        "id": 5006805,
+        "name": "鹰身女妖",
+        "text": "在古利斯的部落语言中，鹰身女妖的名字是“吃懦夫肉的女子”，显然，这里并没有一点给她们吃的东西。",       
+        "tips": "",
+        "mapping_id":8001046,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "野外:[1,6]", 
+        "icon": "rite_17", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["生存","隐匿","战斗"],
+            "type":"normal_result"
+        },
+        "tips_text":[
+            "这只是一次狩猎，不用太在意",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"他们会成功吗",
+                "type":"normal_result",
+                "type_tips":"己方的生存，隐匿和战斗提供完整的骰子数量",
+                "low_target": 6,
+                "low_target_tips": "你至少需要6点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"38b3d761-54bc-4e74-b221-a90f2d057713",
+                "condition":
+                {
+                    "r1:生存+隐匿+战斗>=":[6,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，阿迪莱和古利斯回来了！\n但是，他们身后并没有拖着华丽而血淋淋的猎物，反而是拖着一大长串给捆着双手的人……还有一只摆在岩缝中的奇怪雕塑。\n原来，他们确实深入了传闻中有妖怪栖息的山谷，却发现那里是一处猎奴人的营地，是他们刻意放出可怕的传言，避免人们靠近。\n这些猎奴人经常抓捕有主人的奴隶，甚至是强迫平民为奴——这是阿迪莱和古利斯先揍了他们一顿之后才问出来的。\n这场游猎会在振奋的气氛中落幕了，人人都在赞扬着你的公正、财力、还有权势。",
+                "result": 
+                {    
+                    "s1+战斗":1,  
+                    "s2+战斗":1,
+                    "card":2001308,  //石像        
+                },
+                "action":
+                {
+                }
+            },
+            {
+                "guid":"12b42b95-1c30-4724-9319-27d0899c63aa",
+                "condition":
+                {
+                    "r1:生存+隐匿+战斗<":[6,5]
+                },
+                "result_title":"你无法得知具体的围猎细节",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，阿迪莱和古利斯回来了！\n但是，他们身后并没有拖着华丽而血淋淋的猎物，脸上也挂着沮丧的表情……\n原来，他们确实深入了传闻中有妖怪栖息的山谷，却发现那里是一处猎奴人的营地，是他们刻意放出可怕的传言，避免人们靠近。阿迪莱和古利斯与那些猎奴人起了冲突，一个不留神，猎奴人就趁他们不注意顺着裂谷上的岩缝给溜了……\n尽管他们没能抓住对付，但他们至少尝试过这么做，这就已经足够引起围观人们的掌声了。\n这依旧是一次相当不错的游猎会。",
+                "result": 
+                {      
+                    "counter+7100003":1,   
+                    "card":2000421, //秘氛 
+                },
+                "action":
+                {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"73d9f6cc-d2a6-4eb0-a3db-092a3f716b14",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000061,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"一位勇士"
+                },
+            "s2":
+                {
+                    "guid":"57b4ac37-02c9-44ed-8744-231a37128fb9",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000114,//古利斯
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"一位勇士",                   
+                },
+            "s3":
+                {
+                    "guid":"9b5c2d86-d6d9-4d53-adbd-deff866ba123",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"消耗品"
+                }
+        }
+    } 

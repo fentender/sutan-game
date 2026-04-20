@@ -1,0 +1,22 @@
+{
+        "id": 5311075,
+        "text": "飞升线最后一天进入陶土之门成就幕后",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "counter.7001101>=":7  //进行完第七天，先羊再门     
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "global_counter=7200308":1,//成就
+            },            
+        }
+    ]
+} 

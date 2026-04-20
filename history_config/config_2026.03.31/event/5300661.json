@@ -1,0 +1,26 @@
+{
+        "id": 5300661,
+        "text": "众筹道具-生命之心-奈费勒复活",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false, 
+        "on":{   
+            "rite_end":5000167,
+        },
+        "condition":{    
+        },
+        "settlement": [    //当玩家选择换牌，引导玩家拖动卡牌
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2001176+equip":2001155, //生命之心安装
+                "prompt":{
+                    "id":"5300661_prompt_01",
+                    "text":"……哼呃…………",
+                    "icon":"cards/2001176"
+                }
+            }
+        }
+        ]
+    } 

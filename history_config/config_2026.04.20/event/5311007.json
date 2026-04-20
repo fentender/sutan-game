@@ -1,0 +1,28 @@
+{
+    "id": 5311007,
+    "text": "结算虚空之火是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010205
+    },
+    "condition": {
+        "counter.7000964>=": 3 //如果虚空之火成功计数器满足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311007_prompt_01",
+                    "text": "终于，你稳定住了你的形态。你像神明一样遨游虚空！现在，真正的竞争开始了，你们谁能证明自己是更适合创造世界的存在呢？",
+                },
+                "rite":5010206,  //进入造化之风
+                "focus.5010206":[1700,1],
+                "event_off":5311007
+            },
+        }
+    ]
+}

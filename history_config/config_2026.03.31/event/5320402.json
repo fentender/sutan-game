@@ -1,0 +1,40 @@
+{
+    "id": 5320402,
+    "text": "古利斯地兴趣-赌狗",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "option": {
+                    "id":"5320402_option_1", //事件触发计数
+                    "text": "古利斯去了赌狗场……",
+                    "icon":"pic/2000114",
+                    "items": [
+                        {
+                            "text": "你小子",
+                            "tag": "op1"
+                        },
+                    ]
+                },
+                "case:op1": {
+                    "counter+7000857":1,
+                    "prompt":{
+                        "id":"5320402_prompt_1",
+                        "text":"并且垂头丧气地回来了。\n看他那副样子，就不用问他赢没赢了。",
+                        "icon": "pic/2000114",
+                    }
+                },
+            }
+        }
+
+    ]
+}

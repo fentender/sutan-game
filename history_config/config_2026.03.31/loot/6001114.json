@@ -1,0 +1,899 @@
+
+{
+    "id": 6001114,
+    "name": "结局投放书",
+    "repeat": 13,
+    "type": 4, // 2 普通权重, 3 维新
+    "item": [
+        
+         {
+            "condition": { //
+                "counter.7000967>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000236",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000968>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000237",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000969>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000238",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000970>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000704",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000971>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000705",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000972>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000706",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000973>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000802",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000974>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000215",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000975>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000221",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000976>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000222",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000977>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000223",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000978>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000224",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000979>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000226",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000980>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000801",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000981>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000803",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000982>=": 1   //是否阅读碎肉与骨粉
+            },
+            "num": "1",
+            "id": "2001251",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000983>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000216",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000984>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000218",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000985>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000220",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000986>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000547",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000987>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000548",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000989>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000549",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000990>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000550",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000991>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000551",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000992>=": 1   //是否阅读血之墙
+            },
+            "num": "1",
+            "id": "2000552",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001065>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000465",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000993>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000235",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000994>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000242",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000995>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000243",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000996>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000800",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000997>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000807",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000998>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001189",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7000999>=": 1   //是否阅读西行记
+            },
+            "num": "1",
+            "id": "2000225",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001000>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000707",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001001>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000708",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001002>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000709",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001003>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000710",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001004>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001150",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001005>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001165",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001006>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001170",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001007>=": 1   //是否阅读迷宫之心
+            },
+            "num": "1",
+            "id": "2001252",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001008>=": 1   //是否阅读相面术
+            },
+            "num": "1",
+            "id": "2000214",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001009>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000219",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001010>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000230",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001011>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000231",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001012>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000239",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001013>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000240",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001014>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000241",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001015>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000244",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001016>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000245",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001017>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000856",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001018>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001198",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001019>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001230",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001020>=": 1   //是否阅读绳索的锤炼
+            },
+            "num": "1",
+            "id": "2001234",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001021>=": 1   //是否阅读列王纪
+            },
+            "num": "1",
+            "id": "2000798",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001022>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000804",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001023>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001248",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001024>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001257",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001025>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000210",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001026>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000998",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001027>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001000",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001028>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000209",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001029>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000211",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001030>=": 1   //是否阅读艾娃日记
+            },
+            "num": "1",
+            "id": "2000213",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001031>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000805",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001032>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001255",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001033>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000797",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001034>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000799",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001035>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001253",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001036>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000808",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001037>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001254",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001039>=": 1   //是否阅读花园景观残本
+            },
+            "num": "1",
+            "id": "2000999",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001040>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000203",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001041>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000204",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001042>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000205",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001043>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000206",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001044>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000207",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001045>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000208",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001046>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000217",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001047>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000227",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001048>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000228",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001049>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000229",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001050>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000855",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001051>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000945",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001052>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001256",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001053>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000212",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001054>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000232",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001055>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000233",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001056>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000234",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001057>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000538",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001058>=": 1   //是否阅读哲百集
+            },
+            "num": "1",
+            "id": "2000806",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001059>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2000857",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001060>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001247",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001061>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001249",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001062>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001258",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001063>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001259",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //
+                "counter.7001064>=": 1   //是否阅读
+            },
+            "num": "1",
+            "id": "2001260",
+            "type": "card",
+            "weight": 60
+        },
+        {
+            "condition": { //雨之子
+
+            "counter.7001066>=": 1   //是否送过
+               
+            },
+            "num": "1",
+            "id": "2000193",
+            "type": "card",
+            "weight": 60
+        }
+    ]
+}
+         
+       
+
+
+

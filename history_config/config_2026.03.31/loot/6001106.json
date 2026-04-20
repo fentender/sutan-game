@@ -1,0 +1,49 @@
+{
+    "id": 6001106,
+    "name": "宫斗的妹妹1",
+    "repeat": 1,
+    "type": 3, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{ //石宫斗
+
+           
+            "table_have.2000129.rare=":1,  //舞姬品质是石品级
+
+            },
+            "num" : "1",
+            "id" : "5321270",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{ //铜宫斗
+
+          
+            "table_have.2000129.rare=":2,  //舞姬品质是铜品级
+            "counter.7000911<":1, //本体没有触发过
+                
+            },
+            "num" : "1",
+            "id" : "5321271",
+            "type" : "event",
+            "weight" : 60
+        },
+         {
+            "condition":{ //银宫斗
+
+           
+            "table_have.2000129.rare=":3,  //舞姬品质是银品级
+            "counter.7000910<":1, //本体没有触发过
+                
+            },
+            "num" : "1",
+            "id" : "5321272",
+            "type" : "event",
+            "weight" : 60
+        }
+       
+    ]
+}
+
+

@@ -1,0 +1,26 @@
+{
+    "id": 5320647,
+    "text": "小安监听心灵之战8",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000433":1,  //场上有小安
+        "table_have.2000433.追随者":1,
+        "counter.7000887<":1,  //没有开启制作笼子
+        "counter.7000885>=":1  //完成过心灵之战8
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":5320650,
+                "event_off":5320647
+            }
+        }
+    ]
+}

@@ -1,0 +1,159 @@
+ {
+        "id": 5006807,
+        "name": "游猎沙威玛",
+        "text": "每一次的猎获不同，沙威玛的材料也不同，这正是这道菜的有趣之处。当然，现烤出来的，热得烫手的饼皮也非常关键。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"823d1348-f8ac-47ab-95f1-f60d485b6de7",
+                "condition": {
+
+                    "s1.is":2001302   //野味
+                    
+                },
+                "result_title":"厨子根本忙不过来，最后每个人都亲自上手了",
+                "result_text": "就和打猎一样，无论是君主，战士，奴隶——都要亲自弄脏自己的双手，这才是乐趣所在。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+体魄":3,  
+                    "s5+体魄":3,  
+                    "s2+体魄":3, 
+                    "s3+体魄":3,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"c3ccb2a9-54b1-4c8a-933e-f24131347710",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "游猎后必须马上烹制猎物；\n马上，\n快，\n必须！\n正如热恋的人必须马上见面……\n马上，\n快……\n必须。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000460+体魄":1,
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"d1d6c2ce-f570-4cf3-bcc9-4e0c4663cce6",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001302
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"70c355f7-c1b8-4adc-84b4-daa80e66e6da",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"05067e9a-ce61-4665-b670-21e679cfe492",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"f51cac77-61f3-4adf-b40e-2ab9d1f4c321",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"11fec90d-de66-4917-a659-07a0ad905825",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

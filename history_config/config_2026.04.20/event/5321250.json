@@ -1,0 +1,27 @@
+ {
+        "id": 5321250,
+        "text": "旅行的妹妹",     
+        "is_replay": 1, //是否可以重复触发
+        "auto_start": false,
+        "start_trigger": true, // 是否启动就立即开始校验条件
+        "on":{   //时机
+            "round_begin_ba":[3,5] // 仪式开始时
+        },
+        "condition":{  //条件
+           
+             
+        },
+        "settlement": [    //效果 
+            {
+                "tips_resource":"", 
+                "tips_text":"",
+                "action":{
+                    "loot":[6001101,6001102,6001103,6001104,6001105] ,
+                    "failed": {
+                    "event_off": 5321250
+                    }
+                }
+            }
+
+        ]
+    } 

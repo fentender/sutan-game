@@ -1,0 +1,226 @@
+ {
+        "id": 5008237,
+        "name": "失踪的舞姬",
+        "text": "阿图娜尔不见了。她的小宅邸空无一人，似乎毫无她曾逗留过的痕迹；庭院中那棵挺拔的苏合香树依旧在夜风中发出飒飒的响动，似乎在暗合着阿图娜尔的舞步……但她大概再也不会回来了。",       
+        "tips": "",
+        "mapping_id":8001159, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":2, 
+        "waiting_round_end_action":[
+            {
+            "condition": { 
+            },
+            "result_title": "",
+            "result_text":"", 
+            "result": 
+            {
+                "clean.s1":1
+            },
+            "action": {    
+                "prompt": {
+                    "id": "prompt_5008237_01",
+                    "text": "就让她走吧。你想，一个人的去与留都是自由的。",
+                    "icon":"pic/2000129"
+                }              
+            }
+        }
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"黑街:[2,5]", 
+        "icon": "rite_5",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+
+         "tips":["隐匿","社交"],
+        "type":"normal_result"
+        },
+        "tips_text":[
+       
+            "如果你打算找寻她的踪迹，那么最好是找一个更了解市井情况的人帮忙。"
+
+        ],
+        "open_conditions": [  
+
+         
+   
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"[s2.name]能打听到阿图娜尔的消息吗？",
+                "type":"normal_result",
+                "type_tips":"[s2.name]的社交和隐匿为你提供完整的骰子数量。",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功才能有所收获。"
+            }
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+            {
+                
+                "guid":"bf892b19-eb66-4f74-89fa-62918b1aaf55",
+                
+                "condition": {
+                    
+                   "s2.妻子":1, //派了妻子
+                   "s1.黑化<=":1,  //舞姬黑化值小于=1
+                   "counter.7000849>=":1   // 梅姬参与过询问身世  
+                },
+                "result_title":"你向梅姬谈起阿图娜尔不告而别的事",
+                "result_text": "望着你忧虑的眼睛，梅姬略微思索了片刻，说道：“或许，我知道她会在哪儿。”\n“我听说，她在这边买下了一块很小的墓地……因为她是用……嗯，用你家族的名义买的——她手里确实有些徽章、信件之类的东西来证明，这你也知道——所以家族墓园的守墓人把这件事汇报给我了……我想，就算她下定决心要离开，总归会在走之前先去那里转转吧。”\n唔。这的确非常有可能。",
+                "result": 
+                { 
+                },
+                "action": {            
+
+                 "rite":5008238 //墓碑前                  
+                }
+            },
+            {
+                
+                "guid":"b32cc1b1-8d18-4a26-b5fc-d1cd003f5f23",
+                
+                "condition": {
+                    
+                   "s2.is":2000064,  //是奈布哈尼且参与过自由日      
+                    "counter.7000859>=":1       
+                  
+                },
+                "result_title":"",
+                "result_text": "听你说阿图娜尔失踪了，奈布哈尼短暂地惊讶了一会儿就马上冷静下来。\n“哦……对她来说这应该是件好事吧？”他挠挠头，不太在意地重新坐回了软枕堆里，发辫上坠的宝石闪耀着发出轻微碰撞的声音。\n这哪里是好事了？你生气地拖着他一起去街上找阿图娜尔的行踪，可惜一无所获——这肯定是你这个出工不出力的不靠谱盟友的错！",
+                "result": 
+                { 
+ 
+                "clean.s1":1
+
+                },
+                "action": {   
+                    
+                  
+                }
+            },
+            {
+                
+                "guid":"d6c0e353-d341-4587-b737-7e0b8eda8dee",
+                
+                "condition": {
+                    
+                   "s2.贵族":1, //不符合上面的情况，派了任意贵族盟友  
+                  
+                },
+                "result_title":"",
+                "result_text": "[s2.name]非常努力（或者装作非常努力）地帮你搜寻阿图娜尔的踪迹，但这名惯于应付贵族的舞姬消失得却如此彻底。这之后，你再也没有见过她。",
+                "result": 
+                { 
+
+                  "clean.s1":1
+
+                },
+                "action": {   
+                    
+                  
+                }
+            }
+            
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"4b01cc10-0a87-42fb-935d-83cd9ab56c5f",
+                
+                "condition": {
+                    
+                    "s2":1,
+                    "!s2.贵族":1,  //派了非贵族盟友
+                    "r1:社交+隐匿>=":[5,5]
+                   
+                  
+                },
+                "result_title":"",
+                "result_text": "经过一天的走街串巷，[s2.name]得到了一条重要的线索：有人看到阿图娜尔往城外的一座小丘去了，如果你没记错的话——你当然也不可能记错这种事情！——那正是你的家族墓地的方向……",
+                "result": 
+                { 
+
+                },
+                "action": {   
+
+                     "rite":5008238 //墓碑前
+                  
+                }
+            },
+            {
+                
+                "guid":"bf79994d-4d82-4f1e-bff2-25a8dcb5cf36",
+                
+                "condition": {
+                    
+                    "s2":1,
+                    "!s2.贵族":1,  //派了非贵族盟友
+                    "r1:社交+隐匿<":[5,5]
+                   
+                  
+                },
+                "result_title":"",
+                "result_text": "阿图娜尔的谨慎真是超乎想象，[s2.name]没有打听到任何有价值的消息。就这样，她消失了，如同一粒沙尘消失在大漠之中。",
+                "result": 
+                { 
+
+                  "clean.s1":1
+
+                },
+                "action": {   
+                    
+                  
+                }
+            }
+
+        ],                
+        "settlement_extre": [
+
+  
+
+     
+      
+        ],
+        "cards_slot":
+        {
+            "s1":
+            { 
+                "guid":"5e7d9fcd-c7eb-476e-a0a1-aa970a950574", 
+                "condition":
+                {
+                   "type":"char",
+                   "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"阿图娜尔"
+            },
+            "s2":
+            { 
+                "guid":"557c730b-bf44-42d1-b310-0cd3f7ed73ae", 
+                "condition":
+                {
+                   "type":"char",
+                    "追随者":1
+                    
+                   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"派人寻找"
+            }
+          
+        }
+    } 

@@ -1,0 +1,36 @@
+{
+    "id": 5320656,
+    "text": "小留为什么要这么做",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                 "option": {
+                    "id":"5320656_option_1",
+                    "text": "“在妖精的世界里，咒骂一个人最肮脏的话，就是‘愿你在物质的恶臭里翻滚一百零一年’。”留摇摇头，“而它却这么做了……它竟然对我这么做了！对高贵的我、完美的我、奢靡的我——它竟然把我流放到这种肮脏下贱的地方！”\n这个妖精高贵迷人的面庞上，露出了仇恨的阴影。",
+                    "icon": "cards/2000434",
+                    "items": [
+                        {
+                            "text": "我明白了",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320651,  //返回
+                    "event_off":5320656
+                }
+            }
+        }
+
+    ]
+}

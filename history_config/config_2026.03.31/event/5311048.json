@@ -1,0 +1,23 @@
+{
+        "id": 5311048,
+        "text": "飞升线芮尔成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000771":1, 
+            "table_have.2000771.rare>=":4  //需要芮尔为金品级
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000771+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

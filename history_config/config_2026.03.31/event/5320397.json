@@ -1,0 +1,29 @@
+{
+    "id": 5320397,
+    "text": "宫中的传闻",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000009":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "total.2000009+支持":1,
+                "counter+7100003":1, //权势
+                "prompt":{
+                    "id":"5320397_prompt_1",
+                    "text":"听宫中的人们说，萨达尔尼妃搞到了一件稀有的珠宝，是一片巨大又美丽的蛇鳞……她到处炫耀，其他宠妃则恨得牙根痒痒。",
+                    "icon": "pic/2000009",
+                }
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,245 @@
+ {
+        "id": 5006181,
+        "name": "麻辣蛇脖",
+        "text": "快来啃！别怕！它缠住你的脖子你就用力嘬它骨头！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"cec42390-34b4-4ce1-b4a8-b7924d2832cd",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "虽然场面有点混乱，但大家啃脖子都啃的超级开心。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+生存":1,
+                    "s3+生存":1,
+                    "s4+生存":1,
+                    "s5+生存":1,
+                    "s2+隐匿":1,
+                    "s3+隐匿":1,
+                    "s4+隐匿":1,
+                    "s5+隐匿":1,
+                    "s2+吃麻辣蛇脖":1,
+                    "s3+吃麻辣蛇脖":1,
+                    "s4+吃麻辣蛇脖":1,
+                    "s5+吃麻辣蛇脖":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"dccb59d3-9210-4eca-b5cb-794bd1ef5058",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000081, //贾丽拉
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我愿意被毒蛇缠绕~\n只要我能品尝到你的发梢~\n我愿意被毒蛇撕咬~\n只要那痛楚，让我想起你的吻。”这首诗不错，现在，它是贾丽拉女王的了，抗议无效。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000081+战斗":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"1fbbd6a5-759a-4045-937e-451abafecaf4",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000081,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我愿意被毒蛇缠绕~\n只要我能品尝到你的发梢~\n我愿意被毒蛇撕咬~\n只要那痛楚，让我想起你的吻。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"da29871a-d3f0-46d3-9d66-eae2210f3b3f",
+                "condition": {
+                    "s2.吃麻辣蛇脖>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000495,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"7ab26781-ef61-4281-8644-e1bc69745103",
+                "condition": {
+                    "s3.吃麻辣蛇脖>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000495,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"bfaadcfd-25a9-474b-b1c0-c69849c1631d",
+                "condition": {
+                    "s4.吃麻辣蛇脖>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000495,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"17c63dfd-b182-4c1c-bfbf-460d4fc19939",
+                "condition": {
+                    "s5.吃麻辣蛇脖>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s5.name]体内已经积累了太多……最终，[s5.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000495,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"15f05855-3231-47e4-bb41-7b06b341cdbd",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001337
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"99e78499-9ed4-4246-8487-703e2b623e78",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"3c6aec5a-0dfd-4693-bfb4-592ada3db36f",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"91b6aa0d-e1e3-4de2-981a-596cf969542b",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"c702cd7d-c778-4787-a727-b223d48e006d",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

@@ -1,0 +1,23 @@
+{
+        "id": 5310553,
+        "text": "结局-百科全书",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{
+            "counter.7001069":1, //用百科全书
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "global_counter=7200309":1,//成就 
+                "over":288
+            }
+        }
+    ]
+} 

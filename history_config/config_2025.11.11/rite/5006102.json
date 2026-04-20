@@ -1,0 +1,158 @@
+{
+    "id": 5006102,
+    "name": "金子、水晶与污泥",
+    "text": "这幢曾属于故国御医的古老宅邸如今修葺一新，看起来早已易主。",       
+    "tips": "",
+    "mapping_id":8001111,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":1,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result":0,
+    "location": "上城区:[1,6]",
+    "icon": "rite_8", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+        "tips":["社交","魅力"],
+        "type":"normal_result"
+    },
+    "tips_text":[
+        "如果是闻名遐迩的权力者，也许不需要什么手段"
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+        "r1":{
+            "text":"于是，你若无其事地向他问起原本住在这儿的人们……",
+            "type":"normal_result",
+            "type_tips":"社交和魅力提供完整的骰子数量。",
+            "low_target": 3,
+            "low_target_tips": "你至少需要3点成功才能得到你想要的讯息。"
+        }
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+    ],                
+    "settlement": [
+        
+    ],                
+    "settlement_extre": [ 
+        {
+            "guid":"dbdaba6c-bc94-4363-ad59-d99405fa69be",
+            "condition": {
+                
+            },
+            "result_title":"",
+            "result_text": "见你前来拜访，此地的主人殷勤地将你引进门内。他不无骄傲地告诉你，这处宅邸是故国覆灭之后苏丹赏赐给他的，因为他父亲是老苏丹近卫队里的军官，在入城的时候，这位父亲趴在污泥里，让老苏丹的马蹄踩在自己背上，不至于弄脏王者那纯金装饰的马具。\n你客气地赞扬了这个故事，打量着这里精心打理的花圃——在许多年前，这里种的应该是草药吧。还有随处可见的大量水泉——你从未在其他贵族的宅邸里见过这么多水源——应该也是为了诊疗方便。看来你没有找错地方。",
+            "result": 
+            {            
+                    
+            },
+            "action": {
+
+            }
+        },
+        {
+            "guid":"3d6b4aa0-68b0-4814-ac2a-9e490d01fdb2",
+            "condition": {
+                "counter.7100003>=":15  //权势大于等于15
+            },
+            "result_title":"",
+            "result_text": "于是，你若无其事地向他问起原本住在这儿的人们，而他非常乐意向你这位苏丹面前的红人示好，他给了你一个位于城市边缘的地址，据说那些医师被驱逐之后，就去了那边。你点点头，在他盛情挽留之下用过饭后，才离开这座不复昨日的宅邸。",
+            "result": 
+            {
+                "counter+7000731":1  //完成的计数器
+            },
+            "action": {
+                "rite":5006103  //开启小小守卫者
+            }
+        },
+       {
+            "guid":"93caa4f2-acb7-4bb0-92eb-4bf5f1f24bb6",
+            "condition": {
+                "counter.7100003<":15,  //权势小于15
+                "r1:社交+魅力>=":[3,5]  //说服成功
+            },
+            "result_title":"你让他放下了心防",
+            "result_text": "你们相谈甚欢，三言两语间，他几乎把你当作知己……\n听了你的问话，他给了你一个位于城市边缘的地址，据说那些医师被驱逐之后，就躲去了那边。你点点头，谢过之后，离开了这座不复昨日的宅邸。",
+            "result": 
+            {
+                "counter+7000731":1  //完成的计数器
+            },
+            "action": {
+                "rite":5006103  //开启小小守卫者
+            }
+        },
+        {
+            "guid":"89dd7b71-0a02-4201-b592-ee743035e7a8",
+            "condition": {
+                "counter.7100003<":15,  //权势小于15
+                "r1:社交+魅力<":[3,5]  //说服失败
+            },
+            "result_title":"你未能让他放下心防",
+            "result_text": "他不愿意和你聊前朝旧事，更不乐意谈起那些被他驱逐的人们，只说不知道他们的下落。看来只能下次再谈了。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                
+            }
+        },
+        
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"d2171f21-400c-497c-8f03-ea51e1b03a24",
+            "condition":
+            {
+                "type":"item",
+                "is":2001200         
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔的纸条"
+        },
+        "s2":
+        {
+            "guid":"141b6c63-d856-436e-87c9-edfbece90491",
+            "condition":
+            {
+                "type":"char",
+                "!怪物":1,
+                "!动物":1   
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"你可以亲自，或派遣任意追随者前去拜访"
+        },
+        "s3":
+        {
+            "guid":"383f3b6a-77fd-479e-9e18-bc444c6e7dd1",
+            "condition":
+            {
+                "type":"item",
+                "cost.消耗品=":1,
+                "!金币":1
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"能令你在交谈中更具优势的消耗品"
+        }
+    }
+} 

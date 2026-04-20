@@ -1,0 +1,30 @@
+{
+    "id": 5320421,
+    "text": "移除誓言之证的情况",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "rite_end": 1,
+        "round_begin_ba":1,
+    },
+    "condition":{
+        "!have.2000013":1, //流浪剑客无了
+        "have.2000913.正当性":1, //正当性是誓言之证
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "prompt":{
+                    "id":"5320421_prompt_1",
+                    "text":"希尔希纳死了！星灵们没能庇护它们的王子！哪怕你仍有再战的余力，那些因为故国的正当性而聚集过来的人们也彻底失去了造反的勇气……",
+                    "icon":"cards/2000913"
+                },
+                "over":42,
+            }
+        }
+
+    ]
+}

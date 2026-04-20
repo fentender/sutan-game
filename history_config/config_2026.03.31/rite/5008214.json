@@ -1,0 +1,84 @@
+{
+    "id": 5008214,
+    "name": "花与剑",
+    "text": "奈布哈尼主动请缨，要去帮流民们卖花……嗯，差不多就是在街上与她们调情——这样就没人敢真的调戏她们了。",
+    "tips": "",
+    "mapping_id":8001049,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 3,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location":"商业区:[10,19]", 
+    "icon": "rite_12",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "5cc8c795-ab91-4740-a05e-304c8f224a1a",
+            "condition": {},
+            "result_title": "",
+            "result_text": "奈布哈尼最近变得十分反常。他突然热衷于工作了，经常会披挂着盔甲和配件出入集市中，而且还一直盯着各种商贩看……后来，他把有几块地方都专门划了出来，鉴于他的名望、帅气还有御前近卫的身份，尽管他划的都是最好的地段，但商贩们也不敢说什么……“让姑娘们来这里卖花吧！”他满脸笑容地告诉你，“我会经常来看她们的！”\n……也……也行吧，至少一部分流民确实得到了一个可靠的工作岗位。她们不但卖花，还兜售笑容，草药，荒野里的知识，一段时间后，即使没有奈布哈尼，无论是年轻的卖花姑娘还是年老的药师，都在市场中找到了自己的位置。",
+            "result": {
+                "counter+7100001": 1, //善名+1
+                "counter+7100004": 1, //侠名+1
+                "s1+魅力": 1,
+                "s2+魅力": 1,
+                "s3+魅力": 1,
+                "s1+生存": 1,
+                "s2+生存": 1,
+                "s3+生存": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid": "4903d901-6314-4cbb-82a0-2063842eddcc",
+            "condition": {
+                "type": "char",
+                "is": 2000064,
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "奈布哈尼得亲自去"
+        },
+        "s2": {
+            "guid": "de667a64-c6b2-4072-b1b2-8c0ee3810f36",
+            "condition": {
+                "type": "char",
+                "追随者": 1,
+                "魅力>=": 5
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "魅力5以上的盟友，协助看场子"
+        },
+        "s3": {
+            "guid": "14f857bf-971f-43bd-815e-4c21be849126",
+            "condition": {
+                "type": "char",
+                "追随者": 1,
+                "魅力>=": 5
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "魅力5以上的盟友，协助看场子"
+        },
+    }
+}

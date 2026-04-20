@@ -1,0 +1,23 @@
+{
+        "id": 5311014,
+        "text": "飞升线莎姬成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000010":1,
+            "counter.7000644>=":1  //莎姬完成黄金体验
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000010+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

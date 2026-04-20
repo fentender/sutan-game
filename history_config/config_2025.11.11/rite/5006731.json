@@ -1,0 +1,137 @@
+ {
+        "id": 5006731,
+        "name": "迷宫之心",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"5302194f-cfec-4bd2-8719-1bd233daa40b",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "在书籍扉页印有一段题赠：“谨以本书致敬可敬的赞助人女士，她让我的疯狂爱好得见天日。”",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+魔力":1,  
+                    "s2+生存":1,
+                    "pop.5006731_01.s2": "生命也是一座庞大的迷宫……"                           
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"5665e41d-df58-4ecd-a4e3-a1a8bc8a0dba",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001252,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"9813b32a-2fd2-401a-b712-6e1777a2f38f",
+                    "condition": 
+                    {
+                        "type":"char",
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006731_s2_01.self":"终点就在那里，我们怎么过去？"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000005 //巴拉特
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006731_s2_02.self":"最好不要让自己身涉如此险境……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000022 //拜铃耶
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006731_s2_03.self":"一把火烧光了不就没那么多事了吗？"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000054 //哲巴尔
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006731_s2_04.self":"宝箱藏在哪里！宝藏守护者又在哪里！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "法拉杰": 1 //法拉杰
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006731_s2_05.self":"我来负责帮您看地图！"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

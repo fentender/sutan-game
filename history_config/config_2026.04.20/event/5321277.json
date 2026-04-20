@@ -1,0 +1,36 @@
+{
+    "id": 5321277,
+    "text": "金宫斗3王座",     
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+    
+     "have.2000129.新剧情":1,  
+    "table_have.2000129.入宫": 1, //舞姬已入宫且闲置
+       "!rite":5001001,           //场上无权力的游戏
+        "rite":5001004,            //场上有群龙无首
+         "table_have.2000024":1, //苏丹闲置
+          "table_have.2000010":1, //莎姬闲置
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "counter=7000904":0,  //最高的枝头阶段结束
+                "rite":5008251,
+                  "counter+7000912":1, //触发过拥挤的王座
+                "success": {
+                    "event_off": 5321277
+                }
+      
+            }
+        }
+
+    ]
+}

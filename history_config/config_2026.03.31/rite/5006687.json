@@ -1,0 +1,184 @@
+ {
+        "id": 5006687,
+        "name": "报菜名",
+        "text": "这些菜都是哈桑挑的，念出来都可以押韵，因此可以说得非常快、非常搞笑。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"4334b202-a6ac-4d1b-b8c7-d8d8a647483d",
+                "condition": {
+
+                    "s1.is":2001192   //家常菜
+                    
+                },
+                "result_title":"你们享用了一顿美味的家常菜",
+                "result_text": "大家的身子都暖洋洋的……",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+体魄":2,  
+                    "s5+体魄":2,  
+                    "s2+体魄":2, 
+                    "s3+体魄":2,
+                    "s4+生存":2,  
+                    "s5+生存":2,  
+                    "s2+生存":2, 
+                    "s3+生存":2
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"793ab23e-f3e6-42bb-a5b9-492a425ec118",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000371,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "他开始念起了这些菜的名字，像豆子洒落一般，哗啦啦地说个不停，把小圆都逗笑了——于是她也花时间练习了一番，以备以后向其他人吹嘘自己主人的宴会时可以来一段。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000371+社交":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"6c2212b7-5527-4a97-afb0-d982b7712ac1",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000371,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "他开始念起了这些菜的名字，像豆子洒落一般，哗啦啦地说个不停，把大家都逗得哈哈大笑，连连鼓掌。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"6cb91ba4-092d-4e9b-ba78-b29087c9e7e4",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001192
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"9775b312-9d85-448e-be00-8cbe8e61f7e6",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"3cd5358a-d74b-49c6-a2eb-bdc17de805dc",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"308ab90b-ceda-415b-935a-80daed089fbf",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"abbd3dbb-c668-4e49-ac5d-4f0e100a6623",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

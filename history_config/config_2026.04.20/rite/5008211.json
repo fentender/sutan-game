@@ -1,0 +1,129 @@
+{
+    "id": 5008211,
+    "name": "正神的恩惠",
+    "text": "纯净之神并不会区分人类，所有人的苦难祂都看在眼里——伊曼如是说。",
+    "tips": "",
+    "mapping_id": 8001369,
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 3,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "神殿区:[2,10]",
+    "icon": "rite_9",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [
+        {
+            "condition": {
+                "any": {
+                    "all":{
+                        "s2.金币<=": 8,
+                        "!s3":1
+                    },
+                    "all": {
+                        "s3.奢靡": 1,
+                        "s2.金币>=": 16
+                    }
+                }
+            },
+            "tips": "你需要花费8金币，奢靡卡需要搭配16枚金币使用"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "fc38a3cc-4a18-415b-824e-effa4725112f",
+            "condition": {
+                "s2": 1
+            },
+            "result_title": "赐福来临",
+            "result_text": "茉莉花香水像是不要钱一般地冲刷着[player.name]山庄的地板，你不由得心疼地想着，你交上去的那些供奉里到底有多少都花在了和治疗无关的香料上……不过，当随侍的祭司们在浓郁的香气中出现时，流民们感动极了，他们跪倒在地，呼喊着纯净者的名号，有不少人都哭了出来。他们是被抛弃、被侮辱和被伤害的，现在神的使者来了，他们又是神前的孩子了，这种精神上的满足或许比祭司们分发的灸绒和药丸更管用……",
+            "result": {
+                "counter+7100001": 1, //善名+1
+                "s4+虔信": 1,
+            },
+            "action": {}
+        },
+    ],
+    "settlement_extre": [
+        {
+            "guid": "203da695-0c91-45ed-8862-4b5fc3fe7b08",
+            "condition": {
+                "s3": 1 //放奢靡额外的文案
+            },
+            "result_title": "毫无想象力",
+            "result_text": "当流民们排着队，一个个去接受油膏与圣餐的时候……金粉从天而降，伴随着闪光，少女的笑声。\n人群沸腾了，他们流着泪去接那些飘散在空中的金箔，有些立即吃进了嘴里，有些则紧紧捂在心口，拿去给生病的亲人祝福……\n这当然被当做是纯净者的神迹来宣扬，所以当你告诉苏丹那些金箔的钱是你出的，而不是纯净者变出来的时候，他非常非常失望，觉得你这种折断卡牌的方式没意思透顶了。",
+            "result": {
+                "clean.s3": 1,
+                "s4+虔信": 1
+            },
+            "action": {}
+        }
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid": "114f4c13-789c-490c-a6d4-8307e242062e",
+            "condition": {
+                "type": "char",
+                "is": 2000021
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "伊曼需要亲自出席"
+        },
+        "s2": {
+            "guid": "dad3540b-6a35-4961-81e1-00683dd31223",
+            "condition": {
+                "type": "item",
+                "cost.金币": [
+                    8,
+                    16
+                ]
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "需要花费8枚金币"
+        },
+        "s3": {
+            "guid": "8e218047-0d9d-4265-ab67-5ddca164e1c6",
+            "condition": {
+                "type": "sudan",
+                "奢靡": 1,
+                "rare<=": 2
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "可以借此机会折断一张青铜级别以下的奢靡卡，但需要花费双倍金币"
+        },
+        "s4": {
+            "guid": "f2b364f4-d6bb-483d-aa03-975cb644245b",
+            "condition": {
+                "type": "item",
+                "any": {
+                    "is": 2000725,
+                    "is": 2000726,
+                    "is": 2000727,
+                    "is": 2000728
+                },
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "这也是一种传播正教的功绩呢"
+        }
+    }
+}

@@ -1,0 +1,73 @@
+ {
+        "id": 5010210,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:16", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你还有5回合时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"af9b62d4-8963-4da2-a37d-22051a43197d",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":5  //第三天结束时
+                },
+                "result_title":"巨蛇",
+                "result_text":"在无边无际的虚空中，羊肉炉的身躯开始膨胀……一圈又一圈，一卷又一卷，无数的物质与力量被裹挟在这盘旋的包卷中……对着那遥远创世门户伸出了无量大，无限长的头颅，仿佛传说中吞噬星空的多头怪兽。\n虽然，相比之下，你的自我只是微尘大小的凡人，但幸好升华之路的距离却并非物理上的，而是在自己的心中……",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1 //羊肉炉飞升计数器
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_04" ,
+                    "rite":5010211  //生成第四天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"98cc1c5b-6c04-4ca4-a823-e2da659f6299",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你还有5回合时间成为造物主"
+            }
+            
+    }
+    } 

@@ -1,0 +1,163 @@
+ {
+        "id": 5006720,
+        "name": "书窖",
+        "text": "奈费勒的图书馆位于宅邸正下方一处干爽凉快的地窖里。他允许你们在他的书窖里短暂地逗留。",       
+        "tips": "",
+        "mapping_id":8001565,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+            {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {  
+                },
+                "action": {
+                    "event_on":5320681,//归于木林
+                    "prompt":{
+                        "id":"5006720_prompt_01",
+                        "text":"你临时有事被叫走了，痛失了这难得的机会。阿萨尔可不管你那么多！他一个人徜徉于奈费勒的藏书室里，简直幸福得冒泡，直到仆人们来赶人了才恋恋不舍地和心爱的珍本们依依惜别……",
+                        "icon":"cards/2000199"
+                    }
+                }
+            }
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "上城区:[7,12]", 
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{     
+            "tips":["隐匿","生存"],
+            "type":"normal_result"     
+        },        
+        "tips_text":[
+            "准备好检定吧",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"等等，他是不是哪里有些不对劲？", 
+                "type":"normal_result",
+                "type_tips":"你的隐匿和生存属性为你提供了完整的骰子数量。",
+                "low_target": 3,
+                "low_target_tips": "你至少需要3点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"67ce59b4-321d-4552-bafe-d93f2d5aa2e3",
+                "condition": {
+                },
+                "result_title":"好多书",
+                "result_text": "地窖留有几个可供光线射入的顶部窗口，造成了几道光柱，借着它们，你勉强能分清周遭书籍的名字。\n这里大概有数十个、甚至上百个书架，每个都有三层，每层都装满了书。你徜徉在这片书籍的海洋中，鼻腔中充盈着好闻的纸张味，双眼也逐渐适应了昏暗的环境。阿萨尔也一言不发，以极快地速度搜寻着、浏览着书籍……\n诗歌，思辨，历史，逻辑，颂歌，挽词。\n你在奈费勒的书窖中大饱眼福，虽说没空仔细读读内容，但光是看到这么多珍本聚在一起，就是了不得的财富了。",
+                "result": 
+                {  
+                    "s2+智慧":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"9b8ad13f-d372-46a7-beff-c1fe7aad1aa8",
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "时间过得飞快，一名手持油灯的仆人打开书窖的门，客气地提醒你们该走了。大概是为了避免失火吧，他并没走入书窖。\n你向外走去，又叫了阿萨尔几声。他急匆匆地追了上来，满头大汗的样子……",
+                "result": 
+                {  
+                   
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"2f874d2f-b093-4380-9563-5a4c1797f387",
+                "condition": {
+                    "r1:隐匿+生存>=":[3,5]
+                },
+                "result_title":"",
+                "result_text": "你发现他的袍子里有一点不太寻常的鼓起，就这么多看了一眼，阿萨尔目光就闪烁起来，他掩饰似的抬手擦擦汗水，似乎非常害怕你追问他什么……",
+                "result": 
+                {  
+                },
+                "action": {
+                    "event_on":5320346,//触发选项弹框
+                }
+            },
+            {
+                "guid":"ed3ef6be-74c8-422e-8900-86e3733fe49e",
+                "condition": {
+                    "r1:隐匿+生存<":[3,5]
+                },
+                "result_title":"",
+                "result_text": "你没看出什么异样。阿萨尔也松了口气似的，紧跟在你身后钻出了书窖的大门。你们没有找奈费勒道别，就在仆人的指引下离开了他的宅邸。",
+                "result": 
+                {  
+                },
+                "action": {
+                    "event_on":5320681,//归于木林
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"3e0239ca-e743-4e61-9573-6eb5f5fa73fb",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000199,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"阿萨尔获准参观奈费勒的书窖"
+                },
+            "s2":
+                {
+                    "guid":"85f212c6-0543-4181-8b38-064ebdcc28d2",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "主角":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"你本人获准参观奈费勒的书窖"
+                },
+            "s3":
+                {
+                    "guid":"5042b168-e317-4861-aae6-018ead057227",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"派得上用场的消耗品"
+                }
+        }
+    } 

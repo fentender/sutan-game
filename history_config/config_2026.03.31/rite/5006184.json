@@ -1,0 +1,245 @@
+ {
+        "id": 5006184,
+        "name": "骷髅泡酒",
+        "text": "今天要一醉方休！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"b02cdd04-bf57-4620-bf55-094d4afdc835",
+                "condition": {                
+                },
+                "result_title":"你们喝得舌头都变大了",
+                "result_text": "这酒什么都好，就是太上头了，毕竟是用骷髅头泡的，也没办法。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+战斗":1,
+                    "s3+战斗":1,
+                    "s4+战斗":1,
+                    "s5+战斗":1,
+                    "s2+体魄":2,
+                    "s3+体魄":2,
+                    "s4+体魄":2,
+                    "s5+体魄":2,
+                    "s2+吃骷髅泡酒":1,
+                    "s3+吃骷髅泡酒":1,
+                    "s4+吃骷髅泡酒":1,
+                    "s5+吃骷髅泡酒":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"43a5aa85-0eac-4dfe-b09e-f24f97cb008b",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000054, //哲巴尔
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“百年之后，\n请用我的头颅泡酒!\n整瓶喝光之后，\n咱俩还能对唱消愁。”哲巴尔听了之后哈哈大笑，告诉你，一定要用最烈的酒来泡自己……滚吧，先去把头洗洗行不！",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000054+魅力":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"cc7e83a7-0199-4a5f-9adc-c107a40f8e63",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000054,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“百年之后，\n请用我的头颅泡酒!\n整瓶喝光之后，\n咱俩还能对唱消愁。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"adb5c810-8970-4e56-9311-c93a650dd63b",
+                "condition": {
+                    "s2.吃骷髅泡酒>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000499,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"1b91a899-ff62-49cd-9e07-cba8ac465552",
+                "condition": {
+                    "s3.吃骷髅泡酒>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000499,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"53ff2b4e-1f70-4d29-a704-de63455e10dc",
+                "condition": {
+                    "s4.吃骷髅泡酒>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000499,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"d281025a-a3bc-4939-9a8a-583dde1279a8",
+                "condition": {
+                    "s5.吃骷髅泡酒>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000499,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"7f0c49c4-82ff-4577-97f5-7db129dd4531",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001340
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"6352321a-03b3-4a33-8939-c8d498849a41",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"351cd941-4259-4fa9-b0ad-34a108a4ee04",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"85e86751-93f1-40be-8bc4-687718b8d854",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"34325bfe-5412-4f47-8cdd-12eef725ee8c",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

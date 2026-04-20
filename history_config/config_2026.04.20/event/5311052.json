@@ -1,0 +1,22 @@
+{
+        "id": 5311052,
+        "text": "飞升线妖精女王提灯成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2001327":1, 
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2001327+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

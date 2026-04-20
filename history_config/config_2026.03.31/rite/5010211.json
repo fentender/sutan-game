@@ -1,0 +1,72 @@
+ {
+        "id": 5010211,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:17", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你还有4回合时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"6aff6ab0-79be-4825-9a0f-251726e3e44f",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":4  //第四天结束时
+                },
+                "result_title":"死去的神明",
+                "result_text":"为了证明自己的权能，那名为羊肉炉的巨物开始向内翻卷。国度，山峦，殿堂还有海——所有被证明无用的权柄与物质就这么被抛弃了，祂进一步撕裂自己的肉体，露出了那宝石一般闪耀，心脏一般跃动的核心……造物主的光辉闪耀其中，每一块都曾经属于一位那些参与过创造世界的伟大存在。",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1 //羊肉炉飞升计数器  
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_05" ,
+                    "rite":5010212  //生成第五天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"ad9f0327-2c47-4bb3-bdd0-548b78266703",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你还有4回合时间成为造物主"
+            }
+    }
+    } 

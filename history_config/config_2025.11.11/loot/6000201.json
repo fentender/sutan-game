@@ -1,0 +1,51 @@
+{
+    "id": 6000201,
+    "name": "时机成熟了！",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "counter.7100004>=":10
+            },
+            "num" : "1",
+            "id" : "5320309",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "any":{
+                    "rite":5006676, //苗圃
+                    "rite":5006677,
+                },
+                "!have.2000312.大敌":1,
+                "have.2000312":1, 
+                "counter.7000428>=":1, //奈费勒推进的苗圃               
+            },
+            "num" : "1",
+            "id" : "5320310",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100003>=":10,
+                "have.2000349":1,
+            },
+            "num" : "1",
+            "id" : "5320311",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100002>=":10,
+            },
+            "num" : "1",
+            "id" : "5320312",
+            "type" : "event",
+            "weight" : 60
+        },
+    ]
+}

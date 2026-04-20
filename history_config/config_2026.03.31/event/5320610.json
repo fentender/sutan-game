@@ -1,0 +1,26 @@
+{
+    "id": 5320610,
+    "text": "三个贵族订单完成后",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+        "counter.7000820>=":3  //完成了三个贵族订单
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":5320611,  //开启热娜的宝石增幅串
+                "event_off":5320610  //关闭自己
+            }
+        }
+
+    ]
+}

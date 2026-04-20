@@ -1,0 +1,207 @@
+ {
+        "id": 5004835,
+        "name": "遁世秘法",
+        "text": "你随时都可以打开一道门户——迈入此地，与庸碌危险的俗世告别。现在，唯一的问题就是，你要带上谁。",       
+        "tips": "",
+        "mapping_id":8001518,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0,
+        "location": "结局:8",
+        "type":"END", 
+        "icon": "rite_ex_1", 
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "没人能阻止你，游戏会直接进入结局",
+            "带走一张苏丹卡，恶心一下女术士",
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "any":{
+                        "s3":1,
+                        "s4":1,
+                        "s5":1,
+                        "s6":1,
+                        "s7":1,
+                        "s8":1,
+                        "s9":1,
+                    }        
+                },
+                "tips": "孤身一人上路也太可怜了吧"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{        
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"7ec8702c-eb43-4cbe-95cc-588343badea3",
+                "condition": {
+                },
+                "result_title":"你将于林木深处长存",
+                "result_text": "这里仍然是现实世界的一部分，但除了你，已无任何人类能够踏足此处。居住于此处是安全的，对你，对世界。\n你的追随者最先发现了一座小木屋，以及湖边的码头残迹——曾经有与你一样强大的人隐居于此，他们也许被称作魔法师，贤者，女巫……但如今，他们已经前往了距离此世更远，更深的地方——也许你未来也将如此。\n至少，在最近的一个千年，这里将成为你们的家园，而你有很多技艺来打发这段漫长的光阴。",
+                "result": 
+                {
+                    "counter=7001105":1,
+                },
+                "action": {  
+                    "over":266 //千年抽丝
+                }
+            }
+        ],               
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"dc32bea4-9d2c-40b2-97a9-0a5745869798",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "主角":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"你将亲自打开门扉"
+                },
+            "s2":
+                {
+                    "guid":"d4dbd7bc-752f-4ffe-8176-962c47c129a4",
+                    "condition": 
+                    {
+                        "is":2000317
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"一片被魔法保护的圣地"
+                },
+            "s3":
+                {
+                    "guid":"e8d2fa62-2141-45e9-b434-404628916540",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s4":
+                {
+                    "guid":"965c43e5-f2a0-41d6-a6cc-0c3e31fab4e5",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s5":
+                {
+                    "guid":"c86337a8-366e-4ff9-b744-4d88282f25c1",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s6":
+                {
+                    "guid":"fbc3ba45-bd55-4875-be89-50d2714b8cbd",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s7":
+                {
+                    "guid":"e5706781-47ec-4235-adeb-0f89733c3b0b",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s8":
+                {
+                    "guid":"6d96574c-90ba-44bb-b065-a62e182b9600",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s9":
+                {
+                    "guid":"15afbdeb-a7f2-48ef-89a6-3b7abb283b26",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "命运的羁绊":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0, 
+                    "text":"唯有命运相连的人，才能穿过你的门扉"
+                },
+            "s10":
+                {
+                    "guid":"cc064204-35b1-454c-980e-39f82b5f1e0a",
+                    "condition": 
+                    {
+                        "type":"sudan",
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0, 
+                    "text":"带走它的收藏，让它们永远不再完整"
+                }
+        }
+    } 

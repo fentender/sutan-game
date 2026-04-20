@@ -1,0 +1,203 @@
+ {
+        "id": 5006684,
+        "name": "满足苏丹",
+        "text": "果然，你的君主仍然怀疑你在假币事件中有所隐瞒……再给他一点什么，去满足他的贪婪，他的施虐欲望。",       
+        "tips": "",
+        "mapping_id":8001557,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":3,
+        "waiting_round_end_action":[
+            {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                { 
+                },
+                "action": {
+                    "prompt":{
+                        "id":"5006684_prompt_1",
+                        "text":"你忽视了苏丹的传唤，毫无意外地，你被处死了。",
+                        "icon":"cards/sudan"
+                    },
+                    "over":8,
+                }
+            }
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0, 
+        "location": "宫廷:[2,6]", 
+        "icon": "rite_14", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["魅力","社交"],
+            "type":"normal_result"
+        },        
+        "tips_text":[
+            "你可以通过上交一些物品来满足苏丹，也可以试试用自己的嘴。",
+            "上交戒指可能会导致相关人士受苦",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"陛下，请听我狡辩",
+                "type":"normal_result",
+                "type_tips":"你的魅力和社交为你提供了完整的骰子数量。",
+                "low_target": 3,
+                "low_target_tips": "你至少需要3点成功"
+            },
+        },
+        "settlement_prior": [
+            {
+                "guid":"756205bc-e50c-4080-acc3-f796727ee43a",
+                "condition": {
+                    "!s2":1,
+                    "!s3":1,
+                    "!s4":1,
+                    "r1:魅力+社交>=":[3,5]
+                },
+                "result_title":"你的花言巧语逗笑了苏丹",
+                "result_text": "苏丹真的在乎这件事情么？其实你也不知道……但你的丑态与谦卑已经让他暂时得到了满足。",
+                "result": 
+                { 
+                    "card":2000417,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"9fdec961-abe3-46f2-ba64-90eb6f47dc05",
+                "condition": {
+                    "!s2":1,
+                    "!s3":1,
+                    "!s4":1,
+                    "r1:魅力+社交<":[3,5]
+                },
+                "result_title":"你的死相逗笑了苏丹",
+                "result_text": "最后，他切开了你的肚子——终于相信，[player.name]并没有私吞苏丹的任何一枚金币。",
+                "result": 
+                { 
+                    "clean.s1":1,
+                },
+                "action": {
+                }
+            },
+        ],                
+        "settlement": [
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"6f625567-30e0-4a0f-ab91-2699d8a7a45c",
+                "condition": {
+                    "s2":1 //上交金币
+                },
+                "result_title":"这些钱哪来的并不重要",
+                "result_text": "你再次向苏丹请罪，表示又罪犯遗留的赃物中查抄出了这批金子……伟大而仁慈的苏丹当然原谅了你这小小的疏忽。",
+                "result": 
+                { 
+                    "card":2000415,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"85ef9adc-5830-4d50-af83-c31d0bf9469e",
+                "condition": {
+                    "s3":1 //上交假金币
+                },
+                "result_title":"这真的是最后的一点了",
+                "result_text": "经过[player.name]的不懈努力，更多有损王家信誉的假币被查抄了出来……这些功绩，这些财富，当然可以令伟大的苏丹原谅你之前的可疑行径。",
+                "result": 
+                { 
+                    "card":2000416,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"b1e8559d-d2d4-4855-a9b1-2b202560ad90",
+                "condition": {
+                    "s4":1 //上交戒指
+                },
+                "result_title":"只要不是你，谁都行",
+                "result_text": "最后，你还是得交出这个东西……你相信苏丹会明白这枚戒指中所蕴含秘密……你在暗示，是他身边的女人，而不是你，对苏丹不忠诚，偷苏丹的财富……",
+                "result": 
+                { 
+                    "card":2000414,
+                    "clean.s4":1,
+                },
+                "action": {
+                    "event_on":5320288,//噩耗
+                }
+            },
+            
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"50e422c9-9833-412f-a82b-416b687c8c18",
+                "condition": 
+                {
+                    "type":"char",
+                    "主角":1,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"你需要亲自应付君主"
+            },
+            "s2":
+            {
+                "guid":"0eecb73e-55cf-4372-a043-2c65a99f1cda",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2000029,
+                    "cost.金币":10,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"呈上请罪的罚金"
+            },
+            "s3":
+            {
+                "guid":"a40e10da-af5c-45ff-8143-25988d25cc0e",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001190,
+                    "cost.金币":10,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"呈上收获的假币"
+            },
+            "s4":
+            {
+                "guid":"26292cb1-72f1-4a76-bbb1-e54265dea7ba",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001191,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"呈上足以转移苏丹注意力的证物"
+            }
+        }
+    } 

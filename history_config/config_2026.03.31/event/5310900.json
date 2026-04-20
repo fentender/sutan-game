@@ -1,0 +1,26 @@
+{
+        "id": 5310900,
+        "text": "移除神的面容",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "any":{
+                "table_have.邪神的面容":1,
+                "table_have.正神的面容":1,
+            }
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.clean.邪神的面容":1,
+                "table.clean.正神的面容":1,
+            },            
+        }
+    ]
+} 

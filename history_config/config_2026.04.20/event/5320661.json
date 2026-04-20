@@ -1,0 +1,23 @@
+{
+    "id": 5320661,
+    "text": "生成金色的花",     
+    "is_replay": 0,
+    "auto_start_init": [1],    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "global_counter.7230033>=":1  //已经获得过金色的花
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "card":2001320  //生成一朵金色的花到卡池
+            }
+        }
+
+    ]
+}

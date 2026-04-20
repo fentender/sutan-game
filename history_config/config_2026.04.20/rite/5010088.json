@@ -1,0 +1,173 @@
+ {
+        "id": 5010088,
+        "name": "沐浴龙血",
+        "text": "勇士们慕名而来，在你面前跪拜——致敬你屠龙的勇行，也感恩你将赐予他们的力量。",       
+        "tips": "",
+        "once_new":-1,
+        "round_number": 0,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "野外:[9,14]",
+        "icon": "rite_17",
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "any":{
+                        "s2":1,
+                        "s3":1,
+                        "s4":1,
+                        "s5":1,
+                        "s6":1,
+                    },
+                },
+                "tips": "龙血可以强化你的军队与战士"
+            }
+        ],
+        "random_text": {      
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+
+        ],                
+        "settlement_extre": [ 
+            {
+                "guid":"477dbb02-588b-4077-93b4-7073c2cc1672",
+                "condition": {
+                },
+                "result_title": "蒙福的战士",
+                "result_text": "你骑着马穿过这些勇士与兵卒们，龙头就挂在身后。你的手沾满了龙血，从他们的面颊上一一画过……然后，那些愿意第一批冲上城墙的士兵们又被单独挑选了出来，每人用一把纯银的小刀切下一条龙肉咀嚼……吃吧，勇士们，就当这是最后一餐！别害怕，无论是巨龙还是暴君，都和我们一样，终究难逃死亡！",
+                "result": {
+                    "clean.s1":1,
+                    "s2+体魄":5,
+                    "s3+体魄":5,
+                    "s4+体魄":5,
+                    "s5+体魄":5,
+                    "s6+体魄":5,
+                },
+                "action": {}
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"80cd26a9-9ded-46fe-b53f-85423b6f2247",
+                "condition":
+                {
+                    "is":2000954, //龙头         
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"那流淌的鲜血，还带着惊人的魔力……"
+            },
+            "s2":
+            {
+                "guid":"0f40299c-44b5-4201-be7b-ad9593aecf30",
+                "condition":
+                {
+                    "any":{
+                        "type":"char", 
+                        "all":{
+                            "type":"item",
+                            "部队":1, 
+                        },
+                    }
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"用龙血膏他们的头颅"
+            },
+            "s3":
+            {
+                "guid":"c7495981-8fb1-406c-94e3-d71a197b06e8",
+                "condition":
+                {
+                    "any":{
+                        "type":"char", 
+                        "all":{
+                            "type":"item",
+                            "部队":1, 
+                        },
+                    }                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"用龙血膏他们的头颅"
+            },
+            "s4":
+            {
+                "guid":"899aa6ad-efc2-4162-8f52-1bfb6da92540",
+                "condition":
+                {
+                    "any":{
+                        "type":"char", 
+                        "all":{
+                            "type":"item",
+                            "部队":1, 
+                        },
+                    }                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"用龙血膏他们的头颅"
+            },
+            "s5":
+            {
+                "guid":"ec120853-a04c-4d06-877e-d6fb3133b3d1",
+                "condition":
+                {
+                    "any":{
+                        "type":"char", 
+                        "all":{
+                            "type":"item",
+                            "部队":1, 
+                        },
+                    }                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"用龙血膏他们的头颅"
+            },
+            "s6":
+            {
+                "guid":"bb49041c-50ac-436d-bd75-4e9bae33eb2f",
+                "condition":
+                {
+                    "any":{
+                        "type":"char", 
+                        "all":{
+                            "type":"item",
+                            "部队":1, 
+                        },
+                    }                
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"用龙血膏他们的头颅"
+            },
+        }
+    } 

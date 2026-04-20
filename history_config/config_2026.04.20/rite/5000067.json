@@ -1,0 +1,115 @@
+{
+    "id": 5000067,
+    "name": "闯入后台",
+    "text": "你决定再次用这些词句刺激一下哈桑，看能不能抓住其他线索……或者逼得那幕后之物现身。",       
+    "tips": "",
+    "mapping_id":8001005,
+    "once_new":0,
+    "round_number": 0,
+    "waiting_round":1,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result":0,
+    "location": "自宅:[2,12]", 
+    "icon": "rite_7", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+    },
+    "tips_text":[
+    ],
+    "open_conditions": [
+    ],
+    "random_text":{
+    },
+    "random_text_up":{
+    },
+    "settlement_prior": [
+    ],                
+    "settlement": [
+        {
+            "guid":"b65c8bff-4a04-4f48-9914-6ef77ca13bbf",
+            "condition":
+            {
+                "s2.is":2000460, //给哈桑看
+            },
+            "result_title":"羊肉炉会吃掉那些它不满意的故事",
+            "result_text": "“这是什么，我的好朋友？”\n哈桑伸出手，想要从你手里接过诗集——而他怀中的小羊却抢在他前面一口叼住了那卷美味的纸——\n“羊肉炉！嘿！不许吃！”哈桑想要从羊嘴里抢救出书本，但羊嚼得飞快，“哦——我的好朋友，我的好老爷——你看……这个……”\n哈桑尴尬地挠着头，羊则一脸气定神闲地继续咀嚼着纸张。\n“怎么说呢，啊哈……我的小羊肉炉真是对文学有着相当好的胃口啊——此处双关，啊哈哈……”\n你没接话，因为你已经被那个曾经造访过你的幻觉的存在，带到了你曾经造访过的地方。",
+            "result": 
+            {   
+                "clean.s1":1,
+                "clean.s4":1,
+                "counter+7100005":1,  //灵视                              
+            },
+            "action":
+            {
+                "event_on":5320318,
+            }
+        }
+
+    ],                
+    "settlement_extre": [
+    ],
+    "cards_slot":
+    {
+        "s1":
+            {
+                "guid":"ac0d2a3f-80cd-4ec5-a242-e5093483863b",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001209,
+                    "正在阅读":1                  
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"你收集的特殊诗句" 
+            },
+        "s2":
+            {
+                "guid":"95b7d31d-bba6-4746-adde-e1d10c8bd8bc",
+                "condition": 
+                {
+                    "type":"char",
+                    "is":2000460,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"哈桑"
+            },
+        "s3":
+            {
+                "guid":"78fd5f5a-27a8-4518-9143-173abfc89085",
+                "condition": 
+                {
+                    "type":"char",
+                    "is":2000001,
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"必须你本人亲自前往"
+            },
+        "s4":
+            {
+                "guid":"b4190e84-ca98-4aea-b009-186d4e9e89be",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001208
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"一番不可思议的奇遇"
+            }
+    }
+} 

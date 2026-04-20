@@ -1,0 +1,23 @@
+{
+        "id": 5311015,
+        "text": "飞升线流浪剑客成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000013":1,
+            "counter.7000546>=":1  //流浪剑客得知名字
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000013+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

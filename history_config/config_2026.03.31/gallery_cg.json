@@ -1,0 +1,157 @@
+﻿{
+    "1": { // 通用死亡
+        "over_id": [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21,
+            22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+            41, 42, 43, 999, 200, 201, 267, 268, 275, 276 , 401
+        ],
+        "icon": "over_cg_icon/cg_01",
+        "icon_deselect": "over_cg_icon/cg_01_deselect",
+        "icon_lock": "over_cg_icon/cg_01_lock",
+        "big_resource": "over_cg/over_cg_1",
+        "title": "堕入轮回"
+    },
+    "2": { // 逃往中国
+        "over_id": [
+            100
+        ],
+        "icon": "over_cg_icon/cg_02",
+        "icon_deselect": "over_cg_icon/cg_02_deselect",
+        "icon_lock": "over_cg_icon/cg_02_lock",
+        "big_resource": "over_cg/over_100_cg",
+        "title": "逃往中国"
+    },
+    "3": { // 神的面容
+        "over_id": [
+            287
+        ],
+        "icon": "over_cg_icon/cg_03",
+        "icon_deselect": "over_cg_icon/cg_03_deselect",
+        "icon_lock": "over_cg_icon/cg_03_lock",
+        "big_resource": "over_cg/over_287_cg",
+        "title": "神的面容"
+    },
+    "4": { // 纠正一切
+        "over_id": [
+            286
+        ],
+        "icon": "over_cg_icon/cg_04",
+        "icon_deselect": "over_cg_icon/cg_04_deselect",
+        "icon_lock": "over_cg_icon/cg_04_lock",
+        "big_resource": "over_cg/over_286_cg",
+        "title": "纠正一切"
+    },
+    "5": { // 幸福
+        "over_id": [
+            202, 263, 269, 271, 282, 302
+        ],
+        "icon": "over_cg_icon/cg_05",
+        "icon_deselect": "over_cg_icon/cg_05_deselect",
+        "icon_lock": "over_cg_icon/cg_05_lock",
+        "big_resource": "over_cg/over_302_cg",
+        "title": "幸福"
+    },
+    "6": { // 逃往绿洲
+        "over_id": [
+            101, 266, 283, 284, 285
+        ],
+        "icon": "over_cg_icon/cg_06",
+        "icon_deselect": "over_cg_icon/cg_06_deselect",
+        "icon_lock": "over_cg_icon/cg_06_lock",
+        "big_resource": "over_cg/over_101_cg",
+        "title": "神秘绿洲"
+    },
+    "7": { // 折磨
+        "over_id": [
+            205, 270, 272, 402
+        ],
+        "icon": "over_cg_icon/cg_07",
+        "icon_deselect": "over_cg_icon/cg_07_deselect",
+        "icon_lock": "over_cg_icon/cg_07_lock",
+        "big_resource": "over_cg/over_279_cg",
+        "title": "折磨"
+    },
+    "8": { // 加冕-正向
+        "over_id": [
+            206, 212, 213, 218, 222, 226, 228, 230, 234, 238, 240, 242, 244, 246, 250,
+            254, 257, 260, 278, 288, 289, 292
+        ],
+        "icon": "over_cg_icon/cg_08",
+        "icon_deselect": "over_cg_icon/cg_08_deselect",
+        "icon_lock": "over_cg_icon/cg_08_lock",
+        "big_resource": "over_cg/over_277_cg",
+        "title": "伟业宏图"
+    },
+    "9": { // 加冕-负向
+        "over_id": [
+          208, 209, 210, 211, 214, 215, 216, 219, 220, 221, 223, 224, 225, 227,
+          229, 231, 233, 247, 249, 251, 253, 255, 256, 258, 259, 261, 262, 281,
+          290, 293, 291, 294
+        ],
+        "icon": "over_cg_icon/cg_09",
+        "icon_deselect": "over_cg_icon/cg_09_deselect",
+        "icon_lock": "over_cg_icon/cg_09_lock",
+        "big_resource": "over_cg/over_209_cg",
+        "title": "权力囚笼"
+    },
+    "10": { // 正神
+        "over_id": [
+            277, 501
+        ],
+        "icon": "over_cg_icon/cg_10",
+        "icon_deselect": "over_cg_icon/cg_10_deselect",
+        "icon_lock": "over_cg_icon/cg_10_lock",
+        "big_resource": "over_cg/over_501_cg",
+        "title": "审判日"
+    },
+    "11": { // 邪神
+        "over_id": [
+            279, 601, 603
+        ],
+        "icon": "over_cg_icon/cg_11",
+        "icon_deselect": "over_cg_icon/cg_11_deselect",
+        "icon_lock": "over_cg_icon/cg_11_lock",
+        "big_resource": "over_cg/over_601_cg",
+        "title": "恶之华"
+    },
+    "12": { // 最亮的星
+        "over_id": [
+            102, 103, 264, 265, 280, 303
+        ],
+        "icon": "over_cg_icon/cg_12",
+        "icon_deselect": "over_cg_icon/cg_12_deselect",
+        "icon_lock": "over_cg_icon/cg_12_lock",
+        "big_resource": "over_cg/over_264_cg",
+        "title": "最亮的星"
+    },
+    "13": { // 永世英雄
+        "over_id": [
+            203, 207, 232, 235, 236, 237, 239, 241, 243, 245, 248, 252, 301
+        ],
+        "icon": "over_cg_icon/cg_13",
+        "icon_deselect": "over_cg_icon/cg_13_deselect",
+        "icon_lock": "over_cg_icon/cg_13_lock",
+        "big_resource": "over_cg/over_203_cg",
+        "title": "永世英雄"
+    },
+    "14": { // 成魔
+        "over_id": [
+            403, 404, 405, 406, 602
+        ],
+        "icon": "over_cg_icon/cg_14",
+        "icon_deselect": "over_cg_icon/cg_14_deselect",
+        "icon_lock": "over_cg_icon/cg_14_lock",
+        "big_resource": "over_cg/over_210_cg",
+        "title": "堕入深渊"
+    },
+    "15": { // 弑神成功
+        "over_id": [
+            502, 604
+        ],
+        "icon": "over_cg_icon/cg_15",
+        "icon_deselect": "over_cg_icon/cg_15_deselect",
+        "icon_lock": "over_cg_icon/cg_15_lock",
+        "big_resource": "over_cg/over_502_cg",
+        "title": "无尽旅途"
+    }
+}

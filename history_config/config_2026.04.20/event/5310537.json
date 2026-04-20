@@ -1,0 +1,21 @@
+{
+        "id": 5310537,
+        "text": "结局-昼夜契约",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{        
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+                "over":274
+            }
+        }
+    ]
+} 

@@ -1,0 +1,186 @@
+ {
+        "id": 5006186,
+        "name": "八宝犀牛",
+        "text": "不要在大家吃的时候提起[player.name]是怎么得到这头犀牛的。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"0985dbae-40bc-4470-b79c-7392317c9544",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "用巨大的战刀切开犀牛，那多重食材混合的丰腴肉汁仿佛源源不断地涌出……一个字，香！",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+体魄":2,
+                    "s3+体魄":2,
+                    "s4+体魄":2,
+                    "s5+体魄":2,
+                    "s2+魅力":1,
+                    "s3+魅力":1,
+                    "s4+魅力":1,
+                    "s5+魅力":1,
+                    "s2+生存":1,
+                    "s3+生存":1,
+                    "s4+生存":1,
+                    "s5+生存":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"e314103d-1e25-4a84-bed3-727de1130bc9",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000061, //阿迪莱
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“历史就是一道填馅儿大餐,\n人们享受着所有的东西，却只记住了……\n那名为英雄的容器。”阿迪莱在一旁听着，若有所思……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000061+智慧":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"db1b2927-5b88-4577-8982-e4333cdcdc75",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000061,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“历史就是一道填馅儿大餐,\n人们享受着所有的东西，却只记住了……\n那名为英雄的容器。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"cb1ca657-8227-4d89-9e2e-2140a37cdf7c",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001342
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"017703d1-2459-4056-aa84-d138cb125329",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"f6e8d754-af00-4381-bf48-f8b9ebf8eaa3",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"7dd2e501-1042-4f56-bc80-8a24723d1898",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"b034e1c1-91c9-4fb2-babb-22af98708d9e",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

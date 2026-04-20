@@ -1,0 +1,30 @@
+{
+    "id": 5320591,
+    "text": "血钻坑阿里木离队",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000113":1  //阿里木闲置
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.clean.2000113":1,  //阿里木离开了
+                "prompt":{
+                    "id":"5320591_prompt_1",
+                    "text":"阿里木来见你，只是为了冲你的脸喷一口唾沫。感激你的仁慈吧，你甚至没有命令守卫把他抓起来扔到矿坑里给你挖矿！",
+                    "icon":"cards/2000113"
+                },
+                "event_off":5320591
+                
+            }
+        }
+
+    ]
+}

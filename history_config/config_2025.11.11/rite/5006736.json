@@ -1,0 +1,126 @@
+ {
+        "id": 5006736,
+        "name": "山居往事",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"808372bb-94ca-4c0b-b840-2f940191e6f1",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "作者在书中提起，她的祖母曾有一位姐姐，她在十六岁时“被群星召唤而去”。\n无论如何，这是本很出色的回忆录。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+社交":2,
+                    "pop.5006736_01.s2": "一切都是浮云……"                              
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"42e7535d-9969-4203-9790-6ca6c9c35e28",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001257,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"9a47ad25-4087-42e4-8fb1-144a653a3cfa",
+                    "condition": 
+                    {
+                        "type":"char",
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006736_s2_01.self":"我喜欢她的笔触，好像在阳光里去嗅灰尘。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000056 //盖斯
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006736_s2_02.self":"一个家族的兴衰，往往只系于君王的一念之间。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000064 //奈布哈尼
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006736_s2_03.self":"我曾拜访过这位老夫人，她住的地方是个相当清雅别致的园子呢！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000055 //娜依拉
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006736_s2_04.self":"还有我没听说过的八卦？"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

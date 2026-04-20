@@ -1,0 +1,160 @@
+ {
+        "id": 5010085,
+        "name": "新纪元（废弃）",
+        "text": "新纪元",       
+        "tips": "",
+        "mapping_id":8001024,  
+        "once_new":0,
+        "round_number": 1, //立即结算
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "结局:6", 
+        "type":"END",
+        "icon": "rite_ex_2", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "根据你干预的程度有不一样的结局分歧"
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "any":{
+                        "s2.神的代言人":1,
+                        "s3.神的代言人":1
+                    }        
+                },
+                "tips": "其中必须有的代言人"
+            }
+        ],
+        "random_text": {      
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+
+            
+        ],                
+        "settlement_extre": [
+    //-----------君权神授+昼夜契约-------------
+            {
+                "guid":"075a9734-5dd1-427c-b376-a370f75cb48d",
+                "condition": {
+                },
+                "result_title":"吾为神王",
+                "result_text": "吾为神王",
+                "result": 
+                {
+                    "s2.uprare":1,
+                    "s2+苏丹":1
+                },
+                "action": {
+                    "steam_achievement": "ACHIEVEMENT_007", //steam结局
+                    //over编号
+                }
+            },
+ //-------宰相----------------------------------------------
+            {
+                "guid":"d017cee8-4f5e-492d-94c6-2af7aab5a282",
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {
+                    "s3.uprare":1,
+                    "total.宰相-宰相":1,
+                    "s3+宰相":1
+                },
+                "action": {
+                    "steam_achievement": "ACHIEVEMENT_011", //steam结局
+                }
+            },
+//-----------------权能的证明---------------------------------------------
+            {
+                "guid":"26ef6ff0-2d2b-486c-a46e-2fe98ee3ef07",
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {
+                },
+                "action": {
+                }
+            },
+
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"b5610a10-bd8c-4993-94d9-40a5d88bb800",
+                "condition":
+                {
+                    "神性":1         
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"神性"
+            },
+            "s2":
+            {
+                "guid":"2e964119-2b9d-46c3-ba06-3b6e55d3698f",
+                "condition":
+                {
+                    "type":"char",
+                    "!主角":1,
+                    "!妻子":1     
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"选择一位领袖"
+            },
+            "s3":
+            {
+                "guid":"75c1b04b-fc54-4bf3-9983-7547923a4b79",
+                "condition":
+                {
+                    "type":"char",
+                    "!主角":1,
+                    "!妻子":1   
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"选择一位辅佐者",
+            },
+            "s4":
+            {
+                "guid":"80cfa246-2e52-4262-87de-2cc255055102",
+                "condition":
+                {
+                    "any":{
+                        "is":2000955,  //苏丹的尸体
+                        "is":2001332   //被摧毁的王座
+                    },
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"让所有人都害怕你的东西"
+            }
+        }
+    } 

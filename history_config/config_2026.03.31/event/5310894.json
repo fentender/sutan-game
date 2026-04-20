@@ -1,0 +1,24 @@
+{
+        "id": 5310894,
+        "text": "昼夜契约神性",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010087
+        },
+        "condition":{
+            "f:counter.7000935-counter.7000936>":0, //神性>人性
+            "have.2000912.神性":1, //昼夜契约
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "global_counter=7200306":1,//成为
+                "over": 279,//结局
+            },            
+        }
+    ]
+} 

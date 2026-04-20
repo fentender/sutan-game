@@ -1,0 +1,157 @@
+{
+    "id": 5006137,
+    "name": "宝石镶嵌",
+    "text": "热娜可以帮忙给装备打上宝石镶嵌孔。",
+    "tips": "",
+    "mapping_id":8001130, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+        {
+            "condition": {
+            },
+            "result_title":"",
+            "result_text": "",
+            "result": 
+            {
+                "counter=7000896":0  //宝石镶嵌关闭
+            },
+            "action": {
+                
+            }
+        }
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0, //需要手动启动
+    "location": "自宅:[2,12]",
+    "icon": "rite_19",
+    "tag_tips": [],
+    "tag_tips_up": {
+       
+    },
+    "tips_text": [
+        "一件装备只能镶嵌一颗宝石",
+        "放入未镶嵌宝石的装备和宝石，可将该宝石镶嵌到装备上",
+        "放入已镶嵌宝石的装备，不放入宝石，可以为此装备拆下宝石",
+        "同时放入已镶嵌宝石的装备和宝石，则可将装备上的宝石替换为新的宝石"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+        
+    },
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid":"c6ceb8e7-e102-4dd8-bf3c-06dc8f7f0b85",
+            "condition": {
+                "!s1.已镶嵌":1,  //装备没宝石
+                "!s2":1  //忘记放宝石了
+            },
+            "result_title": "真是件不错的装备",
+            "result_text": "热娜认真地点了点头，在[s1.name]的某处比划着：“如果您有宝石，我可以帮您把它镶嵌在这里，您觉得怎么样？”\n你点点头。于是，当务之急还是想办法搞到一枚值得镶嵌上去的宝石吧。",
+            "result": {
+                "counter=7000896":0  //宝石镶嵌关闭
+            },
+            "action": {
+               
+            }
+        },
+        {
+            "guid":"e7617623-dba4-494e-913a-38939728642c",
+            "condition": {
+                "!s1.已镶嵌":1,  //装备没宝石
+                "s2":1  //放了宝石
+            },
+            "result_title": "",
+            "result_text": "一阵细致精密的敲敲打打之后，热娜帮你把[s2.name]切割打磨得闪耀如星！有了这枚宝石的点缀，[s1.name]焕然一新。",
+            "result": {
+                "s1+s2":1,  //把s2宝石镶嵌到s1上
+                "s1+已镶嵌":1,
+                "counter=7000896":0  //宝石镶嵌关闭
+            },
+            "action": {
+               
+            }
+        },
+        {
+            "guid":"1696caa3-d60d-4332-81dd-a4d653e7f7c0",
+            "condition": {
+                "s1.已镶嵌":1,  //装备有宝石
+                "!s2":1  //没放宝石
+            },
+            "result_title": "拆下它吧",
+            "result_text": "热娜一边小心地拆卸，一边不住地问你，是不是对她的手艺哪里不满意。",
+            "result": {
+                "s1~equip":["宝石"],
+                "s1=已镶嵌":0,
+                "counter=7000896":0  //宝石镶嵌关闭
+            },
+            "action": {
+               
+            }
+        },
+        {
+            "guid":"393aa55a-51a4-456f-ad36-38adcfec7e91",
+            "condition": {
+                "s1.已镶嵌":1,  //装备有宝石
+                "s2":1  //放宝石
+            },
+            "result_title": "换一块新的",
+            "result_text": "热娜一边打磨着新的宝石，一边露出“我都懂”的表情。客人喜新厌旧就对了，不然珠宝商怎么挣钱呢。",
+            "result": {
+                "s1~equip":["宝石"],
+                "s1+s2":1 ,
+                "counter=7000896":0  //宝石镶嵌关闭
+            },
+            "action": {
+               
+            }
+        }
+       
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid":"cd799e70-2039-48f2-8447-4f57f99debb5",
+            "condition": {
+                "type": "item",
+                "装备":1,
+                "!动物":1,
+                "!怪物":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "一件装备"
+        },
+        "s2": {
+            "guid":"25bfab7a-8a7f-4c6e-ac47-50078a86bad8",
+            "condition": {
+                "type": "item",
+                "宝石":1,
+                "cost.可堆叠=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "一颗宝石"
+        },
+         "s3": {
+            "guid":"282a75a6-ea8b-4464-892b-4fd1ddc3e750",
+            "condition": {
+                "type": "item",
+                "cost.金币=":2
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "2金币经费"
+        }
+    }
+}

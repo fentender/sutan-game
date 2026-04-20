@@ -1,0 +1,74 @@
+ {
+        "id": 5010213,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:19", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你还有2回合的时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"92e96be7-2d94-4026-ab74-a94a6c6b7941",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":2  //第六天结束时
+                },
+                "result_title":"游戏的组成",
+                "result_text":"随着在虚空之中的飞行，现世的光芒黯淡了，你们的眼中，除了那门户，便只剩下了彼此——终于，你看清了他身上混杂，拼凑的光芒，那湖水一般的“模仿”，那翡翠一样的“重复”，那苍白的“修改”，甚至还有一点点珍珠色的“分享”……为了完成大业，祂吞噬众多，并以此铸就了苏丹的游戏，你的游戏……",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1, //羊肉炉飞升计数器  
+                    "counter+7001102":1  //羊肉炉飞升第六天计数器
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_07" ,
+                    "rite":5010214  //生成第七天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"56adb4e7-b2ba-48eb-8f38-7cb4e26324c6",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你还有2回合时间成为造物主"
+            }
+            
+    }
+    } 

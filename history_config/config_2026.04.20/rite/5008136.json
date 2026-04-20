@@ -1,0 +1,158 @@
+{
+    "id": 5008136,
+    "name": "荒野一锅炖",
+    "text": "大餐已经出锅，是时候邀请朋友们一同享用了。",
+    "tips": "",
+    "mapping_id":8001153, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0, //需要手动启动
+    "location": "商业区:[10,19]",
+    "icon": "rite_18",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [
+        {
+            "condition": {
+                "any": {
+                    "s2": 1,
+                    "s3": 1,
+                    "s4": 1,
+                    "s5": 1
+                }
+            },
+            "tips": "总得有人来吃吧？"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid":"0257ad53-4e2c-4605-b673-be197e8ac611",
+            "condition": {
+                "s1.is": 2001009 //荒野一锅炖
+            },
+            "result_title": "你享受了一顿美味的荒野一锅炖",
+            "result_text": "如同荒野里的冒险者们一样，你和你追随者们围坐在火堆边，一边聊天一边享用了这锅炖菜。",
+            "result": {
+                "clean.s1": 1, //消耗原材料
+                "s2+生存": 1,
+                "s3+生存": 1,
+                "s4+生存": 1,
+                "s5+生存": 1,
+                "s2+隐匿": 1,
+                "s3+隐匿": 1,
+                "s4+隐匿": 1,
+                "s5+隐匿": 1
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [
+            {
+                "guid":"cb4fd6d4-168c-4f98-8dee-4c1bbf18088e",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000013,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“从这锅中，\n我尝到了整个荒野；\n而在我之中，\n荒野也尝到了一个人类。”\n这诗句听在流浪剑客耳中，令他心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000013+生存":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"f3efe0c0-6a11-4aa3-81f4-943a21294fa6",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000013,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“从这锅中，\n我尝到了整个荒野；\n而在我之中，\n荒野也尝到了一个人类。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"760f8560-dddf-4a42-af21-f25ac66733b2",
+            "condition": {
+                "type": "item",
+                "is": 2001009
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "今天的菜肴"
+        },
+        "s2": {
+            "guid":"0c60c01b-1690-4e9e-938e-0a5b44a326fa",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3": {
+            "guid":"bb5ef9ae-0c2c-44df-8421-9f51a2a0cbd4",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4": {
+            "guid":"a3a95e5d-05cc-4b69-b260-8ac45be44012",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5": {
+            "guid":"69f92c6e-c7c0-4679-90b0-804f4f73c332",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "你可以亲自，或邀请追随者前来品尝"
+        }
+    }
+}

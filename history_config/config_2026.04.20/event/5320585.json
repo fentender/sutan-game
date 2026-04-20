@@ -1,0 +1,33 @@
+{
+    "id": 5320585,
+    "text": "钻石事件后续开启",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": [5,10]  //5-10回合再开
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "no_prompt":{
+                    "card":2001267,
+                    "card":2001267,
+                    "card":2001267,  //刷新三个钻石用于后续事件
+                },
+                "rite":5006138,  //开启不妥当的珍宝
+                "prompt":{
+                    "id":"5320585_prompt_1",
+                    "text":"你一直在留意黑街的动向，终于被你发现了一丝不寻常。有一名鬼鬼祟祟的商人似乎正在向人兜售可疑的石头……",
+                    "icon":"cards/2001267"
+                },
+                "event_off":5320585
+            }
+        }
+
+    ]
+}

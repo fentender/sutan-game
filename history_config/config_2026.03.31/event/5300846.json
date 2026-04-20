@@ -1,0 +1,29 @@
+{
+    "id": 5300846,
+    "text": "镜土的领主",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+       
+    },
+    "condition": { //条件
+        "table_have.2001182":1,  //小筹空闲
+        "counter.7000708>=":1  //小筹是镜土的领主
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite":5000352,  //开启小筹复制军队
+                "prompt": {
+                    "id": "5300846_prompt_1",
+                    "text": "当你竖起反旗之后……你能感到，那一种被人窥视的感觉突然回来了——是[xiaochou.name]！这个镜灵又来看热闹了！",
+                    "icon": "pic/2001182"
+                },
+                "event_off":5300846
+            }
+        }
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "id": 5320318,
+    "text": "你怎么敢咩",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "rite_end": 5000067
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "card":2001204, //松鼠
+                "card":2001205, //麻雀
+                "card":2001206, //蟾蜍
+                "rite": 5006699,
+                "prompt":{
+                    "id":"5320318_prompt_01",
+                    "text":"你仿佛来到了一团云雾中，身旁的哈桑似乎被按了暂停键，而那只羊也不知所踪。",
+                }
+            }
+        }
+
+    ]
+}

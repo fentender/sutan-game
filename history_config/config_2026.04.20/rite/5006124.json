@@ -1,0 +1,77 @@
+{
+    "id": 5006124,
+    "name": "强身之药",
+    "text": "医师们赠予的补品，据说有强身健体的功效。",
+    "tips": "",
+    "mapping_id":8001246, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+        
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [],
+    "settlement": [
+       {
+            "guid":"67f0e902-9b2e-4b6e-aaeb-ced41cff0f99",
+            "condition": {
+                "s1":1,
+                "s2":1
+            },
+            "result_title": "",
+            "result_text": "喝下这份补剂，[s1.name]感觉吃饭都更香了！一口气猎五头羚羊，不费劲！",
+            "result": {
+                "clean.s2":1,
+                "s1+体魄":2
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"f0b80b41-8452-496d-bda1-cdbda4d72099",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你可以亲自，或者找任意追随者来试试这剂补药的功效。"
+        },
+        "s2": {
+            "guid":"3073d763-8e7a-42b6-a79a-5ca43896e75e",
+            "condition": {
+                "type": "item",
+                "is":2001219,
+                "cost.可堆叠=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "强身之药"
+        }
+    }
+}

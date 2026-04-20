@@ -1,0 +1,28 @@
+{
+    "id": 5311009,
+    "text": "结算造化之风是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010206
+    },
+    "condition": {
+        "counter.7000965>=": 3 //如果造化之风成功计数器满足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311009_prompt_01",
+                    "text": "成了。你所掌握的法则散发出光芒，仿佛帆布一样聚集着造化之风——你正在飞速地接近终点。",
+                },
+                "rite":5010207,  //进入陶土之门
+                "focus.5010207":[1700,1],
+                "event_off":5311009
+            },
+        }
+    ]
+}

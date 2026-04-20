@@ -1,0 +1,31 @@
+{
+    "id": 5320296,
+    "text": "诗人与美食",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7000722>=":3, //首次俺寻思大餐
+        "!have.2000460":1, //哈桑存活       
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "event_off":5320295,
+                "event_off":5320297,                
+                "clean.rite":5006686, //关闭
+                "prompt":{
+                    "id":"5320296_prompt_1",
+                    "text":"因为哈桑死亡，苏丹取消了宴会。",
+                    "icon":"cards/2000460"
+                }
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,30 @@
+{
+        "id": 5310878,
+        "text": "结局-龙眼-大敌",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.clean.2000055":1,
+                "prompt":{
+                    "id":"5310878_prompt_01",
+                    "text":"娜依拉因为害怕你的神威而逃走了，可悲的虫子，你几乎不记得它是谁了。",
+                    "icon":"cards/2000055"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

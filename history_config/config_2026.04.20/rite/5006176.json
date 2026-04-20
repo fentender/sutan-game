@@ -1,0 +1,173 @@
+ {
+        "id": 5006176,
+        "name": "驴肉火烧",
+        "text": "快来，一人一个，而且一人只有一个！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"b9d72373-9f43-4d03-8a3e-f2e56a919abd",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "每个人都还想再要一个。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+体魄":1,
+                    "s3+体魄":1,
+                    "s4+体魄":1,
+                    "s5+体魄":1,
+                    "s2+智慧":1,
+                    "s3+智慧":1,
+                    "s4+智慧":1,
+                    "s5+智慧":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"83f429b1-a4ab-4d48-92a9-b8a458dd9ce0",
+                "condition": {
+                    
+                    "is":2000434, //小留
+                },
+                "result_title":"小留吃得默不作声",
+                "result_text": "这东西里有神秘的力量……这是留熟悉的，啊怎么可能！",
+                "result": 
+                {  
+                
+                    "2000434+体魄":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"7d529db3-c1fc-45f4-95c9-f7252ea7a3de",
+                "condition": {
+                    "is":2000460, //哈桑
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "他趁乱多拿了一个火烧，大声吟唱到：“神明的旨意啊，可以传千年。\n国王的荣耀啊，照耀一百年。\n美人的容颜啊，迷人数十年……\n烧饼的美味呀，就在一瞬间。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "7000722+魔力":1,
+                },
+                "action": {
+                }
+            }
+            
+        
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"e359a90d-9a9b-42a4-8ad9-dad94bc6494f",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001330
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"323f7cb5-64ce-4ae5-838e-ab1e2feb54ef",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"d8ea2086-7e72-4c22-8cee-beed9493a5ca",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"605f8668-c410-42e1-b0cf-31d430c0b8d0",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"1f9b7d2a-2b05-4262-9d7e-5e53b588a769",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

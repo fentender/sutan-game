@@ -1,0 +1,31 @@
+{
+    "id": 5321252,
+    "text": "旅行的妹妹2",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "prompt": {
+                    "id": "prompt_5321252_01",
+                    "text": "一位皮草商人造访了你，给你捎来了阿图娜尔托人写下的短信：\n“我很健康，很快乐，我学会了一种在船上跳的舞。”\n你给了这名商人一点赏钱，他高兴地离开了。",
+                   "icon":["pic/2000129"],
+                },
+                "success": {
+                    "event_off": 5321252
+                }
+      
+            }
+        }
+
+    ]
+}

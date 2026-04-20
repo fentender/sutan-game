@@ -1,0 +1,22 @@
+{
+        "id": 5310904,
+        "text": "苏丹的军队",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 5010075
+        },
+        "condition":{
+            "counter.7000577":1, //生成过
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "rite": 5010076, //土丘
+            }
+        }
+    ]
+} 

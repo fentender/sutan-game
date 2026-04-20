@@ -147,6 +147,9 @@ MERGED_OUTPUT_PATH = PROJECT_ROOT / "merged_output"
 # Schema 规则文件目录
 SCHEMA_DIR = PROJECT_ROOT / "schemas"
 
+# 历史 config 版本目录（自适应合并模式使用）
+HISTORY_DIR = PROJECT_ROOT / "history_config"
+
 # Mod 覆盖文件目录（用户手动编辑的合并结果）
 MOD_OVERRIDES_DIR = PROJECT_ROOT / "mod_overrides"
 
@@ -171,7 +174,7 @@ class UserConfig:
     # 启用的 mod 集合
     enabled_mods: list[str] = field(default_factory=list)
     # 合并模式（normal/smart/replace，默认 smart）
-    merge_mode: str = "smart"
+    merge_mode: str = "adaptive"
     # per-mod 合并模式覆盖（key=mod_id，value=模式名）
     mod_merge_modes: dict[str, str] = field(default_factory=dict)
     # 是否启用性能评估（启用后记录各函数执行时间，输出到日志）

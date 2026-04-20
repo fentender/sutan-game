@@ -1,0 +1,36 @@
+{
+    "id": 5320655,
+    "text": "小安这么做阿尔图有什么好处",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                 "option": {
+                    "id":"5320655_option_1",
+                    "text": "女王是最美，最强大的存在——您想一下，主人，她能为您带来多少快乐！我会亲自教她怎么让您快乐的！她所滴落的每一粒甘露……都会为您带来魔力与愿望！",
+                    "icon": "cards/2000433",
+                    "items": [
+                        {
+                            "text": "听着还可以",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320650,  //返回
+                    "event_off":5320655
+                }
+            }
+        }
+
+    ]
+}

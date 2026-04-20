@@ -1,0 +1,27 @@
+{
+        "id": 5311040,
+        "text": "飞升线小圆成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000371":1,  
+            "any":{
+                "table_have.2000371.命运的羁绊":1,  //小圆拥有羁绊
+                "table_have.2000371.黑暗知识":1,  //小圆拥有黑暗知识
+            },
+            "!table_have.2000371.侧室":1,  //不能是侧室
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000371+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

@@ -1,0 +1,30 @@
+{
+    "id": 5321276,
+    "text": "金宫斗3",     
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+    
+     "have.2000010": 1, //莎姬存活 
+    "table_have.2000129.入宫": 1 //舞姬已入宫且闲置
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "rite":5008250,
+                "success": {
+                    "event_off": 5321276
+                }
+      
+            }
+        }
+
+    ]
+}

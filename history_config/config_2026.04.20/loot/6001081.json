@@ -1,0 +1,118 @@
+{
+    "id": 6001081,
+    "name": "随机银书银装备",
+    "repeat": 1,
+    "type": 3, // 2 普通权重, 3 维新
+    "item": [
+         {
+            "num" : "1",
+            "id" : "2000207",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "num" : "1",
+            "id" : "2000208",
+            "type" : "card",
+            "weight" : 60
+        },
+         {
+            "num" : "1",
+            "id" : "2000213",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "num" : "1",
+            "id" : "2000214",
+            "type" : "card",
+            "weight" : 60
+        },
+         {
+            "num" : "1",
+            "id" : "2000219",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "num" : "1",
+            "id" : "2000220",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "num" : "1",
+            "id" : "2000225",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "num" : "1",
+            "id" : "2000226",
+            "type" : "card",
+            "weight" : 60
+        },
+         {
+            "num" : "1",
+            "id" : "2000230",
+            "type" : "card",
+            "weight" : 60
+        },
+         {
+            "num" : "1",
+            "id" : "2000231",
+            "type" : "card",
+            "weight" : 60
+        },                      //以下是随机银装备（没有武器
+         {
+            "num" : "1",
+            "id" : "2000257",
+            "type" : "card",
+            "weight" : 60
+        },  
+         {
+            "num" : "1",
+            "id" : "2000268",
+            "type" : "card",
+            "weight" : 60
+        }, 
+        {
+            "num" : "1",
+            "id" : "2000269",
+            "type" : "card",
+            "weight" : 60
+        }, 
+        {
+            "num" : "1",
+            "id" : "2000270",
+            "type" : "card",
+            "weight" : 60
+        }, 
+         {
+            "num" : "1",
+            "id" : "2000814",
+            "type" : "card",
+            "weight" : 60
+        }, 
+         {
+            "num" : "1",
+            "id" : "2000816",
+            "type" : "card",
+            "weight" : 60
+        }, 
+         {
+            "num" : "1",
+            "id" : "2000823",
+            "type" : "card",
+            "weight" : 60
+        }, 
+         {
+            "num" : "1",
+            "id" : "2000825",
+            "type" : "card",
+            "weight" : 60
+        }, 
+       
+       
+    ]
+}

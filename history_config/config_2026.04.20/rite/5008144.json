@@ -1,0 +1,180 @@
+ {
+        "id": 5008144,
+        "name": "蜂蜜蛋饼",
+        "text": "大餐已经出锅，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"eace7dbd-3bf7-4857-b5d2-dbf67ebdf94f",
+                "condition": {
+
+                    "s1.is":2001017//蜂蜜单饼
+                    
+                },
+                "result_title":"你享受了一顿美味的蜂蜜蛋饼",
+                "result_text": "对一位颇具才华的美人的追思和缅怀，为这块蛋饼增添了复杂而甜蜜的风味。你和你追随者们都很喜欢。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+社交":3,  
+                    "s5+社交":3,  
+                    "s2+社交":3, 
+                    "s3+社交":3
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"15941691-9292-4118-b45f-7957624a62c3",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000123,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“在享用这蛋饼的时候，\n魔鬼从背后戳弄我，\n要用一座城池换我手中的美食；\n我告诉它，\n冲着我的羊起誓，\n没门儿，想都别想！”\n看着哈桑搞怪的表情，鲁梅拉笑得连嘴角的蜂蜜都忘了擦。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000123+体魄":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"78183aba-16d7-462a-86bc-65af6dff3444",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000123,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“在享用这蛋饼的时候，\n魔鬼从背后戳弄我，\n要用一座城池换我手中的美食；\n我告诉它，\n冲着我的羊起誓，\n没门儿，想都别想！”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"f0d57930-35bf-49bc-ac45-47a6528c2bf5",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001017
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"bba363c6-50c7-4a5a-8147-323f5ab3a806",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"93c67f26-1a04-4c30-94e9-0895b05823be",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"576b411c-b147-41e6-886c-210f06ca21eb",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"79964a57-fb41-4a96-86c0-c95fd0c4fa73",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

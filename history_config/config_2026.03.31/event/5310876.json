@@ -1,0 +1,31 @@
+{
+        "id": 5310876,
+        "text": "结局-龙眼-哲瓦德-大敌",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010080
+        },
+        "condition":{
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "table.clean.2000057":1,
+                "table.clean.2000774":1, //移除阿鲁米娜
+                "prompt":{
+                    "id":"5310876_prompt_01",
+                    "text":"哲瓦德逃跑了，因为害怕你的神威……可悲的虫子啊，没关系，他会在路上找到自己的毁灭的。",
+                    "icon":"cards/2000057"
+                }
+            }
+        }
+    ]
+} 
+
+
+
+

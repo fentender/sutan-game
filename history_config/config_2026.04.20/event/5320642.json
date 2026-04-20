@@ -1,0 +1,23 @@
+{
+    "id": 5320642,
+    "text": "小留的检查",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 10
+    },
+    "condition":{
+        "table_have.2000434":1,  //场上有小留
+        "table_have.2000434.追随者":1
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "event_on":[5320643,5320644,5320645]
+            }
+        }
+    ]
+}

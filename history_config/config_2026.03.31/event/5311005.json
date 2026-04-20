@@ -1,0 +1,31 @@
+{
+    "id": 5311005,
+    "text": "结算墨色褪去是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010203
+    },
+    "condition": {
+        "counter.7000938>=": 3 //如果墨色褪去成功计数器满足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311005_prompt_01",
+                    "text": "你……成功了！你根本没想到这无尽的墨水真的还有一个尽头！不过，小心了，羊肉炉在这里等着你呢……祂为你准备了一个非常致命的埋伏。",
+                },
+                "no_prompt":{
+                    "card":2001345  //生成羊肉炉的干扰
+                },
+                "rite":5010204,  //进入羊肉炉的干扰
+                "focus.5010204":[1700,1],
+                "event_off":5311005
+            },
+        }
+    ]
+}

@@ -1,0 +1,137 @@
+ {
+        "id": 5006133,
+        "name": "纹身图样",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+            
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"e6459e9d-52c3-49bf-bc65-ca33c07a25f3",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "这些图案顺着[s1.name]的眼睛流淌进了你的梦境，在梦中，无数双眼睛注视着你，在你灵魂的空白之处刻画起神秘的纹路，构筑着虚无的桥梁……",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "counter+7100005":2,  //灵视+2
+                    "pop.5000133_01.s2": "线条之中充满了奥秘"
+                },
+                "action":
+                {
+                }
+            }
+
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"8e87d43f-84f7-4d6e-8cb0-19f178f95214",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001198,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"52a2d1cb-313c-4121-a360-63c652b34e4b",
+                    "condition": 
+                    {
+                        "type":"char",
+                        
+                        "!动物":1,
+                        "!怪物":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //鲁梅拉
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006133_s2_01.self":"我见过这样的花纹，在一些人摊开的手心里，一些人拿着鞭子的手背上。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000022 //拜铃耶
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006133_s2_02.self":"无需温习，它们早已烙印在我心里了，呵呵呵……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000021 //伊曼 
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006133_s2_03.self":"何等污浊之物。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "!is": 2000123, 
+                                "!is": 2000021, 
+                                "!is": 2000022 //
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5000133_s2_04.self":"有趣的知识……",
+                                    "pop.5000133_s2_05.self":"有什么值得学的东西？",
+                                    "pop.5000133_s2_06.self":"这上面记载着……",
+                                    "pop.5000133_s2_07.self":"让我来看看"
+                                    
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

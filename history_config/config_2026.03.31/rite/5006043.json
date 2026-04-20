@@ -1,0 +1,109 @@
+{
+    "id": 5006043,
+    "name": "梅姬的秘方",
+    "text": "梅姬给了你一罐据说能消除疤痕、保护皮肤的药膏，也许你可以找个人来试试它的功效。",
+    "tips": "",
+    "mapping_id":8001246, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+        
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_12",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        "药膏只有一次使用次数，可永久增加1点魅力。"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid":"e3a085fd-c2a1-4d8c-a840-c302a154c52c",
+            "condition": {
+                "s1.妻子":1,  //梅姬分支
+                "s2":1
+            },
+            "result_title": "",
+            "result_text": "梅姬有些错愕地接过你递来的药膏，而你信誓旦旦地说，除了她之外，你根本不认识其他值得你讨好的女人。你也根本不关心其他女人的容貌。梅姬听完抿唇笑了：“那你来帮我涂一下吧，我亲爱的丈夫。”说完，便拉着你走入卧室的帷幕之后。",
+            "result": {
+                "clean.s2":1,
+                "s1+魅力":1
+            },
+            "action": {
+               
+            }
+        },
+        {
+            "guid":"08355cd1-c9a6-439b-9ec9-85ac7e063672",
+            "condition": {
+                "s1.is":2000061,  //阿迪莱分支
+                "s2":1
+            },
+            "result_title": "",
+            "result_text": "你本来以为阿迪莱会拒绝这瓶药膏的，毕竟她之前还说那些伤疤、那些战斗的痕迹是她的荣耀呢！结果她很开心地收下了，还问你是不是梅姬让你送来的……看她这副喜滋滋的样子，你突然有点后悔了。",
+            "result": {
+                "clean.s2":1,
+                "s1+魅力":1
+            },
+            "action": {
+               
+            }
+        },
+       {
+            "guid":"b60c473e-53a0-4699-8e61-05809c5f5c20",
+            "condition": {
+                "s1":1,
+                "s2":1
+            },
+            "result_title": "",
+            "result_text": "这份药膏效果非常好，[s1.name]皮肤变得更好了。不过，你可不敢朝梅姬再多要几份送给自己的追随者们，毕竟……这是梅姬的秘方……",
+            "result": {
+                "clean.s2":1,
+                "s1+魅力":1
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"9f93abe1-2d92-4e5f-a3fe-6186e2e4c039",
+            "condition": {
+                "type": "char"
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你可以亲自，或者找任意追随者来试试这罐药膏的功效。"
+        },
+        "s2": {
+            "guid":"d52e638d-5282-4908-b35c-15eefea0197b",
+            "condition": {
+                "type": "item",
+                "is":2000670
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "梅姬的独门秘方"
+        }
+    }
+}

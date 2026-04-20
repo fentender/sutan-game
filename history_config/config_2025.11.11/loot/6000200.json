@@ -1,0 +1,89 @@
+{
+    "id": 6000200,
+    "name": "巴拉特的库存",
+    "repeat": 3,
+    "type": 4, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{   
+                "!table_have.2000296.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000296",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "condition":{   
+                "!table_have.2000297.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000297",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "condition":{   
+                "!table_have.2000298.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000298",
+            "type" : "card",
+            "weight" : 30
+        },
+        {
+            "condition":{   
+                "!table_have.2000299.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000299",
+            "type" : "card",
+            "weight" : 30
+        },
+        {
+            "condition":{   
+                "!table_have.2000300.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000300",
+            "type" : "card",
+            "weight" : 20
+        },
+        {
+            "condition":{   
+                "!table_have.2000301.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000301",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "condition":{   
+                "!table_have.2000302.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2000302",
+            "type" : "card",
+            "weight" : 60
+        },
+        {
+            "condition":{   
+                "!table_have.2001149.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2001149",
+            "type" : "card",
+            "weight" : 20
+        },
+        {
+            "condition":{   
+                "!table_have.2001161.已拥有":1 
+            },
+            "num" : "1",
+            "id" : "2001161",
+            "type" : "card",
+            "weight" : 30
+        }
+    ]
+}

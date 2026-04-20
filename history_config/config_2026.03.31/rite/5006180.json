@@ -1,0 +1,245 @@
+ {
+        "id": 5006180,
+        "name": "杀人汽水",
+        "text": "多来几个人！喝完了看谁打嗝更响亮！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"37cc4243-9998-465e-bd2b-9eb22a4493a7",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "你们喝了汽水之后，不断地打出各种惨叫声的嗝……把捉贼人都引了过来。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+战斗":1,
+                    "s3+战斗":1,
+                    "s4+战斗":1,
+                    "s5+战斗":1,
+                    "s2+隐匿":1,
+                    "s3+隐匿":1,
+                    "s4+隐匿":1,
+                    "s5+隐匿":1,
+                    "s2+吃杀人汽水":1,
+                    "s3+吃杀人汽水":1,
+                    "s4+吃杀人汽水":1,
+                    "s5+吃杀人汽水":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"cc629b2b-277d-4a54-a44d-1452b433f953",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000113, //阿里木
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我们以他人的苦痛为食，\n悠长的哀鸣，\n从来都源自最充盈的胃袋。”阿里木听了之后，连连说好，马上就要忍不住去掏一掏哪个老爷的胃袋了。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000113+魅力":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"c64368e4-7f3c-4c12-97bc-5a80e37059c2",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000113,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我们以他人的苦痛为食，\n悠长的哀鸣，\n从来都源自最充盈的胃袋。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"147d3b8f-73e3-4299-8efa-53e1f61c1647",
+                "condition": {
+                    "s2.吃杀人汽水>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000494,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"1d75e863-1bf8-48c3-8ba6-f9f20da86b65",
+                "condition": {
+                    "s3.吃杀人汽水>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000494,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"1574dde9-fc5c-4b37-881e-ae16f54a53ef",
+                "condition": {
+                    "s4.吃杀人汽水>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000494,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"9c6db97d-7afe-4ca2-bb96-f863dba37265",
+                "condition": {
+                    "s5.吃杀人汽水>=":2
+                },
+                 "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000494,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"670dfc7f-2e69-4a24-8171-c2e019cb02d9",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001336
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"c344dbc2-2ff5-4bf0-bfbd-1cc6023a78fb",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"76213e45-035d-4f14-9cb7-853c2e12be6a",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"8ee6b257-ee1c-49e5-97b7-51c4e0dc065d",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"1ebae301-091f-49e4-b1ef-cc10bd366c3a",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

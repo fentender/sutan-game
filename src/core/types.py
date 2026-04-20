@@ -36,10 +36,12 @@ class MergeMode(enum.Enum):
     NORMAL: 正常合并——全部应用 APPEND/CHANGE/DELETED
     SMART:  智能合并——APPEND/CHANGE 全部应用，DELETED 按字段规则选择性应用
     REPLACE: 简单替换——直接用 Mod 文件替换，不做字段级合并
+    ADAPTIVE: 自适应合并——基于 Mod 更新时间匹配历史游戏版本计算差异，合并行为同 SMART
     """
     NORMAL = "normal"
     SMART = "smart"
     REPLACE = "replace"
+    ADAPTIVE = "adaptive"
 
 
 # ── delta 差异描述类型 ──

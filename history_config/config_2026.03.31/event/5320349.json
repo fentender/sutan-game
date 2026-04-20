@@ -1,0 +1,30 @@
+{
+    "id": 5320349,
+    "text": "书窖里的窃贼",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000199":1, //书店老板还存活
+        "!table_have.2000199.锁定阿萨尔":1, //书店老板还存活
+        "have.2000312":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.2000199+equip":2000345, //枷锁
+                "prompt":{
+                    "id":"5320349_prompt_01",
+                    "text":"不久后，你听说阿萨尔被以闯入贵族宅邸和盗窃的罪名被投入了监狱。",
+                    "icon":"pic/2000001"
+                }
+            }
+        }
+
+    ]
+}

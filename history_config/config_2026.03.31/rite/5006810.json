@@ -1,0 +1,177 @@
+ {
+        "id": 5006810,
+        "name": "油炸河鲜",
+        "text": "快来！冷了就不好吃了！",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"b669af0c-0973-433f-8c51-cfdeaa729527",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿河鲜",
+                "result_text": "最后这玩意儿还没从油里捞起来大家就开始抢了，被烫得嗷嗷叫",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+战斗":2,  
+                    "s5+战斗":2,  
+                    "s2+战斗":2, 
+                    "s3+战斗":2,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"8afcc7e8-4b18-4f01-84e0-f575168f9a1b",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000114, //古利斯
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“当我足够细小的时候，\n也许，我的骨气——\n也不过是大人物的调味品。”古利斯听了之后，神色黯然，但又开始拼命吃鱼。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000114+社交":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e7eebeba-28bc-4048-b4e9-80b1276b2765",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000114,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“当我足够细小的时候，\n也许，我的骨气——\n也不过是大人物的调味品。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"0513b001-e1ac-4ba4-8cb2-ad216ec03635",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001312
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"2ed6660d-9919-44fb-8240-7c896896cc02",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"9c1f1b06-e9de-4dac-b15f-5b23a7c2782a",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"18c4bb00-2a8d-49dd-b280-aec1f125a0c5",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"56dcb598-2409-4af0-b0dc-6ba1cff6ac63",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

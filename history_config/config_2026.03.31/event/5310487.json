@@ -1,0 +1,26 @@
+{
+        "id": 5310487,
+        "text": "结局-金血之囚",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{
+            "counter.7000448>=":1, //传统
+            "any":{
+                "counter.7100003<":20, //权势
+                "!have.2001299":1, //没有陶土钥匙
+            },
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+                "over":221
+            }
+        }
+    ]
+} 

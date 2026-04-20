@@ -1,0 +1,153 @@
+ {
+        "id": 5008204,
+        "name": "忙碌的拉伊德",
+        "text": "协调矛盾，寻找药物，乞讨食物，阻止犯罪，组织犯罪……为了流民的生存，拉伊德什么都做。",       
+        "tips": "",
+         "mapping_id":8001121, 
+        "once_new":0,
+        "round_number":3,
+        "waiting_round":0, 
+        "waiting_round_end_action":[
+            
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location": "黑街:[1,5]", 
+        "icon": "rite_14",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "等她忙完了，还会回来为你做事"
+                 
+        ],
+        "open_conditions": [  
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            
+             {
+                
+                
+                
+                "guid":"6b695d11-fa2a-45f3-bbc7-afe42ac2215d",
+                
+                
+                
+                "condition": {
+                  
+                "!s1.变身公主":1,
+ 
+                },
+                "result_title":"",
+                "result_text": "流民的事情告一段落，拉伊德回来为你服务了。",
+                "result": 
+                { 
+
+                 
+
+               
+                },
+                "action": {
+
+                  
+                     "delay": {  //延迟3回合再执行
+                        "id":50082041,
+                        "round": 3,
+                        "event_on":5321213
+                    }    
+                   
+                    
+
+                  
+ 
+                   
+                }
+            },
+            {
+                
+                
+                
+                "guid":"3e93d277-0107-43d8-80de-836eaef31876",
+                
+                
+                
+                "condition": {   
+                               
+                   "s1.变身公主":1,
+                 
+                },
+                "result_title":"",
+                "result_text": "流民的事情告一段落，拉伊德回来为你服务了。",
+                "result": 
+                { 
+
+                 "loot":6001077
+
+               
+                },
+                "action": {
+
+                  
+                     "delay": {  //延迟3回合再执行
+                        "id":50082042,
+                        "round": 3,
+                        "event_on":5321213
+                    }    
+                   
+                    
+
+                  
+ 
+                   
+                }
+            }
+
+
+
+        ],                
+        "settlement_extre": [
+
+   
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                
+               
+                
+                "guid":"57d01886-148c-4d37-889d-2c02a159a99f",
+                
+               
+                
+                "condition":
+                {
+                    "type":"char",
+                    "is":2000195
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"拉伊德暂时没空帮你了"
+            }
+        }
+    } 

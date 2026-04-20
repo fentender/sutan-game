@@ -1,0 +1,35 @@
+{
+    "id": 5321232,
+    "text": "阿图娜尔纵欲卡后续",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+
+        "!have.2000129.贬斥":1, 
+        "!have.2000129.入宫":1,
+        
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "card":2000168, //谗言       
+                "prompt": {
+                    "id": "prompt_5321232_01",
+                    "text": "不知道谁在苏丹的耳边进谗言，说你得到一名如此美丽的舞姬居然没有第一时间献给伟大的苏丹，而是自己私下品尝了她的滋味……\n接下来好几天，苏丹看向你的表情都有些阴沉。",
+                    "icon":"cards/sudan"
+                },
+                "success": {
+                    "event_off": 5321232
+                }
+      
+            }
+        }
+
+    ]
+}

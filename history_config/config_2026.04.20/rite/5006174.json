@@ -1,0 +1,167 @@
+ {
+        "id": 5006174,
+        "name": "泉水牛肉",
+        "text": "这些肉似乎会发光，让人能在餐盘里看到自己的脸。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"31045934-3fd0-4185-ad29-af85aeb83e97",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "入口即化，鲜美无比。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+体魄":2,
+                    "s3+体魄":2,
+                    "s4+体魄":2,
+                    "s5+体魄":2,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"d0634116-b216-47f4-b141-f49e748e0483",
+                "condition": {
+                    
+                    "is":2000432, //小薇
+                },
+                "result_title":"小薇吃得默不作声",
+                "result_text": "这东西里有神秘的力量……这是薇熟悉的，啊怎么可能！",
+                "result": 
+                {  
+                    
+                    "2000432+战斗":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e7368c9d-52ef-4603-a217-14d82508223f",
+                "condition": {
+                    "is":2000460, //哈桑
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "欣赏着那肉片上的反光，哈桑吟唱到：“总有一天，\n我们会在餐盘中，\n看到陌生的自己。\n总有一天，\n我们会品尝到，\n那不得不品尝的滋味。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "7000722+战斗":1,
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"2679f7aa-c080-4dd1-ba56-5924731ae06e",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001328
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"b5277274-ff03-4973-9e75-2d7e047493c7",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"740f5808-4a12-4700-b678-292b4f5bcd4b",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"6eb4cf7e-9bc2-43f8-9611-350af7b82179",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"102923e7-d4f7-4fee-9725-87e8bc4677b1",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

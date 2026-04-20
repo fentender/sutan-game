@@ -1,0 +1,28 @@
+{
+    "id": 5311010,
+    "text": "结算陶土之门是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010207
+    },
+    "condition": {
+        "counter.7000966<": 3 //如果陶土之门成功计数器不足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311010_prompt_01",
+                    "text": "还不够，你还没有聚集足够的力量……去推开那大门，去创造新世界……",
+                },
+                "rite":5010207,  //重启陶土之门
+                "focus.5010207":[1700,1],
+                "event_off":5311010
+            },
+        }
+    ]
+}

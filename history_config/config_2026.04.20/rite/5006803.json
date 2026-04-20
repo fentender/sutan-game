@@ -1,0 +1,131 @@
+ {
+        "id": 5006803,
+        "name": "沼泽之王",
+        "text": "猎物与猎手只在一念之间。",       
+        "tips": "",
+        "mapping_id":8001553,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result":0,
+        "location": "野外:[1,6]", 
+        "icon": "rite_17", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["生存","战斗"],
+            "type":"normal_result"
+        },
+        "tips_text":[
+            "为生存而战吧",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"与大蛇战作一团",
+                "type":"normal_result",
+                "type_tips":"己方的战斗和体魄提供完整的骰子数量",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"2e686b9a-3986-4664-ac53-30f88c6ba94a",
+                "condition":
+                {
+                    "r1:战斗+体魄>=":[5,5]
+                },
+                "result_title":"你无法得知具体的战斗细节",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，赛里曼和古利斯回来了！\n他们俩都遍体鳞伤，尤其是赛里曼，一只手臂被皮带狠狠地扎着，似乎是为了截留蛇毒；而他们脸上充盈着骄傲和满足——他们拖着那条沼泽里的王，把它一路送到了你的面前。\n人们欢呼起来，这真是一次最成功的游猎会，它大大地提升了你的名望！",
+                "result": 
+                {    
+                    "s1+生存":1,  
+                    "s2+战斗":1,
+                    "s1+equip":2000098,
+                    "s2+equip":2000098,   
+                    "counter+7100003":1, 
+                    "counter+7100004":1,            
+                },
+                "action":
+                {
+                    "event_on":5320396, //借一步说话
+                }
+            },
+            {
+                "guid":"ca3dffb4-5212-45ec-8265-303e1cb74f9a",
+                "condition":
+                {
+                    "r1:战斗+体魄<":[5,5]
+                },
+                "result_title":"输了",
+                "result_text": "在猎场外围，你们焦急地等待着……\n终于，古利斯和蒙面战士回来了！\n他们俩都遍体鳞伤，尤其是那位战士，一只手臂被皮带狠狠地扎着，似乎是为了截留蛇毒，即使如此狼狈，他依旧好好地遮掩着自己的相貌；而古利斯挂着懊恼的神情，双手也空空如也。\n你尽力安慰了他们，围观的人群也都说游猎的目的并非获取猎物；这场游猎会就在稍显窘迫的气氛中结束了……",
+                "result": 
+                {      
+                    "s1+equip":2000098,
+                    "s2+equip":2000098,   
+                    "card": 2000417, //获得一个金预兆      
+                },
+                "action":
+                {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"011085eb-2e2f-43ac-8b15-bced66b5eeb7",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000292,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"猎手，或者猎物"
+                },
+            "s2":
+                {
+                    "guid":"33de292e-3b3f-428a-a2a1-cfd7009811a8",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000114,//古利斯
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"猎手，或者猎物",                   
+                },
+            "s3":
+                {
+                    "guid":"6b370885-9ba8-4bfc-b70e-23e7cd003691",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"消耗品"
+                }
+        }
+    } 

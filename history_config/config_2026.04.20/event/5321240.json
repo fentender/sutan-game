@@ -1,0 +1,29 @@
+{
+    "id": 5321240,
+    "text": "关闭你值得更好的",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba":1 
+    },
+    "condition":{  //条件
+
+        "rite_have.5008227.主角=":0  //如果这时候另一个仪式里没放人
+
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{ 
+                "clean.rite":5008227, //你值得更好的
+                "success": {
+                    "event_off": 5321240
+                }
+      
+            }
+        }
+
+    ]
+}

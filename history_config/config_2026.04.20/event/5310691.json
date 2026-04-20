@@ -1,0 +1,22 @@
+{
+        "id": 5310691,
+        "text": "陶土钥匙成就",
+        "is_replay": 0, 
+        "auto_start_init": [1], 
+        "start_trigger": false,  //立即触发
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "have.2001299":1,//有陶土钥匙
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{     
+                "global_counter=7200301":1,//获得陶土钥匙的成就
+            }
+        }
+    ]
+} 

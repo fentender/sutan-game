@@ -1,0 +1,203 @@
+{
+    "id": 5008199,
+    "name": "无赖租客",
+    "text": "趁你不注意的时候，流民占据了一个你的宅子——你怀疑这就是拉伊德指使的！现在，他们在城里到处宣扬[player.name]的慷慨与富裕——你有多余的宅子给穷人住呢！",
+    "tips": "",
+    "mapping_id":8001213, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 7,
+    "waiting_round_end_action": [
+        {
+            "condition": {},
+            "result_title": "",
+            "result_text": "",
+            "result": {
+               
+                "clean.s2": 1
+            },
+            "action": {
+                "counter+7100004": 1, //侠名+1 
+                "prompt": {
+                    "id": "prompt_5008199_01",
+                    "text": "你对此不闻不问，于是流民们真的就在那栋房子里住了下来——现在大家都觉得那就是流民的房子了！有些人觉得你傻，有些人则觉得这也算是一种侠义的善举。",
+                    "icon": "cards/2001223"
+                }
+            }
+        }
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "商业区:[10,19]",
+    "icon": "rite_12",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "你可以用钱把他们打发走",
+        "若放入拉伊德，则可以正式把房子交给他们",
+        "你也可以使用军队和暴力驱逐这些无赖",
+    ],
+    "open_conditions": [
+        {
+            "condition": {
+                "any": {
+                    "s3": 1,
+                    "s4": 1,
+                    "s5": 1
+                }
+            },
+            "tips": "你需要做出选择"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "368d04b4-9a74-4a97-83ec-8da3e8703488",
+            "condition": {
+                "s3.金币=": 20
+            },
+            "result_title": "花钱消灾",
+            "result_text": "你给了流民一大笔钱，让他们自己买一个更合适的土地——不管之前对你有什么成见，拉伊德都发自内心的感谢了你的慷慨——以及大度。至少，在她的领导下，流民们也可以帮你做些事情。",
+            "result": {
+                "card": [
+                    2001233,
+                    "已拥有+1"
+                ] //获得强化流民的帮闲
+            },
+            "action": {
+
+                 "event_on":5321227 //拉伊德入队
+
+            }
+        },
+        {
+            "guid": "6bdb2626-a859-472a-9aef-bb21f8577d1f",
+            "condition": {
+                "s3.is": 2000195 //放了拉伊德
+            },
+            "result_title": "我们之间就有话直说吧",
+            "result_text": "你告诉拉伊德，自己看穿了她那点小把戏——如果她想要流民有个住的地方，那么他们就要为[player.name]老爷带来好处……拉伊德坏笑着，觉得你的要求很公平。",
+            "result": {
+                "s2-已拥有": 1,
+                "card": [
+                    2001233,
+                    "已拥有+1"
+                ] //获得强化流民的帮闲
+            },
+            "action": {}
+        },
+        {
+            "guid": "10d495e2-cd6b-4f64-9ff3-751ca308b041",
+            "condition": {
+                "s4.部队": 1
+            },
+            "result_title": "你不战而胜",
+            "result_text": "见到了士兵，武器，流民们一哄而散——显然他们已经知道你的决心了……",
+            "result": {},
+            "action": {
+                "counter+7000753": 1,
+                 "event_on":5321226 //拉伊德离队
+            }
+        },
+        {
+            "guid": "a1a92f4e-1a75-48e6-962b-f899e176789b",
+            "condition": {
+                "s5.征服": 1
+            },
+            "result_title":"很不巧，这次是这张卡",
+                "result_text": "击败占据自己宅邸的暴徒，也勉强算得上一场征服吧？这些流民就像蚂蚁一样，难得聚集了起来——现在是时候给虫子头上泼开水了。\n实际上，想要这样玩的人很多呢！当你亮出那张征服卡之后，贵族们自发组织了起来，让自己的私兵堵住了所有的道路……你几乎没有费什么力气就消灭了这群乌合之众，当然，苏丹对这样的行动是不会投来过多的关注的——贵族们就好似苏丹的孩子，而孩子们残酷的玩笑又有多少父母会在意呢？",
+            "result": {
+                "clean.s5": 1
+            },
+            "action": {
+                "counter+7000753": 1,
+                "event_on":5321226 //拉伊德离队
+            }
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid": "7aae3065-2e83-455a-92be-4ebe87d14230",
+            "condition": {
+                "type": "item",
+                "is": 2001223
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不请自来的流民们"
+        },
+        "s2": {
+            "guid": "88e97be0-7015-4ec3-ae11-091157495f58",
+            "condition": {
+                "type": "item",
+                "空屋": 1
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "被占的宅子"
+        },
+        "s3": {
+            "guid": "e39d2bc9-e530-45db-b7fc-5abd7e26b0b5",
+            "condition": {
+                "any": {
+                    "all": {
+                        "type": "char",
+                        "is": 2000195
+                    },
+                    "all": {
+                        "type": "item",
+                        "cost.金币": 20
+                    }
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "和平的解决方案，20金币，或者干脆让拉伊德去管管"
+        },
+        "s4": {
+            "guid": "2b009c1a-ffc9-4da8-bca6-09cf0138033b",
+            "condition": {
+                "any": {
+                    "type": "item",
+                    "type": "char",
+                },
+                "部队": 1,
+                "!is": 2000428, //不是龙卷风
+                "!is": 2000429,
+                "!is": 2000430,
+                "!is": 2000431
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "用部队赶走他们"
+        },
+        "s5": {
+            "guid": "609aeec7-fbea-4dcb-bcde-cb02b6fff466",
+            "condition": {
+                "all": {
+                    "type": "sudan",
+                    "征服": 1,
+                    "rare<=": 2
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "可以折断一张不高于青铜品级的征服卡"
+        }
+    }
+}

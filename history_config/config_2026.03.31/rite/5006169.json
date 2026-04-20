@@ -1,0 +1,78 @@
+{
+    "id": 5006169,
+    "name": "人类魔法",
+    "text": "凡有的，还要加给他，叫他有余；凡没有的，连他所有的也要夺去。",
+    "tips": "",
+    "mapping_id":8001002, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_1",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        
+    ],
+    "open_conditions": [   
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+       
+    ],
+    "settlement": [
+        {
+            "guid":"3383467c-52a8-4ce2-8a1e-44231bd07b63",
+            "condition": {
+               
+            },
+            "result_title": "它们的妈妈没了",
+            "result_text": "你看……这个事儿吧……\n小留尴尬地看着你：“我明明已经给你祝福了！钱能生钱！财可聚财！”它无奈地举起一枚金币，它正在抽搐，像打喷嚏一样射出大量金色的粉尘，在你悲痛欲绝的眼光中变成一团干瘪的，破碎的渣滓。“看吧，这就是人类世界的魔法，你的钱越少，你的钱就越来越少——祝福就是这样运作的啦，我也没办法。”",
+            "result": {
+                "clean.s2":5  // 
+            },  
+            "action": {
+              
+            }
+        }
+    ],
+    "settlement_extre": [
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"6e0b5ad2-1016-4d96-b3ff-fdc961d5983a",
+            "condition": {
+                "type": "char",
+                "is":2000434  //自动吸
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "小留"
+        },
+        "s2": {
+            "guid":"fcb05d9f-5fdf-4c0d-be5c-04dc1bc63e70",
+            "condition": {
+                "type": "item",
+                "cost.金币":[1,5]
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "它应许了祝福，现在，它来了？"
+        }
+    }
+}

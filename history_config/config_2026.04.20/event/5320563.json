@@ -1,0 +1,30 @@
+{
+    "id": 5320563,
+    "text": "萨米尔的死亡",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000011":1,  //萨米尔还活着
+        "table_have.2001194":1,  //卡帕尔还活着
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006109,  //开启萨米尔被处死
+                "prompt":{
+                    "id":"5320563_prompt_1",
+                    "text":"在你忙于求生、汲汲营营的时候，在你忽视的某个角落，一名御医被轻易地定了罪，并且即日处刑。",
+                    "icon":"cards/2000011"
+                },
+                "event_off":5320563
+            }
+        }
+
+    ]
+}

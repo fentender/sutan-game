@@ -1,0 +1,67 @@
+{
+    "id": 5006740,
+    "name": "赠人玫瑰油",
+    "text": "不需要打开盖子都能闻到它透露出来的香气，这将是一件很好的礼物。",
+    "tips": "",
+    "mapping_id": 8001004,
+    "once_new": 0,
+    "round_number": 0,
+    "waiting_round": 1,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_22",
+    "tag_tips": [
+        "可以提升获赠人的魅力"
+    ],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid":"7c4e29fb-fb35-4eb9-9e5c-b58bc647a81b",
+            "condition": {
+                
+            },
+            "result_title": "手有余香",
+            "result_text": "你把这瓶精油送给了[s2.name]，无论是用于沐浴，按摩，还是当成香水使用——这种令人舒适的香味，将成为[s2.gender]身上的一部分吧！",
+            "result": {
+                "s2+魅力": 2,
+                "clean.s1": 1,
+            },
+            "action": {}
+        },
+        
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid":"a948cd6a-28d4-4c9b-9d86-a1d13a907e95",
+            "condition": {
+                "type": "item",
+                "is": 2001292,
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "玫瑰香精"
+        },
+        "s2": {
+            "guid":"8c7ebd98-3303-4d16-9360-448e8e8860a5",
+            "condition": {
+                "type": "char",
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "送给谁？"
+        }
+    }
+}

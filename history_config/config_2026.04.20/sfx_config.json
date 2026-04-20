@@ -1,0 +1,373 @@
+﻿{
+    "main_game_loop": {
+        "7":{
+            "clip": "main_game_level1",
+            "start": 0,
+            "loop_start": 28.165,
+            "loop_end": 156.164
+        },
+        "6":{
+            "clip": "main_game_level1",
+            "start": 28.165,
+            "loop_start": 28.165,
+            "loop_end": 156.164
+        },
+        "5":{
+            "clip": "main_game_level2",
+            "start": 0,
+            "loop_start": 78.097,
+            "loop_end": 161.828
+        },
+        "4":{
+            "clip": "main_game_level2",
+            "start": 78.097,
+            "loop_start": 78.097,
+            "loop_end": 161.828
+        },
+        "3":{
+            "clip": "main_game_level2",
+            "start": 78.097,
+            "loop_start": 78.097,
+            "loop_end": 161.828
+        },
+        "2":{
+            "clip": "main_game_level3",
+            "start": 0,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        },
+        "1":{
+            "clip": "main_game_level3",
+            "start": 40.008,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        },
+        "0":{
+            "clip": "main_game_level3",
+            "start": 40.008,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        },
+        "-1":{
+            "clip": "main_game_level3",
+            "start": 40.008,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        }
+    },
+    "main_game_loop_difficulty": {
+        "5":{
+           "clip": "main_game_level1",
+            "start": 0,
+            "loop_start": 28.165,
+            "loop_end": 156.164
+        },
+        "4":{
+            "clip": "main_game_level1",
+            "start": 28.165,
+            "loop_start": 28.165,
+            "loop_end": 156.164
+        },
+        "3":{
+            "clip": "main_game_level2",
+            "start": 0,
+            "loop_start": 78.097,
+            "loop_end": 161.828
+        },
+        "2":{
+            "clip": "main_game_level2",
+            "start": 78.097,
+            "loop_start": 78.097,
+            "loop_end": 161.828
+        },
+        "1":{
+            "clip": "main_game_level3",
+            "start": 0,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        },
+        "0":{
+            "clip": "main_game_level3",
+            "start": 40.008,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        },
+        "-1":{
+            "clip": "main_game_level3",
+            "start": 40.008,
+            "loop_start": 40.008,
+            "loop_end": 216.008
+        }
+    },
+    "settle_loop": {
+        "7":{
+            "clip": "settlement_level1",
+            "start": 0,
+            "loop_start": 4.452,
+            "loop_end": 39.334
+        },
+        "6":{
+            "clip": "settlement_level1",
+            "start": 0,
+            "loop_start": 4.452,
+            "loop_end": 39.334
+        },
+        "5":{
+            "clip": "settlement_level2",
+            "start": 0,
+            "loop_start": 15.724,
+            "loop_end": 33.14
+        },
+        "4":{
+            "clip": "settlement_level2",
+            "start": 0,
+            "loop_start": 15.724,
+            "loop_end": 33.14
+        },
+        "3":{
+            "clip": "settlement_level2",
+            "start": 0,
+            "loop_start": 15.724,
+            "loop_end": 33.14
+        },
+        "2":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        },
+        "1":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        },
+        "0":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        },
+        "-1":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        }
+    },
+    "settle_loop_difficulty": {
+        "5":{
+            "clip": "settlement_level1",
+            "start": 0,
+            "loop_start": 4.452,
+            "loop_end": 39.334
+        },
+        "4":{
+            "clip": "settlement_level1",
+            "start": 0,
+            "loop_start": 4.452,
+            "loop_end": 39.334
+        },
+        "3":{
+            "clip": "settlement_level2",
+            "start": 0,
+            "loop_start": 15.004,
+            "loop_end": 33.14
+        },
+        "2":{
+            "clip": "settlement_level2",
+            "start": 0,
+            "loop_start": 15.004,
+            "loop_end": 33.14
+        },
+        "1":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        },
+        "0":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        },
+        "-1":{
+            "clip": "settlement_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": 43.633
+        }
+    },
+    "armageddon_music_loop": {
+        // ——————————————————————————————————邪神线
+        "5010050":{ // 恶之华
+            "clip": "battle_1",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010060":{ // 暗影渐起
+            "clip": "battle_2",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010061":{ // 末日风暴
+            "clip": "battle_3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010062":{ // 迷梦之刃
+            "clip": "battle_4",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        // "5010063":{ // 造化歧路
+        //     "clip": "ArmageddonStop",
+        //     "start": 0,
+        //     "loop_start": 0,
+        //     "loop_end": -1
+        // },
+        // ——————————————————————————————————神临之塔线
+        "5010034":{ // 神圣烙印
+            "clip": "battle_1",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010045":{ // 世界之眼
+            "clip": "battle_2",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010046":{ // 大猎捕
+            "clip": "battle_3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010047":{ // 匕首之路
+            "clip": "battle_4",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        // "5010048":{ // 天空之火
+        //     "clip": "ArmageddonStop",
+        //     "start": 0,
+        //     "loop_start": 0,
+        //     "loop_end": -1
+        // },
+        // ——————————————————————————————————逃跑
+        "5003027":{ // 逃离苏丹的游戏
+            "clip": "secret_journey",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010001":{ // 出发！
+            "clip": "the_last_sultan_card",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        // ——————————————————————————————————造反
+        "5010013":{ // 皇宫
+            "clip": "final_battle_facing_sultan",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_instant": true
+        },
+        "5010025":{ // 集结部队
+            "clip": "main_game_level3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        "5010022":{ // 女术士
+            "clip": "seeds_of_history",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1
+        },
+        // ——————————————————————————————————屠龙
+        "5006068":{ // 致命一击
+            "clip": "dragon_slayer",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+        "5006079":{ // 龙头的归属
+            "clip": "final_battle_facing_sultan",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_instant": true
+        },
+        // "5006067":{ // 屠龙的勇行
+        //     "clip": "final_battle_facing_sultan",
+        //     "start": 0,
+        //     "loop_start": 0,
+        //     "loop_end": -1
+        // },
+        // ——————————————————————————————————龙眼
+        "5010069":{ // 趁生命气息逗留
+            "clip": "void_flight",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+        // ——————————————————————————————————神座1
+        "5010070":{ // 成神
+            "clip": "battle_1",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+         "5010075":{ // 蚁群
+            "clip": "battle_2",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+         "5010080":{ // 倾覆之塔
+            "clip": "battle_3",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+         "5010087":{ // 神与人
+            "clip": "battle_4",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+        // ——————————————————————————————————神座2
+        "5010071":{ // 疏离感
+            "clip": "battle_1",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        },
+        // ——————————————————————————————————羊肉炉
+        "5010201":{ // 往新世界
+            "clip": "void_flight",
+            "start": 0,
+            "loop_start": 0,
+            "loop_end": -1,
+            "play_in_rite_create": true
+        }
+    }
+}

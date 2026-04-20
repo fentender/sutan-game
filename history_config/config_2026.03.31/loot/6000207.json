@@ -1,0 +1,74 @@
+{
+    "id": 6000207,
+    "name": "古利斯地兴趣",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320400", //夜酒
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320401", //赌狗赢
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320401", //赌狗输
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320402", //欢愉
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320403", //浴场
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "have.2000113":1, //阿里木存活
+            },
+            "num" : "1",
+            "id" : "5320404", //闲逛-被偷
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "!have.2000113":1, //阿里木存活
+            },
+            "num" : "1",
+            "id" : "5320405", //闲逛-被偷
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+            },
+            "num" : "1",
+            "id" : "5320406", //闲逛-被偷-失败
+            "type" : "event",
+            "weight" : 60
+        }
+    ]
+}

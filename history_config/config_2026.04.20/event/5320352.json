@@ -1,0 +1,28 @@
+{
+    "id": 5320352,
+    "text": "一本书的诞生-1",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start_init": [1],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "any":{
+            "have.2000548":1, 
+            "have.2000549":1,
+            "have.2000550":1,
+            "have.2000551":1,
+        }
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "event_on":5320353, //一本书的诞生
+            }
+        }
+
+    ]
+}

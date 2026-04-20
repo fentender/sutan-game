@@ -1,0 +1,108 @@
+{
+    "id": 5008212,
+    "name": "机灵的仆役",
+    "text": "梅姬的茶会总是很受欢迎，不光因为你的权势，也因为女主人的温柔、美丽以及高贵。现在，她计划利用这些名声帮流民们找点工作。",
+    "tips": "",
+    "mapping_id":8001121, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 3,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_14",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "17890c79-6131-43da-a537-f03cb0162b60",
+            "condition": {},
+            "result_title": "一桩事先排演过的意外",
+            "result_text": "夫人们在梅姬家族祖传的织绒地毯上坐着，享用着出色的餐点，偶尔还一起吸口水烟。她们聊着各种乱七八糟的八卦，对别人的生活指指点点，暗地里观察彼此身上的每一样珠宝、每一种布料。宴席间隙，梅姬不小心把石榴茶洒在了裙子上。不等夫人们尖叫，一位流民女孩从斜地里快步走来，跪着用手巾敷在湿漉漉的裙摆上。又有一位流民仆人马上就捧来了三条裙子，请梅姬夫人选一条换上。当梅姬站起来时，还有一位仆人已经支起了换衣服时遮挡用的帷幕；这一切搭配的天衣无缝，其他夫人眼都看直了。等到梅姬换完衣服出来的时候，已经至少有三位夫人都私下里跟这些仆人女孩聊过天了。她们后来都以女仆的身份进入了很好的家族之中，她们彼此介绍，又有更多伶牙俐齿、手脚勤快的流民女孩找到了工作。",
+            "result": {
+                "s1+魅力": 1, //魅力+1
+                "card": 2000689, //获得妻子的幸福感,
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid": "c399f189-92a0-432d-a79e-a515ccc8f33d",
+            "condition": {
+                "type": "char",
+                "妻子": 1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "梅姬需要亲自安排这一切"
+        },
+        "s2": {
+            "guid": "0b71aec9-7afc-49bb-a6a9-0ded05f75953",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s3": {
+            "guid": "6d128b27-a941-4192-89ef-60781a22dd91",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s4": {
+            "guid": "8ab054e4-eb20-42a3-945d-221caaab08a3",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s5": {
+            "guid": "a5350fad-1745-425d-9273-c1ef9b10db4c",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        }
+    }
+}

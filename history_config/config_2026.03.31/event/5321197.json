@@ -1,0 +1,29 @@
+{
+    "id": 5321197,
+    "text": "欲望之蛇",
+    "is_replay": 1, //是否可以重复触发
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba": 1
+    },
+    "condition": { //条件
+
+    "table_have.char.毒蛇之链":1,  //装备了蛇之链的角色闲置
+
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite": 5008193,
+                "success": {
+                    "event_off": 5321197
+                }
+            }
+        }
+    ]
+}

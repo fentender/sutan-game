@@ -1,0 +1,121 @@
+ {
+        "id": 5002001,
+        "name": "医馆",
+        "text": "在这里可以花费金币治疗受伤或者生病的人。",       
+        "tips": "",
+        "mapping_id":8001062,
+        "once_new":1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:1", 
+        "icon": "rite_2", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "受伤与疾病会降低角色属性",
+            "在【疾病发作】事件中，受伤的角色可能会死亡"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"d717723c-2bfa-4429-89a6-5ff870787cd3",
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "伤口会合拢，疾病会痊愈，但死亡的恐惧仍盘旋在你的头顶。",
+                "result": 
+                {
+                    "s1-equip":2000194,
+                    "s1-equip":2000098 
+                },
+                "action": {
+                    "rite":5002001
+                }
+            }
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"581aa4e5-ca3f-4930-902d-b8b427f0ab84",
+                "condition": {
+                    "s1.主角":1,
+                    "counter.7000732<":1,  //医典线可以开启
+                    "counter.7000729<":1  //医典线未开启
+                },
+                "result_title":"也许是病痛令你多愁善感",
+                "result_text": "在伤口把你折磨得夜不能寐的那几日里，你无比思念自己认识的某位医术精湛的朋友……\n那时候你刚刚继承父亲的头衔、刚刚来到苏丹的宫廷，你在陪苏丹游猎时受伤了。当天晚上你疼得睡不着觉，但扎营在外，无法回家寻医问药……情急之下，你偷偷向苏丹的御医求助。这是个鲁莽的选择，但令人意外的是，他真的帮助了你，你们就此结下了友谊。只是后来，随着你们都越来越忙碌，越来越疲于应付苏丹的差事，你们之间的联系渐渐少了……\n心有所感的你，写了一封递往宫中的信函。",
+                "result": 
+                {
+                    "no_show":{
+                        "card":2001194  //刷新卡帕尔
+                    },
+                    "counter+7000923":1  //标识卡帕尔出场了的计数器
+                },
+                "action": {
+                    "rite":5006108  //开启卡帕尔送伤药
+                }
+            },
+            {
+                "guid":"bfdb61b2-19f3-4ee6-b0cb-c5f22bc05984",
+                "condition": {
+                    "counter.7000741>=":1  //研发新药后
+                },
+                "result_title":"下次小心些",
+                "result_text": "医师微笑着叮嘱你，然后退还了你诊治的费用——他说什么也不肯收你钱，因为你是那种便宜又好用的新药的研发赞助者，是所有穷人、病人的恩人。所有人都感念你。",
+                "result": 
+                {
+                    "s2+回收":1
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"dcbc24ad-c47b-4748-a041-1cbde5e49e53",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "any":{
+                            "受伤":1,
+                            "生病":1
+                        },
+                        "!怪物":1                  
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"受伤或者生病的人" 
+                },
+            "s2":
+                {
+                    "guid":"a3cc4bd1-11ac-40e6-9f43-d2a27b5312f0",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"诊费是1金币"
+                }
+        }
+    } 

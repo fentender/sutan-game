@@ -1,0 +1,116 @@
+ {
+        "id": 5008227,
+        "name": "兴师问罪",
+        "text": "你真想知道阿图娜尔到底和梅姬聊了些什么——又或者，她没事去找梅姬做什么？！给你惹事是吗？",       
+        "tips": "",
+         "mapping_id":8001159, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":7, 
+        "waiting_round_end_action":[
+            {
+            "condition": { 
+            },
+            "result_title": "",
+            "result_text":"", 
+            "result": 
+            {
+            },
+            "action": {
+                 
+                "counter+7000851": 1 
+              
+            }
+        }
+            
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_20",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+
+            
+        },
+        "tips_text":[
+
+           "当你选择完成这一事件，【愧疚与宝石】事件将会关闭"      
+        ],
+        "open_conditions": [  
+   
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+
+           
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"6fc501b8-76d8-4e74-9540-5d9f9031470a",
+                
+                "condition": {
+
+                },
+                "result_title":"你值得更好的",
+                "result_text": "你闯进阿图娜尔的住处时，她正端着一个大盘子放到桌上。\n“哥哥，您来了。”你的出现似乎让她很开心，脸上的笑容无辜而又有些许担忧，话语也软软的，带了几分求饶的意味，“对不起啊哥哥，我不小心碰见了梅姬夫人，下意识就叫了她一声嫂嫂……我真的不是故意的，你就原谅我吧，看，我给你做了汤呢！快尝尝！”\n她把勺子硬塞到你手里，推着你坐到桌边。唉，好吧。你一肚子兴师问罪的话都被这口鲜美的热汤堵了回去。阿图娜尔撑着下巴坐在你身边，伸出一根手指点在你微皱的眉心揉了揉，伴随着一股幽幽的香气，她轻声软语地说，“哥哥，都怪我害你烦心了……不过，我觉得真不公平呢。您看，我母亲一辈子都没有丝毫的抱怨或者嫉妒，我想，您身边那位没有做到这一点，您值得更好的女人。”\n你瞪了她一眼，而她有些不好意思地吐吐舌头，除了敦促你喝汤、关心你不要太过劳累、注意身体之外，再也没多说别的什么了。\n这确实是一碗令人舒心的热汤。",
+                "result": 
+                {
+                    "s1+魅力": 1,
+                    "s2+魅力": 1
+                },
+                "action": {
+                   
+                    "counter+7000852": 1, 
+                     "event_on":5321241
+                }
+            }
+
+        ],                
+        "settlement_extre": [
+       
+        ],
+        "cards_slot":
+        {
+            
+            "s1":
+            { 
+                "guid":"a2e85c53-5480-4a3f-bb91-8de2ddf664fe", 
+                "condition":
+                {
+                   "type":"char",
+                   "is":2000129
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"阿图娜尔"
+            },
+             "s2":
+            {
+                "guid":"cb204486-a705-4b65-bb3f-b2abe4ae79e6",
+                "condition":
+                {
+                    "type":"char",
+                     "主角": 1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"你必须亲自去谈"
+            }
+          
+        }
+    } 

@@ -1,0 +1,99 @@
+{
+    "id": 5006132,
+    "name": "失约的惩罚",
+    "text": "你打定了主意不把这些药物给那些午夜访客，于是，到了“它们”向你讨债的时刻，那深邃的黑暗，已经挤满了你的门缝和窗棂……",
+    "tips": "",
+    "mapping_id":8001003, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+        
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_20",
+    "tag_tips": [],
+    "tag_tips_up": {
+        "tips":["魔力","智慧"],
+        "type":"normal_result"
+    },  
+    "tips_text": [
+   
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {},
+    "random_text_up": {
+         "r1":{
+            "text":"你决定迎接命运，面对这一切恶意！",
+            "type":"normal_result",
+            "type_tips":"魔力和智慧提供完整的骰子数量。",
+            "low_target": 7,
+            "low_target_tips": "你至少需要7点成功才能存活。"
+        }
+    },
+    "settlement_prior": [],
+    "settlement": [
+       {
+            "guid":"e328ff0d-2cb4-4bde-9d64-ac6d38e34ad5",
+            "condition": {
+                "r1:魔力+智慧<":[7,5]  //失败
+            },
+            "result_title": "你输了",
+            "result_text": "你死了——和萨米尔一样——理由是失约。",
+            "result": {
+                
+            },
+            "action": {
+               "over":13
+            }
+        },
+        {
+            "guid":"97abf670-e538-4f23-b951-87a4938f6058",
+            "condition": {
+                "r1:魔力+智慧>=":[7,5]  //成功
+            },
+            "result_title": "好吧，你赢了",
+            "result_text": "随着最后一缕恶意散去，你脚踩着邪恶的残骸，长舒了一口气。\n你赢了，你和初生的太阳一起迎接了下一个黎明。",
+            "result": {
+                
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"bbca1f5f-ea99-4023-8eb1-b71570f78497",
+            "condition": {
+                "type": "char",
+                "主角":1
+            },
+            "open_adsorb":1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你自己"
+        },
+         "s2": {
+            "guid":"c68c6dce-3665-4789-affc-714bb6a46079",
+            "condition": {
+                "type": "item",
+                "cost.消耗品=":1,
+                "!金币":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 1,
+            "is_enemy": 0,
+            "text": "可以协助与魔物战斗的消耗品"
+        },
+    }
+}

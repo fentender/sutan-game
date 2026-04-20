@@ -1,0 +1,30 @@
+{
+    "id": 5320600,
+    "text": "放心吧",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "prompt":{
+                    "id":"5320600_prompt_1",
+                    "text":"你朝她点点头，应下了她的请求，表示这三个方案都会稍微尽力去帮她宣传的。热娜一个劲向你道谢，笑得无比灿烂。",
+                    "icon":"cards/2000019"
+                },
+                "counter=7000828":1,  //标识可以在上朝触发珠宝宣传的计数器
+                "event_on":[5320601,5320602,5320603],  //开启三个宣传的启动幕后
+                "event_on":5320606,  //开启接取订单的幕后需要在完成宣传后才能满足计数器要求
+                "event_off":5320600
+            }
+        }
+
+    ]
+}

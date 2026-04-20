@@ -1,0 +1,24 @@
+{
+        "id": 5310897,
+        "text": "纪元人性",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "rite_end": 5010087
+        },
+        "condition":{
+            "f:counter.7000936-counter.7000935>=":0, //人性>神性
+            "have.2001318.神性":1, //纪元
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "global_counter=7200307":1,//成为
+                "over": 282,//结局
+            },            
+        }
+    ]
+} 

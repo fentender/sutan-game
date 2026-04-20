@@ -1,0 +1,30 @@
+{
+        "id": 5311066,
+        "text": "飞升线污渍失败",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "any":{
+                "table_have.2001039":1,   //存在污渍
+                "table_have.2001040":1, 
+                "table_have.2001041":1, 
+                "table_have.2001042":1, 
+            }   
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2001039+飞升特殊失败":1,
+                "table.2001040+飞升特殊失败":1,
+                "table.2001041+飞升特殊失败":1,
+                "table.2001042+飞升特殊失败":1
+            },            
+        }
+    ]
+} 

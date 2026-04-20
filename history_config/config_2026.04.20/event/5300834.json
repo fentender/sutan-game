@@ -1,0 +1,29 @@
+{
+    "id": 5300834,
+    "text": "不干涉小筹征服",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1,
+    },
+    "condition": { //条件
+        "table_have.2001182":1,  //小筹空闲
+        "f:counter.7000706-counter.7000707>=":1,  //人性-物性大于等于1
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite":5000349,  //镜之冠冕
+                "prompt": {
+                    "id": "5300834_prompt_1",
+                    "text": "据说，那来历神秘的[xiaochou.name]，在征服了这座城市，坐上王座之后，就消失了。这片土地因为失去统治者，陷入了长久的混乱……没人知道其中的真相，而你在冥冥中还能感觉到，[xiaochou.name]仍然存在于这个世界上。",
+                    "icon": "pic/2001182"
+                },
+                "event_off":[5300833,5300834,5300835]  //关闭
+            }
+        }
+    ]
+}

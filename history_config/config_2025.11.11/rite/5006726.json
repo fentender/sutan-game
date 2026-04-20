@@ -1,0 +1,126 @@
+ {
+        "id": 5006726,
+        "name": "印刷方略",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"74471c44-9ef5-4354-be38-ac2d4daac0cf",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "学到了印刷方面的知识。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+智慧":1,
+                    "pop.5006726_01.s2": "最早的印刷工人以为自己只是在做手抄本的复制品，却不知道，伟大的历史已经诞生在他们手中。"                              
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"22741bdd-7757-4d59-a5aa-5bbc5194f45d",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001249,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"230beff4-d821-47e3-b2bf-39ad52c995da",
+                    "condition": 
+                    {
+                        "type":"char",
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006726_s2_01.self":"以前我好羡慕抄书匠……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000199 //阿萨尔
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006726_s2_02.self":"印刷最伟大之处在于阻止了手抄本无法避免、代代相传的谬误。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000164 //阿穆尔
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006726_s2_03.self":"谁掌握了印刷行业，谁就能操控人们的思想。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "法拉杰": 1 //法拉杰
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006726_s2_04.self":"我私下了解过不少相关的事。"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

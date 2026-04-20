@@ -1,0 +1,126 @@
+{
+    "id": 5000066,
+    "name": "否认现实",
+    "text": "长时间默念这些词句，能令人精神恍惚……这可能并不舒适，但也是珍贵的神秘体验。",       
+    "tips": "",
+    "mapping_id":8001005,
+    "once_new":0,
+    "round_number": 1,
+    "waiting_round":1,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result":0,
+    "location": "自宅:[2,12]", 
+    "icon": "rite_7", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+    },
+    "tips_text":[
+        "对一般人来说，这也许能提升他们的魔力",
+        "你收集了越多的词句，这份手稿的力量就越大"
+    ],
+    "open_conditions": [
+    ],
+    "random_text":{
+    },
+    "random_text_up":{
+    },
+    "settlement_prior": [
+    ],                
+    "settlement": [
+        {
+            "guid":"fdfdfa14-eee7-4f6d-84f3-a7db4bc99325",
+            "condition":
+            {
+                "!s2.is":2000460,
+                "counter.7000733<":5, //获得判词
+            },
+            "result_title":"[s2.name]看见了织锦之间的裂隙",
+            "result_text": "现实是可以被编织的，可以修改的！而这些词句正是某个伟大存在曾经使用过的钩针与图纸……",
+            "result": 
+            {   
+                "clean.s1":1,
+                "clean.s3":1,
+                "s2+魔力":1,
+                "counter+7100005":1,                               
+            },
+            "action":
+            {
+            }
+        },
+        {
+            "guid":"fc3aacb4-6079-454a-aa39-3a2c4d378e34",
+            "condition":
+            {
+                "!s2.is":2000460,
+                "counter.7000733>=":5, //获得判词
+            },
+            "result_title":"[s2.name]学到了一些修改现实的技艺",
+            "result_text": "现实是可以被编织的，可以修改的！而这些词句正是某个伟大存在曾经使用过的钩针与图纸……你们几乎重新发明了一种魔力的流派。",
+            "result": 
+            {   
+                "clean.s1":1,
+                "s2+魔力":3,
+                "clean.s3":1,
+                "counter+7100005":3,                               
+            },
+            "action":
+            {
+            }
+        }
+
+    ],                
+    "settlement_extre": [
+    ],
+    "cards_slot":
+    {
+        "s1":
+            {
+                "guid":"ca832414-6a0e-4d7d-9de3-c0950d0c9cd1",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001209,
+                    "正在阅读":1                  
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":1,
+                "text":"你收集的特殊诗句" 
+            },
+        "s2":
+            {
+                "guid":"9e50db9d-7598-45ef-bce8-dc220b10c6ef",
+                "condition": 
+                {
+                    "type":"char",
+                    "!动物":1,
+                    "!怪物":1,
+                    "!is":2000460
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"阅读者"
+            },
+        "s3":
+            {
+                "guid":"05f53f07-743f-4b48-a9f9-35f6d68a7066",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001208
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"一番不可思议的奇遇"
+            }
+    }
+} 

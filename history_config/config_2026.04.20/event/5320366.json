@@ -1,0 +1,43 @@
+{
+    "id": 5320366,
+    "text": "马尔基娜事件提示",     
+    "is_replay": 1, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7000808>=":1,
+        "have.2000459":1,
+        "table_have.2001298":1,
+        "any":{
+            "all":{
+                "counter.7000809<":1,
+                "counter.7100001>=":8,
+            },
+            "all":{
+                "counter.7000810<":1,
+                "counter.7100002>=":8,
+            },
+            "all":{
+                "counter.7000811<":1,
+                "counter.7100003>=":8,
+            },
+            "all":{
+                "counter.7000812<":1,
+                "counter.7100004>=":8,
+            },
+        }
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.2001298+事件提示":1
+            }
+        }
+
+    ]
+}

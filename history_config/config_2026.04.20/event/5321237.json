@@ -1,0 +1,37 @@
+{
+    "id": 5321237,
+    "text": "无言的失望",
+    "is_replay": 1, //是否可以重复触发
+    "auto_start_init": [
+        1
+    ],
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba": 1
+    },
+    "condition": { //条件
+
+       "have.妻子":1,  
+       "counter.7000853>=":3   // 标记和阿图娜尔纵欲次数
+           
+      
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+               "card":2000083,//妻子的不满
+               "counter+7000855": 1, 
+               "prompt": {
+                    "id": "prompt_5321237_01",
+                    "text": "你难道以为自己和阿图娜尔做的事能瞒得住梅姬么？她对你已经无话可说了。",
+                    "icon":"cards/2000006"
+                },
+                "success": {
+                    "event_off": 5321237
+                }
+            }
+        }
+    ]
+}

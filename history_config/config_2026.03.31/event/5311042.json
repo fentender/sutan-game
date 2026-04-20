@@ -1,0 +1,22 @@
+{
+        "id": 5311042,
+        "text": "飞升线完美世界成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000728":1,  
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000728+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

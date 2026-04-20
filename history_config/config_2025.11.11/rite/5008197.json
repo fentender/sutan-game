@@ -1,0 +1,104 @@
+ {
+        "id": 5008197,
+        "name": "流民的帮闲",
+        "text": "这些流民什么都愿意做……而且你意识到，他们不是普通的乞丐，而是因为各种原因流离失所的人，他们有的是工匠，有的能歌善舞，有的会写文书，有的甚至有一些贵族出身……就是没有了身份纸而已。",       
+        "tips": "",
+        "mapping_id":8001002,
+        "once_new":0,
+        "round_number":3,
+        "waiting_round":1, 
+        "waiting_round_end_action":[
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_19",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你会随机得到一些奖励",
+            "如果经常使唤这些流民的话……可能会被赖上哦"
+            
+                 
+        ],
+        "open_conditions": [  
+      
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                "guid":"94b6f318-df4a-4cc9-8d29-673838615df8",
+                
+                "condition": {
+
+                    "s1":1
+
+                   
+
+                 
+                },
+                "result_title":"他们真的啥都能做",
+                "result_text": "你家里破损的东西——无论是院墙还是大茶壶都被补好了；有人用一种烟雾让你们的衣服发出极为高雅的香气；有人一口气给六头牛，三匹马修好了蹄子；有人编了你三岁开始的劝善小故事在市井里流传；有人帮你重新整理了库房，文件与书架……总之，一切都变得井井有条，更流畅地运转了起来。",
+                "result": 
+                { 
+
+               "loot":6001072,  //随机善名或者侠名
+                "loot":6000045,  //随机银情报
+                 "counter+7100006":1,  //获得1个金骰子
+
+               
+                },
+                "action": {
+
+                    "counter+7000746":1, //流民的帮闲收益次数
+                     "counter=7000745":0,  //可以继续寻思流民帮闲
+ 
+                   
+                }
+            },
+
+
+
+        ],                
+        "settlement_extre": [
+
+   
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                
+                "guid":"d18d9180-c8c4-4363-8eaa-a7ec7433b256",
+                
+                "condition":
+                {
+                    "type":"item",
+                    "is":2001229
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"这群人啥都能干，没活儿都能给你发现一点新的，就图一个不闲着有饭吃"
+            }
+        }
+    } 

@@ -1,0 +1,93 @@
+{
+    "id": 6000203,
+    "name": "珠宝订单随机loot",
+    "repeat": 1,
+    "type": 3, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "counter.7000817>=":1,  //贵族订单一
+            },
+            "num" : "1",
+            "id" : "5320607",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000817>=":1,  //贵族订单二
+            },
+            "num" : "1",
+            "id" : "5320608",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000817>=":1,  //贵族订单三
+            },
+            "num" : "1",
+            "id" : "5320609",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000818>=":1,  //宫廷订单一
+            },
+            "num" : "1",
+            "id" : "5320612",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000818>=":1,  //宫廷订单二
+            },
+            "num" : "1",
+            "id" : "5320613",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000818>=":1,  //宫廷订单三
+                "any":{
+                    "hand_have.2001267":1,
+                    "hand_have.2001274":1  //场上已经有钻石才会刷苏丹的珠宝订单
+                }
+            },
+            "num" : "1",
+            "id" : "5320614",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000819>=":1,  //平民订单一
+            },
+            "num" : "1",
+            "id" : "5320628",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000819>=":1,  //平民订单二
+            },
+            "num" : "1",
+            "id" : "5320629",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000819>=":1,  //平民订单三
+            },
+            "num" : "1",
+            "id" : "5320630",
+            "type" : "event",
+            "weight" : 60
+        },
+    ]
+}

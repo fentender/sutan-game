@@ -1,0 +1,29 @@
+{
+    "id": 5320399,
+    "text": "古利斯地兴趣",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": [1,3]
+    },
+    "condition":{
+        "table_have.2000114":1, //古利斯闲置
+        "counter.7000857<":5, //次数计数
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "prompt":{
+                    "id":"5320399_prompt_1",
+                    "text":"既然你让古利斯的钱包里塞满了金币，又让他今天闲着没事做；那么，他就要去找点乐子了……直到把钱花完为止。",
+                    "icon": "pic/2000114",
+                },
+                "loot":6000207, //兴趣
+            }
+        }
+
+    ]
+}

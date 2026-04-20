@@ -1,0 +1,28 @@
+{
+    "id": 5311008,
+    "text": "结算造化之风是否完成",
+    "is_replay": 0,
+    "auto_start": false,
+    "start_trigger": false,
+    "on": {
+        "rite_end": 5010206
+    },
+    "condition": {
+        "counter.7000965<": 3 //如果造化之风成功计数器不足
+    },
+    "settlement": [
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "prompt": {
+                    "id": "5311008_prompt_01",
+                    "text": "继续凝聚自己的权能吧！用它们的光芒去驾驭造化之风！不要让羊肉炉领先！",
+                },
+                "rite":5010206,  //重启造化之风
+                "focus.5010206":[1700,1],
+                "event_off":5311008
+            },
+        }
+    ]
+}

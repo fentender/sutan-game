@@ -1,0 +1,24 @@
+{
+        "id": 5310863,
+        "text": "火焰大王",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": false,
+        "on":{   
+            "rite_end": 5010076
+        },
+        "condition":{
+            "table_have.2000762":1,
+            "!table_have.2000762.神选冠军":1,
+            "!table_have.2000762.神的代言人":1,
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "rite":5010079//火焰大王
+            }
+        }
+    ]
+} 

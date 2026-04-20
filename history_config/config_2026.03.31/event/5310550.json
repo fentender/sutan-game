@@ -1,0 +1,25 @@
+{
+        "id": 5310550,
+        "text": "结局-梦幻宫殿",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,  //立即触发
+        "on":{   
+            "rite_end": 5010024
+        },
+        "condition":{
+            "counter.7000448>=":1, //传统
+            "counter.7100003":20, //权势
+            "have.2001299":1, //有陶土钥匙
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{   
+                "global_counter=7200309":1,//成就
+                "over":283
+            }
+        }
+    ]
+} 

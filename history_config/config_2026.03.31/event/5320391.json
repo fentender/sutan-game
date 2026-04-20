@@ -1,0 +1,23 @@
+{
+    "id": 5320391,
+    "text": "用来关闭游猎会",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "!have.2000114.追随者":1, //古利斯存活
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "clean.rite":5006800, //关闭游猎会
+            }
+        }
+
+    ]
+}

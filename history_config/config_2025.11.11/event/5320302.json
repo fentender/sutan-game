@@ -1,0 +1,28 @@
+{
+    "id": 5320302,
+    "text": "爱的教育",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000460":1, //哈桑闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "rite":5006689,
+                "prompt":{
+                    "id":"5320302_prompt_1",
+                    "text":"哈桑神情沮丧地找到了你。",
+                    "icon":"cards/2000460"
+                }
+            }
+        }
+
+    ]
+}

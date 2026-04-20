@@ -1,0 +1,119 @@
+ {
+        "id": 5006739,
+        "name": "宇宙之弦",
+        "text": "阅读可以提升自己，养成阅读的习惯吧。",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"5ea67658-f174-4d20-945a-22ab4983c1e0",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "不知道是不是因为小星星女士推荐，这本难懂的怪书居然卖得挺不错的。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+智慧":1,
+                    "s2+魔力":3,
+                    "pop.5006739_01.s2": "要么伸展到无穷远处，要么形成闭合的无终点的环圈……"                              
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"a1856eb4-c77b-47ab-b8a0-0855dd0e2325",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001260,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"6c5516ca-13cf-4ce0-bb72-0e6b1a0fb0fc",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006739_s2_01.self":"也许真理就生于诞妄之中。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000352 //玛希尔
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006739_s2_02.self":"一个未经证实的理论……哦！一个待证实的观点！"
+                                }
+                            }
+                        }, 
+                        {
+                            "condition":{
+                                "is": 2000064 //奈布哈尼
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006739_s2_03.self":"如果宇宙是一条条丝弦，那么拨弄琴弦的手会是谁的呢？"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

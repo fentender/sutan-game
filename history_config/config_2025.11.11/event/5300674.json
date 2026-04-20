@@ -1,0 +1,29 @@
+{
+        "id": 5300674,
+        "text": "众筹道具-超级贝姬夫人",
+        "is_replay": 0, 
+        "auto_start_init": [1], 
+        "start_trigger": false, 
+        "on":{   
+            "rite_end":5000136,
+            "rite_end":5000133,
+        },
+        "condition":{    
+            "counter.7000679>=":1,//超级贝姬夫人前置标识
+            "counter.7000680>=":1,//超级贝姬夫人前置标识
+        },
+        "settlement": [    //当玩家选择换牌，引导玩家拖动卡牌
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5000162,
+                "prompt":{
+                    "id":"5300674_prompt_01",
+                    "text":"一切如常的一天……等等，今天怎么没见贝姬夫人？",
+                    "icon":"cards/2000461"
+                },
+            }
+        }
+        ]
+    } 

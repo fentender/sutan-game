@@ -1,0 +1,26 @@
+{
+    "id": 6000301,
+    "name": "更深的塑造-善良的样子",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "counter.7000809<":1
+            },
+            "num" : "1",
+            "id" : "5006743", //善良的样子
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7000809>=":1              
+            },
+            "num" : "1",
+            "id" : "5320372",
+            "type" : "event",
+            "weight" : 60
+        },
+    ]
+}

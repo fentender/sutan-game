@@ -1,0 +1,35 @@
+{
+    "id": 5320374,
+    "text": "权势的样子-已完成",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "option": {
+                    "id":"5320374_option_1",
+                    "text": "掌权人的样子已经见多了，暂时不需要了。",
+                    "icon": "pic/2000459",
+                    "items": [
+                        {
+                            "text": "再想想",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320367, //重开更深的造诣
+                }
+            }
+        }
+
+    ]
+}

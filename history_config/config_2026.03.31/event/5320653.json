@@ -1,0 +1,36 @@
+{
+    "id": 5320653,
+    "text": "小薇这么做我有什么好处",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                 "option": {
+                    "id":"5320653_option_1",
+                    "text": "女王大人是最美，最强大的妖精！想想它亲自服侍[player.name]大人的样子……啊啊，小薇要不行了，小薇要去用刀子戳点东西！",
+                    "icon": "cards/2000432",
+                    "items": [
+                        {
+                            "text": "……行吧",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320649,  //返回
+                    "event_off":5320653
+                }
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,73 @@
+ {
+        "id": 5010212,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:18", 
+        "icon": "rite_ac_2",   
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你还有3回合时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"3809598f-199a-43d0-be3e-4e6d0cb4b988",
+                "condition": {//
+                    "s1.羊肉炉飞升进度=":3  //第五天结束时
+                },
+                "result_title":"多彩目光",
+                "result_text":"随着那遗失已久神圣光芒涌现，整个升华之路都开始震动……世界上所有的神明与圣者都看到了这神圣的竞赛，连那些蛰伏于帷幕之后，曾经参与创造世界的伟大存在们，也忍不住投来了惊讶的目光。\n那神秘的紫色，来自“比喻”女士，在你演唱诗歌，或者施展魔法时，早就体会过这种微妙的注视……\n那比虚空还要深沉的黑，来自“结局”先生……他距离现世很远，离你们却仿佛近在咫尺……\n那刺目的金光，是女术士！不，是女术士背后的那个东西……它正在用无数根手指记录你和羊肉炉竞速的每一个细节……",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1 //羊肉炉飞升计数器  
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_06" ,
+                    "rite":5010213  //生成第六天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"a7fbd28d-5204-47a8-8556-b2666c04b63d",
+                "condition": 
+                {
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你还有3回合时间成为造物主"
+            }
+            
+    }
+    } 

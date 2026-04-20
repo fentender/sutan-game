@@ -1,0 +1,82 @@
+﻿{
+    "Main":{
+        "type": "Main",
+        "slides":[
+            {
+                "res":"main_1",
+                "text": ""
+            },
+            {
+               "res": "main_2",
+               "text": ""
+            },
+            {
+               "res": "main_3",
+               "text": ""
+            },
+            {
+               "res": "main_4",
+               "text": ""
+            },
+            {
+                "res":"main_5",
+                "text": ""
+            },
+            {
+               "res": "main_6",
+               "text": ""
+            },
+            {
+               "res": "main_7",
+               "text": ""
+            },
+            {
+               "res": "main_8",
+               "text": ""
+            },
+            {
+              "res": "main_9",
+              "text": ""
+            }
+        ]
+    },
+    "Rite":{
+        "type": "Rite",
+        "slides":[
+            {
+                "res":"rite_1",
+                "text": ""
+            },
+            {
+               "res": "rite_2",
+               "text": ""
+            },
+            {
+               "res": "rite_3",
+               "text": ""
+            }
+        ]
+    },
+    "Card":{
+        "type": "Card",
+        "slides":[
+            {
+                "res":"card_info_1",
+                "text": ""
+            },
+            {
+               "res": "card_info_2",
+               "text": ""
+            }
+        ]
+    },
+    "Bag":{
+        "type": "Bag",
+        "slides":[
+            {
+                "res":"bag",
+                "text": ""
+            }
+        ]
+    }
+}

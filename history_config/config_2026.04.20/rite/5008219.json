@@ -1,0 +1,143 @@
+ {
+        "id": 5008219,
+        "name": "杀戮与激情",
+        "text": "当晚，夜深人静之时，拉伊德又来找你了……她头发里的血渍还没洗干净，但她散发着一种比血腥气，比流民的臭味更浓烈，更吸引你的味道……",       
+        "tips": "",
+        "mapping_id":8001106,
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":2, 
+        "waiting_round_end_action":[
+             {
+            "condition": { 
+            },
+            "result_title": "",
+            "result_text":"", 
+            "result": 
+            {
+            },
+            "action": {
+                "prompt": {
+                    "id": "prompt_5008219_01",
+                    "text": "你的冷淡与惊愕熄灭了她眼中的烈焰，唉，你真应该庆幸，她还不习惯这样的激情体验——还不会像她的兄弟那样放任其发展。"
+                },
+              
+            }
+        }
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_13",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+
+            
+        },
+        "tips_text":[
+
+          
+                 
+        ],
+        "open_conditions": [  
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+
+           
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                
+  
+                "guid":"9a3930ce-ba6e-403b-aeae-2c2d03da7d82",
+                
+                
+  
+                "condition": {
+
+                  
+                    
+
+                 
+                },
+                "result_title":"正常的，您哥也这样",
+                "result_text": "她眼睛红红的，仿佛有火焰在其中燃烧。她把你逼到角落，呼吸炙热，一只手遮住了你的眼睛，另一手紧紧地把你双臂拽住——她要在这件事情上做主。\n你感到她的身躯变得柔软，又像铁一样强和烈……你感觉到她嘴唇里有血，又咸又热乎乎……这种种滋味，令你陶醉，令你舒服，几乎要忘掉了这游戏带给你的苦……几乎有一瞬间，你想要永远跟她走，不管她行的是何种道路……\n幸运地抑或遗憾地，支撑这份激情的狂血在她体内并没有那么浓厚，当你们精疲力尽地倒在地毯上之后，这些疯狂的行为与念头，也随之幻灭……她几乎是羞耻地从汗，血与肢体之间滑出，与你拉开了距离：“我不太正常……杀戮会让我产生激情……下次绝对不会了！”显然，你接下来的那一句安慰让她彻底生气了，并且从此之后，永远与你拉开了更多距离。",
+                "result": 
+                { 
+
+               
+               
+                },
+                "action": {
+
+                  
+ 
+                   
+                }
+            },
+        
+
+
+
+        ],                
+        "settlement_extre": [
+           
+ 
+
+
+   
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+   
+                "guid":"3cb34701-7c6f-4179-bf46-b8f195a9b937",
+   
+                "condition":
+                {
+                    "type":"char",
+                    "is":2000195
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"只在今夜，她充满了激情"
+            },
+            "s2":
+            {
+   
+                "guid":"71cc7d09-6bfb-49ac-8e21-72ca43fc6c6f",
+   
+                "condition":
+                {
+                   "type":"char",
+                    "主角":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"只在今夜，你可以回应她的激情"
+            }
+          
+        }
+    } 

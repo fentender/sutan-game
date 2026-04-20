@@ -1,0 +1,23 @@
+{
+        "id": 5311045,
+        "text": "飞升线哈桑成功",
+        "is_replay": 0, 
+        "auto_start": false, 
+        "start_trigger": true,
+        "on":{   
+            "round_begin_ba": 1
+        },
+        "condition":{
+            "table_have.2000460":1,  
+            "counter.7000725>=":1  //哈桑完成可爱的蹄子
+        },
+        "settlement": [    
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.2000460+飞升特殊成功":1
+            },            
+        }
+    ]
+} 

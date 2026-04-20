@@ -1,0 +1,70 @@
+ {
+        "id": 5006694,
+        "name": "宫廷诗人",
+        "text": "让哈桑去真正难熬的地方呆一下，去伺候几天苏丹——只有苦难才能催生出真正的诗歌！",       
+        "tips": "",
+        "mapping_id":8001001,
+        "once_new":0,
+        "round_number": 3,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,//需要手动启动
+        "location": "宫廷:[2,6]",  
+        "icon": "rite_20", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"69d71662-35e0-4ccb-b28b-538d97cdd409",
+                "condition": {
+                },
+                "result_title":"再见了狗苏丹",
+                "result_text": "哈桑回来了。\n他瘦了一大圈，兜里装着一些赏钱，整个人失魂落魄。\n他死都不愿意引述自己在苏丹跟前写下的诗，也再不愿意接近宫廷哪怕半步了。\n不过，这段经历显然磨练了他的灵魂和他的创意……他的笔锋又像之前一样机敏而锐利了。",
+                "result": 
+                {  
+                    "s1+智慧":1,
+                    "s1+魔力":1,
+                    "counter=7000724":0,
+                    "counter+7000906":1, //标识哈桑做了宫廷诗人
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"829482c7-a884-4e92-90e1-abf8cf483c2a",
+                "condition": 
+                {
+                    "type":"char",
+                    "is":2000460
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"哈桑"
+            }
+        }
+    } 

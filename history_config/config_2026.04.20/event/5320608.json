@@ -1,0 +1,30 @@
+{
+    "id": 5320608,
+    "text": "贵妇的订单",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006146,  //开启给贵妇的订单
+                "prompt":{
+                    "id":"5320608_prompt_1",
+                    "text":"一位曾参与浴池中的珠宝之宴的贵妇人送来了订单，她想要一副“最美、最华贵、最漂亮”的宝石耳环，至差也得是红宝石的，不然岂不是被别人比下去了！",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320608  //关闭自己订单后再来开启
+            }
+        }
+
+    ]
+}

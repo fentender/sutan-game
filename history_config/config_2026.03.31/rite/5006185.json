@@ -1,0 +1,241 @@
+ {
+        "id": 5006185,
+        "name": "魅魔奶茶",
+        "text": "只有三根吸管你让四个人一起来喝？几个意思啊？",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"d8b0b6a1-1705-4af2-ab49-7f0deadc4a57",
+                "condition": {                
+                },
+                "result_title":"你们享用了这顿美餐",
+                "result_text": "虽然非常非常奇怪，但大家都默不作声地轮流使用着这些吸管，一时间，房间里只有滋滋滋的声音。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s2+魅力":3,
+                    "s3+魅力":3,
+                    "s4+魅力":3,
+                    "s5+魅力":3,
+                    "s2+吃魅魔奶茶":1,
+                    "s3+吃魅魔奶茶":1,
+                    "s4+吃魅魔奶茶":1,
+                    "s5+吃魅魔奶茶":1,
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"24006749-598e-402f-b866-1c754e9a8ef3",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000055, //娜依拉
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我品尝了她的甘甜，\n又知晓了她的盐——与苦涩，\n这应当被视为爱情！”娜依拉哈哈大笑，当即便邀请哈桑今晚也来尝尝自己的爱情。",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000055+体魄":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"f3bc9b5a-e710-42ed-b9b0-56a09e800f26",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000055,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“我品尝了她的甘甜，\n又知晓了她的盐——与苦涩，\n这应当被视为爱情！”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"7716583f-d5fa-4f25-9aac-902143e10588",
+                "condition": {
+                    "s2.吃魅魔奶茶>=":2
+                },
+                "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s2.name]体内已经积累了太多……最终，[s2.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s2":1,
+                    "card":[2000500,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"3f960df1-a617-4d9b-8e11-20f76e067db7",
+                "condition": {
+                    "s3.吃魅魔奶茶>=":2
+                },
+                "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s3.name]体内已经积累了太多……最终，[s3.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s3":1,
+                    "card":[2000500,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"f3387f23-61fa-4156-b767-df76cb16750a",
+                "condition": {
+                    "s4.吃魅魔奶茶>=":2
+                },
+                "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s4.name]体内已经积累了太多……最终，[s4.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s4":1,
+                    "card":[2000500,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"9bd0478c-69b5-499d-a14b-6d551854b506",
+                "condition": {
+                    "s5.吃魅魔奶茶>=":2
+                },
+                "result_title":"吃什么，就会像什么",
+                "result_text": "魔性从来不会消失，只是在世间流转。[s5.name]体内已经积累了太多……最终，[s5.gender]也化身为了自己所吞噬的东西。",
+                "result": 
+                {  
+                    "clean.s5":1,
+                    "card":[2000500,"追随者+1"]
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"2817e1fb-2ea5-45b2-8550-fa56f47f8b28",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001341
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+        "s2":
+        {
+            "guid":"c243e017-66e3-4468-bd03-585e3a8d7655",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s3":
+        {
+            "guid":"f61c3360-f1e0-4106-b2a3-ec22916b02e1",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s4":
+        {
+            "guid":"108d20cf-66c9-45bb-b97d-d2970731441d",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        },
+        "s5":
+        {
+            "guid":"41ad16a6-04d3-49a9-9e72-b9530b5fdadd",
+            "condition": 
+            {
+                "type":"char"
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"你可以亲自，或邀请追随者前来品尝"
+        }
+        }
+    } 

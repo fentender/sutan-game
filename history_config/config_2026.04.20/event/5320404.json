@@ -1,0 +1,28 @@
+{
+    "id": 5320404,
+    "text": "古利斯地兴趣-浴场",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "total.2000114+魅力":1,
+                "counter+7000857":1,
+                "prompt":{
+                    "id":"5320404_prompt_1",
+                    "text":"古利斯像个贵族一样享受了浴场的服务，就连他都不得不承认，城市民发明的这个泡在热水里的休闲方式……着实是有点意思。\n他回来时，整个人都洗得闪闪发光。",
+                    "icon": "pic/2000114",
+                }
+            }
+        }
+
+    ]
+}

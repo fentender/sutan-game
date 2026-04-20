@@ -1,0 +1,74 @@
+ {
+        "id": 5010202,
+        "name": "羊肉炉的飞升",
+        "text": "祂为此筹划了多少年？祂为了你的游戏，窃取了多少神圣的力量？现在，祂饥渴地扑向了最后的奖赏。",       
+        "tips": "",
+        "mapping_id":8001589,
+        "once_new":-1,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1,
+        "auto_result": 0,
+        "location": "结局:14", 
+        "icon": "rite_ac_2",  
+        "tag_tips": [  
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            "你需要比羊肉炉更快地到达终点，而你有7回合的时间"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{      
+        },
+        "settlement_prior": [
+          
+        ],                
+        "settlement": [
+            {
+                "guid":"38a7702e-5223-4d31-88e3-95771d1c6cca",
+                "condition": {
+                    "s1.羊肉炉飞升进度=":7  //第一天结束时
+                },
+                "result_title":"祂本非人间之物",
+                "result_text":"羊肉炉只轻轻一撞，就让那描绘尘世的墨水如退潮般散去。毕竟，从来没有文字描绘过祂，从来没有歌谣传唱过祂，而祂本就是这个世界的书写者之一……\n那羊的皮囊与伪装也就此消退，你看到了一团纠缠的云雾，线缆与血肉……仿佛某种贪食的拼凑巨兽。",
+                "result": 
+                {
+                    "clean.s1":1,
+                    "counter+7001101":1 //羊肉炉飞升计数器
+                },
+                "action": {
+                    "change_desk_bg":"ascend_bg_day_02" ,
+                    "rite":5010209  //生成第二天
+                }
+            }
+        ],               
+        "settlement_extre": [
+
+        ],
+        "cards_slot":
+        {
+        "s1":
+            {
+                "guid":"8d7ba2fb-26f0-4baf-aa98-57d612902935",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001344,
+                    "cost.羊肉炉飞升进度":[1,7], //吸入飞升卡
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0, 
+                "text":"你只有七个回合时间成为造物主"
+            },
+            
+    }
+    } 

@@ -1,0 +1,37 @@
+{
+    "id": 5320290,
+    "text": "诺言",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7100003>=":15, //权势
+        "counter.7100004>=":10, //侠名
+        "table_have.2000005":1, //巴拉特闲置
+        "!have.2000005.追随者":1, //巴拉特不是追随者
+        "counter.7000718<":1,//标识还没开始造币
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "event_off":5320289,
+                "table.2000005+追随者":1,
+                "table.2000005-异国商人":1,
+                "card":2000325,  //雇佣伙计看店 
+                "rite":5006685, //造币厂
+                "counter+7000718":1,//标识开始造币
+                "prompt":{
+                    "id":"5320290_prompt_1",
+                    "text":"你已经做好了万全准备，巴拉特兴致勃勃地准备狠狠地开始造苏丹的假币了。",
+                    "icon":"cards/2000005"
+                }
+            }
+        }
+
+    ]
+}
