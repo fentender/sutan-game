@@ -16,6 +16,7 @@ merged_output/
 mod_overrides/
 user_config.json
 _remap_temp
+history_config_pack/
 
 # PyInstaller
 build/

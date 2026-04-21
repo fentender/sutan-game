@@ -1,10 +1,10 @@
 """
-一键发布脚本 —— 推送代码 + 打包 + 创建 GitHub/Gitee Release
+一键发布脚本 —— 推送代码 + 构建 CAS + 打包 + 创建 GitHub/Gitee Release
 
 用法:
-    python release.py                          # 交互式输入 release notes
-    python release.py --notes "修复若干问题"    # 命令行指定 release notes
-    python release.py --dry-run                # 仅打印步骤，不执行
+    python packaging/release.py                          # 交互式输入 release notes
+    python packaging/release.py --notes "修复若干问题"    # 命令行指定 release notes
+    python packaging/release.py --dry-run                # 仅打印步骤，不执行
 """
 
 import argparse
@@ -21,7 +21,8 @@ from urllib.request import ProxyHandler, Request, build_opener, install_opener, 
 
 # ── 常量 ─────────────────────────────────────────────────────────────
 
-ROOT = Path(__file__).resolve().parent
+# 注意：本脚本位于 packaging/ 子目录，ROOT 需向上一层
+ROOT = Path(__file__).resolve().parent.parent
 SPEC_FILE = ROOT / "sudan.spec"
 DIST_DIR = ROOT / "dist"
 BUILD_OUTPUT = DIST_DIR / "SuDanModMerger"
@@ -115,6 +116,17 @@ def _create_tag(version: str, dry_run: bool) -> None:
         print(f"  标签 {version} 已存在，跳过")
         return
     _run(["git", "tag", version], dry_run=dry_run)
+
+
+def _build_history_pack(dry_run: bool) -> None:
+    """构建 CAS 格式的 history_config_pack（去重历史 config，减小打包体积）"""
+    print("  → 构建 history_config_pack（CAS 内容寻址去重）")
+    if dry_run:
+        return
+    # 同目录脚本，直接 import
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from build_history_pack import build
+    build(clean=True)
 
 
 def _build(dry_run: bool) -> None:
@@ -214,7 +226,7 @@ def _gitee_release(version: str, notes: str, zip_path: Path, dry_run: bool) -> N
     except HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
         if "already_exists" in body or e.code == 422:
-            print(f"  Gitee Release {tag} 已存在，跳过")
+            print(f"  Gitee Release {version} 已存在，跳过")
             return
         print(f"错误: Gitee 创建 Release 失败: {e.code} {body}")
         sys.exit(1)
@@ -277,29 +289,33 @@ def main() -> None:
 
     # 1. 检查前置条件
     if not dry_run:
-        print("\n[1/6] 检查前置条件...")
+        print("\n[1/7] 检查前置条件...")
         _check_prerequisites()
         print("  全部通过")
     else:
-        print("\n[1/6] 检查前置条件... (跳过)")
+        print("\n[1/7] 检查前置条件... (跳过)")
 
     # 2. 创建 tag
-    print(f"\n[2/6] 创建标签 {version}...")
+    print(f"\n[2/7] 创建标签 {version}...")
     _create_tag(version, dry_run)
 
     # 3. 推送
-    print("\n[3/6] 推送到 GitHub 和 Gitee...")
+    print("\n[3/7] 推送到 GitHub 和 Gitee...")
     _git_push(version, dry_run)
 
-    # 4. 打包
-    print("\n[4/6] 编译并打包...")
+    # 4. 构建历史 config CAS 包
+    print("\n[4/7] 构建历史 config CAS 包...")
+    _build_history_pack(dry_run)
+
+    # 5. 打包
+    print("\n[5/7] 编译并打包...")
     _build(dry_run)
 
-    # 5. 压缩
-    print("\n[5/6] 创建压缩包...")
+    # 6. 压缩
+    print("\n[6/7] 创建压缩包...")
     zip_path = _make_zip(version, dry_run)
 
-    # 6. 创建 Release
+    # 7. 创建 Release
     notes: str = args.notes
     if not notes and not dry_run:
         print("\n请输入 Release Notes（输入空行结束）:")
@@ -314,7 +330,7 @@ def main() -> None:
     if not notes:
         notes = f"V{version} 发布"
 
-    print("\n[6/6] 创建 Release...")
+    print("\n[7/7] 创建 Release...")
     _github_release(version, notes, zip_path, dry_run)
     _gitee_release(version, notes, zip_path, dry_run)
 

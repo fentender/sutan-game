@@ -611,7 +611,15 @@ class ModDelta:
         schemas = load_schemas(schema_dir) if schema_dir else {}
 
         # ADAPTIVE 模式：解析历史版本目录
-        from .history_config import find_base_version, parse_history_versions
+        from .history_config import (
+            PathResolver,
+            find_base_version,
+            parse_history_versions,
+            resolve_path,
+            set_resolver,
+        )
+        # 初始化全局 resolver（用于 CAS 路径映射；非 CAS 布局自动走原拼接）
+        set_resolver(PathResolver(history_dir) if history_dir else None)
         history_versions = parse_history_versions(history_dir) if history_dir else []
         # 预计算每个 mod 对应的历史基准目录（mod_id → Path | None）
         _adaptive_base_dirs: dict[str, Path | None] = {}
@@ -659,8 +667,8 @@ class ModDelta:
             if effective == MergeMode.ADAPTIVE:
                 hist_dir = _adaptive_base_dirs.get(mod_id)
                 if hist_dir is not None:
-                    hist_file = hist_dir / rel_path
-                    if hist_file.exists():
+                    hist_file = resolve_path(hist_dir, rel_path)
+                    if hist_file is not None:
                         hist_base_for_remap = JsonStore.parse_file(hist_file)
                         base_data = hist_base_for_remap
                 # 合并行为等同 SMART
@@ -723,8 +731,8 @@ class ModDelta:
                         hist_base_used: dict[str, object] | None = None
                         hist_dir = _adaptive_base_dirs.get(mod_id)
                         if hist_dir is not None:
-                            hist_file = hist_dir / rel_path
-                            if hist_file.exists():
+                            hist_file = resolve_path(hist_dir, rel_path)
+                            if hist_file is not None:
                                 hist_base_used = JsonStore.parse_file(hist_file)
                                 adaptive_base = hist_base_used
                         delta = compute_delta(

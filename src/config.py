@@ -148,7 +148,14 @@ MERGED_OUTPUT_PATH = PROJECT_ROOT / "merged_output"
 SCHEMA_DIR = PROJECT_ROOT / "schemas"
 
 # 历史 config 版本目录（自适应合并模式使用）
-HISTORY_DIR = PROJECT_ROOT / "history_config"
+# 打包后：CAS 包在 _MEIPASS（_internal/）中；源码运行：优先 CAS 包，否则原始目录
+if getattr(sys, 'frozen', False):
+    _MEIPASS = Path(sys._MEIPASS)  # type: ignore[attr-defined]
+    HISTORY_DIR = _MEIPASS / "history_config_pack"
+else:
+    _HISTORY_PACK = PROJECT_ROOT / "history_config_pack"
+    _HISTORY_RAW = PROJECT_ROOT / "history_config"
+    HISTORY_DIR = _HISTORY_PACK if _HISTORY_PACK.exists() else _HISTORY_RAW
 
 # Mod 覆盖文件目录（用户手动编辑的合并结果）
 MOD_OVERRIDES_DIR = PROJECT_ROOT / "mod_overrides"
