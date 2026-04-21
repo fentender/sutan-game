@@ -1,0 +1,180 @@
+ {
+        "id": 5008159,
+        "name": "禽肉炒蘑菇",
+        "text": "大餐已经出锅，哈比卜也已率先试毒，现在可以邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"833e66b9-34e1-4dd6-87cc-0a75fdf2049a",
+                "condition": {
+
+                    "s1.is":2001050   //禽肉炒蘑菇
+                    
+                },
+                "result_title":"你享用了一顿美味的禽肉炒蘑菇",
+                "result_text": "你们一边吃，一边听哈比卜分享辨别毒蘑菇的技巧，看他信手拈来的样子，不知为何你们都打了个寒颤。",
+                "result": 
+                {
+                    "clean.s1":1,  //消耗原材料
+                    "s4+生存":3,  
+                    "s5+生存":3,  
+                    "s2+生存":3, 
+                    "s3+生存":3        
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"17234a3c-bda6-4a62-b842-4e8977d72aa2",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000195,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“一滴油，\n一勺香料，\n一份来自火焰的赠礼；\n现在，把锅盖盖上吧，我的好朋友；\n免得香味引来了更多朋友！”\n这诗句听在拉伊德耳中，令她心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000195+隐匿":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"f0fda91e-6fde-4eec-9079-4f63077e81de",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000195,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“一滴油，\n一勺香料，\n一份来自火焰的赠礼；\n现在，把锅盖盖上吧，我的好朋友；\n免得香味引来了更多朋友！”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"82915f40-b7c2-4e72-a6de-c10d5253859c",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001050
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"cddd0592-98af-44d8-a764-ed68620ba5d1",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"7670e23d-edb3-4e79-b5d9-65abb3e5cc2c",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"635cc130-1460-4713-8e72-98e9621aa1fc",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"d94ac571-b396-4112-b9cc-422266a97348",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

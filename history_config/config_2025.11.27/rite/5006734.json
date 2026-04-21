@@ -1,0 +1,129 @@
+ {
+        "id": 5006734,
+        "name": "批评他人的尺度",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"afa6c149-59e7-4fe5-8e54-79db8e303a46",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "以这本书的尖锐程度，如果没有“小星星”女士，恐怕很难出版。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+社交":2, 
+                    "s2+智慧":1,
+                    "pop.5006734_01.s2": "所有的问题都能在历史中找到答案。"                             
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"f0902159-e923-438b-9daf-c2dc84f903cc",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001255,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"d890b9f2-1707-421f-95a6-c1459d0dc536",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006734_s2_01.self":"我想，这个世界需要一些不一样的声音。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000056 //盖斯
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006734_s2_02.self":"批评他人还需要尺度？"
+                                }
+                            }
+                        },                   
+                        {
+                            "condition":{
+                                "主角": 1 //主角
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006734_s2_03.self":"不知道奈费勒那家伙有没有读过。"
+                                }
+                            }
+                        },                    
+                        {
+                            "condition":{
+                                "is": 2000057 //哲瓦德
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006734_s2_04.self":"知晓边界在哪里，就知道可以如何试探边界了。"
+                                }
+                            }
+                        }                    
+                    ]
+                }
+        }
+    } 

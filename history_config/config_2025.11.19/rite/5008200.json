@@ -1,0 +1,110 @@
+ {
+        "id": 5008200,
+        "name": "流民的帮闲",
+        "text": "这些流民什么都愿意做……而且你意识到，他们不是普通的乞丐，而是因为各种原因流离失所的人，他们有的是工匠，有的能歌善舞，有的会写文书，有的甚至有一些贵族出身……就是没有了身份纸而已。",       
+        "tips": "",
+        "mapping_id":8001002,
+        "once_new":0,
+        "round_number":3,
+        "waiting_round":1, 
+        "waiting_round_end_action":[
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"自宅:[2,12]", 
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            
+                 "和之前相比，他们愿意为你做的事情更多了",
+            "你已经明白了拉伊德的套路：你使用流民越多，他们索求的也会越多"
+        ],
+        "open_conditions": [  
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                
+                
+                
+                "guid":"5271cf91-2a74-453a-b574-0a6cc5b27507",
+                
+                
+                
+                "condition": {
+
+                    "s1":1
+
+                   
+
+                 
+                },
+                "result_title":"他们纷纷向你献上自己的宝贝",
+                "result_text": "你为流民提供了住所，而他们将自己的珍藏送给你……大部分都是一些不太值钱的垃圾。但总有人逃难的时候会带走一些珍贵的东西——书籍，武器，首饰……沙里淘金也是一个乐趣了。",
+                "result": 
+                { 
+
+                 "counter+7100006": 1, //金骰子
+                "loot.已拥有+1":6000083,     //获得盲盒
+
+               
+                },
+                "action": {
+
+                    "counter+7000750":1, //强化流民的帮闲收益次数
+                     "counter=7000749":0,  //可以继续寻思流民帮闲
+ 
+                   
+                }
+            }
+
+
+
+        ],                
+        "settlement_extre": [
+
+   
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                
+               
+                
+                "guid":"68594db9-5af5-4d36-8983-b31711110081",
+                
+               
+                
+                "condition":
+                {
+                    "type":"item",
+                    "is":2001233
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"他们纷纷献宝"
+            }
+        }
+    } 

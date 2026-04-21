@@ -1,0 +1,93 @@
+{
+    "id": 5008213,
+    "name": "逆向工程",
+    "text": "玛希尔发现有一些流民本身就是不错的匠人，并且能够理解她的设计思路……她决定给他们一个机会。",
+    "tips": "",
+     "mapping_id":8001066, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 3,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location":"商业区:[10,19]", 
+    "icon": "rite_19",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "可以复制一件玛希尔的伟大发明"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "830d09e2-fe58-4a9b-82cc-1130e15693b3",
+            "condition": {},
+            "result_title": "只有可以被重复的东西才能称之为科学",
+            "result_text": "尽管玛希尔已经尽力讲解了[s2.name]的一切原理，但她在旁观这些流民工匠的时候仍然紧张得仿佛一个等待妻子生产的丈夫。\n她多次想要提醒他们，好避免一些爆炸，但她自己就经常制造爆炸……好在最终成果可以说是非常完美，虽然和原版看起来有一点点不同，但用起来保证完全一个样！\n虽然玛希尔在贵族中的名声不怎么样，但她仍然说服了城里的工匠们开始接纳这些流民。",
+            "result": {
+                "copy.s2": 1,
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid": "0bc659a8-1174-4355-a8ec-68848cc1c6dd",
+            "condition": {
+                "type": "char",
+                "is": 2000352,
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "玛希尔需要亲自监督"
+        },
+        "s2": {
+            "guid": "1bca6035-aaa9-48d6-843e-928fc21b4c42",
+            "condition": {
+                "type": "item",
+                "any": {
+                    "is": 2000387,
+                    "is": 2000386,
+                    "is": 2000390,
+                    "is": 2000392,
+                    "is": 2000393,
+                    "is": 2000394,
+                    "is": 2000556,
+                    "is": 2000383,
+                    "is": 2000382,
+                    "is": 2000391,
+                    "is": 2000389,
+                    "is": 2000385,
+                    "is": 2000381,
+                    "is": 2000380,
+                    "is": 2000388
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "让流民工匠去尝试制造一个仿制品"
+        },
+        "s3": {
+            "guid": "2f60a9ab-dc72-42ce-bd0b-3ab6ef80d084",
+            "condition": {
+                "type": "item",
+                "cost.金币": 10
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "10枚金币作为资金"
+        }
+    }
+}

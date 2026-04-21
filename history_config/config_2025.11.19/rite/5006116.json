@@ -1,0 +1,173 @@
+{
+    "id": 5006116,
+    "name": "医典第一篇",
+    "text": "这部医典还需补上很多药草的图样，萨米尔正在全力绘制。",       
+    "tips": "",
+    "mapping_id":8001550,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "上城区:[1,12]",
+    "icon": "rite_7", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+       
+    },
+    "tips_text":[
+        "10金币、生存或智慧不小于5的追随者、部分特定的书籍可以为萨米尔提供帮助"
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+         {
+            "guid":"08c8d846-3f64-4477-9d58-5808b302af6f",
+            "condition": {
+                "s2.金币":10  //放了金币
+            },
+            "result_title":"你拿出了一大笔钱",
+            "result_text": "在金钱的激励下，一大批画师响应了你的征召，你不得不又多分了些心力筛选掉一些浑水摸鱼的、根本没有画过植物图鉴的……但不论如何，你的帮助让医典的编纂顺利多了。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006117  //医典第二章
+            }
+        },
+         {
+            "guid":"07e67a5b-6893-45f6-b64f-68380bebda2d",
+            "condition": {
+                "s2.type":"char"  //放了追随者
+            },
+            "result_title":"你让[s2.name]做萨米尔的助手",
+            "result_text": "[s2.gender]懂得辨识草药，也很会抓它们的特征，在[s2.gender]的帮助下，医典的编纂工作顺利多了。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006117  //医典第二章
+            }
+        },
+        {
+            "guid":"cc583b2c-6087-4ddb-bc78-eafbfd156360",
+            "condition": {
+                "any":{
+                    "s2.is":2000224,
+                    "s2.is":2000226,
+                    "s2.is":2000801,
+                    "s2.is":2000803,  //放了书
+                }
+            },
+            "result_title":"你带来了参考资料",
+            "result_text": "[s2.name]就是萨米尔一直想找的资料！它为萨米尔省下了大量的精力和时间。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006117  //医典第二章
+            }
+        },
+        {
+            "guid":"1d262251-4c4a-43e2-9afd-34ff57868637",
+            "condition": {
+                "!s2":1,  //没放协助但卡帕尔活着
+                "have.2001194":1  
+            },
+            "result_title":"你没能帮上忙",
+            "result_text": "但卡帕尔一直陪伴在萨米尔身边，除了照料这位忙起来就不知日月的御医之外，通过经年累月的耳濡目染，他在药草、医理方面也略有研究……总之，在他的帮助下，萨米尔很快就完成了这部分编修。",
+            "result": 
+            {
+                "counter+7000738":1  //卡帕尔已经协助过编修了
+            },
+            "action": {
+                "rite":5006117  //医典第二章
+            }
+        },
+        {
+            "guid":"c5094b68-5b6d-42af-91ba-d72e257e42ea",
+            "condition": {
+                "!s2":1,  //没放协助且卡帕尔死了
+                "!have.2001194":1  
+            },
+            "result_title":"你没能帮上忙",
+            "result_text": "你只能眼看着萨米尔一个人忙得团团转，恨不得长出三个脑袋八只手来完成这项艰辛的编修任务……也许忙一点也好吧，这样就能暂时忘掉那些不开心的事了。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006118  //医典第二章前置
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"580f0728-fb15-414f-adfa-c184a8eb0790",
+            "condition":
+            {
+                "is":2000011,
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔"
+        },
+        "s2":
+        {
+            "guid":"345f6a0a-67cb-4dd9-8ac4-a504619d65e5",
+            "condition":
+            {
+                "any":{
+                    "type":"char",
+                    "type":"item"
+                },
+                "any":{
+                    "cost.金币=":10,
+                    "all":{
+                        "type":"char",
+                        "any":{
+                            "生存>=":5,
+                            "智慧>=":5
+                        }  //追随者
+                    },
+                    "is":2000224,
+                    "is":2000226,
+                    "is":2000801,
+                    "is":2000803  //四种书
+                }
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"也许你能帮帮他"
+        }
+    }
+} 

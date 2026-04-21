@@ -1,0 +1,24 @@
+{
+        "id": 5300652,
+        "text": "众筹道具-生命之心-梅姬死亡",
+        "is_replay": 1, 
+        "auto_start_init": [1], 
+        "start_trigger": false, 
+        "on":{   
+            "card_clean":2000006,
+            "card_clean":2000457,
+            "card_clean":2000458,
+        },
+        "condition":{  
+            "counter.7000668<":1, //非私奔  
+        },
+        "settlement": [    //当玩家选择换牌，引导玩家拖动卡牌
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "card":2001157, //梅姬的墓碑
+            }
+        }
+        ]
+    } 

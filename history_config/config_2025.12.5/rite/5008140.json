@@ -1,0 +1,182 @@
+ {
+        "id": 5008140,
+        "name": "仙人掌蛋糕",
+        "text": "点心已经出炉，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"fcae8e1e-61bc-44f9-b510-913bf39f33fb",
+                "condition": {
+
+                    "s1.is":2001013//仙人掌蛋糕
+                    
+                },
+                "result_title":"你享受了一顿美味的仙人掌蛋糕",
+                "result_text": "新鲜仙人掌果肉为这款蛋糕带来了别具一格的清新风味和特殊口感。你和你的追随者都十分满意。",
+                "result": 
+                {
+                  
+                  
+                    "clean.s1":1,  //消耗原材料
+                    "s4+生存":3,  
+                    "s5+生存":3,  
+                    "s2+生存":3, 
+                    "s3+生存":3
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"198381bc-8bfd-4158-a274-d45a01f755fa",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000055,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“别让任何人拔掉你的刺，\n因为他们只是想吞掉你；\n无论你是仙人掌，\n还是人。”\n这诗句听在娜依拉耳中，令她心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000055+魔力":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"ccbca6df-01cd-40b2-ab05-f5da1469fcbe",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000055,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“别让任何人拔掉你的刺，\n因为他们只是想吞掉你；\n无论你是仙人掌，\n还是人。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"0876a007-5e02-4d99-9417-80fb23dfcd1b",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001013
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"b2df8469-35f3-4b22-a771-31303bf11239",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"62e9aded-13a2-4194-ab6b-1941a7d47230",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"46bc2646-1c88-4253-86fc-50a2f7e0c8fd",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"cc9bc748-f59e-4b15-88ac-25a7d3526012",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

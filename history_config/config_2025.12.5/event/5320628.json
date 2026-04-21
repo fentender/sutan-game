@@ -1,0 +1,30 @@
+{
+    "id": 5320628,
+    "text": "给自己的珠宝",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006155,  //开启给自己的珠宝
+                "prompt":{
+                    "id":"5320628_prompt_1",
+                    "text":"有一位年轻人想要当宫廷的书吏，他需要一件略微体面点的珠宝去面试。如果有紫水晶——哪怕是非常小的一块——应该也就足够了。",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320628  //关闭自己
+            }
+        }
+
+    ]
+}

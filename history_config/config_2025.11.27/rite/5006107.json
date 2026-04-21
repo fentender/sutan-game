@@ -1,0 +1,95 @@
+{
+    "id": 5006107,
+    "name": "萨米尔的感谢",
+    "text": "萨米尔听说了安妮塔的事。",       
+    "tips": "",
+    "mapping_id":8001002,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_16", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+        
+    },
+    "tips_text":[
+        
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+        {
+            "guid":"d31a5ecf-4574-419a-9f37-09d0e8ba0873",
+            "condition": {
+                
+            },
+            "result_title":"你对女孩的安排似乎让他很满意",
+            "result_text": "他没多解释，只是送来了许多名贵的礼物。在随着礼物一起送来的便条里，他还写道：“那件事，我早就已经全忘了！”",
+            "result": 
+            {
+                "clean.s2":1,  //纸条没用了
+                "s1=反对":0,
+                "s1+支持":1,
+                "金币":8
+            },
+            "action": {
+                
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"79694d16-fa19-4d9d-b400-5368ff093cf9",
+            "condition":
+            {
+                "type":"char",
+                "is":2000011,  //萨米尔
+                 "any":{
+                    "医典锁定":1,
+                    "!医典锁定":1
+                }
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"萨米尔"
+        },
+        "s2":
+        {
+            "guid":"a4e66a9b-5fb4-4ad6-8529-737cacd0ff9f",
+            "condition":
+            {
+                "type":"item",
+                "is":2001200  //萨米尔的纸条
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"他曾拜托你的事"
+        }
+    }
+} 

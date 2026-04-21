@@ -1,0 +1,27 @@
+{
+    "id": 5320286,
+    "text": "苏丹的问询",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "rite":5006683, //苏丹的问询
+                "prompt":{
+                    "id":"5320286_prompt_1",
+                    "text":"当你在追查假币的来龙去脉时，苏丹也在监视你……现在，他对你起了点疑心……",
+                    "icon":"cards/sudan"
+                }
+            }
+        }
+
+    ]
+}

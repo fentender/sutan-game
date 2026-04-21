@@ -1,0 +1,29 @@
+{
+    "id": 5320313,
+    "text": "生气的羊肉炉",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start_init": [1],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7000726>=":3, //标识鸽了羊肉炉的次数
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.2000001+equip":2000163, //诅咒
+                "table.2000001+equip":2000163, //诅咒
+                "prompt":{
+                    "id":"5320313_prompt_1",
+                    "text":"咩！你拖延了太多的时间了！现在我已经失去了兴趣！没劲的人类！说谎的人类！受苦吧！\n随着这些话语在耳朵里嗡鸣，一些油腻，黑暗，不祥的力量附着到了你的身体上……好像神明吐的一口痰。",
+                    "icon":"cards/yrl"
+                }
+            }
+        }
+
+    ]
+}

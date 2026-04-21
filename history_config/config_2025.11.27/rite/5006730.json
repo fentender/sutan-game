@@ -1,0 +1,138 @@
+ {
+        "id": 5006730,
+        "name": "碎肉与骨粉",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"2413934a-1edd-4213-9a28-ecec067488d9",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "在故事的末尾，作者用热诚的文字感激了赞助人：“如果没有这位女士的善意，我母亲这些充满爱意的壮举永远不会为世人所见。”",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+生存":2,
+                    "pop.5006730_01.s2": "也许我一辈子都忘不掉母亲做过的菜的味道。"                               
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"059b1ff5-95bb-463f-898d-f88b960ba4c6",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001251,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"8fc1cb51-2c1f-4962-b897-623da099b92d",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006730_s2_01.self":"我以前也幻想过贵族老爷们每天都吃些什么……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000371 //小圆
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006730_s2_02.self":"我知道一种把干果和杏仁糊仿制成肉片的办法！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000014 //哈比卜
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006730_s2_03.self":"因地制宜地取材和烹调，最见厨师的功底。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000055 //娜依拉
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006730_s2_04.self":"这能吃吗？"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000056 //盖斯
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006730_s2_05.self":"母亲总是想给孩子最好的……"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

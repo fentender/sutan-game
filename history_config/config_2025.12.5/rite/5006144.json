@@ -1,0 +1,176 @@
+{
+    "id": 5006144,
+    "name": "治愈伤痛",
+    "text": "萨米尔研究的仿制生命之水，可以治愈魔物的伤口……至于人类嘛……你也没试过。",
+    "tips": "",
+    "mapping_id":8001246, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+   
+    ],
+    "open_conditions": [
+         {
+            "condition": {
+                "any":{
+                    "!s1.经历痛苦":1,  //没有经历痛苦
+                    "all":{
+                        "s1.经历痛苦":1,
+                        "!s1.动物":1,
+                        "!s1.贵族":1  //经历过痛苦但不是动物和贵族
+                    }
+                }  
+            },
+            "tips": "有的生命不愿再受一遍苦"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+
+    ],
+    "settlement": [
+        {
+            "guid":"5784c96d-1b32-473f-9ea1-6b62d1f977e3",
+            "condition": {
+                "s1.怪物":1
+            },
+            "result_title": "愉快的治疗",
+            "result_text": "只一瞬间，伤口就完全愈合了。[s1.name]亲昵地拱了拱你拿着瓶子的手心，似乎还想要更多。",
+            "result": {
+                "s1-equip":2000098,
+                "clean.s2":1
+            },
+            "action": {
+               
+            }
+        },
+       {
+            "guid":"35874979-323b-4382-a7b2-923ba687e622",
+            "condition": {
+                "!s1.怪物":1,
+                "s1.动物":1  //给动物用
+            },
+            "result_title": "",
+            "result_text": "药物一碰到伤口，这可怜的动物就惊叫起来，显然是非常疼。你不得不按住它的身体，用自己的体重拼命压住它——这一切都是为了治疗！为了治疗！",
+            "result": {
+                "s1+经历痛苦":1,
+                "s1-equip":2000098 ,
+                "clean.s2":1
+            },
+            "action": {
+                
+            }
+        },
+        {
+            "guid":"2835ec67-3162-4ddc-a73d-4c097a6ab414",
+            "condition": {
+                "!s1.怪物":1,
+                "!s1.动物":1,  //给人用
+                "!主角":1 //非主角
+            },
+            "result_title": "",
+            "result_text": "[s1.name]疼得呲牙咧嘴，甚至骂了好几句脏话，眼睛里涌出泪水——你很少见[s1.gender]如此失态的样子……看来是真的很疼。",
+            "result": {
+                "s1+经历痛苦":1,
+                "s1-equip":2000098 ,
+                "clean.s2":1
+            },
+            "action": {
+               
+            }
+        },
+        {
+            "guid":"79760865-ca1f-4904-a472-6d59353a4819",
+            "condition": {
+                
+                "主角":1 //非主角
+            },
+            "result_title": "短痛不如长痛",
+            "result_text": "没有人告诉你它会这么疼！你疼得呲牙咧嘴，面目狰狞，难以控制地泪如泉涌——如果上天再给你一次机会，你宁可花点小钱，甚至宁可病死也不会再把这玩意儿洒在伤口上。",
+            "result": {
+                "s1+经历痛苦":1,
+                "s1-equip":2000098 ,
+                "clean.s2":1
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"54e240e9-5a69-487c-aabb-0e517b1a3ce3",
+            "condition": {
+                "type": "char",
+                "受伤":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "需要治疗的角色",
+             "pops":[
+                {
+                    "condition":{
+                        "s1.经历痛苦":1,  //受过生命之水的苦
+                        "s1.动物": 1 //动物的表现
+                    },
+                    "action":{
+                        "pop.5006144_s1_01.self":"刚闻到药水的气味，它就拼命地挣扎着逃开了你的桎梏，躲到了不知道哪儿去了。"
+                    }
+                },
+                {
+                    "condition":{
+                        "s1.经历痛苦":1,  //受过生命之水的苦
+                        "!s1.动物": 1, 
+                        "s1.贵族":1   //贵族的表现
+                    },
+                    "action":{
+                        "pop.5006144_s1_02.self":"我宁可去死也不要再碰这个！"
+                    }
+                },
+                 {
+                    "condition":{
+                        "s1.经历痛苦":1,  //受过生命之水的苦
+                        "!s1.动物": 1, 
+                        "!s1.贵族":1   //平民的表现
+                    },
+                    "action":{
+                        "pop.5006144_s1_03.self":"呜呜……不要……"
+                    }
+                }
+            ] 
+        },
+        "s2": {
+            "guid":"a385b8ba-cfdb-4fc6-9c3d-46ee26e74c21",
+            "condition": {
+                "type": "item",
+                "is":2001196
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "仿制生命之水",
+            
+        }
+    }
+}

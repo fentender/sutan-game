@@ -1,0 +1,32 @@
+{
+    "id": 5321227,
+    "text": "无赖租客-拉伊德入队",     
+    "is_replay":0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger":false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+    "round_begin_ba":1
+    },
+    "condition":{  //条件   
+        
+         "!have.2000195.追随者":1 //如果拉伊德不是追随者
+
+    },
+    "settlement": [    //效果 
+    {
+        "action":{    
+               "total.2000195.追随者=0+追随者":1,     
+                "prompt": {
+                    "id": "prompt_5321227_01",
+                    "text": "既然你还愿意帮助流民，那么拉伊德也愿意为你服务……这是很公平的交易。",
+                    "icon":"cards/2000195"
+                },
+                "success":{
+                         "event_off":5321227
+                    }
+      
+            }
+    }
+
+    ]
+}

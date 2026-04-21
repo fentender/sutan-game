@@ -1,0 +1,32 @@
+{
+    "id": 5320386,
+    "text": "内与外，人与神",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "counter.7000809>=":1,
+        "counter.7000810>=":1,
+        "counter.7000811>=":1,
+        "counter.7000812>=":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.clean.2001298":1,
+                "counter+7100006":1, //金骰子
+                "prompt":{
+                    "id":"5320386_prompt_1",
+                    "text":"你完美的完成了马尔基娜的委托，看着她满脸兴奋欲言又止的样子，看来后面还有事情在等着你。",
+                    "icon":"pic/2000459"
+                }
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "id": 5320594,
+    "text": "秘密钻石",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": [8,10]  //一段时间过后
+    },
+    "condition":{
+        
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "loot.已拥有+1":6000125,  //钻石随机loot
+                "prompt":{
+                    "id":"5320594_prompt_1",
+                    "text":"又一次，小鸽子为你衔来一枚闪亮的钻石。",
+                    "icon":"cards/2001267"
+                },
+            }
+        }
+
+    ]
+}

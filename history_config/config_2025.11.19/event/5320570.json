@@ -1,0 +1,32 @@
+{
+    "id": 5320570,
+    "text": "生命之露",     
+    "is_replay": 1,
+    "auto_start_init": [1],    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 2
+    },
+    "condition":{
+        "counter.7000728>=":1,  //医典线完成
+        "counter.7000740>=":1,   //获得过生命之水
+        "have.2000011":1,  //萨米尔还活着
+        "counter.7000744<":1  //萨米尔未决裂
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006125,  //开启珍贵的样品
+                "prompt":{
+                    "id":"5320570_prompt_1",
+                    "text":"萨米尔听说你曾研究出来一种名为生命之水的“万灵药”，其效用甚至能让断肢重生！这实在太不可思议了！萨米尔前来拜访你，希望你能为他提供一瓶样品，好让他仔细研究一番。",
+                    "icon":"cards/2000382"
+                },
+                "event_off":5320570
+            }
+        }
+
+    ]
+}

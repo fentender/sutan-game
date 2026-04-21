@@ -1,0 +1,29 @@
+{
+    "id": 5320566,
+    "text": "萨米尔的死亡",     
+    "is_replay": 1,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000011":1,  //萨米尔还活着
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "prompt":{
+                    "id":"5320566_prompt_1",
+                    "text":"苏丹的禁卫们当即赶往御医的居所，准备将其捉拿归案。",
+                    "icon":"cards/2000011"
+                },
+                "rite":5006113,  //开启萨米尔被处死
+                "event_off":5320566
+            }
+        }
+
+    ]
+}

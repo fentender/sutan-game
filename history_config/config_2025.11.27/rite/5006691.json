@@ -1,0 +1,69 @@
+ {
+        "id": 5006691,
+        "name": "欢愉之诗",
+        "text": "让哈桑去给布缇娜的欢愉之馆写诗，赞美那些只有一个时辰的爱情，让他写个够！",       
+        "tips": "",
+        "mapping_id":8001076,
+        "once_new":0,
+        "round_number": 3,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_20", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"3517e95b-939d-4ed1-ba50-235d7057ab5a",
+                "condition": {
+                },
+                "result_title":"去他妈的欢愉之馆",
+                "result_text": "哈桑精疲力竭地回来了，他几乎走都走不动了，要靠小羊扯着他的衣带把他往前拽。\n“欢，欢愉诗人……真不好干……”他气喘吁吁地告诉你，“我想跑，我第一天就想跑……她非要我待够三天……太可怕了……做那么可怕的事，还要写诗，还要夸赞……写得不够好，她们就要再来一次……我这辈子都不想写情诗了，我的朋友……去他妈的欢愉诗人……去他妈的情诗……”\n你强忍住没有笑出声。虽然你也知道，哈桑的“不写情诗”之誓坚持不了几天，但他对于滥写二流情诗的冲动显然已经彻底消退。\n你低下头，那只可爱的小羊挺起了洁白的胸膛，侧过头，冲你眨了眨眼。",
+                "result": 
+                {  
+                    "s1+智慧":1,
+                    "s1+隐匿":1,
+                    "counter=7000724":0,
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"4a30ed91-2ef0-47a0-9f27-a1a99557f8e4",
+                "condition": 
+                {
+                    "type":"char",
+                    "is":2000460
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"忙碌的哈桑"
+            }
+        }
+    } 

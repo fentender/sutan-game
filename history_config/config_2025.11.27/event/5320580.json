@@ -1,0 +1,29 @@
+{
+    "id": 5320580,
+    "text": "收集紫水晶计数器",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着
+        "have.2000019.追随者":1,  //热娜还是追随者
+        "any":{
+            "have.2001263":1,  //有小颗
+            "have.2001270":1   //有大颗
+        }
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "counter+7000788":1,  //紫水晶收集完毕
+                "event_off":5320580
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,46 @@
+{
+    "id": 6001078,
+    "name": "随机情诗",
+    "repeat": 1,
+    "type": 2, 
+    "item": [
+
+          {
+            "num" : "1",
+            "id" : "2000467",  
+            "type" : "card",
+            "weight" : 30
+        },
+        {
+            "num" : "1",
+            "id" : "2000468",  
+            "type" : "card",
+            "weight" : 30
+        },
+        {
+            "num" : "1",
+            "id" : "2000469",  
+            "type" : "card",
+            "weight" : 30
+        },
+         {
+            "num" : "1",
+            "id" : "2000470",  
+            "type" : "card",
+            "weight" : 30
+        },
+         {
+            "num" : "1",
+            "id" : "2000471",  
+            "type" : "card",
+            "weight" : 30
+        },
+         {
+            "num" : "1",
+            "id" : "2000472",  
+            "type" : "card",
+            "weight" : 30
+        }
+
+    ]
+}

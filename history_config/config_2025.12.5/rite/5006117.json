@@ -1,0 +1,171 @@
+{
+    "id": 5006117,
+    "name": "医典第二篇",
+    "text": "为了完成这一篇章，萨米尔需要一些兽骨的样本……",       
+    "tips": "",
+    "mapping_id":8001550,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "上城区:[1,12]",
+    "icon": "rite_7", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+       
+    },
+    "tips_text":[
+        "10金币、战斗或隐匿不小于5的追随者或者特定的角色可以对萨米尔提供帮助"
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+         {
+            "guid":"f3a6a0a8-4baa-47a9-8c8f-16259df74c0b",
+            "condition": {
+                "s2.is":2000014  //哈比卜
+            },
+            "result_title":"没有人比他更懂",
+            "result_text": "哈比卜带了很多兽骨去找萨米尔，这有效地提升了编纂的效率。嗯……只是这两天舍馆的菜单上少了一道鲜美的骨头汤，引来了不少抱怨。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006119  //医典第三章
+            }
+        },
+         {
+            "guid":"cff7d2ba-1701-4ad5-bb43-4c79618b7ea6",
+            "condition": {
+                "s2.金币":10  //放了金币
+            },
+            "result_title":"没有什么是钱解决不了的",
+            "result_text": "新鲜的兽骨很便宜，古老而珍贵的兽骨嘛……也有萨米尔帮你甄别，不至于被人骗了钱。总之，在你的帮助下，编纂的效率大大提升了！",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006119  //医典第三章
+            }
+        },
+         {
+            "guid":"c6b4a51e-bfbb-448f-bc0e-5906c881c53e",
+            "condition": {
+                "s2.type":"char"  //放了追随者，哈比卜不会进入这条
+            },
+            "result_title":"你想要谁的骨头？",
+            "result_text": "[s2.name]拍着胸脯说，要狮子还是老虎，要羚羊还是骏马，[s2.gender]都能帮忙猎来！不过人骨的话就要麻烦一点了……萨米尔连忙说这个不用。总之，[s2.gender]做到了自己的承诺，给萨米尔提供了非常好的参考。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006119  //医典第三章
+            }
+        },
+       
+        {
+            "guid":"6193e6f1-8483-4ce6-86bd-75b20a6efe8a",
+            "condition": {
+                "!s2":1,  //没放协助但卡帕尔活着且能协助
+                "have.2001194":1,
+                "counter.7000738<":1  
+            },
+            "result_title":"你没能帮上忙",
+            "result_text": "这位御医忙起来就不知日月，幸好，他的身边还有卡帕尔帮他肩负起与人沟通啊、跑腿啊之类的杂活。就在萨米尔忙得焦头烂额的时候，卡帕尔带着一个皮袋回来了，里面装满了各式各样的兽骨。萨米尔高兴极了，他用力地抱了一下卡帕尔，然后抓着兽骨又投入紧张的编纂工作之中。唉！这家伙……",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006119  //医典第三章
+            }
+        },
+        {
+            "guid":"12a69c7c-0ea1-42dc-8faa-36df44bbec97",
+            "condition": {
+                "!s2":1,  //没放协助且卡帕尔死了或没死但无法协助了
+                "any":{
+                    "!have.2001194":1,
+                    "counter.7000738>=":1
+                },
+                
+            },
+            "result_title":"你没能帮上忙",
+            "result_text": "你只能眼看着萨米尔一个人忙得团团转，恨不得长出三个脑袋八只手来完成这项艰辛的编修任务……也许忙一点也好吧，这样就能暂时忘掉那些不开心的事了。",
+            "result": 
+            {
+                
+            },
+            "action": {
+                "rite":5006120  //医典第三章前置
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"b4ef2218-33f5-4f2d-9dd5-0bef5a5b8640",
+            "condition":
+            {
+                "is":2000011,
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔"
+        },
+        "s2":
+        {
+            "guid":"01bbec2f-6980-4e99-912e-878b0a638c7a",
+            "condition":
+            {
+                "any":{
+                    "type":"char",
+                    "type":"item"
+                },
+                "any":{
+                    "is":2000014, //哈比卜
+                    "cost.金币=":10,
+                    "all":{
+                        "type":"char",
+                        "any":{
+                            "战斗>=":5,
+                            "隐匿>=":5
+                        }  //追随者
+                    }
+                },
+            },
+            "open_adsorb":0,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":0,
+            "text":"也许你能帮帮他"
+        }
+    }
+} 

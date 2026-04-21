@@ -1,0 +1,23 @@
+{
+    "id": 5320358,
+    "text": "也许该分享给她",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000123":1,
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "rite":5006728, //也许该分享给她
+            }
+        }
+
+    ]
+}

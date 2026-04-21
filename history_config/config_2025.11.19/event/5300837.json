@@ -1,0 +1,29 @@
+{
+    "id": 5300837,
+    "text": "支持小筹获胜",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1,
+    },
+    "condition": { //条件
+        "table_have.2001182":1,  //小筹空闲
+        "f:counter.7000707-counter.7000706>=":0,  //物性大于等于人性
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite":5000350,  //以人为镜
+                "prompt": {
+                    "id": "5300837_prompt_1",
+                    "text": "当你试图去与[xiaochou.name]汇合的时候，[xiaochou.gender]的军队却陷入了混乱——军队的统帅，也就是[xiaochou.name]本人失踪了，甚至还撤走了[xiaochou.gender]一直以来对这些人施加的心智迷障。\n你花了好大的力气才安抚了这批混乱的军队，灰溜溜地返回了首都，结束了这场闹剧。\n不过，凭着冥冥之中的感应，你知道，[xiaochou.name]还活着。",
+                    "icon": "pic/2001182"
+                },
+                "event_off":[5300837,5300838]  //关闭
+            }
+        }
+    ]
+}

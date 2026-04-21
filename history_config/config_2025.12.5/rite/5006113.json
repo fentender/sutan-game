@@ -1,0 +1,112 @@
+{
+    "id": 5006113,
+    "name": "御医之死",
+    "text": "苏丹的禁卫们气势汹汹地前往御医萨米尔的住所，准备抓捕这名罪人。",       
+    "tips": "",
+    "mapping_id":8001105,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "宫廷:[2,6]",
+    "icon": "rite_21", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+        
+    },
+    "tips_text":[
+        
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+        {
+            "guid":"7c294437-976c-4016-ad7a-f244c25cc91c",
+            "condition": {
+                
+            },
+            "result_title":"",
+            "result_text": "禁卫们回禀，说他们踹开门的时候，萨米尔已经服毒身亡了——毫无疑问是畏罪自杀。\n苏丹对这个结果谈不上满意：这意味着背叛了故国向他献忠的家伙最后同样背叛了他！离开青金石宫殿之前，他冷淡地下令把这具尸体——哦，还有他身边那个男宠的尸体一起拖下去喂狗：当然，他们不配成为狮子的口粮，那些关在笼子里的猛兽吃得可金贵着呢！",
+            "result": 
+            {
+                "clean.s1":1,
+                "clean.s2":1,
+                
+            },
+            "action": {
+                
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        {
+            "guid":"e862ddca-6709-4bb3-bd6b-961942368d67",
+            "condition": {
+                
+            },
+            "result_title":"这个棘手的案子终于结案了",
+            "result_text": "同僚们都很佩服你。但是不知道为什么，这事稍微影响了你在民间的名声……",
+            "result": 
+            {             
+                "金币":10,  //奖励   
+                "counter+7100003":1,  //权势
+                "counter-7100004":2  //侠名               
+            },
+            "action": {
+                
+            }
+        }
+        
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"ff0b4791-c084-4dc6-a974-9946d188125c",
+            "condition":
+            {
+                "type":"char",
+                "is":2000011,  //萨米尔
+                "any":{
+                    "医典锁定":1,
+                    "!医典锁定":1
+                }
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"萨米尔"
+        },
+        "s2":
+        {
+            "guid":"3940d393-8a21-46cd-ae45-2235d4c7cc26",
+            "condition":
+            {
+                "type":"char",
+                "is":2001194,  //卡帕尔
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":1,
+            "is_enemy":1,
+            "text":"卡帕尔"
+        },
+    }
+} 

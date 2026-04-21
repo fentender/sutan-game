@@ -1,0 +1,62 @@
+{
+    "id": 6000202,
+    "name": "命运变动",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "table_have.2000460.命运变动":1, //哈桑
+            },
+            "num" : "1",
+            "id" : "5006701",
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "table_have.2000019.命运变动":1, //热娜             
+            },
+            "num" : "1",
+            "id" : "5006702",
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "table_have.2000129.命运变动":1, //阿图娜尔
+            },
+            "num" : "1",
+            "id" : "5006703",
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "table_have.2000461.命运变动":1, //贝姬夫人
+            },
+            "num" : "1",
+            "id" : "5006704",
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "table_have.2000459.命运变动":1, //马尔基娜
+            },
+            "num" : "1",
+            "id" : "5006705",
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "table_have.2000861.命运变动":1, //双胞胎
+            },
+            "num" : "1",
+            "id" : "5006706",
+            "type" : "rite",
+            "weight" : 60
+        },
+    ]
+}

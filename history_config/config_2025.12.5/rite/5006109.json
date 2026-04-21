@@ -1,0 +1,91 @@
+{
+    "id": 5006109,
+    "name": "处决",
+    "text": "御医萨米尔因包庇王妃并为其提供堕胎药，被判处死刑。",       
+    "tips": "",
+    "mapping_id":8001105,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "宫廷:[2,6]",
+    "icon": "rite_21", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+        
+    },
+    "tips_text":[
+        
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+        {
+            "guid":"5a4359ba-7dd7-4dd8-a34d-ffa3f1cbdcad",
+            "condition": {
+                
+            },
+            "result_title":"",
+            "result_text": "萨米尔被处死了。他流的血、他住过的房间、他写过的书稿、他所有存在的痕迹，都在极短的时间里被处理干净，仅剩的那名被苏丹赐予萨米尔的男宠……法官刚想请示该如何处置，就发现他也自刎家中，和萨米尔一样迅速被所有人遗忘。",
+            "result": 
+            {
+                "clean.s1":1,
+                "clean.s2":1  
+            },
+            "action": {
+                
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+        
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"cce2e03d-07ad-44bc-bcb1-92fe131c83ed",
+            "condition":
+            {
+                "type":"char",
+                "is":2000011,  //萨米尔
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"被判处死刑的罪人"
+        },
+        "s2":
+        {
+            "guid":"3000f487-5e55-4de3-9e85-f9f1677d64df",
+            "condition":
+            {
+                "type":"char",
+                "is":2001194,  //卡帕尔
+                "医典锁定":1 
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":1,
+            "text":"一同赴死之人"
+        },
+    }
+} 

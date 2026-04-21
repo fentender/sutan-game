@@ -1,0 +1,111 @@
+{
+    "id": 5006106,
+    "name": "意外的客人",
+    "text": "不久后，你的家中迎来了两位意外的客人。",       
+    "tips": "",
+    "mapping_id":8001002,
+    "once_new":0,
+    "round_number": 1, 
+    "waiting_round":0,
+    "waiting_round_end_action":[
+    ],
+    "method_settlement": "",
+    "auto_begin": 1,
+    "auto_result":0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_16", 
+    "tag_tips": [
+    ],
+    "tag_tips_up":{
+        
+    },
+    "tips_text":[
+        
+    ],
+    "open_conditions": [
+    ],
+    "random_text": {      
+    },
+    "random_text_up":{
+       
+    },
+    "random_effect": {          
+    },
+    "settlement_prior": [
+       
+    ],                
+    "settlement": [
+        {
+            "guid":"8771a788-7bb8-4679-b5e5-6d755f218218",
+            "condition": {
+                
+            },
+            "result_title":"萨米尔带着小安妮塔来探望你了",
+            "result_text": "小姑娘现在穿着医者的长袍，挎着装满纸片的背包，头昂得高高的，无比骄傲。萨米尔则温和地笑着，对你十分感激。他按着小姑娘的头向你道谢，一次，两次，直到他擦着自己眼中若隐若现的泪水，低声叹息。\n“我们都是太骄傲的人，太过于骄傲……因为我们认为自己有知识、有能力，也有办法，”他没由来地说着，眼睛望着跑到花园研究石榴树的安妮塔，“我们不会说对不起，也不会说拜托，哦……我们错过了多少啊！还好，我们到最后总能抓住一些东西……还好。”\n他告诉你，之前那桩“不值一提的小事”早就从他脑袋里溜出去了，没人还记得，更没人会发现。至于安妮塔，他会把她培养成一个最好的医生，她有这个潜质。\n你由衷地祝福他和安妮塔。",
+            "result": 
+            {
+               "clean.s3":1,  //纸条没用了
+               "s2+支持":1,
+               "s2=反对":0,
+               "card":[2001207,"数量+3"],  //获得3份宫廷熏香
+                "counter+7000732":1,  //阻断医典线开启的计数器
+                "counter+7000734":1  //萨米尔收留安妮塔
+            },
+            "action": {
+                
+            }
+        }
+    ],                
+    "settlement_extre": [ 
+       
+    ],
+    "cards_slot":
+    {
+        "s1":
+        {
+            "guid":"1ed34709-ec86-4985-a9c1-2613b5656e65",
+            "condition":
+            {
+                "type":"char",
+                "is":2001193     
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"安妮塔"
+        },
+        "s2":
+        {
+            "guid":"1ac15cde-b926-4e21-95fe-d95a634086f5",
+            "condition":
+            {
+                "type":"char",
+                "is":2000011,  //萨米尔
+                 "any":{
+                    "医典锁定":1,
+                    "!医典锁定":1
+                }
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"萨米尔"
+        },
+        "s3":
+        {
+            "guid":"85cd1160-a257-4d51-b0c2-194550470fb1",
+            "condition":
+            {
+                "type":"item",
+                "is":2001200  //萨米尔的纸条
+            },
+            "open_adsorb":1,
+            "is_key":0,
+            "is_empty":0,
+            "is_enemy":0,
+            "text":"他曾拜托你的事"
+        }
+    }
+} 

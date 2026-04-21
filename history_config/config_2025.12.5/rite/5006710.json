@@ -1,0 +1,109 @@
+ {
+        "id": 5006710,
+        "name": "书店老板上门",
+        "text": "阿萨尔听说你最近对神秘事物颇有兴趣，就带了几本古书来供你挑选。不过，其中只有一本吸引了你的目光……",       
+        "tips": "",
+        "mapping_id":8001567,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":5,
+        "waiting_round_end_action":[
+            {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {  
+                },
+                "action": {
+                    "prompt":{
+                        "id":"5006710_prompt_01",
+                        "text":"阿萨尔并没因为你的拒绝而生气，他把书籍小心包好，平静地欠身致意，然后离开了。",
+                        "icon":"cards/2000199"
+                    }
+                }
+            }
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "自宅:[2,12]",  
+        "icon": "rite_12", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{        
+        },        
+        "tips_text":[
+            "紧俏珍本，过时不候",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"84c24cbe-9309-41b0-88ba-bcafeb479279",
+                "condition": {
+                },
+                "result_title":"一次平凡的交易？",
+                "result_text": "你让仆人把钱给了阿萨尔，他则把那本书包在丝绸里交给了你，这似乎只是一场再寻常不过的交易。然而，在临走前，阿萨尔却突然说了几句奇怪的话：“偶尔地，您或许会觉得自己像是一只小船，正行驶在很不友好的海域里……到时候请一定来找我帮忙，我乐意效劳。”\n没等你追问这到底是怎么回事，他就行了个礼离开了。",
+                "result": 
+                {  
+                    "s2+已拥有":1,
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"dc265073-8ab5-4253-88b9-e03c726d2470",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000199
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阿萨尔"
+                },
+            "s2":
+                {
+                    "guid":"1f99444a-a32a-4a85-bef9-78220da91b95",
+                    "condition": 
+                    {
+                        "is":2001230, //那本书
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"古老的珍本"
+                },
+            "s3":
+                {
+                    "guid":"b069c88e-cb0c-4b32-951f-0e326ab28bf1",
+                    "condition": 
+                    {
+                        "type":"item", 
+                        "cost.金币":5
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"这样的珍本，阿萨尔要价5枚金币"
+                }
+        }
+    } 

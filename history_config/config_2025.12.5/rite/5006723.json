@@ -1,0 +1,165 @@
+ {
+        "id": 5006723,
+        "name": "因笔墨获罪者",
+        "text": "阿萨尔被你逮捕了，直到架上刑场，他都一直惊愕地望着你，不知道发生了什么。",       
+        "tips": "",
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":0,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,//需要手动启动
+        "location": "上城区:[7,12]", 
+        "icon": "rite_11",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{         
+        },        
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"c17cf496-0d45-4a5b-af98-5125a01edcc0",
+                "condition": {
+                },
+                "result_title":"他死于错信旁人",
+                "result_text": "听完你罗列的罪状，阿萨尔忍不住大笑了。所有的刊本、印版全部堆在他的脚下付之一炬，他就在火中咒骂你，直到头颅滚落，那双眼睛也直直地盯着你，出现在你很多个噩梦之中。",
+                "result": 
+                {  
+                    "clean.s1":1, 
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"76b6e1f4-7ead-4093-a2b8-023a8fe21aa8",
+                "condition": {
+                    "any":{
+                        "s2":1,
+                        "s3":1,
+                        "s4":1,
+                        "s5":1,
+                        "s6":1,
+                    }
+                    
+                },
+                "result_title":"苏丹万岁",
+                "result_text": "而你在火堆边高声赞颂苏丹的贤名，炽烈的温度扭曲了你的身形，让你如同谄媚的魔鬼。这个场景深深地刻在每一个围观者的脑海中，如果说，你曾举起过什么旗帜，那么现在，它们尽数在此地彻底焚毁，灰飞烟灭。而讽刺的是，苏丹对你的表演和讨好不置一词。",
+                "result": 
+                {  
+                    "clean.s2":99, 
+                    "clean.s3":99,
+                    "clean.s4":99,
+                    "clean.s5":99,
+                    "clean.s6":99,
+                },
+                "action": {
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"d3a57cd1-08a2-41cd-8407-81d43455d6c1",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000199,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"阿萨尔"
+                },
+            "s2":
+                {
+                    "guid":"3506838d-86dc-4f3d-bfe2-4af21a0fa633",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2000172,
+                        "cost.思潮":[1,99]
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"还想造反吗"
+                },
+            "s3":
+                {
+                    "guid":"e7798e22-4708-4957-97ea-8dd81c057077",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2000171, //造反的思潮
+                        "cost.思潮":[1,99]
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"还想造反吗"
+                },
+            "s4":
+                {
+                    "guid":"100a2775-2374-476f-9669-4d8fa00bacc6",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2000541,
+                        "cost.思潮":[1,99]
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"还想造反吗"
+                },
+            "s5":
+                {
+                    "guid":"4d6a8dc4-f3b8-4665-bdeb-d9be14962706",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2000910,
+                        "cost.思潮":[1,99]
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"还想造反吗"
+                },
+            "s6":
+                {
+                    "guid":"b9374536-4ed1-4b9c-8ebe-66537efb489a",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2000884,
+                        "cost.思潮":[1,99]
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"还想造反吗"
+                }
+        }
+    } 

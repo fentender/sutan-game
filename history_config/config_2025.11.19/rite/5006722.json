@@ -1,0 +1,152 @@
+ {
+        "id": 5006722,
+        "name": "归木于林",
+        "text": "天杀的阿萨尔，害得你不得不再度登门拜访，拉下脸去跟奈费勒赔笑！",       
+        "tips": "",
+        "mapping_id":8001559,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":3,
+        "waiting_round_end_action":[
+                {
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "",
+                "result": 
+                {  
+
+                },
+                "action": {
+                    "event_on":5320349, //书窖里的窃贼
+                    "prompt":{
+                        "id":"5006722_prompt_01",
+                        "text":"你铁了心不帮这个忙，阿萨尔怎么求你你都不为所动！最后，他只能悻悻地离开了。",
+                        "icon":"cards/2000199"
+                    }
+                }
+            }
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "上城区:[7,12]", 
+        "icon": "rite_16",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{   
+            "tips":["智慧","社交"],
+            "type":"normal_result"         
+        },        
+        "tips_text":[
+            "你可以帮忙，当然也可以袖手旁观",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"你尝试拖延时间", 
+                "type":"normal_result",
+                "type_tips":"你的智慧，社交为你提供了完整的骰子数量。",
+                "low_target": 3,
+                "low_target_tips": "你至少需要3点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"c1d525be-d647-4d28-bd31-c218ab5616c1",
+                "condition": {
+                },
+                "result_title":"",
+                "result_text": "你硬着头皮再度拜访奈费勒，而阿萨尔也在奈费勒宅邸外做好了偷偷溜进去的准备。\n那位冷冰冰的仆人又把你带到了会客厅，奈费勒毫不遮掩自己一脸的不耐烦，问你又来干什么。\n你得尽可能多拖住他一会儿，否则阿萨尔的行动就露陷了……",
+                "result": 
+                {  
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e08f9999-51d5-40d1-b532-b22a155bff83",
+                "condition": {
+                    "r1:智慧+社交>=":[3,5]
+                },
+                "result_title":"冲突升级",
+                "result_text": "电光石火之间你一下子想到了好几个你们在宫廷里还没吵出个结论来的议题。本来你只是想装装样子拖延时间，结果在奈费勒寸步不让的尖锐言辞之下竟然吵得动了真火，到了最后你们俩差点在客厅里打起来，甚至不小心摔碎了一只很可能价值不菲的杯子，把奈费勒气得嘴唇都在发抖。呵呵，谁懂，这就是客场作战的优势！直到被赶出大门，见到街角探头探脑的阿萨尔的时候，你才突然想起自己本来是干什么来的。咳咳……你按下自己微妙的愧疚之心，迅速地离开作案现场。",
+                "result": 
+                {  
+                    
+                },
+                "action": {
+                    "event_on":5320350, //提醒
+                }
+            },
+            {
+                "guid":"efb80421-7f7f-496e-8774-101b596ff7d9",
+                "condition": {
+                    "r1:智慧+社交<":[3,5]
+                },
+                "result_title":"东窗事发",
+                "result_text": "你们对彼此都太熟悉了！以至于你这副顾左右而言他的样子，立刻就被奈费勒发现了端倪。他狐疑地看看你，紧接着豁然起身！你紧跟在他后面，尴尬地看见阿萨尔被一名女护卫扭着双手当场抓获，脚边正是那本他偷走的书……奈费勒瞥了你一眼，冷笑起来，接着就抬手命人把你“送”出了大门。",
+                "result": 
+                {  
+                    "s1+equip":2000345, //枷锁
+                },
+                "action": {
+                   
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"043bda9f-7df6-449a-9923-fccf8cb19933",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "is":2000199,
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"阿萨尔"
+                },
+            "s2":
+                {
+                    "guid":"4f9af59b-4db6-4477-9674-190142729b3c",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "主角":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"这事你只能亲自上阵"
+                },
+            "s3":
+                {
+                    "guid":"06d8a4ca-c190-46b1-b2f6-e05ef8386877",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "cost.消耗品=":1,
+                        "!金币":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"派得上用场的消耗品"
+                }
+        }
+    } 

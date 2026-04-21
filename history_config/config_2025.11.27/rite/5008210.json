@@ -1,0 +1,220 @@
+ {
+        "id": 5008210,
+        "name": "密神的恩惠",
+        "text": "那些无家可归的，没有身份的，被抛弃的，都是密神的孩子——拜铃耶如是说。",       
+        "tips": "",
+        "mapping_id":8001119,  
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":3, 
+        "waiting_round_end_action":[
+
+            
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,                            
+        "location":"商业区:[10,19]", 
+        "icon": "rite_23",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+            
+                 
+        ],
+        "open_conditions": [  
+             {
+                "condition": {
+                     "any":{
+
+                        
+                
+                        "s2.金币<=":8,
+
+
+                      
+                        
+                        "all":{
+                        "s3.奢靡":1,
+                        "s2.金币":16
+                        
+                        }
+                      
+                           }
+                            
+                },
+                "tips": "你需要花费8金币，奢靡卡需要搭配16枚金币使用"
+            }
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            
+             {
+                
+                
+                
+                "guid":"c38066dd-bc87-4a2f-b7ad-67a504a649b3",
+                
+                
+                
+                "condition": {
+
+                  
+
+                   "s2":1  
+
+                 
+                },
+                "result_title":"连接",
+                "result_text": "拜铃耶的来访显得十分热闹，有很多流民早就认识她了，和她熟稔地打着招呼。她开始分发药汁的时候，人们也纷纷主动来帮忙。“感觉不舒服的时候就喝一小瓶，然后吃顿饱饱的饭，倒在床上闷头睡一觉——出一身大汗就好了！”拜铃耶叮嘱人们，“我还可以给你们纹一些密神赐下的图案，让你们更不容易生病。”食物，休息，纹身，穷人能够信任的只有这些；人们顺服地听从了她的建议，而其中一小部分天赋异禀的人，晚上会梦见新的神明。",
+                "result": 
+                { 
+
+
+               "s1+魔力": 1, //魔力+1
+                "card":2000724,  //1级密教思潮,
+               
+                },
+                "action": {
+
+                   
+                
+
+                   
+                }
+            },
+              
+
+
+
+        ],                
+        "settlement_extre": [
+
+            {
+                
+                
+                
+                "guid":"6a282b0d-bd4d-44cd-898a-5e592b7fbbea",
+                
+                
+                
+                "condition": {
+
+                  
+
+                   "s3":1  //放奢靡额外的文案
+
+                 
+                },
+                "result_title":"灵异事件",
+                "result_text": "就在当晚，几头健壮的公牛，公羊，仿佛被人引导着一样，自己来到了流民居住的地方，它们说着奇怪的话语，自己跳进火中，变成了一堆发出诱人香气的肉山……好几个人说这是密神在梦中允诺的食物，你当然知道这并不是，这些牲口都是你出钱买的——如果不是纯净者的祭司们疯狂反对，苏丹就要你给他也表演这么一出了。",
+                "result": 
+                { 
+
+
+                "clean.s3":1,
+                "s1+魔力": 1, //魔力+1
+               
+                },
+                "action": {
+
+                   
+                
+
+                   
+                }
+            }
+
+            
+
+   
+           
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                
+               
+                
+                "guid":"694bcbdd-a1a8-4ab8-b4b8-b6949990b46a",
+                
+               
+                
+                "condition":
+                {
+                    "type":"char",
+                    "is":2000022
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"拜铃耶需要亲自出席"
+            },
+            "s2":
+            {
+                
+               
+                
+                "guid":"74cb3d1c-da8c-4121-8e74-d5c2c29b5821",
+                
+               
+                
+                "condition":
+                {
+                  
+                    "type":"item",
+                    "cost.金币":[8,16]
+
+          
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"需要花费8枚金币"
+            },
+            "s3":
+            {
+                
+               
+                
+                "guid":"25de1652-c239-4637-8a9e-e843ba2ca700",
+                
+               
+                
+                "condition":
+                {
+                  
+                    "type":"sudan",
+                    "奢靡": 1,
+                    "rare<=":2
+
+          
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":1,
+                "is_enemy":0,
+                "text":"可以借此机会折断一张青铜级别以下的奢靡卡，但需要花费双倍金币"
+            }
+           
+        }
+    } 

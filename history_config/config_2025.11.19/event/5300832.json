@@ -1,0 +1,29 @@
+{
+    "id": 5300832,
+    "text": "琴声独享",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1,
+    },
+    "condition": { //条件
+        "table_have.2001182":1,  //小筹空闲
+        "f:counter.7000707-counter.7000706>=":2,  //物性-人性大于等于2
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "rite": 5000348,
+                "prompt": {
+                    "id": "5300832_prompt_1",
+                    "text": "当你协助[xiaochou.name]完成了那最后一次关于纵欲的实验之后，心中突然多了一丝奇怪的警觉——[xiaochou.gender]的在这个过程中学会了太多！变得太强了……也许，你将无法继续控制这个来自镜中的生灵……",
+                    "icon": "pic/2001182"
+                },
+                "event_off":5300832
+            }
+        }
+    ]
+}

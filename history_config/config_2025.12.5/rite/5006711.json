@@ -1,0 +1,111 @@
+ {
+        "id": 5006711,
+        "name": "难解之意",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                    "s2.主角":1
+                },
+                "tips": "只有你才能读懂这本书"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"f54a4db8-785e-4c8b-9787-65a89dfa9958",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "这本书中的文字似乎不能用现世的眼睛去读，渐渐地，你被它们引着进入到了狂乱的梦中……\n等你清醒过来的时候，你发现自己竟然身处某个僻静而荒凉的角落，而你完全不记得自己怎么来到这里的。那本书还被你紧紧抓在手中，但书页上的文字都消失了——就像是从你的眼睛溜进了你的灵魂一般。\n你感到疲惫，又感到兴奋难耐，这种异常的情况让你想起了阿萨尔那奇怪的临别赠言……",
+                "result": 
+                {   
+                   
+                },
+                "action":
+                {
+                   
+                }
+            }
+        ],                
+        "settlement_extre": [
+            {
+                "guid":"bc7dff0d-6a2a-4c49-a814-2c66cf38185d",
+                "condition":
+                {
+                },
+                "result_title":"你在书店找到了阿萨尔",
+                "result_text": "阿萨尔在静室里接待了你，听你讲述了这件事的全过程，他听得非常认真，频频点头、摇头，甚至还在做着什么笔记，像是在面对着一桩什么学术问题。\n最后，他合上手中的笔记本，承诺这件事他会想办法帮你。他眼睛里的兴奋和探究远超过对你的担心和关切，但你已经没力气跟他计较什么了。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+魅力":2,
+                    "s2+魔力":2,
+                    "s2+欢宴之主":1, //标识这个角色被欢宴之主盯上了
+                    "pop.5006711_01.s2": "好累……"
+                },
+                "action":
+                {
+                    "event_on":5320326, //奇怪的流言
+                    "event_on":5320680, //午夜欢宴
+                }
+            }
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"c76195d0-a8d8-4962-878d-ad68c9ea994c",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001230,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"49587d3b-c6db-4272-b820-1bd4904618ce",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "主角":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"这本书只能由你来读"
+                }
+        }
+    } 

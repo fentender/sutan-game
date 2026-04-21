@@ -1,0 +1,182 @@
+ {
+        "id": 5008143,
+        "name": "饼夹一切",
+        "text": "大餐已经出锅，是时候邀请朋友们一同享用了。",       
+        "tips": "",
+        "mapping_id":8001153, 
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "商业区:[10,19]",  
+        "icon": "rite_18", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            
+        ],
+        "open_conditions": [
+            {
+                "condition": {
+                   "any":{
+                    "s2":1, 
+                    "s3":1,
+                    "s4":1,
+                    "s5":1
+
+                   }     
+                },
+                "tips": "总得有人来吃吧？"
+            }
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+            {
+                "guid":"f07abdaf-95d2-4e63-8a0d-d8b5f0651920",
+                "condition": {
+
+                    "s1.is":2001016//饼夹一切
+                    
+                },
+                "result_title":"猜猜里面是什么",
+                "result_text": "每一个卷饼里都夹着不尽相同的馅料，这让每一个饼都充满了惊喜。你和你追随者们吃得十分满意。",
+                "result": 
+                {
+                  
+                  
+                    "clean.s1":1,  //消耗原材料
+                    "s4+社交":2,  
+                    "s5+社交":2,  
+                    "s2+社交":2, 
+                    "s3+社交":2
+                },
+                "action": {
+                }
+            }
+           
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"d83c303c-7c6e-493c-a893-fea422ee80ec",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "is":2000005,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“第一个旅人走过第一片大陆时，\n吃的正是这样的一餐。\n最后一个旅人行过最后一处角落时，\n吃的也是这样的一餐。”\n这诗句听在巴拉特耳中，令他心中似有所动……",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                    "2000005+生存":1,
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"d04d3982-6fa6-4093-81e0-400d5ec995c8",
+                "condition": {
+                    "any":{
+                        "s2.is":2000460, //哈桑
+                        "s3.is":2000460, //哈桑
+                        "s4.is":2000460, //哈桑
+                        "s5.is":2000460, //哈桑
+                    },
+                    "!is":2000005,
+                },
+                "result_title":"哈桑来了兴致",
+                "result_text": "“第一个旅人走过第一片大陆时，\n吃的正是这样的一餐。\n最后一个旅人行过最后一处角落时，\n吃的也是这样的一餐。”",
+                "result": 
+                {  
+                    "counter+7000722":1, //哈桑吃了大餐
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+
+        "s1":
+            {
+                "guid":"16d81a4b-388e-4f0c-8ff7-8029726260d3",
+                "condition": 
+                {
+                    "type":"item",
+                    "is":2001016
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"今天的菜肴"
+            },
+    "s2":
+    {
+        "guid":"abe2712c-3c4c-465d-9701-271edfd75617",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s3":
+    {
+        "guid":"a900ba3a-a49f-44f3-877e-d7a266e1557a",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s4":
+    {
+        "guid":"14486063-b45a-4901-8731-7e48e9373948",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    },
+    "s5":
+    {
+        "guid":"931f370d-f9cf-4617-abf5-7f41c03be525",
+        "condition": 
+        {
+            "type":"char"
+        },
+        "open_adsorb":0,
+        "is_key":0,
+        "is_empty":1,
+        "is_enemy":0,
+        "text":"你可以亲自，或邀请追随者前来品尝"
+    }
+        }
+    } 

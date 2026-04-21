@@ -1,0 +1,109 @@
+{
+    "id": 5008208,
+    "name": "哲瓦德的笑容",
+    "text": "能够帮助流民得到一个工作的机会当然是好事……",
+    "tips": "",
+    "mapping_id":8001121, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 3,
+    "waiting_round_end_action": [],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "商业区:[10,19]",
+    "icon": "rite_1",
+    "tag_tips": [],
+    "tag_tips_up": {},
+    "tips_text": [
+        "放入足够的情报，让哲瓦德驱使流民进行统计，精算业务"
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {},
+    "random_effect": {},
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid": "a602dfc5-5242-43a8-9ad7-9836cd9f4a8b",
+            "condition": {},
+            "result_title": "他开心就好",
+            "result_text": "哲瓦德带着一些识字的流民去学习整理市场情报与货物的资料。哲瓦德仔细教他们怎么记录，怎么列条目，怎么精算，怎么做假账………“老爷说，他习惯了，如果没有两本账簿的话他晚上睡不踏实。”\n最后，那些算数最好，并且亲手帮他做假账的流民成为了哲瓦德的亲信，而其他人，有了这些工作经验，也很容易找到其他商行的工作了——很少看到哲瓦德对其他人这么友善过，原来是咱们数学不好的缘故啊。",
+            "result": {
+                "loot": 6000083 //随机盲盒
+            },
+            "action": {}
+        }
+    ],
+    "settlement_extre": [],
+    "cards_slot": {
+        "s1": {
+            "guid": "2db36556-be4b-4759-961b-e466c722f4c2",
+            "condition": {
+                "type": "char",
+                "is": 2000057
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "哲瓦德可不放心把事情交给别人"
+        },
+        "s2": {
+            "guid": "82dc0ebf-66c7-4c27-9fc2-7aea38b2c310",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s3": {
+            "guid": "649c3559-f458-402c-a9b5-8ffb3bad203c",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s4": {
+            "guid": "11bd67f6-d4d0-4ad0-b7fe-a32f67f6071e",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        },
+        "s5": {
+            "guid": "a258025d-e7fb-4d6d-8b21-d557ae6f5c67",
+            "condition": {
+                "type": "item",
+                "情报": 1,
+                "rare>=": 3,
+                "cost.消耗品=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "不低于白银品级的情报"
+        }
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "id": 5320592,
+    "text": "血钻坑拉伊德离队",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000195":1  //拉伊德闲置
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "table.clean.2000195":1,  //拉伊德离开了
+                "table.clean.2001229":1,
+                "table.clean.2001233":1,  //移除流民的帮闲
+                "table.clean.2001228":1,  //删除贵女线索
+                "clean.rite":[5008201,5008202],  //关闭玩家堡
+                "counter+7000963":1,  //拉伊德在血钻坑时间离队的计数器
+                "prompt":{
+                    "id":"5320592_prompt_1",
+                    "text":"你回到家时才发现家里瓷器花瓶散碎一地，门窗桌椅满是狼藉，庭院里也只剩残花败叶……原来，是拉伊德来你家找过你，左等右等等不到你，便气势汹汹、怒火中烧地大闹了一场。看这架势，别说再差遣她了，你这几天都最好不要回家，最好不要被她逮到……",
+                    "icon":"cards/2000195"
+                },
+                "event_off":5320592
+                
+            }
+        }
+
+    ]
+}

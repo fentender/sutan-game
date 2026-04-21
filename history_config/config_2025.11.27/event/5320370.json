@@ -1,0 +1,35 @@
+{
+    "id": 5320370,
+    "text": "权势的样子-不满足",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "option": {
+                    "id":"5320370_option_1",
+                    "text": "你的权势不足，无法找到权势足够高的人",
+                    "icon": "pic/2000001",
+                    "items": [
+                        {
+                            "text": "再想想",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320367, //重开更深的造诣
+                }
+            }
+        }
+
+    ]
+}

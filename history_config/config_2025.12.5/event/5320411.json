@@ -1,0 +1,27 @@
+{
+    "id": 5320411,
+    "text": "老妇病死补充",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": [2,3]
+    },
+    "condition":{
+        "any":{
+            "!have.2000055":1,  //娜依拉
+            "have.2000055.大敌":1,
+        },
+        "table_have.2000699":1 //老妇闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "rite":5006607, //无法治愈的疾病
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "id": 5320569,
+    "text": "生命之水获得监听",     
+    "is_replay": 0,
+    "auto_start_init": [1],    
+    "start_trigger": false,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "hand_have.2000382":1  //手中有生命之水
+
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "counter+7000740":1,   //生命之水获得计数器+1
+                "event_off":5320569
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,89 @@
+ {
+        "id": 5008220,
+        "name": "血亲之乐",
+        "text": "今天是苏丹大喜的日子，因为他又可以诛杀一名血亲，唉，怎么没在当时折卡的时候找到她呢？",       
+        "tips": "",
+        "mapping_id":8001105, 
+        "once_new":0,
+        "round_number":1,
+        "waiting_round":1, 
+        "waiting_round_end_action":[
+            
+
+        ],
+        "method_settlement": "",
+        "auto_begin": 1, 
+        "auto_result": 0,                            
+        "location":"宫廷:[7,10]", 
+        "icon": "rite_21",  
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+
+            
+        },
+        "tips_text":[
+
+          
+                 
+        ],
+        "open_conditions": [  
+           
+
+         
+        ],
+        "random_text": { 
+        },
+        "random_text_up":{
+
+           
+        },
+        "random_effect": {          
+        },
+        "settlement_prior": [
+
+            
+        ],                
+        "settlement": [
+            {
+                "guid":"769cec08-e412-4437-a138-596f34d56b24",               
+                "condition": {
+
+                },
+                "result_title":"盛装",
+                "result_text": "当拉伊德的人头落地后，被戴上了金色冠冕，抹上了公主才有的华彩妆容，安放在王家陵墓之中——与无数的王族一起，等待着，见证着，那唯一的真王所创造的历史……",
+                "result": 
+                { 
+                    "clean.s1":1,               
+                },
+                "action": {
+                }
+            },
+        
+
+
+
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+   
+                "guid":"5ddb8a98-fd68-4de4-b41f-ea47ac57199e",   
+                "condition":
+                {
+                    "type":"char",
+                    "is":2000195
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"拉伊德"
+            }
+          
+          
+        }
+    } 

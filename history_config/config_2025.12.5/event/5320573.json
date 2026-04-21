@@ -1,0 +1,24 @@
+{
+    "id": 5320573,
+    "text": "失约的惩罚",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.主角":1  //主角闲置
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006132,  //开启失约的惩罚
+                "event_off":5320573
+            }
+        }
+
+    ]
+}

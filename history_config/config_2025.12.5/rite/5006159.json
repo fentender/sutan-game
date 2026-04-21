@@ -1,0 +1,84 @@
+{
+    "id": 5006159,
+    "name": "牛骨大狂热",
+    "text": "经过你和朋友们的大力宣传，牛骨在整个上流社会迅速风靡！热娜前来拜访你，脸上是怎么遮掩也藏不住的喜悦。",
+    "tips": "",
+    "mapping_id":8001002, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_19",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        "作为感谢，热娜会为此角色增加一个饰品槽位。"
+    ],
+    "open_conditions": [
+        
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+
+    ],
+    "settlement": [
+          {
+            "guid":"910d676e-a69a-4a0b-b79e-8e1c8b0409af",
+            "condition": {
+                
+            },
+            "result_title": "",
+            "result_text": "“多亏了您的帮忙，现在牛骨首饰非常受欢迎！而且我告诉大家，所有牛骨里以公的、两岁的、黄色的牛的骨头为最贵，它要吃苜蓿草长大，要没有交配过……反正啊，我编了一套谁比谁强、谁有权看不起谁的阶梯，结果呢，大家就更高兴了，更乐意花钱了，哈！”热娜兴奋地说道，“看，宝石就是这么回事呢。”\n她说着，拿着首饰在[s2.name]身上比划，非要给[s2.gender]戴上，她一边比划，还一边塞给你三块温暖而洁白的牛骨，笑着说这就是她规定的、品相最好的牛骨。",
+            "result": {
+                "s2+equip_slot": "accessory", //增加一个饰品槽位
+                "card":[2001275,"已拥有+1"],
+                "card":[2001275,"已拥有+1"],
+                "card":[2001275,"已拥有+1"],  //3个牛骨
+                "counter+7000834":1  //可以收集到牛骨的计数器
+            },
+            "action": {
+   
+            }
+        },
+    ],
+    "settlement_extre": [
+       
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"57e22731-bcf5-4140-b178-432cb4167c69",
+            "condition": {
+                "type": "char",
+                "is":2000019  //热娜
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "热娜前来拜访你",
+            
+        },
+        "s2": {
+            "guid":"3fcf21aa-b7dc-4109-afe4-26015f41b5a3",
+            "condition": {
+                "type": "char",
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "你可以亲自，或者派遣任意追随者招待她",
+        }
+    }
+}

@@ -1,0 +1,172 @@
+{
+    "id": 5006147,
+    "name": "小狗的珠宝订单",
+    "text": "有位贵族希望热娜给自己的爱犬做一条赤金的项圈，上面要镶着紫水晶，或者说，至少也得是紫水晶。",
+    "tips": "",
+    "mapping_id":8001574, 
+    "once_new": 0,
+    "round_number": 2,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_19",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+        "客人的订单需要一块紫水晶",
+        "如果能拿出比紫水晶更名贵的宝石，也能令其满意，但也不能太过出格，它毕竟只是一条小狗"
+    ],
+    "open_conditions": [
+        {
+            "condition": {
+                "any":{
+                   "s3.紫水晶":1,
+                   "s3.红宝石":1,
+                   "s3.祖母绿":1,
+                },
+            },
+            "tips": "请放入合适的宝石"
+        }
+    ],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [
+
+    ],
+    "settlement": [
+         {
+            "guid":"39b9532e-5908-4a19-8c99-41297eb76a2a",
+            "condition": {
+                "s3.紫水晶":1,
+            },
+            "result_title": "务实的需求",
+            "result_text": "贵族客户为这条紫水晶金项圈付了钱，热娜分了一些给你。",
+            "result": {
+                "clean.s3":1,  //消除珠宝
+                "金币":15,
+                "s1+灵感":5,
+                "counter+7000820":1  //完成一个贵族订单的计数器
+            },
+            "action": {
+               "event_on":5320606  //启动接珠宝订单的幕后
+            }
+        },
+         {
+            "guid":"fea63999-519c-46e7-a4dc-dd9efd51db4c",
+            "condition": {
+                "s3.祖母绿":1,
+            },
+            "result_title": "汪汪",
+            "result_text": "那位贵族对这条祖母绿项圈非常满意，连连说着“这样才配得上我的狗。”\n他吹嘘了半天小狗的血统有多么高贵，直到小狗忍不住汪汪出声，迫不及待想出去玩耍了。",
+            "result": {
+                "clean.s3":1,  //消除珠宝
+                "金币":20,
+                "s1+灵感":10,
+                "counter+7000820":1  //完成一个贵族订单的计数器
+            },
+            "action": {
+               "event_on":5320606  //启动接珠宝订单的幕后
+            }
+        },
+         {
+            "guid":"dc5e6a9d-eb93-419d-b1c6-28124670604f",
+            "condition": {
+                "s3.红宝石":1,
+            },
+            "result_title": "红宝石更衬它",
+            "result_text": "那位收到项圈的贵族给你们送来了一封热情洋溢的感谢信，信中他盛赞你和热娜的英明、敏锐和智慧，所以才能看出他的狗多么高贵，从而用这么好的宝石来雕琢项圈。\n他带着他的狗出入宫廷，每当人们问起它的项圈，他都会毫无保留地赞美你几句。",
+            "result": {
+                "clean.s3":1,  //消除珠宝
+                "金币":25,
+                "s1+灵感":15,               
+                "counter+7100003":1,  //权势
+                "counter+7000820":1  //完成一个贵族订单的计数器
+            },
+            "action": {
+               "event_on":5320606  //启动接珠宝订单的幕后
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"0cbe97a0-97bb-4567-a92b-dd05b8e67ae6",
+            "condition": {
+                "type": "char",
+                "is":2000019 //热娜
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "热娜",
+            
+        },
+        "s2": {
+            "guid":"5c23418b-fa74-4965-a6e7-8c4f596e6413",
+            "condition": {
+                "type": "item",
+                "cost.金币=":5
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "另需5枚金币购买其他材料",
+        },
+        "s3": {
+            "guid":"a2558a89-a6e2-4dff-8949-17bd535c5560",
+            "condition": {
+                "type": "item",
+                "宝石":1,
+                "cost.可堆叠=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "合适的宝石",
+            "pops":[
+                {
+                    "condition":{
+                        "s3.紫水晶":1
+                    },
+                    "action":{
+                        "pop.5006147_s3_01.self":"没错，这位客人要的就是紫水晶",
+                    }
+                },
+                {
+                    "condition":{
+                        "any":{
+                            "s3.红宝石":1,
+                            "s3.祖母绿":1,
+                        },
+                    },
+                    "action":{
+                        "pop.5006147_s3_02.self":"比紫水晶高贵，但又不至于出格，一定能让客人满意。",
+                    }
+                },
+                {
+                    "condition":{
+                        "!s3.紫水晶":1,
+                        "!s3.红宝石":1,
+                        "!s3.祖母绿":1,
+                    },
+                    "action":{
+                        "pop.5006147_s3_03.self":"或太过低贱，配不上其主人的身份；或太过昂贵，让其主人有点舍不得。",
+                    }
+                }
+            ]
+        }
+    }
+}

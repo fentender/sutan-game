@@ -1,0 +1,30 @@
+{
+    "id": 5320629,
+    "text": "给爱人的珠宝",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006156,  //开启给爱人的珠宝
+                "prompt":{
+                    "id":"5320629_prompt_1",
+                    "text":"一对刚刚结婚的年轻人想找热娜订做两件珠宝，要用最漂亮的红玉髓——按穷人们的传统来说，新人的婚礼首饰就是要用这种热烈的宝石。",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320629  //关闭自己
+            }
+        }
+
+    ]
+}

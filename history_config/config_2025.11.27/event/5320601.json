@@ -1,0 +1,32 @@
+{
+    "id": 5320601,
+    "text": "贵族之间的宣传",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+        "any":{
+            "table_have.妻子":1,
+            "table_have.新妻":1
+        }   
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006143,  //开启蒸汽中的珠宝
+                "prompt":{
+                    "id":"5320601_prompt_1",
+                    "text":"按照你和热娜约定的那样，现在正是让你的妻子举办一场珠宝之宴的好时机。",
+                    "icon":"cards/2000019"
+                },
+                "event_off":5320601
+            }
+        }
+
+    ]
+}

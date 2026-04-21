@@ -1,0 +1,30 @@
+{
+    "id": 5320327,
+    "text": "午夜欢宴",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 3
+    },
+    "condition":{
+        "table_have.2000199":1,
+        "table_have.欢宴之主":1, //带有欢宴之主标识的主角闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.2000199+锁定阿萨尔":1,
+                "rite":5006713, //午夜欢宴
+                "prompt":{
+                    "id":"5320327_prompt_01",
+                    "text":"你又一次在陌生的地方醒来",
+                    "icon":"pic/2000001"
+                }
+            }
+        }
+
+    ]
+}

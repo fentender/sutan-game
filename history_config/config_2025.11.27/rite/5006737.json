@@ -1,0 +1,143 @@
+ {
+        "id": 5006737,
+        "name": "垂钓者与我",
+        "text": "阅读可以提升自己，养成阅读的习惯吧",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result":0,
+        "location": "自宅:[2,12]", 
+        "icon": "rite_7", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },
+        "tips_text":[
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"192a5674-47eb-4773-b01a-17b924b6a0d9",
+                "condition":
+                {
+                },
+                "result_title":"",
+                "result_text": "阿萨尔在书中戏称自己的梦想是收集世界上的所有知识——这或许是这个世界上最大的野心了。",
+                "result": 
+                {   
+                    "s1-已拥有":1,
+                    "s1-正在阅读":1,
+                    "s2+社交":1, 
+                    "s2+体魄":1,
+                    "pop.5006737_01.s2": "什么时候再去多进几本好书来？"                               
+                },
+                "action":
+                {
+                }
+            }
+        ],                
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"7ace7d39-65b0-4f8b-acd3-1085899821c8",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "is":2001258,
+                        "正在阅读":1                 
+                    },
+                    "open_adsorb":1,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":1,
+                    "text":"正在阅读的书" 
+                },
+            "s2":
+                {
+                    "guid":"9f522bbd-c10c-4c2f-90bc-b54988c4c6a2",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!动物":1,
+                        "!怪物":1,
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"阅读者",
+                    "pops":[
+                        {
+                            "condition":{
+                                "is": 2000123 //天才少女
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006737_s2_01.self":"阿萨尔先生真的非常了不起！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000199 //阿萨尔
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006737_s2_02.self":"……是谁写的这么烂的书！",
+                                    "pop.5006737_s2_03.self":"仔细一看写得也还行。",
+                                    "pop.5006737_s2_04.self":"我用过这么尴尬的比喻吗？",
+                                    "pop.5006737_s2_05.self":"到底谁会想看这种书啊？",
+                                    "pop.5006737_s2_06.self":"我一生的心血……"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000062 //法图娜
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006737_s2_07.self":"这间书店的选书品味相当不错。"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000063 //扎齐伊
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006737_s2_08.self":"要是能有更多话本故事就好了！"
+                                }
+                            }
+                        },
+                        {
+                            "condition":{
+                                "is": 2000082 //夏玛
+                            },
+                            "action":{
+                                "choose":{
+                                    "pop.5006737_s2_09.self":"对我来说，他打造了一间灵魂的临时避风港呢……"
+                                }
+                            }
+                        }
+                    ]
+                }
+        }
+    } 

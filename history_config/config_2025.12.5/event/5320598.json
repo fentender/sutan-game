@@ -1,0 +1,36 @@
+{
+    "id": 5320598,
+    "text": "想成为最好的珠宝商",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1 
+    },
+    "condition":{
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                 "option": {
+                    "id":"5320598_option_1",
+                    "text": "见你翻开这一页，热娜马上开始吹捧起了你，她说你是朝堂上最厉害的权臣，比你年轻的绝无可能拥有你这样的地位，比你地位更高全都是牙齿都要掉了的老家伙……她哄得你忍不住笑出声来，才顺势说道：“所以说，想要征服那些青金石宫殿里的贵人们，我只能仰仗您啦。”",
+                    "icon": "cards/2000019",
+                    "items": [
+                        {
+                            "text": "哈哈，包在我身上",
+                            "tag": "op1"
+                        }
+                    ]
+                },
+                "case:op1": {
+                    "event_on":5320596,
+                    "event_off":5320598
+                }
+            }
+        }
+
+    ]
+}

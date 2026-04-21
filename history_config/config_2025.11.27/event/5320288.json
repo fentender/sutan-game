@@ -1,0 +1,28 @@
+{
+    "id": 5320288,
+    "text": "安的噩耗",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "table_have.2000008":1, //安苏亚闲置
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.clean.2000008":1,
+                "prompt":{
+                    "id":"5320288_prompt_1",
+                    "text":"安苏亚妃最近都没有露面……有人传说她已经死在了苏丹的后宫中，但和所有这样消失在阴影中的女人一样，人们不会得到任何的解释。",
+                    "icon":"cards/2000008"
+                }
+            }
+        }
+
+    ]
+}

@@ -1,0 +1,33 @@
+{
+    "id": 5320333,
+    "text": "百科全书已集齐的页",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": true, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "round_begin_ba": 1
+    },
+    "condition":{
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "event_on":5320334,
+                "event_on":5320335,
+                "event_on":5320336,
+                "event_on":5320337,
+                "event_on":5320338,
+                "event_on":5320339,
+                "event_on":5320340,
+                "event_on":5320341,
+                "event_on":5320342,
+                "event_on":5320343,
+                "event_on":5320344,
+                "event_on":5320384
+            }
+        }
+
+    ]
+}

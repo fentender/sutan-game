@@ -1,0 +1,24 @@
+{
+    "id": 5300847,
+    "text": "小筹诗人直接进行结果判定",
+    "is_replay": 0, //是否可以重复触发
+    "auto_start": false,
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on": { //时机
+        "round_begin_ba":1
+    },
+    "condition": { //条件
+        "counter.7000688>=": 4, //在小筹变身后折断过四张纵欲苏丹卡了
+        "have.2001182.纵欲的痕迹":1  //小筹有纵欲的痕迹
+    },
+    "settlement": [ //效果 
+        {
+            "tips_resource": "",
+            "tips_text": "",
+            "action": {
+                "event_on":[5300830,5300831,5300832],  //激活小筹故事结尾
+                "event_off":5300847
+            }
+        }
+    ]
+}

@@ -1,0 +1,129 @@
+ {
+        "id": 5006712,
+        "name": "奇怪的流言",
+        "text": "你读那本怪书的当天听到了一些流言：有人在黑街目击到了某位被迫玩牌、位高权重的老爷（也就是你）一个人深夜踯躅在街头，身边还有三四条黑乎乎的影子……鉴于这事你真的一点印象都没有，而阿萨尔又靠不住，也许你应该靠自己调查调查那些影子是谁，或者说，是什么东西？",       
+        "tips": "",
+        "mapping_id":8001058,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":3,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0, 
+        "auto_result": 0,//需要手动启动
+        "location": "黑街:[2,9]",  
+        "icon": "rite_4", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+            "tips":["智慧","社交"],
+            "type":"normal_result"            
+        },        
+        "tips_text":[
+            "这种事还是派别人去打听比较好",
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+
+        },
+        "random_text_up":{
+            "r1":{
+                "text":"[s1.name]旁敲侧击",
+                "type":"normal_result",
+                "type_tips":"[s1.gender]的智慧、社交属性和你的侠名为你提供了完整的骰子数量。",
+                "low_target": 5,
+                "low_target_tips": "你至少需要5点成功"
+            }
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [   
+        ],               
+        "settlement_extre": [
+            {
+                "guid":"3963e791-f105-4499-88fd-046ebddab85c",
+                "condition": {
+                    "s2.金币":1
+                },
+                "result_title":"这点小事，只要花钱就容易",
+                "result_text": "在金钱攻势下，人们纷纷把自己知道的都说了出来。在他们口中，黑影有着各自不同的形象，就像是照镜子一样，每个人都会见到自己最害怕的投影……\n这让你想到书中提起过的异界之物，那些非人的存在似乎最喜欢这样玩弄人心，或许，这两件事之间会有所勾连……",
+                "result": 
+                {  
+                    "s1+智慧":1,
+                    "card":2000042, //预兆情报
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"db515fbe-43f4-437a-a6f4-dee1ede7976f",
+                "condition": {
+                    "!s2.金币":1,
+                    "r1:智慧+社交+counter.7100004>=":[5,5]
+                },
+                "result_title":"[s1.name]成功了",
+                "result_text": "[s1.gender]与许多所谓的目击者谈过之后，发现在他们口中，黑影有着各自不同的形象。就像是照镜子一样，每个人都会见到自己最害怕的投影……\n这让你想起书中提起过的异界之物，那些非人的存在似乎最喜欢这样玩弄人心。或许，这两件事之间会有所勾连……",
+                "result": 
+                {  
+                    "s1+智慧":1,
+                    "card":2000042, //预兆情报
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"b033af8f-64e6-4f96-8e90-d678101a7e9a",
+                "condition": {
+                    "!s2.金币":1,
+                    "r1:智慧+社交+counter.7100004<":[5,5]
+                },
+                "result_title":"见[s1.name]如见你",
+                "result_text": "那些目击者一见到[s1.name]就作鸟兽散了，关着门怎么也不肯出来，也是，在这里哪有人敢当面说你坏话的。",
+                "result": 
+                {  
+                    "card":2000042, //预兆情报
+                },
+                "action": {
+                }
+            },
+        ],
+        "cards_slot":
+        {
+            "s1":
+                {
+                    "guid":"a4e25858-c2d8-4a76-b90e-c6a3f716f887",
+                    "condition": 
+                    {
+                        "type":"char",
+                        "!主角":1
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":0,
+                    "is_enemy":0,
+                    "text":"你可以派人去调查一番"
+                },
+            "s2":
+                {
+                    "guid":"9228b5a5-7017-4730-b8fb-662091b86928",
+                    "condition": 
+                    {
+                        "type":"item",
+                        "any":{
+                            "all":{
+                                "!金币":1,
+                                "cost.消耗品=":1  
+                            },
+                            "cost.金币":3,
+                        }
+                    },
+                    "open_adsorb":0,
+                    "is_key":0,
+                    "is_empty":1,
+                    "is_enemy":0,
+                    "text":"能够协助调查的消耗品"
+                }
+        }
+    } 

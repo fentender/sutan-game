@@ -1,0 +1,79 @@
+{
+    "id": 5006134,
+    "name": "夜晚的馈赠",
+    "text": "也许你应该把这块结晶拿给萨米尔看看，一起商量该怎么处置它。",
+    "tips": "",
+    "mapping_id":8001246, 
+    "once_new": 0,
+    "round_number": 1,
+    "waiting_round": 1,
+    "waiting_round_end_action": [
+        
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+       
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [],
+    "settlement": [
+       {
+            "guid":"a8f4369c-4ef0-4321-86ab-d48f429671c7",
+            "condition": {
+                
+            },
+            "result_title": "",
+            "result_text": "萨米尔有些困惑地翻来覆去摆弄着那枚水晶一样的结晶，而后，他想到了什么，眼睛一下子亮了起来。\n“这是被反刍之后的药水……把生命之水的仿制品用异常的力量给消耗掉，而后剩下的残渣……！这东西对药学一定会有巨大的帮助——或许能开辟一个新的研究领域都说不定！”\n他向你道谢，整个人就像是发着光，你从没见过萨米尔如此开心过。\n又过了很长一段时间，一名仆人叩响了你的门扉。他为你带来了一本巨著，用纯金镶着边，每一页都装饰着美丽的文字。\n你大致翻阅了一下，内容基本和原本的医典没有区别，只是多了一个新的篇章。他图文并茂地附上了深夜结晶——他是如此命名的——对于药学的种种影响，还附带上了宫中几位阉奴自愿者的证言，他们都尝试了这样结晶的力量。\n在结尾部分，萨米尔这样写道：“这是人类向着未知迈出的又一步，它方向未必正确，它的力量也未必坚实，但人类的征服正是由这样的一步、又一步构成的。从千百年后的视角来看，这或许会是伟大的一步——感谢我的朋友[player.name]对此的帮助。”",
+            "result": {
+                "clean.s2":1,
+                "s1.uprare":1,  //升级稀有度
+                "s1+生存":2,
+                "s1+智慧":2  
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"a4ffb9cb-e03e-4895-8f19-7a5e4f03557f",
+            "condition": {
+                "type": "item",
+                "is":2001218  //医典
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "萨米尔编纂的医典作为参考"
+        },
+        "s2": {
+            "guid":"161917d9-9f39-462d-928b-42797d0620ca",
+            "condition": {
+                "type": "item",
+                "is":2001199
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "夜晚的结晶"
+        }
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "id": 5320623,
+    "text": "品鉴王冠",     
+    "is_replay": 0,
+    "auto_start": false,    
+    "start_trigger": true,
+    "on":{
+        "round_begin_ba": 1
+    },
+    "condition":{
+        "have.2000019":1,  //热娜还活着 
+        "have.2000019.追随者":1,  //热娜还是追随者
+        "table_have.2000019":1,  //热娜闲置
+        "table_have.主角":1  //主角在手上
+    },
+    "settlement": [
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{
+                "rite":5006153,  //开启品鉴王冠                
+                "event_off":5320623  //关闭自己
+            }
+        }
+
+    ]
+}

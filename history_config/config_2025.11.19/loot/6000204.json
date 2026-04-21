@@ -1,0 +1,37 @@
+{
+    "id": 6000204,
+    "name": "更深的塑造-邪恶的样子",
+    "repeat": 1,
+    "type": 2, // 2 普通权重, 3 维新
+    "item": [
+        {
+            "condition":{
+                "counter.7100002>=":8,
+                "counter.7000810<":1
+            },
+            "num" : "1",
+            "id" : "5006744", 
+            "type" : "rite",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100002>=":8,
+                "counter.7000810>=":1              
+            },
+            "num" : "1",
+            "id" : "5320373",
+            "type" : "event",
+            "weight" : 60
+        },
+        {
+            "condition":{
+                "counter.7100002<":8,
+            },
+            "num" : "1",
+            "id" : "5320369",
+            "type" : "event",
+            "weight" : 60
+        }
+    ]
+}

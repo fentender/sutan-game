@@ -1,0 +1,65 @@
+{
+    "id": 5006125,
+    "name": "珍贵的样品",
+    "text": "萨米尔希望你能为他提供一瓶生命之水作为样品，好让他仔细研究一番。",
+    "tips": "",
+    "mapping_id":8001246, 
+    "once_new": 0,
+    "round_number": 5,
+    "waiting_round": 0,
+    "waiting_round_end_action": [
+
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "自宅:[2,12]",
+    "icon": "rite_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+        
+    },  
+    "tips_text": [
+   
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+       
+    },
+    "settlement_prior": [],
+    "settlement": [
+       {
+            "guid":"5b681980-0e31-47c2-bade-e5b511ad7ef9",
+            "condition": {
+               
+            },
+            "result_title": "模仿的技巧",
+            "result_text": "萨米尔的信使又来了，随信还送来了一瓶装在水晶瓶里的透明液体，乍一看有点像生命之水，但仔细观察，就会发现它的颜色更蓝一些。\n在信中，他先是表达了对你的感谢，然后写道：“生命之水确实是最有趣的样本，我对它做了许多研究，分析了它的成分，而后进行了或许十分拙劣的模仿。这是我试做的仿制品，或许您能帮我找些人来试用一下效果？我想它应该不至于有什么毒害，但具体使用的感受，我也说不好。另外，或许不光是人类可以用？毕竟许多生命的原理都差不多。”",
+            "result": {
+                "card":[2001196,"已拥有+1"]  //获得一瓶生命之水仿制品
+            },
+            "action": {
+               
+            }
+        }
+    ],
+    "settlement_extre": [
+       
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"9829a8db-a38c-4364-9c13-a45617351bae",
+            "condition": {
+                "type": "item",
+                "is":2000382,
+                "cost.可堆叠=":1
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "萨米尔希望你能提供一瓶生命之水"
+        }
+    }
+}

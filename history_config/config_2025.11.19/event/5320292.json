@@ -1,0 +1,31 @@
+{
+    "id": 5320292,
+    "text": "可疑的收入",     
+    "is_replay": 0, //是否可以重复触发
+    "auto_start_init": [1],
+    "start_trigger": false, // 是否启动就立即开始校验条件
+    "on":{   //时机
+        "rite_end": 5000001, //治理家业后
+    },
+    "condition":{
+        "counter.7000718>=":1, //收租超过3次
+        "counter.7000719>=":3, //消耗假币的计数
+    },
+    "settlement": [    //效果 
+        {
+            "tips_resource":"", 
+            "tips_text":"",
+            "action":{  
+                "table.clean.2000029":1,//移除真的金币
+                "card":2001190, //获得一个假币
+                "counter=7000719":0, //计数归0
+                "prompt":{
+                    "id":"5320292_prompt_1",
+                    "text":"诶，不是，怎么还回到自己手上了？",
+                    "icon":"cards/2000029"
+                }
+            }
+        }
+
+    ]
+}

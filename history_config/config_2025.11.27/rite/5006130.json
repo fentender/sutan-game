@@ -1,0 +1,96 @@
+{
+    "id": 5006130,
+    "name": "诡异的订单",
+    "text": "你催促着萨米尔马上开始赶制这份诡异的订单——那个未曾谋面的订货人会什么时候再度上门取货？如果到时候买拿出足够的这种药剂，又会有什么样的后果？你、萨米尔、目击了这夜发生的事的宫人们，谁都不愿意去想这件事。",
+    "tips": "",
+    "mapping_id":8001062, 
+    "once_new": 0,
+    "round_number": 3,
+    "waiting_round": 5,
+    "waiting_round_end_action": [
+         {
+            "condition": {
+            },
+            "result_title":"",
+            "result_text": "",
+            "result": 
+            {
+                "clean.s1":1,  //萨米尔死
+            },
+            "action": {
+                "card":[2000326,"已拥有+1"], //获得一个疯狂
+                "prompt":{
+                    "id":"5006130_prompt_01",
+                    "text":"见你不愿继续帮忙，萨米尔只好独自开始赶工……但很不幸，没过多久你就听到了他凄惨的死讯，而就在当天的夜里，那些奇怪的声音侵入到你的梦境中……一整夜，它们在你的梦里啃食，你的思想，你的记忆，在你的灵魂里翻翻捡捡……你差点以为自己要死掉了——你甚至觉得死掉会更好！终于，天亮了。幸运的是，它们似乎明白了你根本做不出那种药剂，离开之后并没有更多地纠缠你。",
+                    "icon":"cards/2000011"
+                }
+            }
+        }
+    ],
+    "method_settlement": "",
+    "auto_begin": 0,
+    "auto_result": 0,
+    "location": "上城区:[1,12]",
+    "icon": "rite_2",
+    "tag_tips": [],
+    "tag_tips_up": {
+
+    },  
+    "tips_text": [
+   
+    ],
+    "open_conditions": [],
+    "random_text": {},
+    "random_text_up": {
+      
+    },
+    "settlement_prior": [],
+    "settlement": [
+        {
+            "guid":"0cc0ef99-1778-4afe-b474-3df00edc9264",
+            "condition": {
+                
+            },
+            "result_title": "合适的帮手",
+            "result_text": "新药准备好了，整整齐齐地装在水晶瓶中。\n你赶到时，萨米尔正将一些标签贴到瓶子上。你凑近一看，那些标签上写的是：“不是为人类准备的”。\n他擦了一把额头上的浮汗，扭头望着你。\n“时间太紧了，东西又要得多……这些药水我是不敢再给人类用的……总之，我先标记好，免得被谁误用。”\n说完，他舒了口气，整个人放松下来，疲态也就攀上了他的眉眼：“接下来的事就交给您吧。我实在是已经无力去面对‘它们’了。”",
+            "result": {
+                "card":[2001197,"已拥有+1"]  //获得诡异的药物
+            },
+            "action": {
+                "rite":5006131  //开启交付
+            }
+        }
+    ],
+    "settlement_extre": [
+        
+    ],
+    "cards_slot": {
+        "s1": {
+            "guid":"66d0208a-7517-49d1-8d8e-1795406f6fbb",
+            "condition": {
+                "type": "char",
+                "is":2000011
+            },
+            "open_adsorb": 1,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "萨米尔"
+        },
+         "s2": {
+            "guid":"d43cb0d8-7341-45fb-99c2-838fc7cb2e3f",
+            "condition": {
+                "type": "char",
+                "any":{
+                    "is":2000352,  //玛希尔
+                    "魔力>":5  //
+                }
+            },
+            "open_adsorb": 0,
+            "is_key": 0,
+            "is_empty": 0,
+            "is_enemy": 0,
+            "text": "萨米尔需要一位魔力大于5，或者精于研发的助手"
+        }
+    }
+}

@@ -1,0 +1,140 @@
+ {
+        "id": 5006679,
+        "name": "可疑的金币",
+        "text": "这枚金币感觉有点不对劲……",       
+        "tips": "",
+        "mapping_id":8001005,
+        "once_new":0,
+        "round_number": 1,
+        "waiting_round":1,
+        "waiting_round_end_action":[
+        ],        
+        "method_settlement": "",
+        "auto_begin": 0,
+        "auto_result": 0, 
+        "location": "自宅:[2,12]", 
+        "icon": "rite_19", 
+        "tag_tips": [
+        ],
+        "tag_tips_up":{
+        },        
+        "tips_text":[
+            "某些擅长工艺的角色也许可以帮上忙"
+        ],
+        "open_conditions": [
+        ],
+        "random_text":{
+        },
+        "random_text_up":{
+        },
+        "settlement_prior": [
+        ],                
+        "settlement": [
+            {
+                "guid":"c1ddc058-98bd-4a6c-9fb5-28bcd31153ab",
+                "condition": {
+                    "s2.is":2000352 //玛希尔
+                },
+                "result_title":"别拆，我还要留着用呢",
+                "result_text": "她用小锤子敲了敲，告诉你这个和真的金币的合金比例不一样……你拒绝了她想要剪开这枚金币的要求，也拒绝继续听她讲解合金的铸造知识。",
+                "result": 
+                { 
+                    "s1+回收":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"93ce2425-777f-40c3-b188-135abb264f66",
+                "condition": {
+                    "s2.is":2000022 //拜铃耶
+                },
+                "result_title":"谎言的味道",
+                "result_text": "你还没来得及阻止，拜铃耶就把这枚金币吃进了嘴里……也许还吞了下去！？\n“瞧您这贪心的样子，不过是一枚假币罢了！密神们是不会要这种东西的！”她大笑着，从两腿之间把那枚硬币变了出来，叮地一声弹向你——出于本能，你还是一把接住了这有味的金币。",
+                "result": 
+                { 
+                    "s1+回收":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"5beaad0f-91f8-44c4-b0b9-a62d617b3187",
+                "condition": {
+                    "s2.is":2000123 //鲁梅拉
+                },
+                "result_title":"你担心她记得自己看过的任何东西",
+                "result_text": "鲁梅拉向你索要了尺子，石墨与细线，尽力标注出了五处细节，与真币不同，但也只有她亲自指给你看的时候，你才能发现。",
+                "result": 
+                { 
+                    "s1+回收":1
+                },
+                "action": {
+                }
+            },
+            {
+                "guid":"e14c920e-b30a-4a78-a818-91915af8a381",
+                "condition": {
+                    "s2.is":2000005 //异国商人，此时巴拉特是主角的追随者
+                },
+                "result_title":"你还是找上门了",
+                "result_text": "巴拉特接过硬币，在手里掂了掂，叹了口气，“我正在找时机和你说清楚，方便的话，请大人随我来吧。”",
+                "result": 
+                { 
+                    "s1+回收":1,
+                    "counter+7000715":1
+                },
+                "action": {
+                    "rite":5006680, //吐露真相
+                }
+            },
+            {
+                "guid":"01840f33-5333-4628-b1e8-d1412c505452",
+                "condition": {
+                     //通用角色
+                },
+                "result_title":"想来足够骗过大部分人了",
+                "result_text": "你们一起看了半天，虽然说从直觉来说，好像是有点问题，但如果混在普通金币里，也几乎看不出什么毛病……如果这是一个假币的话，那它的做工真的非常精细。",
+                "result": 
+                { 
+                    "s1+回收":1
+                },
+                "action": {
+                    
+                }
+            },
+        ],               
+        "settlement_extre": [
+        ],
+        "cards_slot":
+        {
+            "s1":
+            {
+                "guid":"b0718fd1-cebb-435c-941a-c23423aa873d",
+                "condition": 
+                {
+                    "is":2001190
+                },
+                "open_adsorb":1,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"可疑的金币"
+            },
+            "s2":
+            {
+                "guid":"cebbcc2a-aa88-47dc-b903-e4813699cc32",
+                "condition": 
+                {
+                    "type":"char",
+                    "!怪物":1,
+                    "!动物":1
+                },
+                "open_adsorb":0,
+                "is_key":0,
+                "is_empty":0,
+                "is_enemy":0,
+                "text":"让谁来检查"
+            }
+        }
+    } 
