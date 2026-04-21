@@ -254,6 +254,227 @@ def _array_delta_from_matching(
     )
 
 
+# ==================== ADAPTIVE 模式：delta 重映射 ====================
+
+
+def _remap_delta_to_current(
+    delta: DiffDict,
+    hist_data: object,
+    current_data: object,
+) -> DiffDict | None:
+    """将基于历史 base 计算的 delta，重映射到当前 base 的索引/key 体系。
+
+    用于 ADAPTIVE 模式：delta 由 `mod - hist_base` 计算而来，但需要应用到
+    当前游戏本体上。若当前 base 与历史 base 存在差异（字段增删、数组元素
+    位置变化等），直接应用 delta 会产生幽灵变更或索引错位。
+
+    重映射规则见 plan file。返回 None 表示 delta 全部清空。
+    """
+    if not isinstance(hist_data, dict) or not isinstance(current_data, dict):
+        # 类型不匹配时保守返回原 delta（上游会按原路径应用）
+        return delta
+
+    new_items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+
+    for key, entry in delta.items.items():
+        hist_val = hist_data.get(key) if key in hist_data else None
+        hist_has = key in hist_data
+        cur_val = current_data.get(key) if key in current_data else None
+        cur_has = key in current_data
+
+        if isinstance(entry, FieldDiff):
+            remapped = _remap_field_diff(entry, hist_has, hist_val, cur_has, cur_val)
+            if remapped is not None:
+                new_items[key] = remapped
+
+        elif isinstance(entry, DiffDict):
+            # 嵌套 dict delta：递归
+            if cur_has and isinstance(cur_val, dict) and isinstance(hist_val, dict):
+                sub = _remap_delta_to_current(entry, hist_val, cur_val)
+                if sub is not None and sub.items:
+                    new_items[key] = sub
+            elif not cur_has:
+                # 当前 base 中该字段整体消失：delta 中的嵌套改动无处可施，丢弃
+                continue
+            else:
+                # 类型不匹配（如 dict → 标量），保守丢弃
+                continue
+
+        elif isinstance(entry, ArrayFieldDiff):
+            if cur_has and isinstance(cur_val, list) and isinstance(hist_val, list):
+                remapped_arr = _remap_array_diff(entry, hist_val, cur_val)
+                if remapped_arr is not None:
+                    new_items[key] = remapped_arr
+            # 其余情况丢弃
+
+    if not new_items:
+        return None
+    return DiffDict(items=new_items)
+
+
+def _remap_field_diff(
+    entry: FieldDiff,
+    hist_has: bool,
+    hist_val: object,
+    cur_has: bool,
+    cur_val: object,
+) -> FieldDiff | None:
+    """重映射单个 FieldDiff，返回 None 表示丢弃。"""
+    base_kind = entry.kind.base_kind
+    modifier = entry.kind & ~ChangeKind.CHANGED  # 保留 OVERRIDE/MULTI_MOD 等
+
+    if base_kind == ChangeKind.DELETED:
+        # 删除的字段当前 base 已不存在 → 丢弃
+        if not cur_has:
+            return None
+        return entry
+
+    if base_kind == ChangeKind.ADDED:
+        if cur_has:
+            # 已存在且值相同 → 丢弃；不同 → 改为 CHANGED
+            if cur_val == entry.value:
+                return None
+            new_kind = ChangeKind.CHANGED | modifier
+            return FieldDiff(
+                kind=new_kind,
+                value=entry.value,
+                old_value=cur_val,
+                version=entry.version,
+            )
+        return entry
+
+    if base_kind == ChangeKind.CHANGED:
+        if not cur_has:
+            # 历史 base 有、当前 base 无：改为 ADDED
+            new_kind = ChangeKind.ADDED | modifier
+            return FieldDiff(
+                kind=new_kind,
+                value=entry.value,
+                old_value=None,
+                version=entry.version,
+            )
+        if cur_val == entry.value:
+            # 当前值已等于新值 → 丢弃
+            return None
+        # 更新 old_value 为当前值
+        return FieldDiff(
+            kind=entry.kind,
+            value=entry.value,
+            old_value=cur_val,
+            version=entry.version,
+        )
+
+    # ORIGIN 或其它：不应出现在稀疏 delta 中，保留原样
+    return entry
+
+
+def _remap_array_diff(
+    delta: ArrayFieldDiff,
+    hist_arr: list[object],
+    current_arr: list[object],
+) -> ArrayFieldDiff | None:
+    """将 ArrayFieldDiff 从历史 base 索引体系重映射到当前 base。
+
+    步骤：
+    1. 用启发式匹配计算 hist_idx → current_idx 映射
+    2. 遍历 delta.diffs/indices，转换 CHANGED/DELETED 元素的 ID
+    3. ADDED 元素重新分配 ID = current_base_count + 序号
+    4. 重写 base_count 和 order
+    """
+    hist_base_count = delta.base_count
+    current_base_count = len(current_arr)
+
+    # 启发式匹配：hist_arr 作为 base，current_arr 作为 mod
+    matching = match_by_heuristic(hist_arr, current_arr)
+    hist_to_current: dict[int, int] = dict(matching.pairs)
+
+    new_diffs: list[FieldDiff] = []
+    new_indices: list[int] = []
+    # hist_id → new_id 的映射（用于重写 order）
+    id_remap: dict[int, int] = {}
+
+    added_counter = 0
+
+    for fd, eid in zip(delta.diffs, delta.indices, strict=True):
+        base_kind = fd.kind.base_kind
+
+        if eid > hist_base_count:
+            # ADDED 元素，重新分配 ID
+            added_counter += 1
+            new_id = current_base_count + added_counter
+            new_diffs.append(fd)
+            new_indices.append(new_id)
+            id_remap[eid] = new_id
+            continue
+
+        # CHANGED / DELETED：eid 是历史 base 的 1-based ID
+        hist_idx = eid - 1
+        if hist_idx not in hist_to_current:
+            # 历史元素在当前 base 中没有对应（已被游戏删除）→ 丢弃
+            continue
+        cur_idx = hist_to_current[hist_idx]
+        new_id = cur_idx + 1  # 1-based
+
+        if base_kind == ChangeKind.CHANGED and isinstance(fd.value, DiffDict):
+            # 递归重映射子 DiffDict（用对应的历史/当前元素作为参照）
+            hist_elem = hist_arr[hist_idx]
+            cur_elem = current_arr[cur_idx]
+            sub = _remap_delta_to_current(fd.value, hist_elem, cur_elem)
+            if sub is None or not sub.items:
+                # 子 delta 完全清空 → 丢弃此元素变更
+                continue
+            new_diffs.append(FieldDiff(
+                kind=fd.kind, value=sub,
+                old_value=fd.old_value, version=fd.version,
+            ))
+            new_indices.append(new_id)
+            id_remap[eid] = new_id
+        elif base_kind == ChangeKind.CHANGED and isinstance(fd.value, ArrayFieldDiff):
+            hist_elem = hist_arr[hist_idx]
+            cur_elem = current_arr[cur_idx]
+            if isinstance(hist_elem, list) and isinstance(cur_elem, list):
+                sub_arr = _remap_array_diff(fd.value, hist_elem, cur_elem)
+                if sub_arr is None:
+                    continue
+                new_diffs.append(FieldDiff(
+                    kind=fd.kind, value=sub_arr,
+                    old_value=fd.old_value, version=fd.version,
+                ))
+                new_indices.append(new_id)
+                id_remap[eid] = new_id
+            else:
+                new_diffs.append(fd)
+                new_indices.append(new_id)
+                id_remap[eid] = new_id
+        else:
+            # CHANGED 标量 或 DELETED：直接重映射 ID
+            new_diffs.append(fd)
+            new_indices.append(new_id)
+            id_remap[eid] = new_id
+
+    if not new_diffs:
+        return None
+
+    # 重写 order：按原 order 遍历，映射 ID；丢弃找不到对应的元素；保留 0/-1
+    new_order: list[int] = []
+    for eid in delta.order:
+        if eid == 0 or eid == -1:
+            new_order.append(eid)
+            continue
+        if eid in id_remap:
+            new_order.append(id_remap[eid])
+        # 其余丢弃（对应元素被丢弃）
+
+    # 去除相邻重复的边界标记
+    return ArrayFieldDiff(
+        diffs=new_diffs,
+        base_count=current_base_count,
+        indices=new_indices,
+        order=new_order,
+        is_duplist=delta.is_duplist,
+    )
+
+
 # ==================== Delta 计算入口 ====================
 
 
@@ -424,12 +645,14 @@ class ModDelta:
 
             # ADAPTIVE：尝试用历史版本的 base_data 替代当前本体
             delta_mode = effective
+            hist_base_for_remap: dict[str, object] | None = None
             if effective == MergeMode.ADAPTIVE:
                 hist_dir = _adaptive_base_dirs.get(mod_id)
                 if hist_dir is not None:
                     hist_file = hist_dir / rel_path
                     if hist_file.exists():
-                        base_data = JsonStore.parse_file(hist_file)
+                        hist_base_for_remap = JsonStore.parse_file(hist_file)
+                        base_data = hist_base_for_remap
                 # 合并行为等同 SMART
                 delta_mode = MergeMode.SMART
 
@@ -440,6 +663,16 @@ class ModDelta:
             delta = compute_delta(base_data, mod_data, file_type,
                                   schema=schema, root_key=root_key,
                                   merge_mode=delta_mode)
+
+            # ADAPTIVE：delta 基于历史 base 算出，需重映射到当前 base 的索引/key 体系
+            if (effective == MergeMode.ADAPTIVE
+                    and hist_base_for_remap is not None
+                    and delta is not None):
+                current_base = store.get_base(rel_path)
+                if current_base and current_base is not hist_base_for_remap:
+                    delta = _remap_delta_to_current(
+                        delta, hist_base_for_remap, current_base,
+                    )
             return mod_id, rel_path, delta
 
         if has_replace:
@@ -475,18 +708,27 @@ class ModDelta:
                             schema=schema, root_key=root_key,
                         )
                     elif effective == MergeMode.ADAPTIVE:
-                        # ADAPTIVE: delta 基于历史版本，合并行为同 SMART
+                        # ADAPTIVE: delta 基于历史版本计算，再重映射到当前 base
                         adaptive_base = base_data
+                        hist_base_used: dict[str, object] | None = None
                         hist_dir = _adaptive_base_dirs.get(mod_id)
                         if hist_dir is not None:
                             hist_file = hist_dir / rel_path
                             if hist_file.exists():
-                                adaptive_base = JsonStore.parse_file(hist_file)
+                                hist_base_used = JsonStore.parse_file(hist_file)
+                                adaptive_base = hist_base_used
                         delta = compute_delta(
                             adaptive_base, mod_data, file_type,
                             schema=schema, root_key=root_key,
                             merge_mode=MergeMode.SMART,
                         )
+                        if (hist_base_used is not None
+                                and delta is not None
+                                and base_data
+                                and base_data is not hist_base_used):
+                            delta = _remap_delta_to_current(
+                                delta, hist_base_used, base_data,
+                            )
                     else:
                         # NORMAL/SMART: delta 基于游戏本体
                         delta = compute_delta(
