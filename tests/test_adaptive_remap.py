@@ -273,6 +273,75 @@ def test_array_changed_element_disappeared() -> None:
               "b 已被当前 base 删除，CHANGED 应被丢弃")
 
 
+def test_array_order_preserves_origin() -> None:
+    """order 重建必须保留 ORIGIN 元素：mod 只改 B，A/C/D 仍应出现在重映射后的 order 中"""
+    hist = {
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4},
+        ],
+    }
+    mod = {
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 99},  # 改 B
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4},
+        ],
+    }
+    current = {
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "x", "v": 50},  # 游戏插入的新元素
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4},
+        ],
+    }
+
+    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    assert delta is not None
+    remapped = _remap_delta_to_current(delta, hist, current)
+    assert remapped is not None
+    settlement_remap = remapped.items.get("settlement")
+    assert isinstance(settlement_remap, ArrayFieldDiff)
+
+    log.info("    order: %s", settlement_remap.order)
+    # order 应包含 A(1), B(3), C(4), D(5)，以及边界 0/-1；X(2) 不含
+    inner = [x for x in settlement_remap.order if x not in (0, -1)]
+    assert_eq(inner, [1, 3, 4, 5], "order 应按 mod 顺序保留所有配对元素的当前 ID")
+
+
+def test_array_large_origin_preserved() -> None:
+    """大数组：10 个元素只改 1 个，order 长度应保留（不被丢弃）"""
+    hist_items = [{"guid": f"g{i}", "v": i} for i in range(10)]
+    mod_items = [{"guid": f"g{i}", "v": i} for i in range(10)]
+    mod_items[5]["v"] = 999  # 只改第 6 个
+
+    hist = {"id": "x", "settlement": hist_items}
+    mod = {"id": "x", "settlement": mod_items}
+    # current 在位置 3 插入一个新元素
+    current_items = [{"guid": f"g{i}", "v": i} for i in range(10)]
+    current_items.insert(3, {"guid": "new", "v": -1})
+    current = {"id": "x", "settlement": current_items}
+
+    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    assert delta is not None
+    remapped = _remap_delta_to_current(delta, hist, current)
+    assert remapped is not None
+    settlement_remap = remapped.items.get("settlement")
+    assert isinstance(settlement_remap, ArrayFieldDiff)
+
+    inner = [x for x in settlement_remap.order if x not in (0, -1)]
+    log.info("    inner order len=%d: %s", len(inner), inner)
+    assert_eq(len(inner), 10, "10 个历史元素应全部出现在重映射后的 order 中")
+
+
 def run_all(result: TestResult) -> None:
     run_test("dict_deleted_missing_in_current",
              test_dict_deleted_missing_in_current, result)
@@ -288,3 +357,7 @@ def run_all(result: TestResult) -> None:
              test_array_index_remap, result)
     run_test("array_changed_element_disappeared",
              test_array_changed_element_disappeared, result)
+    run_test("array_order_preserves_origin",
+             test_array_order_preserves_origin, result)
+    run_test("array_large_origin_preserved",
+             test_array_large_origin_preserved, result)

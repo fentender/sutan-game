@@ -455,17 +455,27 @@ def _remap_array_diff(
     if not new_diffs:
         return None
 
-    # 重写 order：按原 order 遍历，映射 ID；丢弃找不到对应的元素；保留 0/-1
+    # 重写 order：order 中包含 mod 数组所有元素的 ID（含未变更的 ORIGIN 元素），
+    # 不能只依赖 id_remap（它仅含 diff 元素）。需要用启发式匹配的全量 hist→current
+    # 映射来转换配对元素的 ID，ADDED 元素用 id_remap。
+    hist_id_to_current_id: dict[int, int] = {
+        hist_idx + 1: cur_idx + 1
+        for hist_idx, cur_idx in matching.pairs
+    }
     new_order: list[int] = []
     for eid in delta.order:
         if eid == 0 or eid == -1:
             new_order.append(eid)
             continue
-        if eid in id_remap:
-            new_order.append(id_remap[eid])
-        # 其余丢弃（对应元素被丢弃）
-
-    # 去除相邻重复的边界标记
+        if eid > hist_base_count:
+            # ADDED 元素：用 id_remap
+            if eid in id_remap:
+                new_order.append(id_remap[eid])
+        else:
+            # 配对或 ORIGIN 元素：用全局 hist→current 映射
+            if eid in hist_id_to_current_id:
+                new_order.append(hist_id_to_current_id[eid])
+            # 历史元素在当前 base 中无对应 → 丢弃
     return ArrayFieldDiff(
         diffs=new_diffs,
         base_count=current_base_count,
