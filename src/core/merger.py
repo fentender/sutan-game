@@ -91,6 +91,21 @@ def _resolve_merge_strategy(
     return "replace", None
 
 
+def _wrap_as_duplist(afd: ArrayFieldDiff) -> ArrayFieldDiff:
+    """将 flat ArrayFieldDiff 包装为单元素 DupList 结构。
+
+    delta 计算时将非 DupList 的 base 包装为 DupList([原list])（delta_store.py:146），
+    产出 base_count=1 的 delta。全状态需要做相同的包装才能匹配。
+    """
+    return ArrayFieldDiff(
+        diffs=[FieldDiff(ChangeKind.ORIGIN, afd)],
+        indices=[1],
+        base_count=1,
+        order=[0, 1, -1],
+        is_duplist=True,
+    )
+
+
 def _is_modified(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> bool:
     """判断条目是否已被之前的 mod 修改过。
 
@@ -463,6 +478,8 @@ def apply_delta(
                     diffs=[], base_count=0, indices=[], order=[0, -1],
                     is_duplist=diff.is_duplist,
                 )
+            if diff.is_duplist and not base_afd.is_duplist:
+                base_afd = _wrap_as_duplist(base_afd)
             apply_array_delta(base_afd, diff, schema, child_path,
                               version=version, is_override=is_override)
             base.items[key] = base_afd
