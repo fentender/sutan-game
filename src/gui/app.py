@@ -42,7 +42,7 @@ from ..core.diagnostics import ERROR, INFO, WARNING, diag
 from ..core.id_remapper import RemapTable, remap_mod_configs
 from ..core.json_store import JsonStore
 from ..core.mod_scanner import scan_all_mods
-from ..core.types import MergeMode
+from ..core.types import MergeMode, ParseFailure
 from .log_panel import LogPanel, prefix_mod_title
 from .mod_detail import ModDetailPanel
 from .mod_list import ModListPanel
@@ -275,10 +275,17 @@ class MainWindow(QMainWindow):
                 f.file_path for f in failures
                 if dialog.resolutions.get(str(f.file_path), {}).get('action') == 'fixed'
             ]
+
+            # 收集用户忽略的失败记录
+            ignored: list[ParseFailure] = [
+                f for f in failures
+                if dialog.resolutions.get(str(f.file_path), {}).get('action') != 'fixed'
+            ]
+
             if fixed_paths:
                 remaining = store.reload(fixed_paths)
                 if remaining:
-                    # 仍然失败的文件记录到日志
+                    ignored.extend(remaining)
                     for f in remaining:
                         self._log_message(
                             ERROR,
@@ -287,6 +294,11 @@ class MainWindow(QMainWindow):
                                 self._mod_name_map,
                             ),
                         )
+
+            # 仅保存 mod 文件的失败（非本体），供合并时整文件复制
+            mod_ignored = [f for f in ignored if not f.is_base]
+            if mod_ignored:
+                store.set_ignored_failures(mod_ignored)
 
         # 展示 JSON 加载阶段的诊断消息
         json_msgs = diag.snapshot("json")

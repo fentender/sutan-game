@@ -12,7 +12,7 @@ from ..core.deployer import copy_resources
 from ..core.diagnostics import diag
 from ..core.id_remapper import RemapTable
 from ..core.json_store import JsonStore
-from ..core.merger import merge_all_files
+from ..core.merger import copy_failed_files, merge_all_files
 from ..core.types import MergeMode
 
 
@@ -118,6 +118,8 @@ class MergeWorker(CancellableWorker):
                 progress_cb=lambda c, t: self.progress.emit(c, t),
             )
             self._check_cancel()
+
+            copy_failed_files(self.mod_configs, self.output_path / "config")
 
             # 在工作线程内快照警告，避免跨线程竞态
             warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]

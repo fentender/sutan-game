@@ -5,6 +5,7 @@ delta 产出使用强类型 DiffDict / ArrayFieldDiff / FieldDiff 树，
 替代旧的 _DELETED 哨兵和 _delta/_new_entry/_deleted 魔法标记。
 """
 import copy
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from .types import (
     ChangeKind,
     DiffDict,
     FieldDiff,
+    ParseFailure,
     ProgressCallback,
 )
 
@@ -667,3 +669,41 @@ def _validate_tag_names(
                     msg = (f"tag.json: Mod [{mod_name}] 的 tag [{key}] "
                            f"name=\"{mod_tag_name}\" 与本体 name=\"{base_name}\" 不一致，可能导致游戏出错")
                     diag.warn("merge", msg)
+
+
+def copy_failed_files(
+    mod_configs: list[tuple[str, str, Path]],
+    output_path: Path,
+) -> list[str]:
+    """将解析失败但用户选择忽略的 JSON 文件原样复制到输出目录。
+
+    同一 rel_path 有多个失败 mod 时，使用优先级最高（mod_configs 中靠后）的版本。
+    返回被复制的 rel_path 列表。
+    """
+    store = JsonStore.instance()
+    ignored = store.get_ignored_failures()
+    if not ignored:
+        return []
+
+    enabled_ids = {mid for mid, _, _ in mod_configs}
+    relevant = [f for f in ignored if f.mod_id in enabled_ids]
+    if not relevant:
+        return []
+
+    priority: dict[str, int] = {mid: i for i, (mid, _, _) in enumerate(mod_configs)}
+    best: dict[str, ParseFailure] = {}
+    for f in relevant:
+        existing = best.get(f.rel_path)
+        if existing is None or priority.get(f.mod_id, -1) > priority.get(existing.mod_id, -1):
+            best[f.rel_path] = f
+
+    copied: list[str] = []
+    for rel_path, failure in sorted(best.items()):
+        src = failure.file_path
+        dest = output_path / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+        diag.warn("merge", f"{rel_path}: JSON 解析失败，已从 {failure.mod_name} 整文件复制")
+        copied.append(rel_path)
+
+    return copied

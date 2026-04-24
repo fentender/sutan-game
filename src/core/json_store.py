@@ -56,6 +56,7 @@ class JsonStore:
         self._mod_config_paths: dict[str, Path] = {}  # mod_id → config_path
         self._game_config_path: Path | None = None
         self._failures: list[ParseFailure] = []
+        self._ignored_failures: list[ParseFailure] = []
         self._lock = threading.Lock()
         # JSON 解析缓存：(路径, mtime) → 解析结果
         self._json_cache: dict[tuple[str, float], dict[str, object]] = {}
@@ -172,6 +173,7 @@ class JsonStore:
             self._mod_names.clear()
             self._mod_config_paths.clear()
             self._failures.clear()
+            self._ignored_failures.clear()
             self._game_config_path = game_config_path
 
         # 收集需要加载的任务：(file_path, rel_path, is_base, mod_id, mod_name)
@@ -315,6 +317,16 @@ class JsonStore:
             failures = self._failures.copy()
             self._failures.clear()
         return failures
+
+    def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
+        """保存用户忽略的解析失败记录，供合并时整文件复制"""
+        with self._lock:
+            self._ignored_failures = list(failures)
+
+    def get_ignored_failures(self) -> list[ParseFailure]:
+        """获取被忽略的解析失败记录"""
+        with self._lock:
+            return list(self._ignored_failures)
 
     def reload(self, paths: list[Path]) -> list[ParseFailure]:
         """用户修复文件后，清除指定路径缓存并重新加载。
@@ -474,6 +486,7 @@ class JsonStore:
             self._mod_names.clear()
             self._mod_config_paths.clear()
             self._failures.clear()
+            self._ignored_failures.clear()
             self._game_config_path = None
             self._overrides_dir = None
         self._json_cache.clear()
