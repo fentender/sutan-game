@@ -833,7 +833,11 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _cleanup_remap(self) -> None:
-        """清理 remap 状态"""
+        """清理 remap 状态，撤销 store 中的 ID 重映射修改"""
+        if self._remap_tables:
+            store = JsonStore.instance()
+            for mod_id in self._remap_tables:
+                store.reload_mod(mod_id)
         self._remap_tables = None
 
     # ── 检查更新 ──

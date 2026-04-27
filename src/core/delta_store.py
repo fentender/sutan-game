@@ -301,10 +301,17 @@ def _remap_delta_to_current(
                 continue
 
         elif isinstance(entry, ArrayFieldDiff):
-            if cur_has and isinstance(cur_val, list) and isinstance(hist_val, list):
-                remapped_arr = _remap_array_diff(entry, hist_val, cur_val)
+            # 标量归一化：delta 计算阶段将标量包装为单元素数组产出 ArrayFieldDiff，
+            # 重映射时需要对 hist_val/cur_val 做同样的归一化
+            h = [hist_val] if hist_has and not isinstance(hist_val, (list, dict)) else hist_val
+            c = [cur_val] if cur_has and not isinstance(cur_val, (list, dict)) else cur_val
+            if cur_has and isinstance(c, list) and isinstance(h, list):
+                remapped_arr = _remap_array_diff(entry, h, c)
                 if remapped_arr is not None:
                     new_items[key] = remapped_arr
+            elif cur_has and isinstance(c, list):
+                # hist 不存在但 cur 归一化后是数组，直接保留
+                new_items[key] = entry
             # 其余情况丢弃
 
     if not new_items:

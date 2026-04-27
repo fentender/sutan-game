@@ -475,6 +475,9 @@ def apply_delta(
                 base_afd = existing.value
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, (list, DupList)):
                 base_afd = ArrayFieldDiff.from_list(existing.value)
+            elif isinstance(existing, FieldDiff) and existing.value is not None and not isinstance(existing.value, (dict, DiffDict)):
+                # 标量归一化为单元素数组（与 delta 计算阶段的归一化对应）
+                base_afd = ArrayFieldDiff.from_list([existing.value])
             else:
                 base_afd = ArrayFieldDiff(
                     diffs=[], base_count=0, indices=[], order=[0, -1],

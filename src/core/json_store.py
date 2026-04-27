@@ -309,6 +309,24 @@ class JsonStore:
             if mod_id in self._mod_data:
                 self._mod_data[mod_id].pop(rel_path, None)
 
+    def reload_mod(self, mod_id: str) -> None:
+        """从磁盘重新加载单个 mod 的所有 JSON 数据，撤销内存中的修改。
+
+        利用 _json_cache 避免重复磁盘 I/O（缓存 key 为 path+mtime，
+        磁盘文件未变则命中缓存，返回原始解析结果）。
+        """
+        config_path = self._mod_config_paths.get(mod_id)
+        if config_path is None or not config_path.exists():
+            return
+        with self._lock:
+            self._mod_data[mod_id] = {}
+        mod_name = self._mod_names.get(mod_id, mod_id)
+        tasks: list[tuple[Path, str, bool, str, str]] = []
+        for json_file in config_path.rglob("*.json"):
+            rel = normalize_rel_path(json_file, config_path)
+            tasks.append((json_file, rel, False, mod_id, mod_name))
+        self._load_tasks(tasks)
+
     # ── 错误管理 ──
 
     def take_failures(self) -> list[ParseFailure]:
