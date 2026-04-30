@@ -6,7 +6,7 @@ import logging
 import time
 
 from src.config import SCHEMA_DIR, UserConfig
-from src.core import profiler
+from src.core.infra import profiler
 from tests.test_runner import TestResult, assert_true, run_test, skip
 
 log = logging.getLogger("test")
@@ -31,9 +31,9 @@ def _require_real_data():
 
 def _init_store_and_delta(game_config, workshop):
     """初始化 JsonStore 和 ModDelta，返回 (mod_configs, mod_ids)。"""
-    from src.core.delta_store import ModDelta
-    from src.core.json_store import JsonStore
-    from src.core.mod_scanner import scan_all_mods
+    from src.core.merge.delta import ModDelta
+    from src.core.json.store import JsonStore
+    from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
@@ -52,7 +52,7 @@ def perf_load_schemas():
     """Schema 加载性能"""
     if not SCHEMA_DIR.exists() or not any(SCHEMA_DIR.glob("*.schema.json")):
         skip("schema 目录为空")
-    from src.core.schema_loader import load_schemas
+    from src.core.schema.loader import load_schemas
     start = time.perf_counter()
     schemas = load_schemas(SCHEMA_DIR)
     elapsed = time.perf_counter() - start
@@ -63,7 +63,7 @@ def perf_load_schemas():
 def perf_scan_mods():
     """Mod 扫描性能"""
     _, workshop = _require_real_data()
-    from src.core.mod_scanner import scan_all_mods
+    from src.core.mod.scanner import scan_all_mods
     start = time.perf_counter()
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     elapsed = time.perf_counter() - start
@@ -74,7 +74,7 @@ def perf_scan_mods():
 def perf_analyze_all():
     """完整冲突分析性能"""
     game_config, workshop = _require_real_data()
-    from src.core.conflict import analyze_all_overrides
+    from src.core.mod.conflict import analyze_all_overrides
 
     mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
@@ -87,9 +87,9 @@ def perf_analyze_all():
 
 def perf_apply_delta_large():
     """大对象递归合并性能"""
-    from src.core.delta_store import compute_delta
-    from src.core.merger import apply_delta
-    from src.core.types import DiffDict
+    from src.core.merge.delta import compute_delta
+    from src.core.merge.merger import apply_delta
+    from src.core.infra.types import DiffDict
 
     # 构造 1000 key 的嵌套字典
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
@@ -112,7 +112,7 @@ def perf_apply_delta_large():
 
 def perf_resolve_duplicates():
     """数组相似度匹配性能"""
-    from src.core.array_match import resolve_duplicates
+    from src.core.merge.array_match import resolve_duplicates
 
     base = [{"id": f"item_{i}", "name": f"Name {i}", "value": i,
              "desc": f"Description for item {i} with some extra text"}
@@ -132,7 +132,7 @@ def perf_diff_dialog_tab_load():
     """DiffDialog 打开 + 首次 tab 切换性能（无头 Qt）"""
     import os
     game_config, workshop = _require_real_data()
-    from src.core.conflict import analyze_all_overrides
+    from src.core.mod.conflict import analyze_all_overrides
 
     mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
@@ -160,7 +160,7 @@ def perf_diff_dialog_tab_load():
         skip("PySide6 不可用")
     app = QApplication.instance() or QApplication([])
 
-    from src.gui.diff_dialog import DiffDialog
+    from src.gui.dialogs.diff import DiffDialog
 
     start = time.perf_counter()
     dialog = DiffDialog(target.rel_path, target_mods)
@@ -192,7 +192,7 @@ def perf_merge_all():
     """完整合并流程性能"""
     import tempfile
     game_config, workshop = _require_real_data()
-    from src.core.merger import merge_all_files
+    from src.core.merge.merger import merge_all_files
 
     mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
@@ -211,7 +211,7 @@ def perf_merge_all():
 
 def perf_json_parse():
     """JSON 解析性能（含逗号修复）"""
-    from src.core.json_store import JsonStore
+    from src.core.json.store import JsonStore
 
     game_config, workshop = _require_real_data()
 
@@ -247,8 +247,8 @@ def perf_full_pipeline_profile():
     """完整合并管线 profile：scan → analyze → merge，输出全函数耗时"""
     import tempfile
     game_config, workshop = _require_real_data()
-    from src.core.conflict import analyze_all_overrides
-    from src.core.merger import merge_all_files
+    from src.core.mod.conflict import analyze_all_overrides
+    from src.core.merge.merger import merge_all_files
 
     mod_configs, _ = _init_store_and_delta(game_config, workshop)
     log.info("    使用 %d 个 Mod 进行完整管线 profile", len(mod_configs))
@@ -279,9 +279,9 @@ def perf_full_pipeline_profile():
 def perf_delta_init():
     """ModDelta.init() 性能（含并行计算）"""
     game_config, workshop = _require_real_data()
-    from src.core.delta_store import ModDelta
-    from src.core.json_store import JsonStore
-    from src.core.mod_scanner import scan_all_mods
+    from src.core.merge.delta import ModDelta
+    from src.core.json.store import JsonStore
+    from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
@@ -303,9 +303,9 @@ def perf_delta_init():
 def perf_delta_cache_hit():
     """ModDelta 缓存命中性能"""
     game_config, workshop = _require_real_data()
-    from src.core.delta_store import ModDelta
-    from src.core.json_store import JsonStore
-    from src.core.mod_scanner import scan_all_mods
+    from src.core.merge.delta import ModDelta
+    from src.core.json.store import JsonStore
+    from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
@@ -338,7 +338,7 @@ def perf_delta_cache_hit():
 
 def perf_id_remap_conflict():
     """ID 重分配线性查找性能"""
-    from src.core.id_remapper import _next_available_id
+    from src.core.mod.id_remap import _next_available_id
 
     # 构造 10000 个连续已占用 ID
     used = {str(i) for i in range(10000)}
@@ -354,8 +354,8 @@ def perf_id_remap_conflict():
 def perf_merge_cache_compute():
     """MergeCache 首次计算 vs 缓存命中"""
     game_config, workshop = _require_real_data()
-    from src.core.conflict import analyze_all_overrides
-    from src.core.merge_cache import MergeCache
+    from src.core.mod.conflict import analyze_all_overrides
+    from src.core.merge.cache import MergeCache
 
     mod_configs, _ = _init_store_and_delta(game_config, workshop)
 
@@ -391,8 +391,8 @@ def perf_merge_cache_compute():
 def perf_compute_all_overlaps():
     """全量 Mod 重叠检测性能"""
     game_config, workshop = _require_real_data()
-    from src.core.json_store import JsonStore
-    from src.core.overlap import compute_all_overlaps
+    from src.core.json.store import JsonStore
+    from src.core.mod.overlap import compute_all_overlaps
 
     _, mod_ids = _init_store_and_delta(game_config, workshop)
     store = JsonStore.instance()
@@ -408,8 +408,8 @@ def perf_compute_all_overlaps():
 
 def perf_format_delta_json_deep():
     """大型 DiffDict 格式化性能"""
-    from src.core.diff_formatter import format_delta_json
-    from src.core.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
+    from src.core.merge.formatter import format_delta_json
+    from src.core.infra.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
 
     def _build_nested(depth: int, width: int, version: int) -> DiffDict:
         items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
@@ -436,7 +436,7 @@ def perf_format_delta_json_deep():
 
 def perf_smart_allow_deletion():
     """智能删除规则高频调用吞吐"""
-    from src.core.smart_rules import smart_allow_deletion
+    from src.core.merge.rules import smart_allow_deletion
 
     field_path = ["root", "entries", "0", "condition", "sub1", "sub2",
                   "sub3", "sub4", "sub5", "leaf"]

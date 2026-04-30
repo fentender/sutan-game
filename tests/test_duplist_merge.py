@@ -8,20 +8,21 @@ DupList 合并测试 - 验证重复键字段在合并管道中类型和结构的
 """
 import copy
 
-from src.core.delta_store import compute_delta
-from src.core.json_parser import DupList
-from src.core.merger import apply_delta, merge_file
-from src.core.types import (
+from src.core.merge.delta import compute_delta
+from src.core.json.parser import DupList
+from src.core.merge.merger import apply_delta, merge_file
+from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
     DiffDict,
     FieldDiff,
+    JsonObject,
     MergeMode,
 )
 from tests.test_runner import TestResult, assert_eq, assert_true, run_test
 
 
-def _make_base_settlement_entry() -> dict[str, object]:
+def _make_base_settlement_entry() -> JsonObject:
     """构造一个包含单 card 键的 settlement_prior 条目（模拟游戏本体）"""
     return {
         "guid": "test-guid-0001",
@@ -37,7 +38,7 @@ def _make_base_settlement_entry() -> dict[str, object]:
     }
 
 
-def _make_mod_settlement_entry() -> dict[str, object]:
+def _make_mod_settlement_entry() -> JsonObject:
     """构造一个包含重复 card 键的 settlement_prior 条目（模拟 Mod）"""
     return {
         "guid": "test-guid-0001",
@@ -64,13 +65,13 @@ def test_duplist_delta_apply() -> None:
 
     合并后 card 应为 DupList，包含两个子列表，不应出现嵌套数组。
     """
-    base_data: dict[str, object] = {
+    base_data: JsonObject = {
         "id": 9999999,
         "name": "测试仪式",
         "settlement_prior": [_make_base_settlement_entry()],
         "settlement": [],
     }
-    mod_data: dict[str, object] = {
+    mod_data: JsonObject = {
         "id": 9999999,
         "name": "测试仪式",
         "settlement_prior": [_make_mod_settlement_entry()],
@@ -130,7 +131,7 @@ def test_duplist_merge_file() -> None:
     - Mod B 将 card 从普通 list 改为 DupList
     合并后 card 应为 DupList。
     """
-    base_data: dict[str, object] = {
+    base_data: JsonObject = {
         "id": 9999999,
         "name": "测试仪式",
         "settlement_prior": [_make_base_settlement_entry()],
@@ -213,14 +214,14 @@ def test_duplist_no_nested_arrays_in_output() -> None:
     游戏 SingleOrListValuesJsonConverter 在读取 card 时
     期望值 token 但拿到了 BEGIN_ARRAY。
     """
-    base_data: dict[str, object] = {
+    base_data: JsonObject = {
         "id": 9999999,
         "name": "测试",
         "result": {
             "card": [2000123, "追随者+1", "魅力+1"],
         },
     }
-    mod_data: dict[str, object] = {
+    mod_data: JsonObject = {
         "id": 9999999,
         "name": "测试",
         "result": {

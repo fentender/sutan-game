@@ -9,7 +9,7 @@ import tempfile
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from .core.diagnostics import diag
+from .core.infra.diagnostics import diag
 
 # 应用版本号（发版时与 git tag 同步更新）
 APP_VERSION = "1.3.4"

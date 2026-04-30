@@ -5,20 +5,21 @@
 "cards/2000523"，Mod 将其修改为数组 ["cards/2000523", "cards/2000523_1"]。
 合并后应正确体现为数组，diff 面板应显示新增元素。
 """
-from src.core.delta_store import _remap_delta_to_current, compute_delta
-from src.core.diff_formatter import format_delta_json
-from src.core.merger import apply_delta
-from src.core.types import (
+from src.core.merge.delta import _remap_delta_to_current, compute_delta
+from src.core.merge.formatter import format_delta_json
+from src.core.merge.merger import apply_delta
+from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
     DiffDict,
     FieldDiff,
+    JsonObject,
     MergeMode,
 )
 from tests.test_runner import TestResult, assert_eq, assert_true, run_test
 
 
-def _make_base() -> dict[str, object]:
+def _make_base() -> JsonObject:
     """游戏本体 card 条目：resource 为字符串"""
     return {
         "id": 2000523,
@@ -28,7 +29,7 @@ def _make_base() -> dict[str, object]:
     }
 
 
-def _make_mod() -> dict[str, object]:
+def _make_mod() -> JsonObject:
     """Mod 修改后的 card 条目：resource 为数组"""
     return {
         "id": 2000523,

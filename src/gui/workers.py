@@ -6,14 +6,15 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
+from src.core.infra.diagnostics import diag
+from src.core.infra.types import MergeMode
+from src.core.json.store import JsonStore
+from src.core.merge.merger import copy_failed_files, merge_all_files
+from src.core.mod.conflict import analyze_all_overrides
+from src.core.mod.deployer import copy_resources
+from src.core.mod.id_remap import RemapTable
+
 from ..config import SCHEMA_DIR
-from ..core.conflict import analyze_all_overrides
-from ..core.deployer import copy_resources
-from ..core.diagnostics import diag
-from ..core.id_remapper import RemapTable
-from ..core.json_store import JsonStore
-from ..core.merger import copy_failed_files, merge_all_files
-from ..core.types import MergeMode
 
 
 class _MergeCancelled(Exception):
@@ -77,7 +78,7 @@ class DeltaInitWorker(QThread):
         self.history_dir = history_dir
 
     def run(self) -> None:
-        from ..core.delta_store import ModDelta
+        from src.core.merge.delta import ModDelta
         try:
             ModDelta.init(
                 self.mod_ids,
@@ -174,7 +175,7 @@ class SchemaWorker(QThread):
 
     def run(self) -> None:
         try:
-            from ..core.schema_generator import generate_all
+            from src.core.schema.generator import generate_all
             generate_all(
                 str(self.config_dir), str(self.schema_dir),
                 progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
@@ -188,5 +189,5 @@ class UpdateCheckWorker(QThread):
     done = Signal(object)  # dict（有新版本）或 None
 
     def run(self) -> None:
-        from ..core.updater import check_for_update
+        from src.core.platform.updater import check_for_update
         self.done.emit(check_for_update(timeout=8))

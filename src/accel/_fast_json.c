@@ -18,7 +18,7 @@ ensure_duplist_type(void)
 {
     if (DupListType)
         return 0;
-    PyObject *mod = PyImport_ImportModule("src.core.json_parser");
+    PyObject *mod = PyImport_ImportModule("src.core.infra.types");
     if (!mod) return -1;
     DupListType = PyObject_GetAttrString(mod, "DupList");
     Py_DECREF(mod);

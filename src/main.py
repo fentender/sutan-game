@@ -57,7 +57,7 @@ def _ensure_paths(config: UserConfig) -> bool:
         return True
 
     from .config import detect_game_path, detect_workshop_path
-    from .gui.setup_dialog import SetupDialog
+    from .gui.dialogs.setup_wizard import SetupDialog
 
     # 预填：优先用配置中的值，无效则用自动检测结果
     default_game = config.game_path if game_ok else detect_game_path()
@@ -85,7 +85,7 @@ def main() -> None:
 
     # 按配置启用性能评估
     if config.enable_profiler:
-        from .core import profiler
+        from .core.infra import profiler
         profiler.enable()
 
     # 确保路径有效，无效则引导用户配置；用户关闭则退出
@@ -105,7 +105,7 @@ def main() -> None:
 
     # 程序退出时输出性能报告
     if config.enable_profiler:
-        from .core import profiler
+        from .core.infra import profiler
         profiler.log_report()
 
     sys.exit(exit_code)

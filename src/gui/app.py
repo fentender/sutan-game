@@ -28,6 +28,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.core.infra.diagnostics import ERROR, INFO, WARNING, diag
+from src.core.infra.types import MergeMode, ParseFailure
+from src.core.json.store import JsonStore
+from src.core.mod.conflict import FileOverrideInfo
+from src.core.mod.deployer import generate_info_json, scan_synthetic_mods
+from src.core.mod.id_remap import RemapTable, remap_mod_configs
+from src.core.mod.scanner import scan_all_mods
+
 from ..config import (
     APP_VERSION,
     HISTORY_DIR,
@@ -36,17 +44,10 @@ from ..config import (
     SYNTHETIC_MOD_ID,
     UserConfig,
 )
-from ..core.conflict import FileOverrideInfo
-from ..core.deployer import generate_info_json, scan_synthetic_mods
-from ..core.diagnostics import ERROR, INFO, WARNING, diag
-from ..core.id_remapper import RemapTable, remap_mod_configs
-from ..core.json_store import JsonStore
-from ..core.mod_scanner import scan_all_mods
-from ..core.types import MergeMode, ParseFailure
-from .log_panel import LogPanel, prefix_mod_title
-from .mod_detail import ModDetailPanel
-from .mod_list import ModListPanel
-from .override_panel import OverridePanel
+from .panels.log import LogPanel, prefix_mod_title
+from .panels.mod_detail import ModDetailPanel
+from .panels.mod_list import ModListPanel
+from .panels.override import OverridePanel
 from .workers import AnalyzeWorker, DeltaInitWorker, MergeWorker, StoreInitWorker, UpdateCheckWorker
 
 
@@ -211,7 +212,7 @@ class MainWindow(QMainWindow):
                     mods.append(lm)
 
         # 读取游戏更新时间（用于过时检测）
-        from ..core.steam_time import get_game_update_time, get_steamapps_from_workshop
+        from src.core.platform.steam import get_game_update_time, get_steamapps_from_workshop
         steamapps = get_steamapps_from_workshop(self.config.workshop_dir)
         game_update_time = get_game_update_time(steamapps)
 
@@ -266,7 +267,7 @@ class MainWindow(QMainWindow):
 
         if failures:
             # 弹窗让用户处理解析错误
-            from .json_fix_dialog import JsonFixDialog
+            from .dialogs.json_fix import JsonFixDialog
             dialog = JsonFixDialog(failures, parent=self)
             dialog.exec()
 
@@ -311,7 +312,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("JSON 资源加载完成")
 
         # 计算 Mod 与本体的重叠状态（用于过时风险分级）
-        from ..core.overlap import compute_all_overlaps
+        from src.core.mod.overlap import compute_all_overlaps
         all_mod_ids = [m.mod_id for m in self.mod_list_panel._mods]
         overlap_map = compute_all_overlaps(store, all_mod_ids)
         self.mod_list_panel.update_overlap(overlap_map)
@@ -328,7 +329,7 @@ class MainWindow(QMainWindow):
 
     def _refresh_delta(self) -> None:
         """模式变更后重新计算 delta 并刷新覆盖分析"""
-        from ..core.merge_cache import MergeCache
+        from src.core.merge.cache import MergeCache
         MergeCache.instance().invalidate_all()
 
         # 合并模式变更，清理所有 override
@@ -439,7 +440,7 @@ class MainWindow(QMainWindow):
 
     def _show_deletion_report(self) -> None:
         """打开删减报告对话框（懒加载）"""
-        from .deletion_report import DeletionReportDialog
+        from .dialogs.deletion import DeletionReportDialog
         dlg = DeletionReportDialog(
             self.override_panel._data,
             mod_configs=self._get_mod_configs(),
@@ -448,7 +449,7 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _save_config(self) -> None:
-        from ..core.merge_cache import MergeCache
+        from src.core.merge.cache import MergeCache
         MergeCache.instance().invalidate_all()
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
@@ -531,7 +532,7 @@ class MainWindow(QMainWindow):
             ])
 
         # 重新预计算 delta（remap 可能修改了 store 数据）
-        from ..core.delta_store import ModDelta
+        from src.core.merge.delta import ModDelta
         enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
         ModDelta.invalidate()
         ModDelta.init(enabled_ids, schema_dir=SCHEMA_DIR,
@@ -554,7 +555,7 @@ class MainWindow(QMainWindow):
     def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
                              parse_msgs: list[tuple[str, str]]) -> None:
         self.progress_bar.setVisible(False)
-        from ..core.steam_time import MAJOR_UPDATE_TS
+        from src.core.platform.steam import MAJOR_UPDATE_TS
         enabled = self.mod_list_panel.get_enabled_mods()
         outdated = {m.name for m in enabled
                     if m.update_time is not None
@@ -594,7 +595,7 @@ class MainWindow(QMainWindow):
             self._pending_action = lambda: self._open_diff(rel_path)
             return
 
-        from .diff_dialog import DiffDialog
+        from .dialogs.diff import DiffDialog
         # 查找该文件的数组合并警告
         array_warnings: list[str] = []
         for info in self.override_panel._data:
@@ -636,7 +637,7 @@ class MainWindow(QMainWindow):
         mod_paths = [(m.name, m.path) for m in enabled]
 
         # 清空目录创建缓存，避免清理后残留缓存导致写入失败
-        from ..core.json_parser import reset_dir_cache
+        from src.core.json.parser import reset_dir_cache
         reset_dir_cache()
 
         # 切换按钮为「取消合并」
@@ -828,7 +829,7 @@ class MainWindow(QMainWindow):
         if not path.exists():
             QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
             return
-        from .json_editor import JsonEditorDialog
+        from .widgets.code_editor import JsonEditorDialog
         dlg = JsonEditorDialog(path, parent=self, search_key=search_key)
         dlg.exec()
 
@@ -848,7 +849,7 @@ class MainWindow(QMainWindow):
 
     def _show_manual(self) -> None:
         """打开使用教程对话框"""
-        from src.gui.manual_dialog import ManualDialog
+        from src.gui.dialogs.manual import ManualDialog
 
         dlg = ManualDialog(self)
         dlg.exec()

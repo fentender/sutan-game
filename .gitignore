@@ -24,4 +24,7 @@ dist/
 *.spec
 .agent
 .claude
+
+# 项目自定义文件夹
+bug
 tmp

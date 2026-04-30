@@ -7,12 +7,12 @@ import logging
 from pathlib import Path
 
 from src.config import SCHEMA_DIR, UserConfig
-from src.core.array_match import match_by_heuristic
-from src.core.delta_store import ModDelta, compute_delta
-from src.core.json_parser import _pairs_hook, clean_json_text
-from src.core.json_store import JsonStore
-from src.core.merge_cache import MergeCache
-from src.core.types import MergeMode
+from src.core.merge.array_match import match_by_heuristic
+from src.core.merge.delta import ModDelta, compute_delta
+from src.core.json.parser import _pairs_hook, clean_json_text
+from src.core.json.store import JsonStore
+from src.core.merge.cache import MergeCache
+from src.core.infra.types import JsonArray, JsonObject, MergeMode
 from tests.test_runner import TestResult, assert_eq, assert_true, run_test, skip
 
 log = logging.getLogger("test")
@@ -23,7 +23,7 @@ RITE_REL_PATH = "rite/5000003.json"
 WQDYMOD_ID = "3489112041"
 
 
-def _load_settlement(path: Path) -> list[object]:
+def _load_settlement(path: Path) -> JsonArray:
     """加载 rite/5000003.json 的 settlement 数组"""
     text = path.read_text(encoding="utf-8-sig")
     data = json.loads(clean_json_text(text))
@@ -33,7 +33,7 @@ def _load_settlement(path: Path) -> list[object]:
     return settlement
 
 
-def _require_rite_data() -> tuple[list[object], list[object]]:
+def _require_rite_data() -> tuple[JsonArray, JsonArray]:
     """加载本体和阿卜德的游戏 Mod 的 settlement 数组"""
     config = UserConfig.load()
     game_config = config.game_config_path
@@ -83,7 +83,7 @@ def test_heuristic_insert_delete() -> None:
     result = match_by_heuristic(base_arr, mod_arr)
 
     # 打印完整匹配结果
-    def _guid8(arr: list[object], idx: int) -> str:
+    def _guid8(arr: JsonArray, idx: int) -> str:
         e = arr[idx]
         if isinstance(e, dict):
             g = e.get("guid", "")
@@ -146,7 +146,7 @@ def _get_step_right_json(
     mod_configs: list[tuple[str, str, Path]],
     rel_path: str,
     target_mod: str,
-) -> dict[str, object]:
+) -> JsonObject:
     """获取指定 mod step 的右侧展开 JSON（无填充行）"""
     state = cache.get(rel_path, mod_configs, SCHEMA_DIR)
     for step in state.steps:
@@ -156,7 +156,7 @@ def _get_step_right_json(
                                          strict=True)
                 if rk is not None
             )
-            result: dict[str, object] = json.loads(
+            result: JsonObject = json.loads(
                 clean_json_text(text), object_pairs_hook=_pairs_hook,
             )
             return result
@@ -170,8 +170,8 @@ def _apply_override_and_verify(
     mod_configs: list[tuple[str, str, Path]],
     rel_path: str,
     target_mod: str,
-    old_json: dict[str, object],
-    expected_json: dict[str, object],
+    old_json: JsonObject,
+    expected_json: JsonObject,
     label: str,
 ) -> None:
     """计算 override delta、保存、重新合并、验证结果一致"""

@@ -10,8 +10,8 @@ ADAPTIVE 模式 delta 重映射测试
 """
 import logging
 
-from src.core.delta_store import _remap_delta_to_current, compute_delta
-from src.core.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff, MergeMode
+from src.core.merge.delta import _remap_delta_to_current, compute_delta
+from src.core.infra.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff, MergeMode
 from tests.test_runner import TestResult, assert_eq, assert_true, run_test
 
 log = logging.getLogger("test")
