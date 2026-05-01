@@ -16,6 +16,7 @@ from ..infra.types import (
     ArrayFieldDiff,
     ArrayMatching,
     ChangeKind,
+    DeltaEntry,
     DiffDict,
     DupList,
     FieldDiff,
@@ -113,7 +114,7 @@ def _recursive_delta(
         return None
 
     if isinstance(base, dict) and isinstance(mod, dict):
-        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        items: dict[str, DeltaEntry] = {}
         for key, mod_val in mod.items():
             child_path = field_path + [key] if field_path is not None else None
             if key not in base:
@@ -276,7 +277,7 @@ def _remap_delta_to_current(
         # 类型不匹配时保守返回原 delta（上游会按原路径应用）
         return delta
 
-    new_items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+    new_items: dict[str, DeltaEntry] = {}
 
     for key, entry in delta.items.items():
         hist_val = hist_data.get(key) if key in hist_data else None
@@ -522,7 +523,7 @@ def compute_delta(
         # 无变化或非 dict 结果，包装为 DiffDict
         if result is None:
             # 整个 mod_data 与空 dict 不同，每个 key 都是新增
-            items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+            items: dict[str, DeltaEntry] = {}
             for k, v in mod_data.items():
                 items[k] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(v))
             return DiffDict(items) if items else None

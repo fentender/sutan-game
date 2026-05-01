@@ -15,6 +15,7 @@ from ..infra.types import (
     ArrayFieldDiff,
     CancelCheck,
     ChangeKind,
+    DeltaEntry,
     DiffDict,
     DupList,
     FieldDiff,
@@ -110,7 +111,7 @@ def _wrap_as_duplist(afd: ArrayFieldDiff) -> ArrayFieldDiff:
     )
 
 
-def _is_modified(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> bool:
+def _is_modified(entry: DeltaEntry | None) -> bool:
     """判断条目是否已被之前的 mod 修改过。
 
     - FieldDiff: base_kind != ORIGIN 即已修改
@@ -126,7 +127,7 @@ def _is_modified(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> bool:
     raise TypeError("不应对 DiffDict 调用 _is_modified，应递归到子字段")
 
 
-def _extract_value(entry: FieldDiff | DiffDict | ArrayFieldDiff | None) -> object:
+def _extract_value(entry: DeltaEntry | None) -> object:
     """提取现有条目的值，用于保存为 old_value"""
     if entry is None:
         return None

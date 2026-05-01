@@ -5,7 +5,7 @@ Diff 格式化核心逻辑 — 行级 diff 计算 + DiffDict 结构化序列化
 """
 import json
 
-from ..infra.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
+from ..infra.types import ArrayFieldDiff, ChangeKind, DeltaEntry, DiffDict, FieldDiff
 from ..json.parser import _serialize
 
 # json.dumps 缓存（key 字符串 → JSON 编码后的字符串）
@@ -368,7 +368,7 @@ def _emit_changed(
 
 
 def _get_field_kind(
-    entry: FieldDiff | DiffDict | ArrayFieldDiff,
+    entry: DeltaEntry,
     highlight_version: int,
 ) -> tuple[ChangeKind, bool]:
     """获取字段的 ChangeKind 和是否匹配当前版本。
@@ -398,7 +398,7 @@ def _format_diffdict(
     next_ind = ind * (level + 1)
 
     # 收集要输出的 key-entry 对
-    entries: list[tuple[str, FieldDiff | DiffDict | ArrayFieldDiff]] = []
+    entries: list[tuple[str, DeltaEntry]] = []
     for key in sorted(dd.items.keys()):
         entry = dd.items[key]
         if isinstance(entry, FieldDiff) and entry.kind.is_deleted:

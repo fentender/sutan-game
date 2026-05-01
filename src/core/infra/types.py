@@ -10,19 +10,19 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypeAlias, TypedDict, cast
 
 # JSON 值类型（务实方案：不做完全递归 TypeAlias，避免 mypy 3.10 下的递归类型问题）
-JsonPrimitive = bool | int | float | str | None
-JsonObject = dict[str, object]
-JsonArray = list[object]
-JsonValue = JsonPrimitive | JsonArray | JsonObject
+JsonPrimitive: TypeAlias = bool | int | float | str | None
+JsonObject: TypeAlias = dict[str, object]
+JsonArray: TypeAlias = list[object]
+JsonValue: TypeAlias = JsonPrimitive | JsonArray | JsonObject
 
 # cancel_check 回调类型（无参数、无返回值）
-CancelCheck = Callable[[], None]
+CancelCheck: TypeAlias = Callable[[], None]
 
 # 进度回调类型 (completed, total)
-ProgressCallback = Callable[[int, int], None]
+ProgressCallback: TypeAlias = Callable[[int, int], None]
 
 # 路径分隔符（内部使用，避免和 JSON key 中的点号冲突）
 FIELD_SEP: str = '\x01'
@@ -123,14 +123,14 @@ class DiffDict:
     作为稀疏 delta 时（compute_delta 产出）：仅含被修改的 key。
     作为全状态树时（from_dict 产出）：包含所有 key，每个标注 ChangeKind。
     """
-    items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = field(
+    items: dict[str, DeltaEntry] = field(
         default_factory=dict,
     )
 
     @classmethod
     def from_dict(cls, data: JsonObject) -> DiffDict:
         """将普通 dict 转换为全状态 DiffDict，每个字段初始为 ORIGIN"""
-        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        items: dict[str, DeltaEntry] = {}
         for key, value in data.items():
             if isinstance(value, dict):
                 items[key] = cls.from_dict(value)
@@ -164,7 +164,7 @@ class DiffDict:
         )
         if not has_kind:
             return None
-        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        items: dict[str, DeltaEntry] = {}
         for key, raw in data.items():
             if not isinstance(raw, dict) or "__kind" not in raw:
                 # 不应出现，但保险起见跳过
@@ -282,6 +282,8 @@ class ArrayFieldDiff:
         )
 
 
+DeltaEntry: TypeAlias = FieldDiff | DiffDict | ArrayFieldDiff
+
 # ── delta 序列化辅助函数 ──
 
 _KIND_TO_STR: dict[ChangeKind, str] = {
@@ -296,7 +298,7 @@ _STR_TO_KIND: dict[str, ChangeKind] = {v: k for k, v in _KIND_TO_STR.items()}
 def _field_diff_to_delta(fd: FieldDiff) -> JsonObject:
     """FieldDiff → 可 JSON 化的 dict"""
     base = fd.kind.base_kind
-    result: JsonObject = {"__kind": _KIND_TO_STR.get(base, "origin")}
+    result: JsonObject = {"__kind": _KIND_TO_STR[base]}
     if fd.value is not None:
         if isinstance(fd.value, DiffDict):
             result["value"] = {"__kind": "dict_delta", "items": fd.value.to_delta_dict()}
@@ -311,19 +313,19 @@ def _field_diff_to_delta(fd: FieldDiff) -> JsonObject:
 
 def _field_diff_from_delta(raw: JsonObject) -> FieldDiff:
     """可 JSON 化的 dict → FieldDiff"""
-    kind_str = str(raw.get("__kind", "origin"))
-    kind = _STR_TO_KIND.get(kind_str, ChangeKind.ORIGIN)
-    value = _maybe_restore_nested(raw.get("value"))
-    old_value = raw.get("old_value")
+    kind_str = cast(str, raw["__kind"])
+    kind = _STR_TO_KIND[kind_str]
+    value = _maybe_restore_nested(raw["value"])
+    old_value = raw["old_value"]
     return FieldDiff(kind=kind, value=value, old_value=old_value)
 
 
-def _delta_entry_from_dict(raw: JsonObject) -> FieldDiff | DiffDict | ArrayFieldDiff:
+def _delta_entry_from_dict(raw: JsonObject) -> DeltaEntry:
     """根据 __kind 标记恢复对应类型"""
     kind_str = str(raw.get("__kind", ""))
     if kind_str == "dict_delta":
         items_raw = cast(JsonObject, raw.get("items", {}))
-        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+        items: dict[str, DeltaEntry] = {}
         for k, v in items_raw.items():
             if isinstance(v, dict) and "__kind" in v:
                 items[k] = _delta_entry_from_dict(v)
@@ -337,10 +339,10 @@ def _delta_entry_from_dict(raw: JsonObject) -> FieldDiff | DiffDict | ArrayField
 def _maybe_restore_nested(value: object) -> object:
     """如果 value 是嵌套的 delta dict/array，恢复为对应类型"""
     if isinstance(value, dict) and "__kind" in value:
-        kind_str = str(value.get("__kind", ""))
+        kind_str = cast(str, value["__kind"])
         if kind_str == "dict_delta":
-            items_raw = cast(JsonObject, value.get("items", {}))
-            items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+            items_raw = cast(JsonObject, value["items"])
+            items: dict[str, DeltaEntry] = {}
             for k, v in items_raw.items():
                 if isinstance(v, dict) and "__kind" in v:
                     items[k] = _delta_entry_from_dict(v)
