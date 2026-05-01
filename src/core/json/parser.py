@@ -21,7 +21,7 @@ from src.accel._fast_json import (
 )
 
 from ..infra.profiler import profile
-from ..infra.types import DupList, JsonObject  # re-export
+from ..infra.types import *  # re-export
 
 # dump_json 已创建目录缓存，避免重复 mkdir 系统调用
 _created_dirs: set[str] = set()
@@ -62,6 +62,7 @@ def fix_missing_commas(text: str) -> str:
     return str(_c_fix_missing_commas(text))
 
 
+# TODO: 未来可以把多种不同数据清洗一次遍历完成，现在需要遍历多次
 @profile
 def clean_json_text(text: str) -> str:
     """统一的 JSON 文本清洗：注释 → 尾随逗号 → 缺失逗号 → 连续逗号"""
@@ -72,7 +73,7 @@ def clean_json_text(text: str) -> str:
     return text
 
 
-def _serialize(obj: object, indent: int = 4, sort_keys: bool = False, _level: int = 0) -> str:
+def _serialize(obj: JsonValue, indent: int = 4, sort_keys: bool = False, _level: int = 0) -> str:
     """自定义 JSON 序列化：DupList 值展开为重复键。"""
     ind = ' ' * indent
     current_ind = ind * _level
@@ -119,7 +120,7 @@ def _serialize(obj: object, indent: int = 4, sort_keys: bool = False, _level: in
 
 
 @profile
-def format_json(data: object) -> str:
+def format_json(data: JsonObject) -> str:
     """格式化 JSON 文本（用于 diff 面板展示），保留重复键，key 排序。"""
     # 无 DupList 时用 C 实现的 json.dumps，比自定义 _serialize 快很多
     if not _has_duplist(data):
@@ -127,7 +128,7 @@ def format_json(data: object) -> str:
     return _serialize(data, indent=4, sort_keys=True)
 
 
-def _has_duplist(obj: object) -> bool:
+def _has_duplist(obj: JsonObject) -> bool:
     """快速检测数据中是否存在 DupList"""
     return bool(_c_has_duplist(obj))
 

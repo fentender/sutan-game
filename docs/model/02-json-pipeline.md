@@ -85,25 +85,21 @@ store.init(game_config_path, mod_configs)
 
 ### 初始化与加载
 
-| 方法 | 说明 |
-|------|------|
-| `init(game_config_path, mod_configs)` | 批量加载本体 + 所有 Mod JSON，多线程并行 |
-| `parse_file(file_path)` | 静态方法，无缓存解析单个文件 |
+| 方法                                       | 说明                                       |
+|--------------------------------------------|--------------------------------------------|
+| `init(game_config_path, mod_configs)`      | 批量加载本体 + 所有 Mod JSON，多线程并行   |
+| `parse_file(file_path, *, clean, dupkey)`  | 静态方法，无缓存解析单个文件               |
+
+`parse_file` 参数：
+
+- `clean`（默认 `True`）：是否执行 `clean_json_text` 清洗。游戏 JSON 需要清洗；本工具生成的标准 JSON（如 override delta）不需要。
+- `dupkey`（默认 `True`）：是否使用 `_pairs_hook` 保留重复键。游戏 JSON 存在同名键；标准 JSON 不需要。
 
 加载过程中 JSON 解析失败记录到 `_failures` + `diag.error`，不中断其他文件。
 
-### 分级解析策略
-
-`_parse_progressive` 按需逐步清洗，成功即停：
-
-1. 直接解析原始文本（仅无 `//` 时尝试）
-2. 仅去 `//` 注释
-3. 去注释 + 去尾随逗号
-4. 完整清洗（注释 + 尾逗号 + 缺逗号 + 连续逗号）
-
 ### 缓存机制
 
-文件级缓存，key 为 `(路径, mtime)` 元组。文件修改时间未变则命中缓存。
+`_load_json` 提供文件级缓存，key 为 `(路径, mtime)` 元组，文件修改时间未变则命中缓存。接受与 `parse_file` 相同的 `clean` / `dupkey` 参数，内部委托 `parse_file` 执行实际解析。
 
 ### 数据访问
 

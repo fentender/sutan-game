@@ -1,7 +1,9 @@
 """
 公共类型工具函数
 """
-from ..infra.types import DupList
+from typing import cast
+
+from ..infra.types import *
 
 
 def get_type_str(value: object) -> str:
@@ -29,20 +31,18 @@ def get_type_str(value: object) -> str:
     return type(value).__name__
 
 
-def classify_json(data: object) -> str:
+def classify_json(data: JsonObject) -> str:
     """
     分类 JSON 文件类型。
     返回: "dictionary" | "entity" | "config"
     """
-    if not isinstance(data, dict):
-        return "config"
-
     if 'id' in data:
         return "entity"
 
-    keys = list(data.keys())
-    if keys and all(isinstance(data[k], dict) for k in keys):
-        if any('id' in data[k] for k in keys):
+    values = list(data.values())
+    if values and all(isinstance(v, dict) for v in values):
+        dicts = cast(list[JsonObject], values)
+        if any('id' in d for d in dicts):
             return "dictionary"
 
     return "config"

@@ -23,12 +23,7 @@ from src.accel._fast_json import (
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
 from ..infra.types import DictFieldDiff, JsonObject, ParseFailure, normalize_rel_path
-from .parser import (
-    fix_missing_commas,
-    strip_duplicate_commas,
-    strip_js_comments,
-    strip_trailing_commas,
-)
+from .parser import clean_json_text
 
 
 class JsonStore:
@@ -72,59 +67,33 @@ class JsonStore:
     # ── 文件解析 ──
 
     @staticmethod
-    def _parse_progressive(raw: str) -> JsonObject:
-        """分级尝试解析 JSON 文本。
-
-        按需逐步清洗，成功即停：
-        1. 直接解析原始文本（仅无 // 时尝试）
-        2. 仅去 // 注释
-        3. 去注释 + 去尾随逗号
-        4. 完整清洗
-        """
-        has_comment = '//' in raw
-
-        if not has_comment:
-            try:
-                return cast(JsonObject, json.loads(raw, object_pairs_hook=_pairs_hook))
-            except json.JSONDecodeError:
-                pass
-
-        text = strip_js_comments(raw) if has_comment else raw
-        try:
-            return cast(JsonObject, json.loads(text, object_pairs_hook=_pairs_hook))
-        except json.JSONDecodeError:
-            pass
-
-        text = strip_trailing_commas(text)
-        try:
-            return cast(JsonObject, json.loads(text, object_pairs_hook=_pairs_hook))
-        except json.JSONDecodeError:
-            pass
-
-        text = fix_missing_commas(text)
-        text = strip_duplicate_commas(text)
-        return cast(JsonObject, json.loads(text, object_pairs_hook=_pairs_hook))
-
-    @staticmethod
     @profile
-    def parse_file(file_path: str | Path) -> JsonObject:
+    def parse_file(
+        file_path: str | Path, *, clean: bool = True, dupkey: bool = True,
+    ) -> JsonObject:
         """解析单个 JSON 文件（静态方法，不依赖 store 初始化，无缓存）。
 
-        处理 BOM、JS 注释、尾随逗号等非标准格式。
-        供 store 初始化前的模块使用（如 schema_generator、mod_scanner）。
+        clean=True 清洗注释、尾随逗号等非标准语法（游戏 JSON）。
+        dupkey=True 使用 pairs_hook 保留重复键（游戏 JSON）。
         解析失败抛出 json.JSONDecodeError。
         """
         path = Path(file_path)
         raw_bytes = path.read_bytes()
 
         if raw_bytes.startswith(b'\xef\xbb\xbf'):
+            diag.warn("parse", f"{path.name}: 已自动修正 [UTF-8 BOM]")
             raw_bytes = raw_bytes[3:]
 
-        raw = raw_bytes.decode('utf-8')
-        return JsonStore._parse_progressive(raw)
+        text = raw_bytes.decode('utf-8')
+        if clean:
+            text = clean_json_text(text)
+        hook = _pairs_hook if dupkey else None
+        return cast(JsonObject, json.loads(text, object_pairs_hook=hook))
 
     @profile
-    def _load_json(self, file_path: Path) -> JsonObject:
+    def _load_json(
+        self, file_path: Path, *, clean: bool = True, dupkey: bool = True,
+    ) -> JsonObject:
         """带缓存的文件加载（私有）。
 
         缓存 key 为 (路径, mtime)，文件修改后自动失效。
@@ -135,21 +104,7 @@ class JsonStore:
         if cache_key in self._json_cache:
             return self._json_cache[cache_key]
 
-        path = Path(file_path)
-        raw_bytes = path.read_bytes()
-        abnormal_fixes: list[str] = []
-
-        if raw_bytes.startswith(b'\xef\xbb\xbf'):
-            abnormal_fixes.append("UTF-8 BOM")
-            raw_bytes = raw_bytes[3:]
-
-        raw = raw_bytes.decode('utf-8')
-        result = self._parse_progressive(raw)
-
-        if abnormal_fixes:
-            msg = f"{path.name}: 已自动修正 [{', '.join(abnormal_fixes)}]"
-            diag.warn("parse", msg)
-
+        result = JsonStore.parse_file(file_path, clean=clean, dupkey=dupkey)
         self._json_cache[cache_key] = result
         return result
 
@@ -407,12 +362,9 @@ class JsonStore:
             for json_file in mod_dir.rglob("*.json"):
                 rel = normalize_rel_path(json_file, mod_dir)
                 try:
-                    raw = json.loads(json_file.read_text(encoding="utf-8"))
+                    raw = self._load_json(json_file, clean=False, dupkey=False)
                 except (json.JSONDecodeError, OSError):
                     diag.warn("override", f"override 文件解析失败: {json_file}")
-                    continue
-                if not isinstance(raw, dict):
-                    diag.warn("override", f"override 文件格式无效: {json_file}")
                     continue
                 delta = DictFieldDiff.from_delta_dict(raw)
                 with self._lock:
@@ -470,12 +422,14 @@ class JsonStore:
         return existed
 
     def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
-        """批量删除指定 mod 的所有 override（内存 + 磁盘），返回实际删除的 mod_id 列表"""
+        """批量删除指定 mod 的所有 override（内存 + 磁盘 + 合并缓存），返回实际删除的 mod_id 列表"""
         deleted: list[str] = []
+        affected_paths: set[str] = set()
         for mod_id in mod_ids:
             with self._lock:
-                had_data = mod_id in self._override_data
-                self._override_data.pop(mod_id, None)
+                mod_overrides = self._override_data.pop(mod_id, None)
+                if mod_overrides is not None:
+                    affected_paths.update(mod_overrides.keys())
 
             had_dir = False
             if self._overrides_dir is not None:
@@ -484,8 +438,14 @@ class JsonStore:
                     shutil.rmtree(override_dir)
                     had_dir = True
 
-            if had_data or had_dir:
+            if mod_overrides is not None or had_dir:
                 deleted.append(mod_id)
+
+        if affected_paths:
+            from ..merge.cache import MergeCache
+            cache = MergeCache.instance()
+            for rel_path in affected_paths:
+                cache.invalidate(rel_path)
 
         return deleted
 
