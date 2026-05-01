@@ -139,6 +139,65 @@ merge_ctx = MergeContext()  # 模块级线程局部实例
 | `rel_path`    | `str`  | 当前文件相对路径         |
 | `source_file` | `str`  | Mod 源文件绝对路径       |
 
+#### 设计动机
+
+`apply_delta()` 是一个递归函数，调用层次很深。当合并过程中发现类型不匹配或未知字段等问题时，需要输出包含"哪个 Mod、哪个文件"的警告消息。但 `apply_delta` 的签名不包含 mod 信息——把这些参数逐层传递会污染每一级递归调用的签名。
+
+`MergeContext` 继承 `threading.local`，提供线程本地的隐式上下文，避免侵入函数签名。调用者在进入合并循环前设置上下文，`apply_delta` 内部的警告生成函数直接读取。
+
+#### 用法示例
+
+**写入端** — 在 `merge_file()` 的 mod 循环中设置上下文（`merge/merger.py`）：
+
+```python
+from src.core.infra import merge_ctx
+
+for step, (mod_id, mod_name, delta, source_file) in enumerate(mod_data_list, 1):
+    # 在调用 apply_delta 之前设置当前 mod 的上下文
+    merge_ctx.mod_name = mod_name
+    merge_ctx.mod_id = mod_id
+    merge_ctx.rel_path = rel_path
+    merge_ctx.source_file = source_file
+
+    apply_delta(current, delta, schema, fp, version=step)
+```
+
+**读取端** — `_build_warn_msg()` 从上下文拼接警告前缀（`merge/merger.py`）：
+
+```python
+from src.core.infra import merge_ctx
+
+def _build_warn_msg(field_path: list[str] | None, msg: str) -> str:
+    parts: list[str] = []
+    if merge_ctx.mod_name:
+        parts.append(f"[{merge_ctx.mod_name}]")
+    if merge_ctx.source_file:
+        parts.append(merge_ctx.source_file)
+    elif merge_ctx.rel_path:
+        parts.append(merge_ctx.rel_path)
+    if field_path:
+        parts.append(".".join(field_path))
+    prefix = " > ".join(parts)
+    return f"{prefix}: {msg}" if prefix else msg
+```
+
+**输出效果**：`[超级武器Mod] > D:/mods/12345/config/cards.json > attack.damage: 类型不匹配，期望 int 实际为 str`
+
+#### 生命周期
+
+1. **初始化** — 模块加载时创建全局单例 `merge_ctx`，所有字段为空字符串
+2. **设置** — `merge_file()` 或 `MergeCache._compute_file()` 在每个 mod 循环迭代前写入四个字段
+3. **读取** — `apply_delta()` 递归深处若触发警告，`_build_warn_msg()` 读取当前上下文生成带定位信息的消息
+4. **覆盖** — 下一个 mod 迭代时字段被覆写；`threading.local` 保证各线程互不干扰
+
+#### 使用位置
+
+| 文件 | 操作 | 说明 |
+| --- | --- | --- |
+| `merge/merger.py` `merge_file()` | 写入 | 合并主流程中逐 mod 设置上下文 |
+| `merge/cache.py` `_compute_file()` | 写入 | 缓存重算流程中逐 mod 设置上下文 |
+| `merge/merger.py` `_build_warn_msg()` | 读取 | 拼接带 mod 名称和文件路径的警告消息 |
+
 ---
 
 ## profiler.py — 可选性能评估模块

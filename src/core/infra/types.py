@@ -140,38 +140,6 @@ class DiffDict:
                 items[key] = FieldDiff(ChangeKind.ORIGIN, value)
         return cls(items=items)
 
-    def to_delta_dict(self) -> JsonObject:
-        """将稀疏 delta DiffDict 序列化为可 JSON 化的 dict（保留 ChangeKind）"""
-        items: JsonObject = {}
-        for key, diff in self.items.items():
-            if isinstance(diff, FieldDiff):
-                items[key] = _field_diff_to_delta(diff)
-            elif isinstance(diff, DiffDict):
-                items[key] = {"__kind": "dict_delta", "items": diff.to_delta_dict()}
-            elif isinstance(diff, ArrayFieldDiff):
-                items[key] = diff.to_delta_dict()
-        return items
-
-    @classmethod
-    def from_delta_dict(cls, data: JsonObject) -> DiffDict | None:
-        """从序列化的 delta dict 恢复 DiffDict。旧格式（无 __kind）返回 None。"""
-        # 检测旧格式：如果顶层所有值都不含 __kind，认为是旧格式
-        if not data:
-            return cls(items={})
-        has_kind = any(
-            isinstance(v, dict) and "__kind" in v
-            for v in data.values()
-        )
-        if not has_kind:
-            return None
-        items: dict[str, DeltaEntry] = {}
-        for key, raw in data.items():
-            if not isinstance(raw, dict) or "__kind" not in raw:
-                # 不应出现，但保险起见跳过
-                continue
-            items[key] = _delta_entry_from_dict(raw)
-        return cls(items=items)
-
     def to_dict(self) -> JsonObject:
         """转换回普通 dict，跳过 DELETED 字段"""
         result: JsonObject = {}
@@ -193,7 +161,43 @@ class DiffDict:
                 result[key] = diff.to_dict()
             elif isinstance(diff, ArrayFieldDiff):
                 result[key] = diff.to_list()
+            else:
+                raise TypeError(f"字段 '{key}' 类型异常: {type(diff)}")
         return result
+
+    def to_delta_dict(self) -> JsonObject:
+        """将稀疏 delta DiffDict 序列化为可 JSON 化的 dict（保留 ChangeKind）"""
+        items: JsonObject = {}
+        for key, diff in self.items.items():
+            if isinstance(diff, FieldDiff):
+                items[key] = _field_diff_to_delta(diff)
+            elif isinstance(diff, DiffDict):
+                items[key] = {"__kind": "dict_delta", "items": diff.to_delta_dict()}
+            elif isinstance(diff, ArrayFieldDiff):
+                items[key] = diff.to_delta_dict()
+            else:
+                raise TypeError(f"字段 '{key}' 类型异常: {type(diff)}")
+        return items
+
+    @classmethod
+    def from_delta_dict(cls, data: JsonObject) -> DiffDict | None:
+        """从序列化的 delta dict 恢复 DiffDict。旧格式（无 __kind）返回 None。"""
+        # 检测旧格式：如果顶层所有值都不含 __kind，认为是旧格式
+        if not data:
+            return cls(items={})
+        has_kind = any(
+            isinstance(v, dict) and "__kind" in v
+            for v in data.values()
+        )
+        if not has_kind:
+            return None
+        items: dict[str, DeltaEntry] = {}
+        for key, raw in data.items():
+            if not isinstance(raw, dict) or "__kind" not in raw:
+                # 不应出现，但保险起见跳过
+                continue
+            items[key] = _delta_entry_from_dict(raw)
+        return cls(items=items)
 
 
 @dataclass
