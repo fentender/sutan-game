@@ -11,7 +11,7 @@ from src.core.merge.merger import apply_delta
 from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
-    DiffDict,
+    DictFieldDiff,
     FieldDiff,
     JsonObject,
     MergeMode,
@@ -46,12 +46,12 @@ def test_scalar_to_array_delta() -> None:
     delta = compute_delta(base, mod, file_type="dictionary", merge_mode=MergeMode.NORMAL)
 
     assert_true(delta is not None, "delta 不应为 None")
-    assert_true(isinstance(delta, DiffDict), "delta 应为 DiffDict")
+    assert_true(isinstance(delta, DictFieldDiff), "delta 应为 DiffDict")
 
     # 顶层 key "2000523" 的 delta
     entry_diff = delta.items.get("2000523")
-    assert_true(isinstance(entry_diff, DiffDict), "条目 delta 应为 DiffDict")
-    assert isinstance(entry_diff, DiffDict)
+    assert_true(isinstance(entry_diff, DictFieldDiff), "条目 delta 应为 DiffDict")
+    assert isinstance(entry_diff, DictFieldDiff)
 
     # resource 字段的 delta 应为 ArrayFieldDiff
     res_diff = entry_diff.items.get("resource")
@@ -76,16 +76,16 @@ def test_scalar_to_array_apply() -> None:
     mod_data = {"2000523": _make_mod()}
     delta = compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
-    assert isinstance(delta, DiffDict)
+    assert isinstance(delta, DictFieldDiff)
 
     # 创建全状态并应用 delta
-    full_state = DiffDict.from_dict(base_data)
+    full_state = DictFieldDiff.from_dict(base_data)
     apply_delta(full_state, delta, version=1)
 
     # 提取 resource 字段
     entry = full_state.items.get("2000523")
-    assert_true(isinstance(entry, DiffDict), "全状态条目应为 DiffDict")
-    assert isinstance(entry, DiffDict)
+    assert_true(isinstance(entry, DictFieldDiff), "全状态条目应为 DiffDict")
+    assert isinstance(entry, DictFieldDiff)
 
     resource = entry.items.get("resource")
     assert_true(
@@ -114,9 +114,9 @@ def test_scalar_to_array_format() -> None:
     mod_data = {"2000523": _make_mod()}
     delta = compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
-    assert isinstance(delta, DiffDict)
+    assert isinstance(delta, DictFieldDiff)
 
-    full_state = DiffDict.from_dict(base_data)
+    full_state = DictFieldDiff.from_dict(base_data)
     apply_delta(full_state, delta, version=1)
 
     # 格式化输出
@@ -143,19 +143,19 @@ def test_scalar_to_array_adaptive_remap() -> None:
     # 基于历史 base 计算 delta（模拟 ADAPTIVE 流程）
     delta = compute_delta(hist_base, mod_data, file_type="dictionary", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 不应为 None")
-    assert isinstance(delta, DiffDict)
+    assert isinstance(delta, DictFieldDiff)
 
     # 重映射到当前 base
     remapped = _remap_delta_to_current(delta, hist_base, current_base)
     assert_true(remapped is not None, "重映射后 delta 不应为 None（标量→数组不应被丢弃）")
-    assert isinstance(remapped, DiffDict)
+    assert isinstance(remapped, DictFieldDiff)
 
     entry_r = remapped.items.get("2000523")
     assert_true(
-        isinstance(entry_r, DiffDict),
+        isinstance(entry_r, DictFieldDiff),
         f"重映射后条目应为 DiffDict，实际为 {type(entry_r).__name__ if entry_r else 'None'}",
     )
-    assert isinstance(entry_r, DiffDict)
+    assert isinstance(entry_r, DictFieldDiff)
 
     res_r = entry_r.items.get("resource")
     assert_true(

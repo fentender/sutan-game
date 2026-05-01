@@ -5,7 +5,7 @@ Diff 格式化核心逻辑 — 行级 diff 计算 + DiffDict 结构化序列化
 """
 import json
 
-from ..infra.types import ArrayFieldDiff, ChangeKind, DeltaEntry, DiffDict, FieldDiff
+from ..infra.types import ArrayFieldDiff, ChangeKind, DeltaEntry, DictFieldDiff, FieldDiff
 from ..json.parser import _serialize
 
 # json.dumps 缓存（key 字符串 → JSON 编码后的字符串）
@@ -170,7 +170,7 @@ def _serialize_value(val: object, indent: int, level: int) -> str:
 
     用于序列化 old_value（旧值不含注解信息，但可能是 DiffDict 或 ArrayFieldDiff）。
     """
-    if isinstance(val, DiffDict):
+    if isinstance(val, DictFieldDiff):
         return _serialize_diffdict_plain(val, indent, level)
     if isinstance(val, ArrayFieldDiff):
         return _serialize_arraydiff_plain(val, indent, level)
@@ -178,7 +178,7 @@ def _serialize_value(val: object, indent: int, level: int) -> str:
     return _serialize(val, indent, sort_keys=True, _level=level)
 
 
-def _serialize_diffdict_plain(dd: DiffDict, indent: int, level: int) -> str:
+def _serialize_diffdict_plain(dd: DictFieldDiff, indent: int, level: int) -> str:
     """将 DiffDict 序列化为纯 JSON 文本（跳过 DELETED，不含注解）"""
     ind = ' ' * indent
     current_ind = ind * level
@@ -193,7 +193,7 @@ def _serialize_diffdict_plain(dd: DiffDict, indent: int, level: int) -> str:
             key_str = _dumps_key(key)
             val_str = _serialize_value(entry.value, indent, level + 1)
             parts.append(f'{next_ind}{key_str}: {val_str}')
-        elif isinstance(entry, DiffDict):
+        elif isinstance(entry, DictFieldDiff):
             key_str = _dumps_key(key)
             val_str = _serialize_diffdict_plain(entry, indent, level + 1)
             parts.append(f'{next_ind}{key_str}: {val_str}')
@@ -252,7 +252,7 @@ def _serialize_arraydiff_elements_plain(
 
 
 def format_delta_json(
-    delta: DiffDict,
+    delta: DictFieldDiff,
     highlight_version: int,
 ) -> tuple[list[str], list[str], list[ChangeKind | None], list[ChangeKind | None]]:
     """将全状态 DiffDict 序列化为预对齐的左右文本 + 每行高亮类型。
@@ -384,7 +384,7 @@ def _get_field_kind(
 
 
 def _format_diffdict(
-    dd: DiffDict,
+    dd: DictFieldDiff,
     highlight_version: int,
     level: int,
     indent: int,
@@ -443,7 +443,7 @@ def _format_diffdict(
                 _emit_changed(old_text, new_text,
                               left_lines, right_lines, left_kinds, right_kinds, kind)
 
-        elif isinstance(entry, DiffDict):
+        elif isinstance(entry, DictFieldDiff):
             prefix = f'{next_ind}{key_str}: '
             sub_left: list[str] = []
             sub_right: list[str] = []
@@ -584,7 +584,7 @@ def _format_arraydiff(
             _emit_left_only(text, left_lines, right_lines, left_kinds, right_kinds, kind)
 
         elif dk.is_changed:
-            if isinstance(diff.value, DiffDict):
+            if isinstance(diff.value, DictFieldDiff):
                 sub_left: list[str] = []
                 sub_right: list[str] = []
                 sub_lk: list[ChangeKind | None] = []

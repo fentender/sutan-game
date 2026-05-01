@@ -16,7 +16,7 @@ from .types import (
     ArrayMatching as ArrayMatching,
     CancelCheck as CancelCheck,
     ChangeKind as ChangeKind,
-    DiffDict as DiffDict,
+    DictFieldDiff as DictFieldDiff,
     DupList as DupList,
     FieldDiff as FieldDiff,
     JsonArray as JsonArray,

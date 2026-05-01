@@ -22,7 +22,7 @@ from src.accel._fast_json import (
 
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
-from ..infra.types import DiffDict, JsonObject, ParseFailure, normalize_rel_path
+from ..infra.types import DictFieldDiff, JsonObject, ParseFailure, normalize_rel_path
 from .parser import (
     fix_missing_commas,
     strip_duplicate_commas,
@@ -51,7 +51,7 @@ class JsonStore:
     def __init__(self) -> None:
         self._base_data: dict[str, JsonObject] = {}  # rel_path → data
         self._mod_data: dict[str, dict[str, JsonObject]] = {}  # mod_id → {rel_path → data}
-        self._override_data: dict[str, dict[str, DiffDict]] = {}  # mod_id → {rel_path → delta}
+        self._override_data: dict[str, dict[str, DictFieldDiff]] = {}  # mod_id → {rel_path → delta}
         self._overrides_dir: Path | None = None
         self._mod_names: dict[str, str] = {}  # mod_id → mod_name
         self._mod_config_paths: dict[str, Path] = {}  # mod_id → config_path
@@ -414,18 +414,13 @@ class JsonStore:
                 if not isinstance(raw, dict):
                     diag.warn("override", f"override 文件格式无效: {json_file}")
                     continue
-                delta = DiffDict.from_delta_dict(raw)
-                if delta is None:
-                    # 旧格式，跳过并删除
-                    diag.warn("override", f"旧格式 override 已清理: {json_file}")
-                    json_file.unlink(missing_ok=True)
-                    continue
+                delta = DictFieldDiff.from_delta_dict(raw)
                 with self._lock:
                     if mod_id not in self._override_data:
                         self._override_data[mod_id] = {}
                     self._override_data[mod_id][rel] = delta
 
-    def get_override(self, mod_id: str, rel_path: str) -> DiffDict | None:
+    def get_override(self, mod_id: str, rel_path: str) -> DictFieldDiff | None:
         """获取 override delta，不存在返回 None"""
         return self._override_data.get(mod_id, {}).get(rel_path)
 
@@ -433,7 +428,7 @@ class JsonStore:
         """是否存在 override"""
         return rel_path in self._override_data.get(mod_id, {})
 
-    def set_override(self, mod_id: str, rel_path: str, delta: DiffDict) -> None:
+    def set_override(self, mod_id: str, rel_path: str, delta: DictFieldDiff) -> None:
         """保存 override delta：更新内存 + 写磁盘 + 清合并缓存"""
         with self._lock:
             if mod_id not in self._override_data:

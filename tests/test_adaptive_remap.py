@@ -11,13 +11,13 @@ ADAPTIVE 模式 delta 重映射测试
 import logging
 
 from src.core.merge.delta import _remap_delta_to_current, compute_delta
-from src.core.infra.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff, MergeMode
+from src.core.infra.types import ArrayFieldDiff, ChangeKind, DictFieldDiff, FieldDiff, MergeMode
 from tests.test_runner import TestResult, assert_eq, assert_true, run_test
 
 log = logging.getLogger("test")
 
 
-def _condition_diff_for_guid(delta: DiffDict, guid: str) -> DiffDict | None:
+def _condition_diff_for_guid(delta: DictFieldDiff, guid: str) -> DictFieldDiff | None:
     """从 settlement 数组 delta 中提取 CHANGED 元素的 condition 子 delta（取第一个）"""
     settlement = delta.items.get("settlement")
     if not isinstance(settlement, ArrayFieldDiff):
@@ -26,10 +26,10 @@ def _condition_diff_for_guid(delta: DiffDict, guid: str) -> DiffDict | None:
         if fd.kind.base_kind != ChangeKind.CHANGED:
             continue
         sub = fd.value
-        if not isinstance(sub, DiffDict):
+        if not isinstance(sub, DictFieldDiff):
             continue
         cond = sub.items.get("condition")
-        if isinstance(cond, DiffDict):
+        if isinstance(cond, DictFieldDiff):
             return cond
     return None
 

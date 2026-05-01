@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..infra.diagnostics import diag, merge_ctx
 from ..infra.profiler import profile, profile_block
-from ..infra.types import ChangeKind, DiffDict, JsonObject
+from ..infra.types import ChangeKind, DictFieldDiff, JsonObject
 from ..json.store import JsonStore
 from ..schema.loader import get_schema_root_key, load_schemas, resolve_schema
 from .delta import ModDelta
@@ -107,7 +107,7 @@ class MergeCache:
         schema = resolve_schema(rel_path, schemas) if schemas else None
         root_key = get_schema_root_key(schema) if schema else None
 
-        current = DiffDict.from_dict(base_data)
+        current = DictFieldDiff.from_dict(base_data)
         steps: list[StepState] = []
         mod_version = 0
 

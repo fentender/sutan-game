@@ -17,11 +17,12 @@ from ..infra.types import (
     ArrayMatching,
     ChangeKind,
     DeltaEntry,
-    DiffDict,
+    DictFieldDiff,
     DupList,
     FieldDiff,
     JsonArray,
     JsonObject,
+    JsonValue,
     MergeMode,
     ProgressCallback,
 )
@@ -95,12 +96,12 @@ def _select_array_matching(
 
 
 def _recursive_delta(
-    base: object,
-    mod: object,
+    base: JsonValue,
+    mod: JsonValue,
     schema: JsonObject | None = None,
     field_path: list[str] | None = None,
     merge_mode: MergeMode = MergeMode.NORMAL,
-) -> DiffDict | ArrayFieldDiff | FieldDiff | None:
+) -> DictFieldDiff | ArrayFieldDiff | FieldDiff | None:
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。
 
     返回类型:
@@ -142,7 +143,7 @@ def _recursive_delta(
                     if not smart_allow_deletion(child_path, is_array_element=False):
                         continue
                 items[key] = FieldDiff(ChangeKind.DELETED, None)
-        return DiffDict(items) if items else None
+        return DictFieldDiff(items) if items else None
 
     # ── 数组归一化：DupList / 标量 → list ──
     if isinstance(base, DupList) or isinstance(mod, DupList):
@@ -261,10 +262,10 @@ def _array_delta_from_matching(
 
 
 def _remap_delta_to_current(
-    delta: DiffDict,
+    delta: DictFieldDiff,
     hist_data: object,
     current_data: object,
-) -> DiffDict | None:
+) -> DictFieldDiff | None:
     """将基于历史 base 计算的 delta，重映射到当前 base 的索引/key 体系。
 
     用于 ADAPTIVE 模式：delta 由 `mod - hist_base` 计算而来，但需要应用到
@@ -290,7 +291,7 @@ def _remap_delta_to_current(
             if remapped is not None:
                 new_items[key] = remapped
 
-        elif isinstance(entry, DiffDict):
+        elif isinstance(entry, DictFieldDiff):
             # 嵌套 dict delta：递归
             if cur_has and isinstance(cur_val, dict) and isinstance(hist_val, dict):
                 sub = _remap_delta_to_current(entry, hist_val, cur_val)
@@ -319,15 +320,15 @@ def _remap_delta_to_current(
 
     if not new_items:
         return None
-    return DiffDict(items=new_items)
+    return DictFieldDiff(items=new_items)
 
 
 def _remap_field_diff(
     entry: FieldDiff,
     hist_has: bool,
-    hist_val: object,
+    hist_val: JsonValue,
     cur_has: bool,
-    cur_val: object,
+    cur_val: JsonValue,
 ) -> FieldDiff | None:
     """重映射单个 FieldDiff，返回 None 表示丢弃。"""
     base_kind = entry.kind.base_kind
@@ -425,7 +426,7 @@ def _remap_array_diff(
         cur_idx = hist_to_current[hist_idx]
         new_id = cur_idx + 1  # 1-based
 
-        if base_kind == ChangeKind.CHANGED and isinstance(fd.value, DiffDict):
+        if base_kind == ChangeKind.CHANGED and isinstance(fd.value, DictFieldDiff):
             # 递归重映射子 DiffDict（用对应的历史/当前元素作为参照）
             hist_elem = hist_arr[hist_idx]
             cur_elem = current_arr[cur_idx]
@@ -506,7 +507,7 @@ def compute_delta(
     schema: JsonObject | None = None,
     root_key: str | None = None,
     merge_mode: MergeMode = MergeMode.NORMAL,
-) -> DiffDict | None:
+) -> DictFieldDiff | None:
     """计算 mod 相对于游戏本体的实际差异，产出 DiffDict。
 
     只提取 mod 真正修改的部分，忽略与本体完全相同的内容。
@@ -518,7 +519,7 @@ def compute_delta(
     if not base_data:
         # 本体无此文件，全部是新增
         result = _recursive_delta({}, mod_data, schema, field_path, merge_mode)
-        if isinstance(result, DiffDict):
+        if isinstance(result, DictFieldDiff):
             return result
         # 无变化或非 dict 结果，包装为 DiffDict
         if result is None:
@@ -526,7 +527,7 @@ def compute_delta(
             items: dict[str, DeltaEntry] = {}
             for k, v in mod_data.items():
                 items[k] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(v))
-            return DiffDict(items) if items else None
+            return DictFieldDiff(items) if items else None
         return None
 
     if file_type == "dictionary":
@@ -540,11 +541,11 @@ def compute_delta(
                     items[key] = sub
         # dictionary 顶层键是实体 ID，mod 不包含某 ID 不代表删除，
         # 任何模式下都不产生 DELETED
-        return DiffDict(items) if items else None
+        return DictFieldDiff(items) if items else None
     else:
         # entity/config
         result = _recursive_delta(base_data, mod_data, schema, field_path, merge_mode)
-        if isinstance(result, DiffDict):
+        if isinstance(result, DictFieldDiff):
             return result
         return None
 
@@ -553,7 +554,7 @@ def compute_delta(
 
 
 def flatten_delta(
-    delta: DiffDict,
+    delta: DictFieldDiff,
     prefix: tuple[str, ...] = (),
 ) -> list[tuple[tuple[str, ...], FieldDiff]]:
     """将 DiffDict 树展平为 (路径, FieldDiff) 列表。
@@ -565,12 +566,12 @@ def flatten_delta(
         path = prefix + (key,)
         if isinstance(diff, FieldDiff):
             result.append((path, diff))
-        elif isinstance(diff, DiffDict):
+        elif isinstance(diff, DictFieldDiff):
             result.extend(flatten_delta(diff, path))
         elif isinstance(diff, ArrayFieldDiff):
             for field_diff, elem_id in zip(diff.diffs, diff.indices, strict=True):
                 elem_path = path + (f"[{elem_id}]",)
-                if isinstance(field_diff.value, DiffDict):
+                if isinstance(field_diff.value, DictFieldDiff):
                     # CHANGED 元素的内部字段变化
                     result.extend(flatten_delta(field_diff.value, elem_path))
                 else:
@@ -588,7 +589,7 @@ class ModDelta:
     """
 
     # (mod_id, rel_path) → DiffDict | None
-    _cache: dict[tuple[str, str], DiffDict | None] = {}
+    _cache: dict[tuple[str, str], DictFieldDiff | None] = {}
     _progress: tuple[int, int] = (0, 0)
     _lock: threading.Lock = threading.Lock()
 
@@ -667,7 +668,7 @@ class ModDelta:
         def _compute_one(
             task: tuple[str, str],
             effective: MergeMode,
-        ) -> tuple[str, str, DiffDict | None]:
+        ) -> tuple[str, str, DictFieldDiff | None]:
             mod_id, rel_path = task
             base_data = store.get_base(rel_path)
 
@@ -720,7 +721,7 @@ class ModDelta:
                 root_key = get_schema_root_key(schema) if schema else None
 
                 # 累积合并状态（仅 REPLACE mod 需要）
-                current: DiffDict | None = None
+                current: DictFieldDiff | None = None
 
                 for mod_id in file_mod_ids:
                     effective = _effective_mode(mod_id)
@@ -729,7 +730,7 @@ class ModDelta:
                     if effective == MergeMode.REPLACE:
                         # REPLACE: delta 基于累积合并状态
                         if current is None:
-                            current = DiffDict.from_dict(base_data)
+                            current = DictFieldDiff.from_dict(base_data)
                         cumulative_data = current.to_dict()
                         delta = compute_delta(
                             cumulative_data, mod_data, file_type,
@@ -775,7 +776,7 @@ class ModDelta:
                     # 维护累积状态（无论什么模式都需要，因为后续 REPLACE mod 可能依赖）
                     if delta is not None:
                         if current is None:
-                            current = DiffDict.from_dict(base_data)
+                            current = DictFieldDiff.from_dict(base_data)
                         fp: list[str] | None = [root_key] if root_key else None
                         apply_delta(current, delta, schema, fp)
         else:
@@ -806,7 +807,7 @@ class ModDelta:
                             progress_cb(completed, total)
 
     @classmethod
-    def get(cls, mod_id: str, rel_path: str) -> DiffDict | None:
+    def get(cls, mod_id: str, rel_path: str) -> DictFieldDiff | None:
         """获取缓存的 delta 结果。"""
         return cls._cache[(mod_id, rel_path)]
 

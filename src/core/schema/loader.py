@@ -6,6 +6,8 @@ from pathlib import Path
 
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
+from typing import cast
+
 from ..infra.types import DupList, JsonObject
 from ..json.classify import get_type_str
 from .dsl import classify_dsl_key
@@ -46,8 +48,8 @@ def load_schemas(schema_dir: Path | str) -> dict[str, JsonObject]:
         global_data: JsonObject = json.loads(global_file.read_text(encoding="utf-8"))
         templates = global_data.get("__templates__", {})
         dsl_rules = global_data.get("_dsl_rules", {})
-        _global_templates = templates if isinstance(templates, dict) else {}
-        _global_dsl_rules = dsl_rules if isinstance(dsl_rules, dict) else {}
+        _global_templates = cast(dict[str, JsonObject], templates if isinstance(templates, dict) else {})
+        _global_dsl_rules = cast(dict[str, JsonObject], dsl_rules if isinstance(dsl_rules, dict) else {})
         diag.info("schema", f"已加载全局模板 {len(_global_templates)} 个, DSL 规则 {len(_global_dsl_rules)} 组")
 
     for schema_file in schema_dir.glob("*.schema.json"):

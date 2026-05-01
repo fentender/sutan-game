@@ -8,6 +8,7 @@ import copy
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 from ..infra.diagnostics import diag, merge_ctx
 from ..infra.profiler import profile
@@ -16,10 +17,12 @@ from ..infra.types import (
     CancelCheck,
     ChangeKind,
     DeltaEntry,
-    DiffDict,
+    DictFieldDiff,
     DupList,
     FieldDiff,
+    JsonArray,
     JsonObject,
+    JsonValue,
     ParseFailure,
     ProgressCallback,
 )
@@ -80,7 +83,7 @@ def _resolve_merge_strategy(
                 actual_val = override_val.value
 
             if actual_val is not None and not check_type_match(
-                schema_type if isinstance(schema_type, (str, list)) else None,
+                cast(str | list[str] | None, schema_type) if isinstance(schema_type, (str, list)) else None,
                 actual_val,
             ):
                 from ..json.classify import get_type_str
@@ -91,7 +94,7 @@ def _resolve_merge_strategy(
         return strategy, None
 
     # 无 schema 时的默认策略
-    if isinstance(base_val, dict) and isinstance(override_val, (dict, DiffDict)):
+    if isinstance(base_val, dict) and isinstance(override_val, (dict, DictFieldDiff)):
         return "merge", None
     return "replace", None
 
@@ -127,7 +130,7 @@ def _is_modified(entry: DeltaEntry | None) -> bool:
     raise TypeError("不应对 DiffDict 调用 _is_modified，应递归到子字段")
 
 
-def _extract_value(entry: DeltaEntry | None) -> object:
+def _extract_value(entry: DeltaEntry | None) -> JsonValue | DeltaEntry:
     """提取现有条目的值，用于保存为 old_value"""
     if entry is None:
         return None
@@ -238,7 +241,7 @@ def apply_array_delta(
         else:
             modifier = ChangeKind.ORIGIN
 
-        if isinstance(diff.value, DiffDict) and isinstance(existing.value, DiffDict):
+        if isinstance(diff.value, DictFieldDiff) and isinstance(existing.value, DictFieldDiff):
             # 嵌套 dict 变更：递归 apply_delta，子字段级别追踪
             apply_delta(existing.value, diff.value, schema, field_path,
                         version=version, is_override=is_override)
@@ -386,13 +389,13 @@ def apply_array_delta(
 
 @profile
 def apply_delta(
-    base: DiffDict,
-    delta: DiffDict,
+    base: DictFieldDiff,
+    delta: DictFieldDiff,
     schema: JsonObject | None = None,
     field_path: list[str] | None = None,
     version: int = 0,
     is_override: bool = False,
-) -> DiffDict:
+) -> DictFieldDiff:
     """将 DiffDict delta 应用到全状态 DiffDict 上，原地修改并返回。
 
     参数:
@@ -451,22 +454,22 @@ def apply_delta(
                 base.items[key] = FieldDiff(kind, diff.value,
                                             old_value=old_val, version=version)
 
-        elif isinstance(diff, DiffDict):
+        elif isinstance(diff, DictFieldDiff):
             # 嵌套 dict 的部分修改——递归 apply_delta
             existing = base.items.get(key)
-            if isinstance(existing, DiffDict):
+            if isinstance(existing, DictFieldDiff):
                 apply_delta(existing, diff, schema, child_path,
                             version=version, is_override=is_override)
-            elif isinstance(existing, FieldDiff) and isinstance(existing.value, DiffDict):
+            elif isinstance(existing, FieldDiff) and isinstance(existing.value, DictFieldDiff):
                 apply_delta(existing.value, diff, schema, child_path,
                             version=version, is_override=is_override)
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, dict):
-                sub = DiffDict.from_dict(existing.value)
+                sub = DictFieldDiff.from_dict(existing.value)
                 apply_delta(sub, diff, schema, child_path,
                             version=version, is_override=is_override)
                 base.items[key] = sub
             else:
-                sub = DiffDict()
+                sub = DictFieldDiff()
                 apply_delta(sub, diff, schema, child_path,
                             version=version, is_override=is_override)
 
@@ -478,9 +481,9 @@ def apply_delta(
                 base_afd = existing.value
             elif isinstance(existing, FieldDiff) and isinstance(existing.value, (list, DupList)):
                 base_afd = ArrayFieldDiff.from_list(existing.value)
-            elif isinstance(existing, FieldDiff) and existing.value is not None and not isinstance(existing.value, (dict, DiffDict)):
+            elif isinstance(existing, FieldDiff) and existing.value is not None and not isinstance(existing.value, (dict, DictFieldDiff)):
                 # 标量归一化为单元素数组（与 delta 计算阶段的归一化对应）
-                base_afd = ArrayFieldDiff.from_list([existing.value])
+                base_afd = ArrayFieldDiff.from_list(cast(JsonArray, [existing.value]))
             else:
                 base_afd = ArrayFieldDiff(
                     diffs=[], base_count=0, indices=[], order=[0, -1],
@@ -498,7 +501,7 @@ def apply_delta(
         schema is not None
         and field_path == ["_entry"]
         and isinstance(schema.get("_meta"), dict)
-        and schema["_meta"].get("file_type") == "dictionary"  # type: ignore[attr-defined]
+        and schema["_meta"].get("file_type") == "dictionary"  # type: ignore[union-attr]
     )
     if current_def and isinstance(current_def, dict) and not is_dict_toplevel:
         known_keys: set[str] = set()
@@ -536,7 +539,7 @@ def apply_delta(
 @profile
 def merge_file(
     base_data: JsonObject,
-    mod_data_list: list[tuple[str, str, DiffDict, str]],
+    mod_data_list: list[tuple[str, str, DictFieldDiff, str]],
     rel_path: str = "",
     schema: JsonObject | None = None,
 ) -> MergeResult:
@@ -555,7 +558,7 @@ def merge_file(
     if file_name in WHOLE_FILE_REPLACE:
         if mod_data_list:
             _, last_mod_name, _, _ = mod_data_list[-1]
-            current = DiffDict.from_dict(base_data)
+            current = DictFieldDiff.from_dict(base_data)
             for step, (_, _mod_name, delta, _) in enumerate(mod_data_list, 1):
                 apply_delta(current, delta, schema, None, version=step)
             result.merged_data = current.to_dict()
@@ -565,7 +568,7 @@ def merge_file(
             result.merged_data = copy.deepcopy(base_data)
         return result
 
-    current = DiffDict.from_dict(base_data)
+    current = DictFieldDiff.from_dict(base_data)
 
     # 确定 schema 根 key
     root_key = get_schema_root_key(schema) if schema else None

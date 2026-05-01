@@ -89,7 +89,7 @@ def perf_apply_delta_large():
     """大对象递归合并性能"""
     from src.core.merge.delta import compute_delta
     from src.core.merge.merger import apply_delta
-    from src.core.infra.types import DiffDict
+    from src.core.infra.types import DictFieldDiff
 
     # 构造 1000 key 的嵌套字典
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
@@ -104,7 +104,7 @@ def perf_apply_delta_large():
 
     start = time.perf_counter()
     for _ in range(10):
-        apply_delta(DiffDict.from_dict(base), delta)
+        apply_delta(DictFieldDiff.from_dict(base), delta)
     elapsed = time.perf_counter() - start
     log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
@@ -409,10 +409,10 @@ def perf_compute_all_overlaps():
 def perf_format_delta_json_deep():
     """大型 DiffDict 格式化性能"""
     from src.core.merge.formatter import format_delta_json
-    from src.core.infra.types import ArrayFieldDiff, ChangeKind, DiffDict, FieldDiff
+    from src.core.infra.types import ArrayFieldDiff, ChangeKind, DictFieldDiff, FieldDiff
 
-    def _build_nested(depth: int, width: int, version: int) -> DiffDict:
-        items: dict[str, FieldDiff | DiffDict | ArrayFieldDiff] = {}
+    def _build_nested(depth: int, width: int, version: int) -> DictFieldDiff:
+        items: dict[str, FieldDiff | DictFieldDiff | ArrayFieldDiff] = {}
         for i in range(width):
             if depth > 0:
                 items[f"level{depth}_key{i}"] = _build_nested(depth - 1, width, version)
@@ -422,7 +422,7 @@ def perf_format_delta_json_deep():
                     kind=kind, value=f"val_{i}", old_value=f"old_{i}",
                     version=version if kind == ChangeKind.CHANGED else 0,
                 )
-        return DiffDict(items=items)
+        return DictFieldDiff(items=items)
 
     dd = _build_nested(depth=3, width=10, version=1)
 

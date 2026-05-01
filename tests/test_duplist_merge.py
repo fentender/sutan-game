@@ -14,7 +14,7 @@ from src.core.merge.merger import apply_delta, merge_file
 from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
-    DiffDict,
+    DictFieldDiff,
     FieldDiff,
     JsonObject,
     MergeMode,
@@ -81,9 +81,9 @@ def test_duplist_delta_apply() -> None:
     delta = compute_delta(base_data, mod_data, "entity",
                           merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
-    assert isinstance(delta, DiffDict)
+    assert isinstance(delta, DictFieldDiff)
 
-    full_state = DiffDict.from_dict(base_data)
+    full_state = DictFieldDiff.from_dict(base_data)
     apply_delta(full_state, delta, None, None, version=1)
     result_dict = full_state.to_dict()
 
@@ -166,10 +166,10 @@ def test_duplist_merge_file() -> None:
                             merge_mode=MergeMode.NORMAL)
     assert_true(delta_a is not None, "delta_a 不应为 None")
     assert_true(delta_b is not None, "delta_b 不应为 None")
-    assert isinstance(delta_a, DiffDict)
-    assert isinstance(delta_b, DiffDict)
+    assert isinstance(delta_a, DictFieldDiff)
+    assert isinstance(delta_b, DictFieldDiff)
 
-    mod_list: list[tuple[str, str, DiffDict, str]] = [
+    mod_list: list[tuple[str, str, DictFieldDiff, str]] = [
         ("mod_a", "ModA", delta_a, "mod_a/5002009.json"),
         ("mod_b", "ModB", delta_b, "mod_b/5002009.json"),
     ]
@@ -235,9 +235,9 @@ def test_duplist_no_nested_arrays_in_output() -> None:
     delta = compute_delta(base_data, mod_data, "entity",
                           merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
-    assert isinstance(delta, DiffDict)
+    assert isinstance(delta, DictFieldDiff)
 
-    full_state = DiffDict.from_dict(base_data)
+    full_state = DictFieldDiff.from_dict(base_data)
     apply_delta(full_state, delta, None, None, version=1)
     result_dict = full_state.to_dict()
 

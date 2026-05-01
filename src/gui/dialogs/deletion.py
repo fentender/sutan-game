@@ -410,7 +410,7 @@ class DeletionReportDialog(QDialog):
         from PySide6.QtWidgets import QTextEdit
 
         from src.config import SCHEMA_DIR
-        from src.core.infra.types import DiffDict, MergeMode
+        from src.core.infra.types import DictFieldDiff, MergeMode
         from src.core.json.classify import classify_json
         from src.core.json.parser import format_json
         from src.core.json.store import JsonStore
@@ -436,7 +436,7 @@ class DeletionReportDialog(QDialog):
         schema = resolve_schema(rel_path, schemas)
 
         # 使用缓存的 delta（已按当前模式过滤）合并 → 无删除版本
-        mod_data_list_cached: list[tuple[str, str, DiffDict, str]] = []
+        mod_data_list_cached: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not store.has_mod(mod_id, rel_path):
                 continue
@@ -451,7 +451,7 @@ class DeletionReportDialog(QDialog):
         # 计算 NORMAL 模式 delta（包含所有删除）→ 有删除版本
         file_type = classify_json(base_data) if base_data else "config"
         root_key = get_schema_root_key(schema) if schema else None
-        mod_data_list_normal: list[tuple[str, str, DiffDict, str]] = []
+        mod_data_list_normal: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not store.has_mod(mod_id, rel_path):
                 continue

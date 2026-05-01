@@ -12,8 +12,10 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from typing import cast
+
 from ..infra.diagnostics import diag
-from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject
+from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject, JsonValue
 from ..json.classify import classify_json, get_type_str
 from ..json.store import JsonStore
 from .dsl import classify_dsl_key
@@ -436,11 +438,11 @@ def _build_field_from_counts(key: str, type_counts: dict[str, int]) -> JsonObjec
     else:
         merge = "replace"
 
-    field_def: JsonObject = {"__type__": type_val, "__merge__": merge}
+    field_def: JsonObject = {"__type__": cast(JsonValue, type_val), "__merge__": merge}
     if merge == "smart_match":
         mk = _detect_match_key_from_global(_canonical_field_name(key))
         if mk:
-            field_def["__match_key__"] = mk
+            field_def["__match_key__"] = cast(JsonValue, mk)
 
     # array<object> 字段递归构建 element
     if (type_val == "array<object>"
@@ -461,7 +463,7 @@ def _build_field_from_counts(key: str, type_counts: dict[str, int]) -> JsonObjec
                     if fd is not None:
                         fields[ck] = fd
                 if fields:
-                    field_def["__fields__"] = fields
+                    field_def["__fields__"] = cast(JsonValue, fields)
                 else:
                     field_def["_note"] = "数据中未观察到子字段"
             else:
@@ -546,7 +548,7 @@ def _build_dsl_rules() -> dict[str, JsonObject]:
             merge = "append"
         else:
             merge = "replace"
-        dsl_rules[group_name] = {"__type__": type_val, "__merge__": merge}
+        dsl_rules[group_name] = {"__type__": cast(JsonValue, type_val), "__merge__": merge}
 
     return dsl_rules
 
@@ -560,7 +562,7 @@ def build_field_def(path: str, info: FieldInfo, all_info: dict[str, FieldInfo]) 
     type_val = infer_type(types)
     merge = infer_merge_strategy(field_name, type_val, field_info)
 
-    result: JsonObject = {"__type__": type_val, "__merge__": merge}
+    result: JsonObject = {"__type__": cast(JsonValue, type_val), "__merge__": merge}
 
     # object 处理
     if type_val == "object" or (isinstance(type_val, list) and "object" in type_val):
@@ -600,11 +602,11 @@ def build_field_def(path: str, info: FieldInfo, all_info: dict[str, FieldInfo]) 
                         # 选 schema 最丰富的（序列化最长的）作为模板
                         best_key = max(obj_fields, key=lambda k: len(
                             json.dumps(obj_fields[k], sort_keys=True)))
-                        result["__template__"] = obj_fields[best_key]
+                        result["__template__"] = cast(JsonValue, obj_fields[best_key])
                     else:
-                        result["__fields__"] = fields
+                        result["__fields__"] = cast(JsonValue, fields)
                 else:
-                    result["__fields__"] = fields
+                    result["__fields__"] = cast(JsonValue, fields)
             else:
                 result["_note"] = "数据中未观察到子字段"
 
@@ -624,14 +626,14 @@ def build_field_def(path: str, info: FieldInfo, all_info: dict[str, FieldInfo]) 
                 if SEP not in remainder:
                     element[remainder] = build_field_def(key, all_info[key], all_info)
         if element:
-            result["__element__"] = element
+            result["__element__"] = cast(JsonValue, element)
         else:
             diag.warn("schema", f"数组元素无字段信息: {arr_path.replace(SEP, ' → ')}")
 
         if merge == "smart_match":
             mk = infer_match_key(field_info)
             if mk:
-                result["__match_key__"] = mk
+                result["__match_key__"] = cast(JsonValue, mk)
             else:
                 # 无 match_key：降级为 append
                 result["__merge__"] = "append"
@@ -730,7 +732,7 @@ def _build_single_file_schema(filepath: str, file_type: str, info: dict[str, Fie
                 "description": Path(filepath).stem,
                 "source": Path(filepath).name,
             },
-            "_entry": entry_schema,
+            "_entry": cast(JsonValue, entry_schema),
         }
 
     if file_type == "entity":
@@ -745,7 +747,7 @@ def _build_single_file_schema(filepath: str, file_type: str, info: dict[str, Fie
                 "description": Path(filepath).stem,
                 "source": Path(filepath).name,
             },
-            "_fields": fields_schema,
+            "_fields": cast(JsonValue, fields_schema),
         }
 
     # config
@@ -772,7 +774,7 @@ def _build_single_file_schema(filepath: str, file_type: str, info: dict[str, Fie
             "description": Path(filepath).stem,
             "source": Path(filepath).name,
         },
-        "_fields": fields_schema,
+        "_fields": cast(JsonValue, fields_schema),
     }
 
 
@@ -795,7 +797,7 @@ def _build_dir_schema(dirpath: str, file_type: str | None, info: dict[str, Field
             "file_count": total,
             "analyzed": file_count,
         },
-        schema_key: fields_schema,
+        schema_key: cast(JsonValue, fields_schema),
     }
 
 

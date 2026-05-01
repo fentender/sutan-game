@@ -362,7 +362,7 @@ def match_by_heuristic(
                 mi for mi in s
                 if isinstance(mod_arr[mi], dict)
                 and key in mod_arr[mi]  # type: ignore[operator]
-                and mod_arr[mi][key] == base_val  # type: ignore[index]
+                and mod_arr[mi][key] == base_val  # type: ignore[call-overload]
             ]
             if len(hits) == 1:
                 pairs.append((bi, hits[0]))
