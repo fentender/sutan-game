@@ -17,6 +17,7 @@ from tests.test_runner import TestResult, assert_eq, assert_true, run_test, skip
 
 log = logging.getLogger("test")
 
+
 ABUDE_MOD_ID = "3497129580"
 RITE_REL_PATH = "rite/5000003.json"
 # 「我全都要」系MOD整合版

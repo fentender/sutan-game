@@ -23,12 +23,9 @@ def _condition_diff_for_guid(delta: DictFieldDiff, guid: str) -> DictFieldDiff |
     if not isinstance(settlement, ArrayFieldDiff):
         return None
     for fd in settlement.diffs:
-        if fd.kind.base_kind != ChangeKind.CHANGED:
+        if not isinstance(fd, DictFieldDiff):
             continue
-        sub = fd.value
-        if not isinstance(sub, DictFieldDiff):
-            continue
-        cond = sub.items.get("condition")
+        cond = fd.items.get("condition")
         if isinstance(cond, DictFieldDiff):
             return cond
     return None

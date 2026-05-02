@@ -101,15 +101,7 @@ def _prepare_array_delta(
         flat_to_eid: dict[int, int] = {
             pos + 1: eid for pos, eid in enumerate(flat_order)
         }
-        next_id = max(base.indices, default=0) + 1
-
-        for diff, idx in zip(delta.diffs, delta.indices, strict=True):
-            eid = flat_to_eid.get(idx)
-            if eid is not None:
-                id_remap[idx] = eid
-            elif isinstance(diff, FieldDiff) and diff.kind == ChangeKind.ADDED:
-                id_remap[idx] = next_id
-                next_id += 1
+        id_remap = flat_to_eid
     else:
         cur_max = max(base.indices, default=0)
         next_id = cur_max + 1
@@ -208,7 +200,14 @@ def apply_field_delta(
     version: int,
     is_override: bool,
 ) -> FieldDiff:
-    assert (existing is None) == (diff.kind.base_kind == ChangeKind.ADDED)
+    base_kind = diff.kind.base_kind
+    if base_kind == ChangeKind.ADDED and existing is not None:
+        base_kind = ChangeKind.CHANGED
+    elif base_kind != ChangeKind.ADDED and existing is None:
+        if base_kind == ChangeKind.DELETED:
+            return FieldDiff(ChangeKind.DELETED, None, version=version)
+        base_kind = ChangeKind.ADDED
+
     modifier = ChangeKind.ORIGIN
     if is_override:
         modifier |= ChangeKind.OVERRIDE
@@ -219,7 +218,7 @@ def apply_field_delta(
         modifier |= existing.kind.flags
     else:
         old_val: JsonValue = None
-    kind = diff.kind.base_kind | modifier
+    kind = base_kind | modifier
 
     if diff.value is not None:
         key = child_path[-1] if child_path else ""

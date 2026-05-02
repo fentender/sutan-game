@@ -105,9 +105,11 @@ class MergeCache:
 
         mod_data_list: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in mod_configs:
-            assert store.has_mod(mod_id, rel_path)
+            if not store.has_mod(mod_id, rel_path):
+                continue
             delta = ModDelta.get(mod_id, rel_path)
-            assert delta is not None
+            if delta is None:
+                continue
             mod_data_list.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         current = DictFieldDiff.from_dict(base_data)
