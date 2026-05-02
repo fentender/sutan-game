@@ -110,24 +110,6 @@ def perf_apply_delta_large():
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
 
 
-def perf_resolve_duplicates():
-    """数组相似度匹配性能"""
-    from src.core.merge.array_match import resolve_duplicates
-
-    base = [{"id": f"item_{i}", "name": f"Name {i}", "value": i,
-             "desc": f"Description for item {i} with some extra text"}
-            for i in range(100)]
-    mod_items = [(i, {"id": f"item_{i}", "name": f"Name {i} Modified",
-                       "value": i * 2})
-                 for i in range(50)]
-
-    start = time.perf_counter()
-    pairs, unmatched = resolve_duplicates(mod_items, base, list(range(100)))
-    elapsed = time.perf_counter() - start
-    log.info("    100 元素数组匹配 50 个 mod 项，耗时 %.3fs", elapsed)
-    assert_true(len(pairs) == 50, f"应匹配 50 对，实际 {len(pairs)}")
-
-
 def perf_diff_dialog_tab_load():
     """DiffDialog 打开 + 首次 tab 切换性能（无头 Qt）"""
     import os
@@ -463,7 +445,6 @@ def run_all(result: TestResult):
         ("perf_scan_mods", perf_scan_mods),
         ("perf_analyze_all", perf_analyze_all),
         ("perf_apply_delta_large", perf_apply_delta_large),
-        ("perf_resolve_duplicates", perf_resolve_duplicates),
         ("perf_merge_all", perf_merge_all),
         ("perf_delta_init", perf_delta_init),
         ("perf_delta_cache_hit", perf_delta_cache_hit),

@@ -8,57 +8,27 @@
 """
 import copy
 import threading
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from ..infra.profiler import profile
-from ..infra.types import (
-    ArrayFieldDiff,
-    ArrayMatching,
-    ChangeKind,
-    DiffEntry,
-    DictFieldDiff,
-    DupList,
-    FieldDiff,
-    JsonArray,
-    JsonObject,
-    JsonValue,
-    MergeMode,
-    ProgressCallback,
+from ..platform.history import (
+    PathResolver,
+    find_base_version,
+    parse_history_versions,
+    set_resolver,
 )
+from ..infra.profiler import profile
+from ..infra.types import *
 from ..json.classify import classify_json
 from ..json.store import JsonStore
 from ..schema.loader import (
-    get_field_def,
     get_schema_root_key,
     load_schemas,
     resolve_schema,
 )
-from .array_match import (
-    COMMON_MATCH_KEYS,
-    is_obj_array,
-    match_by_consume,
-    match_by_heuristic,
-    match_by_index,
-    match_by_keys,
-)
+from .array_match import match_by_heuristic
 from .rules import smart_allow_deletion
-
-
-def find_array_match_key(arr: JsonArray) -> str | None:
-    """在对象数组中找到可用于匹配的唯一标识字段"""
-    if not arr or not all(isinstance(x, dict) for x in arr):
-        return None
-    for key in COMMON_MATCH_KEYS:
-        values = []
-        for item in arr:
-            if not isinstance(item, dict) or key not in item:
-                break
-            values.append(item[key])
-        else:
-            if len({(type(v), v) for v in values}) == len(values):
-                return key
-    return None
 
 
 # ==================== Delta 产出（内部函数） ====================
@@ -72,27 +42,6 @@ def _select_array_matching(
 ) -> ArrayMatching:
     """根据 schema 规则选择数组匹配策略。"""
     return match_by_heuristic(base, mod)
-
-    merge_strategy: str | None = None
-    schema_match_keys: list[str] | None = None
-    if schema and field_path:
-        field_def = get_field_def(schema, field_path)
-        if field_def:
-            ms = field_def.get("__merge__")
-            merge_strategy = str(ms) if ms is not None else None
-            if merge_strategy == "smart_match":
-                mk = field_def.get("__match_key__")
-                schema_match_keys = mk if isinstance(mk, list) else None
-
-    if is_obj_array(mod) and (not base or is_obj_array(base)) and schema_match_keys:
-        return match_by_keys(
-            base,
-            mod,
-            schema_match_keys,
-        )
-    if merge_strategy == "append":
-        return match_by_consume(base, mod)
-    return match_by_index(base, mod)
 
 
 def _recursive_delta(
@@ -297,12 +246,6 @@ def _remap_delta_to_current(
                 sub = _remap_delta_to_current(entry, hist_val, cur_val)
                 if sub is not None and sub.items:
                     new_items[key] = sub
-            elif not cur_has:
-                # 当前 base 中该字段整体消失：delta 中的嵌套改动无处可施，丢弃
-                continue
-            else:
-                # 类型不匹配（如 dict → 标量），保守丢弃
-                continue
 
         elif isinstance(entry, ArrayFieldDiff):
             # 标量归一化：delta 计算阶段将标量包装为单元素数组产出 ArrayFieldDiff，
@@ -313,9 +256,6 @@ def _remap_delta_to_current(
                 remapped_arr = _remap_array_diff(entry, h, c)
                 if remapped_arr is not None:
                     new_items[key] = remapped_arr
-            elif cur_has and isinstance(c, list):
-                # hist 不存在但 cur 归一化后是数组，直接保留
-                new_items[key] = entry
             # 其余情况丢弃
 
     if not new_items:
@@ -330,24 +270,23 @@ def _remap_field_diff(
     cur_has: bool,
     cur_val: JsonValue,
 ) -> FieldDiff | None:
-    """重映射单个 FieldDiff，返回 None 表示丢弃。"""
+    """重映射单个 FieldDiff，返回 None 表示丢弃。
+
+    输入是 compute_delta 产出的原始 delta，不含 MULTI_MOD/OVERRIDE 标志位。
+    """
     base_kind = entry.kind.base_kind
-    modifier = entry.kind & ~ChangeKind.CHANGED  # 保留 OVERRIDE/MULTI_MOD 等
 
     if base_kind == ChangeKind.DELETED:
-        # 删除的字段当前 base 已不存在 → 丢弃
         if not cur_has:
             return None
         return entry
 
     if base_kind == ChangeKind.ADDED:
         if cur_has:
-            # 已存在且值相同 → 丢弃；不同 → 改为 CHANGED
             if cur_val == entry.value:
                 return None
-            new_kind = ChangeKind.CHANGED | modifier
             return FieldDiff(
-                kind=new_kind,
+                kind=ChangeKind.CHANGED,
                 value=entry.value,
                 old_value=cur_val,
                 version=entry.version,
@@ -356,26 +295,22 @@ def _remap_field_diff(
 
     if base_kind == ChangeKind.CHANGED:
         if not cur_has:
-            # 历史 base 有、当前 base 无：改为 ADDED
-            new_kind = ChangeKind.ADDED | modifier
             return FieldDiff(
-                kind=new_kind,
+                kind=ChangeKind.ADDED,
                 value=entry.value,
                 old_value=None,
                 version=entry.version,
             )
         if cur_val == entry.value:
-            # 当前值已等于新值 → 丢弃
             return None
-        # 更新 old_value 为当前值
         return FieldDiff(
-            kind=entry.kind,
+            kind=ChangeKind.CHANGED,
             value=entry.value,
             old_value=cur_val,
             version=entry.version,
         )
 
-    # ORIGIN 或其它：不应出现在稀疏 delta 中，保留原样
+    # ORIGIN：不应出现在稀疏 delta 中，保留原样
     return entry
 
 
@@ -446,7 +381,17 @@ def _remap_array_diff(
                 new_indices.append(new_id)
                 id_remap[eid] = new_id
         else:
-            new_diffs.append(fd)
+            assert isinstance(fd, FieldDiff)
+            hist_val = hist_arr[hist_idx]
+            cur_val = current_arr[cur_idx]
+            remapped = _remap_field_diff(
+                fd,
+                hist_has=True, hist_val=hist_val,
+                cur_has=True, cur_val=cur_val,
+            )
+            if remapped is None:
+                continue
+            new_diffs.append(remapped)
             new_indices.append(new_id)
             id_remap[eid] = new_id
 
@@ -467,8 +412,8 @@ def _remap_array_diff(
             continue
         if eid > hist_base_count:
             # ADDED 元素：用 id_remap
-            if eid in id_remap:
-                new_order.append(id_remap[eid])
+            assert eid in id_remap
+            new_order.append(id_remap[eid])
         else:
             # 配对或 ORIGIN 元素：用全局 hist→current 映射
             if eid in hist_id_to_current_id:
@@ -506,16 +451,10 @@ def compute_delta(
     if not base_data:
         # 本体无此文件，全部是新增
         result = _recursive_delta({}, mod_data, schema, field_path, merge_mode)
-        if isinstance(result, DictFieldDiff):
-            return result
-        # 无变化或非 dict 结果，包装为 DiffDict
-        if result is None:
-            # 整个 mod_data 与空 dict 不同，每个 key 都是新增
-            items: dict[str, DiffEntry] = {}
-            for k, v in mod_data.items():
-                items[k] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(v))
-            return DictFieldDiff(items) if items else None
-        return None
+        assert result is None or isinstance(result, DictFieldDiff), (
+            f"_recursive_delta(dict, dict) 返回了非预期类型: {type(result)}"
+        )
+        return result
 
     if file_type == "dictionary":
         items = {}
@@ -532,9 +471,10 @@ def compute_delta(
     else:
         # entity/config
         result = _recursive_delta(base_data, mod_data, schema, field_path, merge_mode)
-        if isinstance(result, DictFieldDiff):
-            return result
-        return None
+        assert result is None or isinstance(result, DictFieldDiff), (
+            f"_recursive_delta(dict, dict) 返回了非预期类型: {type(result)}"
+        )
+        return result
 
 
 # ==================== Delta 展平 ====================
@@ -568,6 +508,96 @@ def flatten_delta(
                     assert isinstance(elem_diff, FieldDiff)
                     result.append((elem_path, elem_diff))
     return result
+
+
+# ==================== init() 辅助函数 ====================
+
+
+def _effective_mode(
+    mod_id: str,
+    merge_mode: MergeMode,
+    mod_merge_modes: dict[str, MergeMode] | None,
+) -> MergeMode:
+    """获取 mod 的实际合并模式（per-mod 覆盖 > 全局默认）。"""
+    if mod_merge_modes and mod_id in mod_merge_modes:
+        return mod_merge_modes[mod_id]
+    return merge_mode
+
+
+def _process_file_group(
+    rel_path: str,
+    file_mod_ids: list[str],
+    store: JsonStore,
+    schemas: dict[str, JsonObject],
+    merge_mode: MergeMode,
+    mod_merge_modes: dict[str, MergeMode] | None,
+    adaptive_base_dirs: dict[str, Path],
+    apply_delta: Callable[..., DictFieldDiff],
+) -> list[tuple[str, str, DictFieldDiff | None]]:
+    """处理单个文件的所有 mod delta 计算。
+
+    按 mod 优先级顺序处理，维护 REPLACE 模式所需的累积合并状态。
+    返回 [(mod_id, rel_path, delta), ...] 结果列表。
+    """
+    from ..platform.history import resolve_path
+
+    base_data = store.get_base(rel_path)
+    file_type = classify_json(base_data) if base_data else "config"
+    schema = resolve_schema(rel_path, schemas) if schemas else None
+    root_key = get_schema_root_key(schema) if schema else None
+
+    current: DictFieldDiff | None = None
+    results: list[tuple[str, str, DictFieldDiff | None]] = []
+
+    for mod_id in file_mod_ids:
+        effective = _effective_mode(mod_id, merge_mode, mod_merge_modes)
+        mod_data = store.get_mod(mod_id, rel_path)
+
+        if effective == MergeMode.REPLACE:
+            if current is None:
+                current = DictFieldDiff.from_dict(base_data)
+            cumulative_data = current.to_dict()
+            delta = compute_delta(
+                cumulative_data, mod_data, file_type,
+                schema=schema, root_key=root_key,
+            )
+        elif effective == MergeMode.ADAPTIVE:
+            adaptive_base = base_data
+            hist_base_used: JsonObject | None = None
+            hist_dir = adaptive_base_dirs.get(mod_id)
+            if hist_dir is not None:
+                hist_file = resolve_path(hist_dir, rel_path)
+                if hist_file is not None:
+                    hist_base_used = store._load_json(hist_file)
+                    adaptive_base = hist_base_used
+            delta = compute_delta(
+                adaptive_base, mod_data, file_type,
+                schema=schema, root_key=root_key,
+                merge_mode=MergeMode.SMART,
+            )
+            if (hist_base_used is not None
+                    and delta is not None
+                    and base_data
+                    and base_data is not hist_base_used):
+                delta = _remap_delta_to_current(
+                    delta, hist_base_used, base_data,
+                )
+        else:
+            delta = compute_delta(
+                base_data, mod_data, file_type,
+                schema=schema, root_key=root_key,
+                merge_mode=effective,
+            )
+
+        results.append((mod_id, rel_path, delta))
+
+        if delta is not None:
+            if current is None:
+                current = DictFieldDiff.from_dict(base_data)
+            fp: list[str] | None = [root_key] if root_key else None
+            apply_delta(current, delta, schema, fp)
+
+    return results
 
 
 # ==================== 全局 Delta 缓存 ====================
@@ -606,196 +636,66 @@ class ModDelta:
             mod_update_times: mod_id → update_time（ADAPTIVE 模式需要）
             history_dir: history_config 目录路径（ADAPTIVE 模式需要）
         """
-        # 延迟导入避免循环依赖（merger → delta_store → merger）
         from .merger import apply_dict_delta
 
         store = JsonStore.instance()
         schemas = load_schemas(schema_dir) if schema_dir else {}
 
         # ADAPTIVE 模式：解析历史版本目录
-        from ..platform.history import (
-            PathResolver,
-            find_base_version,
-            parse_history_versions,
-            resolve_path,
-            set_resolver,
-        )
-        # 初始化全局 resolver（用于 CAS 路径映射；非 CAS 布局自动走原拼接）
         set_resolver(PathResolver(history_dir) if history_dir else None)
         history_versions = parse_history_versions(history_dir) if history_dir else []
-        # 预计算每个 mod 对应的历史基准目录（mod_id → Path | None）
-        _adaptive_base_dirs: dict[str, Path | None] = {}
+
+        # ADAPTIVE 前置校验
+        adaptive_mods = [
+            m for m in mod_ids
+            if _effective_mode(m, merge_mode, mod_merge_modes) == MergeMode.ADAPTIVE
+        ]
+        if adaptive_mods:
+            assert history_dir is not None, "ADAPTIVE 模式要求提供 history_dir"
+            assert mod_update_times is not None, "ADAPTIVE 模式要求提供 mod_update_times"
+
+        # 预计算每个 mod 对应的历史基准目录（仅存入有匹配的 mod）
+        adaptive_base_dirs: dict[str, Path] = {}
         if history_versions and mod_update_times:
             for mod_id in mod_ids:
-                ut = mod_update_times.get(mod_id)
-                if ut is not None:
-                    _adaptive_base_dirs[mod_id] = find_base_version(ut, history_versions)
+                ut = mod_update_times[mod_id]
+                base_ver = find_base_version(ut, history_versions)
+                if base_ver is not None:
+                    adaptive_base_dirs[mod_id] = base_ver
 
-        # 收集所有需要计算的 (mod_id, rel_path) 任务
-        tasks: list[tuple[str, str]] = []
+        # 按文件分组，保持 mod 优先级顺序
+        tasks_by_file: dict[str, list[str]] = defaultdict(list)
         for mod_id in mod_ids:
             for rel_path in store.mod_files(mod_id):
-                tasks.append((mod_id, rel_path))
+                tasks_by_file[rel_path].append(mod_id)
 
-        total = len(tasks)
+        total = sum(len(mids) for mids in tasks_by_file.values())
         completed = 0
         with cls._lock:
             cls._cache.clear()
             cls._progress = (0, total)
-
         if progress_cb:
             progress_cb(0, total)
 
-        def _effective_mode(mod_id: str) -> MergeMode:
-            if mod_merge_modes and mod_id in mod_merge_modes:
-                return mod_merge_modes[mod_id]
-            return merge_mode
-
-        # 检查是否有任何 REPLACE mod
-        has_replace = any(
-            _effective_mode(mid) == MergeMode.REPLACE for mid in mod_ids
-        )
-
-        def _compute_one(
-            task: tuple[str, str],
-            effective: MergeMode,
-        ) -> tuple[str, str, DictFieldDiff | None]:
-            mod_id, rel_path = task
-            base_data = store.get_base(rel_path)
-
-            # ADAPTIVE：尝试用历史版本的 base_data 替代当前本体
-            delta_mode = effective
-            hist_base_for_remap: JsonObject | None = None
-            if effective == MergeMode.ADAPTIVE:
-                hist_dir = _adaptive_base_dirs.get(mod_id)
-                if hist_dir is not None:
-                    hist_file = resolve_path(hist_dir, rel_path)
-                    if hist_file is not None:
-                        hist_base_for_remap = JsonStore.parse_file(hist_file)
-                        base_data = hist_base_for_remap
-                # 合并行为等同 SMART
-                delta_mode = MergeMode.SMART
-
-            mod_data = store.get_mod(mod_id, rel_path)
-            file_type = classify_json(base_data) if base_data else "config"
-            schema = resolve_schema(rel_path, schemas) if schemas else None
-            root_key = get_schema_root_key(schema) if schema else None
-            delta = compute_delta(base_data, mod_data, file_type,
-                                  schema=schema, root_key=root_key,
-                                  merge_mode=delta_mode)
-
-            # ADAPTIVE：delta 基于历史 base 算出，需重映射到当前 base 的索引/key 体系
-            if (effective == MergeMode.ADAPTIVE
-                    and hist_base_for_remap is not None
-                    and delta is not None):
-                current_base = store.get_base(rel_path)
-                if current_base and current_base is not hist_base_for_remap:
-                    delta = _remap_delta_to_current(
-                        delta, hist_base_for_remap, current_base,
-                    )
-            return mod_id, rel_path, delta
-
-        if has_replace:
-            # 有 REPLACE mod 时需要按文件分组、按 mod 顺序处理
-            # 因为 REPLACE delta 依赖累积合并状态
-            # 按 rel_path 分组
-            from collections import defaultdict
-            tasks_by_file: dict[str, list[str]] = defaultdict(list)
-            for mod_id in mod_ids:
-                for rel_path in store.mod_files(mod_id):
-                    tasks_by_file[rel_path].append(mod_id)
-
-            for rel_path, file_mod_ids in tasks_by_file.items():
-                base_data = store.get_base(rel_path)
-                file_type = classify_json(base_data) if base_data else "config"
-                schema = resolve_schema(rel_path, schemas) if schemas else None
-                root_key = get_schema_root_key(schema) if schema else None
-
-                # 累积合并状态（仅 REPLACE mod 需要）
-                current: DictFieldDiff | None = None
-
-                for mod_id in file_mod_ids:
-                    effective = _effective_mode(mod_id)
-                    mod_data = store.get_mod(mod_id, rel_path)
-
-                    if effective == MergeMode.REPLACE:
-                        # REPLACE: delta 基于累积合并状态
-                        if current is None:
-                            current = DictFieldDiff.from_dict(base_data)
-                        cumulative_data = current.to_dict()
-                        delta = compute_delta(
-                            cumulative_data, mod_data, file_type,
-                            schema=schema, root_key=root_key,
-                        )
-                    elif effective == MergeMode.ADAPTIVE:
-                        # ADAPTIVE: delta 基于历史版本计算，再重映射到当前 base
-                        adaptive_base = base_data
-                        hist_base_used: JsonObject | None = None
-                        hist_dir = _adaptive_base_dirs.get(mod_id)
-                        if hist_dir is not None:
-                            hist_file = resolve_path(hist_dir, rel_path)
-                            if hist_file is not None:
-                                hist_base_used = JsonStore.parse_file(hist_file)
-                                adaptive_base = hist_base_used
-                        delta = compute_delta(
-                            adaptive_base, mod_data, file_type,
-                            schema=schema, root_key=root_key,
-                            merge_mode=MergeMode.SMART,
-                        )
-                        if (hist_base_used is not None
-                                and delta is not None
-                                and base_data
-                                and base_data is not hist_base_used):
-                            delta = _remap_delta_to_current(
-                                delta, hist_base_used, base_data,
-                            )
-                    else:
-                        # NORMAL/SMART: delta 基于游戏本体
-                        delta = compute_delta(
-                            base_data, mod_data, file_type,
-                            schema=schema, root_key=root_key,
-                            merge_mode=effective,
-                        )
-
+        file_groups = list(tasks_by_file.items())
+        with ThreadPoolExecutor() as pool:
+            futures = {
+                pool.submit(
+                    _process_file_group,
+                    rel_path, file_mod_ids, store, schemas,
+                    merge_mode, mod_merge_modes, adaptive_base_dirs,
+                    apply_dict_delta,
+                ): rel_path
+                for rel_path, file_mod_ids in file_groups
+            }
+            for future in as_completed(futures):
+                for mod_id, rel_path, delta in future.result():
                     with cls._lock:
                         cls._cache[(mod_id, rel_path)] = delta
                         completed += 1
                         cls._progress = (completed, total)
                     if progress_cb:
                         progress_cb(completed, total)
-
-                    # 维护累积状态（无论什么模式都需要，因为后续 REPLACE mod 可能依赖）
-                    if delta is not None:
-                        if current is None:
-                            current = DictFieldDiff.from_dict(base_data)
-                        fp: list[str] | None = [root_key] if root_key else None
-                        apply_dict_delta(current, delta, schema, fp)
-        else:
-            # 无 REPLACE mod 时，走原有的并行/串行逻辑
-            if total <= 20:
-                for task in tasks:
-                    effective = _effective_mode(task[0])
-                    mod_id, rel_path, delta = _compute_one(task, effective)
-                    with cls._lock:
-                        cls._cache[(mod_id, rel_path)] = delta
-                        completed += 1
-                        cls._progress = (completed, total)
-                    if progress_cb:
-                        progress_cb(completed, total)
-            else:
-                with ThreadPoolExecutor() as pool:
-                    futures = {
-                        pool.submit(_compute_one, t, _effective_mode(t[0])): t
-                        for t in tasks
-                    }
-                    for future in as_completed(futures):
-                        mod_id, rel_path, delta = future.result()
-                        with cls._lock:
-                            cls._cache[(mod_id, rel_path)] = delta
-                            completed += 1
-                            cls._progress = (completed, total)
-                        if progress_cb:
-                            progress_cb(completed, total)
 
     @classmethod
     def get(cls, mod_id: str, rel_path: str) -> DictFieldDiff | None:
