@@ -32,6 +32,13 @@ FILE_BASED_TYPES: dict[str, str] = {
     "rite_template": "rite_template",
 }
 
+_REMAP_LOG_FIELDS: tuple[tuple[str, str], ...] = (
+    ("rite", "rite"), ("event", "event"), ("loot", "loot"),
+    ("over", "over"), ("rite_template", "rite_template"),
+    ("rite_template_mappings", "rite_template_mappings"),
+    ("tag_codes", "tag code"), ("tag_ids", "tag id"),
+)
+
 # dictionary 类型实体及其对应的文件名
 DICT_BASED_TYPES: dict[str, str] = {
     "cards": "cards.json",
@@ -250,16 +257,8 @@ def detect_conflicts(
     """
     conflicts: dict[str, dict[str, list[int]]] = {}
 
-    # dictionary 类型（cards, over, rite_template_mappings）
-    for entity_type in ("cards", "over", "rite_template_mappings"):
+    for entity_type in (*("cards", "over", "rite_template_mappings"), *FILE_BASED_TYPES):
         mod_dicts: list[JsonObject] = [getattr(m, entity_type) for m in mod_ids_list]
-        result = _detect_dict_conflicts(entity_type, base_ids[entity_type], mod_dicts)
-        if result:
-            conflicts[entity_type] = result
-
-    # 文件类型（rite, event, loot, rite_template）
-    for entity_type in FILE_BASED_TYPES:
-        mod_dicts = [getattr(m, entity_type) for m in mod_ids_list]
         result = _detect_dict_conflicts(entity_type, base_ids[entity_type], mod_dicts)
         if result:
             conflicts[entity_type] = result
@@ -696,23 +695,11 @@ def remap_mod_configs(
             messages.append(msg)
             diag.info("remap", msg)
 
-        for entity_type in ("rite", "event", "loot", "over",
-                            "rite_template", "rite_template_mappings"):
-            mapping = getattr(table, entity_type)
-            for old_id, new_id in mapping.items():
-                msg = f"ID 重分配: Mod [{mod_name}] {entity_type} {old_id} → {new_id}"
+        for field_name, label in _REMAP_LOG_FIELDS:
+            for old_id, new_id in getattr(table, field_name).items():
+                msg = f"ID 重分配: Mod [{mod_name}] {label} {old_id} → {new_id}"
                 messages.append(msg)
                 diag.info("remap", msg)
-
-        for old_code, new_code in table.tag_codes.items():
-            msg = f"ID 重分配: Mod [{mod_name}] tag code {old_code} → {new_code}"
-            messages.append(msg)
-            diag.info("remap", msg)
-
-        for old_tag_id, new_tag_id in table.tag_ids.items():
-            msg = f"ID 重分配: Mod [{mod_name}] tag id {old_tag_id} → {new_tag_id}"
-            messages.append(msg)
-            diag.info("remap", msg)
 
         # 直接更新 store 中的数据
         apply_remap_to_store(mod_id, table)
