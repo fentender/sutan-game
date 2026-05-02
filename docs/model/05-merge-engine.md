@@ -26,24 +26,105 @@
 
 ---
 
-## apply_delta — 核心合并算法（merger.py）
+## 四层 apply 函数（merger.py）
 
-`apply_delta(base, delta, schema, field_path, version, is_override)` 原地修改 DiffDict。
+合并引擎的核心是四个函数，形成统一的递归分派结构：
 
-对 delta 中每个条目按类型分发：
+| 函数 | 处理类型 | 说明 |
+|------|---------|------|
+| `_apply_delta_entry` | `DiffEntry` | 归一化 + 类型校验 + 三路分派（统一入口） |
+| `apply_field_delta` | `FieldDiff` | 标量合并，返回新 FieldDiff |
+| `apply_dict_delta` | `DictFieldDiff` | 字典合并，原地修改 |
+| `apply_array_delta` | `ArrayFieldDiff` | 数组合并，原地修改 |
+
+### _apply_delta_entry — 统一分派入口
+
+`_apply_delta_entry(diff, existing, schema, field_path, version, is_override) -> DiffEntry | None`
+
+`apply_dict_delta` 和 `apply_array_delta` 的循环体共享同一套逻辑，提取为此函数。返回合并后的值（FieldDiff 为新对象，DictFieldDiff/ArrayFieldDiff 为原地修改后的 existing），返回 None 表示类型校验失败应跳过。
+
+处理流程：
+
+1. **FieldDiff/ArrayFieldDiff 归一化**：一方为 FieldDiff 另一方为 ArrayFieldDiff 时，通过 `ArrayFieldDiff.wrap()` 将 FieldDiff 包装
+2. **类型校验**：existing 存在时类型必须一致；existing 为 None 时仅 FieldDiff 合法（DictFieldDiff/ArrayFieldDiff 的 existing 为 None 说明 Mod 基于旧版本）
+3. **三路分派**：
 
 | delta 条目类型 | 处理方式 |
 |----------------|---------|
-| `FieldDiff` | DELETED/ADDED/CHANGED 直接替换，标记 MULTI_MOD 或 OVERRIDE |
-| `DiffDict` | 递归调用 `apply_delta` |
-| `ArrayFieldDiff` | 调用 `apply_array_delta` |
+| `FieldDiff` | 调用 `apply_field_delta`，返回新 FieldDiff |
+| `DictFieldDiff` | 递归 `apply_dict_delta`（原地修改），返回 existing |
+| `ArrayFieldDiff` | 递归 `apply_array_delta`（原地修改），返回 existing |
+
+### apply_dict_delta
+
+`apply_dict_delta(base, delta, schema, field_path, version, is_override)` 原地修改 DictFieldDiff。
+
+对 delta 中每个条目：
+
+1. **DupList 归一化**（仅 dict 需要）：任一方为 DupList 时，通过 `ArrayFieldDiff.wrap(value, is_dup=True)` 将另一方包装
+2. 调用 `_apply_delta_entry` 完成归一化 + 校验 + 分派
+3. 将返回值写回 `base.items[key]`
+
+### apply_array_delta
+
+`apply_array_delta(base, delta, schema, field_path, version, is_override)` 原地修改 ArrayFieldDiff。
+
+ArrayFieldDiff 的 indices 相当于 DictFieldDiff 的 key，`elem_id in id_map` 等价于 `existing is not None`。
+
+流程：
+
+1. `_prepare_array_delta` 统一 delta 的 ID 空间
+2. 构建 `id_map`（ID → 位置映射）
+3. 对 delta 中每个条目：通过 id_map 查找 existing，调用 `_apply_delta_entry`，写回或 append
+4. `_rebuild_array_order` 重建元素顺序
+
+### apply_field_delta
+
+`apply_field_delta(diff, existing, schema, child_path, version, is_override) -> FieldDiff`
+
+纯函数，返回合并后的 FieldDiff。处理 modifier 计算和 schema 类型校验。
 
 ### 冲突标记规则
 
-- 字段被多个 Mod 修改 -> 标记 `MULTI_MOD`（`kind |= 4`）
-- 用户手动覆写 -> 标记 `OVERRIDE`（`kind |= 8`，不触发 MULTI_MOD）
+OVERRIDE 和 MULTI_MOD 为并列标志位，可同时存在：
 
-### 字段合并策略分发
+- 字段被多个 Mod 修改 → `modifier |= MULTI_MOD`（`kind |= 4`）
+- 用户手动覆写 → `modifier |= OVERRIDE`（`kind |= 8`）
+
+---
+
+## 数组 ID 映射与 order 重建（merger.py）
+
+### _prepare_array_delta — ID 空间统一
+
+`_prepare_array_delta(base, delta, is_override) -> ArrayFieldDiff`
+
+将 delta 的 indices 和 order 统一映射到全状态的 element ID 空间，统一处理 override 和非 override 两种场景：
+
+| 场景 | 映射方式 |
+|------|---------|
+| override | flat position → element ID（通过 base.order 展开），ADDED 元素分配 `max(base.indices)+1` 起的新 ID |
+| 非 override | ADDED 元素 ID 重分配（从 `max(base.indices)+1` 起），避免跨 Mod ID 冲突 |
+
+映射同时应用到 `delta.indices` 和 `delta.order`，使下游主循环和 order 重建无需区分 override。
+
+### _rebuild_array_order — 元素顺序重建
+
+`_rebuild_array_order(base, delta) -> list[int]`
+
+基于 `delta.order` 重建 `base` 的元素顺序，override 和非 override 统一处理：
+
+1. **识别 orphan**：`set(base.indices) - set(delta.order)` — 在 base 中存在但不在 delta.order 中的元素（前 mod 新增的、本次 delta 不涉及的元素）
+2. **记录锚点**：遍历 base.order，每个 orphan 记录跟在哪个非 orphan 元素之后
+3. **按 delta.order 重建**：遍历 delta.order，依次 append 每个元素，在每个元素后插入其对应的 orphan
+
+override 时 `_prepare_array_delta` 已将 delta.order 映射为完整的 element ID 排序，orphan 为空集，算法退化为直接使用 delta.order。
+
+DELETED 元素保留在 order 中（`to_list()` 和 formatter 都已跳过 DELETED），无需从 order 中移除。
+
+---
+
+## 字段合并策略分发
 
 `_resolve_merge_strategy()` 根据 [Schema 规则](03-schema-system.md) 决定处理方式：
 
@@ -56,17 +137,6 @@
 | `smart_match` | 按 match key 匹配数组元素后逐元素合并 |
 
 类型不匹配时通过 `_build_warn_msg()` 生成警告（读取 [MergeContext](07-diagnostics.md) 上下文信息）并记录到 `diag`。
-
----
-
-## apply_array_delta — 数组级合并（merger.py）
-
-处理 ArrayFieldDiff 的应用：
-
-- CHANGED：递归 apply 到匹配的元素
-- ADDED：ID 重分配后追加
-- DELETED：标记删除
-- order 重建：保持 Mod 元素顺序 + 保留前 Mod 新增元素位置
 
 ---
 
@@ -85,13 +155,13 @@
 单个文件的完整合并流程：
 
 ```
-base_data → DiffDict.from_dict() → 全状态树
+base_data → DictFieldDiff.from_dict() → 全状态树
     |
     v
 for each mod (按优先级):
     设置 MergeContext 上下文
-    apply_delta(current, delta, version=step)
-    apply_delta(current, override_delta)  // 若有用户覆写
+    apply_dict_delta(current, delta, version=step)
+    apply_dict_delta(current, override_delta)  // 若有用户覆写
     |
     v
 current.to_dict() → 合并后 JSON

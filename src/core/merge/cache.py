@@ -7,14 +7,14 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..infra.diagnostics import diag, merge_ctx
-from ..infra.profiler import profile, profile_block
+from ..infra.diagnostics import diag
+from ..infra.profiler import profile
 from ..infra.types import ChangeKind, DictFieldDiff, JsonObject
 from ..json.store import JsonStore
 from ..schema.loader import get_schema_root_key, load_schemas, resolve_schema
 from .delta import ModDelta
 from .formatter import format_delta_json
-from .merger import apply_delta
+from .merger import apply_mod_deltas
 
 
 @dataclass
@@ -47,7 +47,7 @@ class MergeCache:
         self._schema_dir: Path | None = None
 
     @classmethod
-    def instance(cls) -> "MergeCache":
+    def instance(cls) -> MergeCache:
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
@@ -75,12 +75,8 @@ class MergeCache:
         注意：need_steps=False 的结果缓存后，后续 need_steps=True 会重新计算。
         """
         cached = self._cache.get(rel_path)
-        if cached is not None:
-            if need_steps and not cached.steps:
-                # 之前是 need_steps=False 缓存的，需要重新计算
-                pass
-            else:
-                return cached
+        if cached is not None and (not need_steps or cached.steps):
+            return cached
 
         state = self._compute_file(rel_path, mod_configs, schema_dir, need_steps)
         self._cache[rel_path] = state
@@ -107,51 +103,32 @@ class MergeCache:
         schema = resolve_schema(rel_path, schemas) if schemas else None
         root_key = get_schema_root_key(schema) if schema else None
 
-        current = DictFieldDiff.from_dict(base_data)
-        steps: list[StepState] = []
-        mod_version = 0
-
+        mod_data_list: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in mod_configs:
-            if not store.has_mod(mod_id, rel_path):
-                continue
-
-            merge_ctx.mod_name = mod_name
-            merge_ctx.mod_id = mod_id
-            merge_ctx.rel_path = rel_path
-            merge_ctx.source_file = str(config_path / rel_path)
-
+            assert store.has_mod(mod_id, rel_path)
             delta = ModDelta.get(mod_id, rel_path)
-            if not delta:
-                continue
+            assert delta is not None
+            mod_data_list.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
-            field_path = [root_key] if root_key else None
-            mod_version += 1
-            with profile_block("merge_cache.apply_delta"):
-                apply_delta(current, delta, schema, field_path,
-                            version=mod_version)
+        current = DictFieldDiff.from_dict(base_data)
+        field_path: list[str] | None = [root_key] if root_key else None
+        steps: list[StepState] = []
 
-            # 检查用户 override delta
-            override_delta = store.get_override(mod_id, rel_path)
-            if override_delta is not None:
-                with profile_block("merge_cache.apply_override"):
-                    apply_delta(current, override_delta, schema, field_path,
-                                version=mod_version, is_override=True)
+        def on_step(mod_id: str, mod_name: str, state: DictFieldDiff, version: int) -> None:
+            left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
+                state, highlight_version=version,
+            )
+            steps.append(StepState(
+                mod_id=mod_id,
+                mod_name=mod_name,
+                left_lines=left_lines,
+                right_lines=right_lines,
+                left_kinds=left_kinds,
+                right_kinds=right_kinds,
+            ))
 
-            # 产出中间状态（diff_dialog 用，merger 路径跳过）
-            if need_steps:
-                with profile_block("merge_cache.format_delta_json"):
-                    left_lines, right_lines, left_kinds, right_kinds = format_delta_json(
-                        current, highlight_version=mod_version,
-                    )
-
-                steps.append(StepState(
-                    mod_id=mod_id,
-                    mod_name=mod_name,
-                    left_lines=left_lines,
-                    right_lines=right_lines,
-                    left_kinds=left_kinds,
-                    right_kinds=right_kinds,
-                ))
+        apply_mod_deltas(current, mod_data_list, schema, field_path, rel_path,
+                         step_cb=on_step if need_steps else None)
 
         warnings = [msg for _, msg in diag.snapshot("merge")]
 

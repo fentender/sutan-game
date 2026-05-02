@@ -8,7 +8,8 @@ from .delta import (
 )
 from .formatter import format_delta_json as format_delta_json
 from .merger import (
-    apply_delta as apply_delta,
+    apply_dict_delta as apply_dict_delta,
+    apply_mod_deltas as apply_mod_deltas,
     copy_failed_files as copy_failed_files,
     merge_all_files as merge_all_files,
     merge_file as merge_file,

@@ -50,7 +50,7 @@ class MergeMode(enum.Enum):
 # ── delta 差异描述类型 ──
 
 # type 语句 RHS 延迟求值，可在类定义之前声明
-type DeltaEntry = FieldDiff | DictFieldDiff | ArrayFieldDiff
+type DiffEntry = FieldDiff | DictFieldDiff | ArrayFieldDiff
 
 
 class ChangeKind(enum.IntFlag):
@@ -71,6 +71,11 @@ class ChangeKind(enum.IntFlag):
     def base_kind(self) -> ChangeKind:
         """提取基础变化类型，去掉修饰标志"""
         return ChangeKind.__new__(ChangeKind, self._value_ & 0x03)
+
+    @property
+    def flags(self) -> ChangeKind:
+        """提取修饰标志位，去掉基础变化类型"""
+        return ChangeKind.__new__(ChangeKind, self._value_ & ~0x03)
 
     @property
     def is_multi_mod(self) -> bool:
@@ -125,6 +130,10 @@ class FieldDiff:
             die_if_unbearable(val, JsonValue)  # pyright: ignore[reportArgumentType]
         object.__setattr__(self, name, val)
 
+    @property
+    def is_modified(self) -> bool:
+        return self.kind.base_kind != ChangeKind.ORIGIN
+
     def to_delta_dict(self) -> JsonObject:
         """序列化为可 JSON 化的 dict，保留完整 ChangeKind"""
         result: JsonObject = {
@@ -154,14 +163,18 @@ class DictFieldDiff:
     作为稀疏 delta 时（compute_delta 产出）：仅含被修改的 key。
     作为全状态树时（from_dict 产出）：包含所有 key，每个标注 ChangeKind。
     """
-    items: dict[str, DeltaEntry] = field(
+    items: dict[str, DiffEntry] = field(
         default_factory=dict,
     )
+
+    @property
+    def is_modified(self) -> bool:
+        return any(v.is_modified for v in self.items.values())
 
     @classmethod
     def from_dict(cls, data: JsonObject) -> DictFieldDiff:
         """将普通 dict 转换为全状态 DiffDict，每个字段初始为 ORIGIN"""
-        items: dict[str, DeltaEntry] = {}
+        items: dict[str, DiffEntry] = {}
         for key, value in data.items():
             if isinstance(value, dict):
                 items[key] = cls.from_dict(value)
@@ -205,7 +218,7 @@ class DictFieldDiff:
     def from_delta_dict(cls, data: JsonObject) -> DictFieldDiff:
         """从序列化的 delta dict 恢复 DictFieldDiff"""
         items_raw = cast(JsonObject, data["items"])
-        items: dict[str, DeltaEntry] = {}
+        items: dict[str, DiffEntry] = {}
         for key, raw in items_raw.items():
             items[key] = _delta_entry_from_dict(cast(JsonObject, raw))
         return cls(items=items)
@@ -223,17 +236,33 @@ class ArrayFieldDiff:
 
     作为全状态时（from_list 产出）：diffs 包含所有元素，每个标注 ChangeKind。
     """
-    diffs: list[DeltaEntry]   # 每个变化元素的 diff
+    diffs: list[DiffEntry]   # 每个变化元素的 diff
     base_count: int           # base 数组的元素数量
     indices: list[int]        # diffs 中每个元素的 ID (len == len(diffs))
     order: list[int]          # 应用 delta 后数组的完整顺序（含边界标记 0/-1）
     is_duplist: bool = False  # 原始数组是否为 DupList（重复键序列化需要）
     old_order: list[int] | None = None  # apply_array_delta 重建 order 时保存旧 order
 
+    @property
+    def is_modified(self) -> bool:
+        return any(d.is_modified for d in self.diffs)
+
+    @classmethod
+    def wrap(cls, value: DiffEntry | None, is_dup: bool) -> ArrayFieldDiff:
+        if value is None:
+            return ArrayFieldDiff(
+                diffs=[], indices=[], base_count=0,
+                order=[0, -1], is_duplist=is_dup,
+            )
+        return ArrayFieldDiff(
+            diffs=[value], indices=[1], base_count=1,
+            order=[0, 1, -1], is_duplist=is_dup,
+        )
+
     @classmethod
     def from_list(cls, data: JsonArray) -> ArrayFieldDiff:
         """将普通 list 转换为全状态 ArrayFieldDiff，每个元素初始为 ORIGIN"""
-        diffs: list[DeltaEntry] = []
+        diffs: list[DiffEntry] = []
         for elem in data:
             if isinstance(elem, dict):
                 diffs.append(DictFieldDiff.from_dict(elem))
@@ -298,7 +327,7 @@ class ArrayFieldDiff:
     def from_delta_dict(cls, data: JsonObject) -> ArrayFieldDiff:
         """从序列化 dict 恢复 ArrayFieldDiff"""
         raw_diffs = cast(list[JsonObject], data["diffs"])
-        diffs: list[DeltaEntry] = [_delta_entry_from_dict(d) for d in raw_diffs]
+        diffs: list[DiffEntry] = [_delta_entry_from_dict(d) for d in raw_diffs]
         raw_old_order = data.get("old_order")
         return cls(
             diffs=diffs,
@@ -312,7 +341,7 @@ class ArrayFieldDiff:
 
 # ── delta 序列化辅助函数 ──
 
-def _delta_entry_from_dict(raw: JsonObject) -> DeltaEntry:
+def _delta_entry_from_dict(raw: JsonObject) -> DiffEntry:
     """根据 __type 标记恢复对应类型"""
     kind_str = cast(str, raw["__type"])
     if kind_str == "dict_delta":

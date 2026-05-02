@@ -10,7 +10,7 @@ import copy
 
 from src.core.merge.delta import compute_delta
 from src.core.json.parser import DupList
-from src.core.merge.merger import apply_delta, merge_file
+from src.core.merge.merger import apply_dict_delta, merge_file
 from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
@@ -84,7 +84,7 @@ def test_duplist_delta_apply() -> None:
     assert isinstance(delta, DictFieldDiff)
 
     full_state = DictFieldDiff.from_dict(base_data)
-    apply_delta(full_state, delta, None, None, version=1)
+    apply_dict_delta(full_state, delta, None, None, version=1)
     result_dict = full_state.to_dict()
 
     # 验证 settlement_prior 结构
@@ -238,7 +238,7 @@ def test_duplist_no_nested_arrays_in_output() -> None:
     assert isinstance(delta, DictFieldDiff)
 
     full_state = DictFieldDiff.from_dict(base_data)
-    apply_delta(full_state, delta, None, None, version=1)
+    apply_dict_delta(full_state, delta, None, None, version=1)
     result_dict = full_state.to_dict()
 
     result = result_dict.get("result", {})

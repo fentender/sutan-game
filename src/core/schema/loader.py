@@ -232,6 +232,58 @@ def get_schema_root_key(schema: JsonObject) -> str:
     return "_fields"
 
 
+SCHEMA_META_KEYS: frozenset[str] = frozenset({
+    "__type__", "__merge__", "__fields__", "__element__",
+    "__match_key__", "__template__", "__use_template__", "__templates__",
+})
+
+
+def is_known_field(
+    schema: JsonObject | None,
+    field_path: list[str] | None,
+    field_def: JsonObject | None,
+    key: str,
+) -> bool:
+    """判断 key 在当前 schema 位置是否为已知字段。
+
+    已知（返回 True）的情况：
+    - schema 信息不足以判断（无 schema / 无 field_def）
+    - dictionary 顶层（key 是任意 ID）
+    - key 在 field_def 的已知字段集合中
+    - key 匹配 DSL 模式
+    """
+    if schema is None or field_def is None or not isinstance(field_def, dict):
+        return True
+
+    if field_path == ["_entry"]:
+        meta = schema.get("_meta")
+        if isinstance(meta, dict) and meta.get("file_type") == "dictionary":
+            return True
+
+    known_keys: set[str] = set()
+    fields = field_def.get("__fields__")
+    if isinstance(fields, dict):
+        known_keys = set(fields.keys())
+    else:
+        candidates = {k for k in field_def if k not in SCHEMA_META_KEYS}
+        if candidates and all(
+            isinstance(field_def[k], dict) and (
+                "__type__" in field_def[k]  # type: ignore[operator]
+                or "__use_template__" in field_def[k]  # type: ignore[operator]
+            )
+            for k in candidates
+        ):
+            known_keys = candidates
+
+    if not known_keys:
+        return True
+
+    if key in known_keys:
+        return True
+
+    return classify_dsl_key(key) is not None
+
+
 def check_type_match(
     schema_type: str | list[str] | None,
     actual_value: object,

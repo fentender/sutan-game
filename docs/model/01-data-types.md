@@ -26,7 +26,7 @@
 | `JsonArray` | `list[JsonValue]` | JSON 数组 |
 | `CancelCheck` | `Callable[[], None]` | 取消检查回调 |
 | `ProgressCallback` | `Callable[[int, int], None]` | 进度回调 (完成, 总数) |
-| `DeltaEntry` | `FieldDiff \| DictFieldDiff \| ArrayFieldDiff` | 差异树节点联合类型 |
+| `DiffEntry` | `FieldDiff \| DictFieldDiff \| ArrayFieldDiff` | 差异树节点联合类型 |
 
 ---
 
@@ -62,7 +62,7 @@
 
 ## 差异树数据结构
 
-三个 dataclass 组成树形 delta 描述，联合类型为 `DeltaEntry`。贯穿 [差异计算](04-diff-engine.md) 和 [合并引擎](05-merge-engine.md) 两个模块。
+三个 dataclass 组成树形 delta 描述，联合类型为 `DiffEntry`。贯穿 [差异计算](04-diff-engine.md) 和 [合并引擎](05-merge-engine.md) 两个模块。
 
 ### FieldDiff（叶子节点）
 
@@ -75,7 +75,7 @@
 | `old_value` | `JsonValue` | CHANGED 时为旧值，DELETED 时为被删除的值 |
 | `version` | `int` | 哪次 Mod 迭代修改了此字段（0=原始） |
 
-**类型约束**：`value` 和 `old_value` 只允许 `JsonValue`，不允许 `DeltaEntry`（即不能放 `DictFieldDiff`/`ArrayFieldDiff`/`FieldDiff`）。通过 `__setattr__` 使用 `beartype.door.die_if_unbearable` 进行运行时校验，违规直接抛异常。
+**类型约束**：`value` 和 `old_value` 只允许 `JsonValue`，不允许 `DiffEntry`（即不能放 `DictFieldDiff`/`ArrayFieldDiff`/`FieldDiff`）。通过 `__setattr__` 使用 `beartype.door.die_if_unbearable` 进行运行时校验，违规直接抛异常。
 
 序列化格式：`{"__type": "field", "kind": int, "version": int, "value": ..., "old_value": ...}`
 
@@ -88,7 +88,7 @@ dict 的字段级 delta / 全状态注解树，有两种语义：
 
 | 字段    | 类型                    | 说明             |
 |---------|-------------------------|------------------|
-| `items` | `dict[str, DeltaEntry]` | 子字段的差异映射 |
+| `items` | `dict[str, DiffEntry]` | 子字段的差异映射 |
 
 关键方法：
 
@@ -99,7 +99,7 @@ dict 的字段级 delta / 全状态注解树，有两种语义：
 | `to_delta_dict()` | 序列化为 JSON（带 `__type` 标记） |
 | `from_delta_dict(data)` | 从序列化 JSON 恢复 |
 
-序列化格式：`{"__type": "dict_delta", "items": {key: DeltaEntry序列化, ...}}`
+序列化格式：`{"__type": "dict_delta", "items": {key: DiffEntry序列化, ...}}`
 
 ### ArrayFieldDiff（数组节点）
 
@@ -107,7 +107,7 @@ dict 的字段级 delta / 全状态注解树，有两种语义：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `diffs` | `list[DeltaEntry]` | 每个变化元素的 diff（可为 FieldDiff/DictFieldDiff/ArrayFieldDiff） |
+| `diffs` | `list[DiffEntry]` | 每个变化元素的 diff（可为 FieldDiff/DictFieldDiff/ArrayFieldDiff） |
 | `base_count` | `int` | base 数组的元素数量 |
 | `indices` | `list[int]` | 每个 diff 对应的元素 ID（1-based），`len(indices) == len(diffs)` |
 | `order` | `list[int]` | 应用 delta 后数组的完整排列（含 0/-1 边界标记） |
@@ -127,7 +127,7 @@ ID 规则：
 
 ## Delta 序列化协议
 
-三种 `DeltaEntry` 类型统一通过 `__type` 字段区分：
+三种 `DiffEntry` 类型统一通过 `__type` 字段区分：
 
 | `__type` 值      | 对应类型         |
 |------------------|------------------|

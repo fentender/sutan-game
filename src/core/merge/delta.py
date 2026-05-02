@@ -16,7 +16,7 @@ from ..infra.types import (
     ArrayFieldDiff,
     ArrayMatching,
     ChangeKind,
-    DeltaEntry,
+    DiffEntry,
     DictFieldDiff,
     DupList,
     FieldDiff,
@@ -115,7 +115,7 @@ def _recursive_delta(
         return None
 
     if isinstance(base, dict) and isinstance(mod, dict):
-        items: dict[str, DeltaEntry] = {}
+        items: dict[str, DiffEntry] = {}
         for key, mod_val in mod.items():
             child_path = field_path + [key] if field_path is not None else None
             if key not in base:
@@ -219,18 +219,18 @@ def _array_delta_from_matching(
     """根据匹配结果计算 ArrayFieldDiff。"""
     base_count = len(base_arr)
 
-    diffs: list[FieldDiff] = []
+    diffs: list[DiffEntry] = []
     indices: list[int] = []
     next_added_id = base_count + 1
 
-    # 配对元素：递归比较，有差异则记录 CHANGED
+    # 配对元素：递归比较，有差异则记录
     for base_idx, mod_idx in matching.pairs:
         elem_delta = _recursive_delta(
             base_arr[base_idx], mod_arr[mod_idx], schema, field_path, merge_mode,
         )
         if elem_delta is not None:
             base_id = base_idx + 1  # 1-based
-            diffs.append(FieldDiff(ChangeKind.CHANGED, elem_delta))
+            diffs.append(elem_delta)
             indices.append(base_id)
 
     # 未匹配的 mod 元素 → 新增
@@ -278,7 +278,7 @@ def _remap_delta_to_current(
         # 类型不匹配时保守返回原 delta（上游会按原路径应用）
         return delta
 
-    new_items: dict[str, DeltaEntry] = {}
+    new_items: dict[str, DiffEntry] = {}
 
     for key, entry in delta.items.items():
         hist_val = hist_data.get(key) if key in hist_data else None
@@ -399,16 +399,13 @@ def _remap_array_diff(
     matching = match_by_heuristic(hist_arr, current_arr)
     hist_to_current: dict[int, int] = dict(matching.pairs)
 
-    new_diffs: list[FieldDiff] = []
+    new_diffs: list[DiffEntry] = []
     new_indices: list[int] = []
-    # hist_id → new_id 的映射（用于重写 order）
     id_remap: dict[int, int] = {}
 
     added_counter = 0
 
     for fd, eid in zip(delta.diffs, delta.indices, strict=True):
-        base_kind = fd.kind.base_kind
-
         if eid > hist_base_count:
             # ADDED 元素，重新分配 ID
             added_counter += 1
@@ -421,36 +418,27 @@ def _remap_array_diff(
         # CHANGED / DELETED：eid 是历史 base 的 1-based ID
         hist_idx = eid - 1
         if hist_idx not in hist_to_current:
-            # 历史元素在当前 base 中没有对应（已被游戏删除）→ 丢弃
             continue
         cur_idx = hist_to_current[hist_idx]
         new_id = cur_idx + 1  # 1-based
 
-        if base_kind == ChangeKind.CHANGED and isinstance(fd.value, DictFieldDiff):
-            # 递归重映射子 DiffDict（用对应的历史/当前元素作为参照）
+        if isinstance(fd, DictFieldDiff):
             hist_elem = hist_arr[hist_idx]
             cur_elem = current_arr[cur_idx]
-            sub = _remap_delta_to_current(fd.value, hist_elem, cur_elem)
+            sub = _remap_delta_to_current(fd, hist_elem, cur_elem)
             if sub is None or not sub.items:
-                # 子 delta 完全清空 → 丢弃此元素变更
                 continue
-            new_diffs.append(FieldDiff(
-                kind=fd.kind, value=sub,
-                old_value=fd.old_value, version=fd.version,
-            ))
+            new_diffs.append(sub)
             new_indices.append(new_id)
             id_remap[eid] = new_id
-        elif base_kind == ChangeKind.CHANGED and isinstance(fd.value, ArrayFieldDiff):
+        elif isinstance(fd, ArrayFieldDiff):
             hist_elem = hist_arr[hist_idx]
             cur_elem = current_arr[cur_idx]
             if isinstance(hist_elem, list) and isinstance(cur_elem, list):
-                sub_arr = _remap_array_diff(fd.value, hist_elem, cur_elem)
+                sub_arr = _remap_array_diff(fd, hist_elem, cur_elem)
                 if sub_arr is None:
                     continue
-                new_diffs.append(FieldDiff(
-                    kind=fd.kind, value=sub_arr,
-                    old_value=fd.old_value, version=fd.version,
-                ))
+                new_diffs.append(sub_arr)
                 new_indices.append(new_id)
                 id_remap[eid] = new_id
             else:
@@ -458,7 +446,6 @@ def _remap_array_diff(
                 new_indices.append(new_id)
                 id_remap[eid] = new_id
         else:
-            # CHANGED 标量 或 DELETED：直接重映射 ID
             new_diffs.append(fd)
             new_indices.append(new_id)
             id_remap[eid] = new_id
@@ -524,7 +511,7 @@ def compute_delta(
         # 无变化或非 dict 结果，包装为 DiffDict
         if result is None:
             # 整个 mod_data 与空 dict 不同，每个 key 都是新增
-            items: dict[str, DeltaEntry] = {}
+            items: dict[str, DiffEntry] = {}
             for k, v in mod_data.items():
                 items[k] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(v))
             return DictFieldDiff(items) if items else None
@@ -569,13 +556,17 @@ def flatten_delta(
         elif isinstance(diff, DictFieldDiff):
             result.extend(flatten_delta(diff, path))
         elif isinstance(diff, ArrayFieldDiff):
-            for field_diff, elem_id in zip(diff.diffs, diff.indices, strict=True):
+            for elem_diff, elem_id in zip(diff.diffs, diff.indices, strict=True):
                 elem_path = path + (f"[{elem_id}]",)
-                if isinstance(field_diff.value, DictFieldDiff):
-                    # CHANGED 元素的内部字段变化
-                    result.extend(flatten_delta(field_diff.value, elem_path))
+                if isinstance(elem_diff, DictFieldDiff):
+                    result.extend(flatten_delta(elem_diff, elem_path))
+                elif isinstance(elem_diff, ArrayFieldDiff):
+                    result.extend(flatten_delta(DictFieldDiff(items={
+                        f"[{eid}]": d for d, eid in zip(elem_diff.diffs, elem_diff.indices)
+                    }), elem_path))
                 else:
-                    result.append((elem_path, field_diff))
+                    assert isinstance(elem_diff, FieldDiff)
+                    result.append((elem_path, elem_diff))
     return result
 
 
@@ -616,7 +607,7 @@ class ModDelta:
             history_dir: history_config 目录路径（ADAPTIVE 模式需要）
         """
         # 延迟导入避免循环依赖（merger → delta_store → merger）
-        from .merger import apply_delta
+        from .merger import apply_dict_delta
 
         store = JsonStore.instance()
         schemas = load_schemas(schema_dir) if schema_dir else {}
@@ -778,7 +769,7 @@ class ModDelta:
                         if current is None:
                             current = DictFieldDiff.from_dict(base_data)
                         fp: list[str] | None = [root_key] if root_key else None
-                        apply_delta(current, delta, schema, fp)
+                        apply_dict_delta(current, delta, schema, fp)
         else:
             # 无 REPLACE mod 时，走原有的并行/串行逻辑
             if total <= 20:

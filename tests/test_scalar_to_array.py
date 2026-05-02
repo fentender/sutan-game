@@ -7,7 +7,7 @@
 """
 from src.core.merge.delta import _remap_delta_to_current, compute_delta
 from src.core.merge.formatter import format_delta_json
-from src.core.merge.merger import apply_delta
+from src.core.merge.merger import apply_dict_delta
 from src.core.infra.types import (
     ArrayFieldDiff,
     ChangeKind,
@@ -80,7 +80,7 @@ def test_scalar_to_array_apply() -> None:
 
     # 创建全状态并应用 delta
     full_state = DictFieldDiff.from_dict(base_data)
-    apply_delta(full_state, delta, version=1)
+    apply_dict_delta(full_state, delta, version=1)
 
     # 提取 resource 字段
     entry = full_state.items.get("2000523")
@@ -117,7 +117,7 @@ def test_scalar_to_array_format() -> None:
     assert isinstance(delta, DictFieldDiff)
 
     full_state = DictFieldDiff.from_dict(base_data)
-    apply_delta(full_state, delta, version=1)
+    apply_dict_delta(full_state, delta, version=1)
 
     # 格式化输出
     left_lines, right_lines, left_kinds, right_kinds = format_delta_json(full_state, highlight_version=1)

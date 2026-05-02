@@ -58,10 +58,20 @@ dsl.py -------------+
 
 ### 辅助函数
 
-| 函数 | 说明 |
-|------|------|
-| `get_schema_root_key(schema)` | 根据文件类型确定根级 key（`_entry` 或 `_fields`） |
-| `check_type_match(schema_type, value)` | 检查实际值的类型是否匹配 schema 定义 |
+| 函数                                                 | 说明                                                  |
+|------------------------------------------------------|-------------------------------------------------------|
+| `get_schema_root_key(schema)`                        | 根据文件类型确定根级 key（`_entry` 或 `_fields`）     |
+| `check_type_match(schema_type, value)`               | 检查实际值的类型是否匹配 schema 定义                  |
+| `is_known_field(schema, field_path, field_def, key)` | 判断 key 是否为当前 schema 位置的已知字段             |
+
+`is_known_field` 封装了合并引擎所需的全部 schema 查询逻辑，以下情况返回 `True`（已知）：
+
+- schema 信息不足（无 schema / 无 field_def）
+- dictionary 顶层（key 为任意实体 ID）
+- key 存在于 field_def 的已知字段集合中
+- key 匹配 DSL 模式（`classify_dsl_key`）
+
+`SCHEMA_META_KEYS` 常量定义了 schema 节点自身的保留 key（`__type__`、`__merge__`、`__fields__` 等），用于从 field_def 中区分元数据和实际字段定义。
 
 ---
 
