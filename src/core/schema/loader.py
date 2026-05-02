@@ -110,7 +110,7 @@ def _resolve_template(template_name: str) -> JsonObject | None:
 @profile
 def get_field_def(
     schema: JsonObject,
-    field_path: list[str],
+    field_path: tuple[str, ...],
 ) -> JsonObject | None:
     """
     在 schema 树中查找字段定义。
@@ -129,7 +129,7 @@ def get_field_def(
     if not field_path or not schema:
         return None
 
-    cache_key = (id(schema), tuple(field_path))
+    cache_key = (id(schema), field_path)
     cached = _field_def_cache.get(cache_key)
     if cached is not None:
         return cached
@@ -144,7 +144,7 @@ def get_field_def(
 
 def _get_field_def_uncached(
     schema: JsonObject,
-    field_path: list[str],
+    field_path: tuple[str, ...],
 ) -> JsonObject | None:
     """get_field_def 的无缓存内部实现"""
     current: JsonObject | None = schema
@@ -240,7 +240,7 @@ SCHEMA_META_KEYS: frozenset[str] = frozenset({
 
 def is_known_field(
     schema: JsonObject | None,
-    field_path: list[str] | None,
+    field_path: tuple[str, ...] | None,
     field_def: JsonObject | None,
     key: str,
 ) -> bool:
@@ -255,7 +255,7 @@ def is_known_field(
     if schema is None or field_def is None or not isinstance(field_def, dict):
         return True
 
-    if field_path == ["_entry"]:
+    if field_path == ("_entry",):
         meta = schema.get("_meta")
         if isinstance(meta, dict) and meta.get("file_type") == "dictionary":
             return True

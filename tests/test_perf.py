@@ -110,6 +110,47 @@ def perf_apply_delta_large():
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
 
 
+def perf_apply_delta_real():
+    """真实 Mod 数据 apply_dict_delta 性能"""
+    game_config, workshop = _require_real_data()
+    from src.core.merge.delta import ModDelta
+    from src.core.merge.merger import apply_dict_delta
+    from src.core.json.store import JsonStore
+    from src.core.infra.types import DictFieldDiff
+    from src.core.schema.loader import load_schemas, resolve_schema, get_schema_root_key
+
+    _, mod_ids = _init_store_and_delta(game_config, workshop)
+    store = JsonStore.instance()
+    schemas = load_schemas(SCHEMA_DIR) if SCHEMA_DIR.exists() else {}
+
+    tasks: list[tuple[dict, DictFieldDiff, dict | None, tuple[str, ...] | None]] = []
+    for mod_id in mod_ids:
+        for rel_path in store.mod_files(mod_id):
+            delta = ModDelta.get(mod_id, rel_path)
+            if delta is None:
+                continue
+            base_data = store.get_base(rel_path)
+            if base_data is None:
+                continue
+            schema = resolve_schema(rel_path, schemas) if schemas else None
+            root_key = get_schema_root_key(schema) if schema else None
+            fp: tuple[str, ...] | None = (root_key,) if root_key else None
+            tasks.append((base_data, delta, schema, fp))
+
+    if not tasks:
+        skip("没有可用的 delta 数据")
+
+    start = time.perf_counter()
+    for base_data, delta, schema, fp in tasks:
+        current = DictFieldDiff.from_dict(base_data)
+        apply_dict_delta(current, delta, schema, fp)
+    elapsed = time.perf_counter() - start
+
+    avg = elapsed / len(tasks) * 1000
+    log.info("    真实数据 apply_dict_delta ×%d，总耗时 %.3fs，平均 %.3fms/次",
+             len(tasks), elapsed, avg)
+
+
 def perf_diff_dialog_tab_load():
     """DiffDialog 打开 + 首次 tab 切换性能（无头 Qt）"""
     import os
@@ -445,6 +486,7 @@ def run_all(result: TestResult):
         ("perf_scan_mods", perf_scan_mods),
         ("perf_analyze_all", perf_analyze_all),
         ("perf_apply_delta_large", perf_apply_delta_large),
+        ("perf_apply_delta_real", perf_apply_delta_real),
         ("perf_merge_all", perf_merge_all),
         ("perf_delta_init", perf_delta_init),
         ("perf_delta_cache_hit", perf_delta_cache_hit),

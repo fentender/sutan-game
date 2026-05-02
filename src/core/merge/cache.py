@@ -113,7 +113,7 @@ class MergeCache:
             mod_data_list.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         current = DictFieldDiff.from_dict(base_data)
-        field_path: list[str] | None = [root_key] if root_key else None
+        field_path: tuple[str, ...] | None = (root_key,) if root_key else None
         steps: list[StepState] = []
 
         def on_step(mod_id: str, mod_name: str, state: DictFieldDiff, version: int) -> None:

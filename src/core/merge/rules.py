@@ -18,7 +18,7 @@ _ALLOW_DELETE_FIELDS: frozenset[str] = frozenset({
 })
 
 
-def smart_allow_deletion(field_path: list[str], is_array_element: bool) -> bool:
+def smart_allow_deletion(field_path: tuple[str, ...], is_array_element: bool) -> bool:
     """判定 SMART 模式下某个 DELETED 操作是否允许执行。
 
     参数:

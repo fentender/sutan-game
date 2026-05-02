@@ -38,7 +38,7 @@ def _select_array_matching(
     base: JsonArray,
     mod: JsonArray,
     schema: JsonObject | None,
-    field_path: list[str] | None,
+    field_path: tuple[str, ...] | None,
 ) -> ArrayMatching:
     """根据 schema 规则选择数组匹配策略。"""
     return match_by_heuristic(base, mod)
@@ -48,7 +48,7 @@ def _recursive_delta(
     base: JsonValue,
     mod: JsonValue,
     schema: JsonObject | None = None,
-    field_path: list[str] | None = None,
+    field_path: tuple[str, ...] | None = None,
     merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> DictFieldDiff | ArrayFieldDiff | FieldDiff | None:
     """递归比较，返回 mod 相对于 base 的变化部分。None 表示无差异。
@@ -66,20 +66,9 @@ def _recursive_delta(
     if isinstance(base, dict) and isinstance(mod, dict):
         items: dict[str, DiffEntry] = {}
         for key, mod_val in mod.items():
-            child_path = field_path + [key] if field_path is not None else None
+            child_path = field_path + (key,) if field_path is not None else None
             if key not in base:
-                # 新增字段：数组仍需走 delta 逻辑以产出 ArrayFieldDiff
-                if isinstance(mod_val, list) and schema and child_path:
-                    empty_base: DupList | JsonArray = (
-                        DupList() if isinstance(mod_val, DupList) else []
-                    )
-                    sub = _recursive_delta(empty_base, mod_val, schema, child_path, merge_mode)
-                    if isinstance(sub, ArrayFieldDiff):
-                        items[key] = sub
-                    else:
-                        items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
-                else:
-                    items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
+                items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
             else:
                 sub = _recursive_delta(base[key], mod_val, schema, child_path, merge_mode)
                 if sub is not None:
@@ -88,7 +77,7 @@ def _recursive_delta(
         for key in base:
             if key not in mod:
                 if merge_mode == MergeMode.SMART:
-                    child_path = field_path + [key] if field_path is not None else []
+                    child_path = field_path + (key,) if field_path is not None else ()
                     if not smart_allow_deletion(child_path, is_array_element=False):
                         continue
                 items[key] = FieldDiff(ChangeKind.DELETED, None)
@@ -161,7 +150,7 @@ def _array_delta_from_matching(
     mod_arr: JsonArray,
     matching: ArrayMatching,
     schema: JsonObject | None = None,
-    field_path: list[str] | None = None,
+    field_path: tuple[str, ...] | None = None,
     is_duplist: bool = False,
     merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> ArrayFieldDiff | None:
@@ -446,7 +435,7 @@ def compute_delta(
     对 dictionary 类型文件按条目级 + 字段级递归 diff，
     对 entity/config 类型文件按字段级递归 diff。
     """
-    field_path = [root_key] if root_key else None
+    field_path = (root_key,) if root_key else None
 
     if not base_data:
         # 本体无此文件，全部是新增
@@ -524,6 +513,7 @@ def _effective_mode(
     return merge_mode
 
 
+@profile
 def _process_file_group(
     rel_path: str,
     file_mod_ids: list[str],
@@ -594,7 +584,7 @@ def _process_file_group(
         if delta is not None:
             if current is None:
                 current = DictFieldDiff.from_dict(base_data)
-            fp: list[str] | None = [root_key] if root_key else None
+            fp: tuple[str, ...] | None = (root_key,) if root_key else None
             apply_delta(current, delta, schema, fp)
 
     return results

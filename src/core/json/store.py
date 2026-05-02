@@ -54,8 +54,10 @@ class JsonStore:
         self._failures: list[ParseFailure] = []
         self._ignored_failures: list[ParseFailure] = []
         self._lock = threading.Lock()
-        # JSON 解析缓存：(路径, mtime) → 解析结果
-        self._json_cache: dict[tuple[str, float], JsonObject] = {}
+        # JSON 解析缓存：路径字符串 → 解析结果
+        self._json_cache: dict[str, JsonObject] = {}
+        # 缓存时的 mtime：路径字符串 → mtime
+        self._mtime_cache: dict[str, float] = {}
 
     @classmethod
     def instance(cls) -> "JsonStore":
@@ -93,19 +95,27 @@ class JsonStore:
     @profile
     def _load_json(
         self, file_path: Path, *, clean: bool = True, dupkey: bool = True,
+        check_mtime: bool = False,
     ) -> JsonObject:
         """带缓存的文件加载（私有）。
 
-        缓存 key 为 (路径, mtime)，文件修改后自动失效。
+        缓存 key 为路径字符串。check_mtime=True 时比对文件修改时间，
+        不一致则重新解析；默认不检查，直接返回缓存。
         解析失败抛出 json.JSONDecodeError。
         """
-        mtime = file_path.stat().st_mtime
-        cache_key = (str(file_path), mtime)
-        if cache_key in self._json_cache:
-            return self._json_cache[cache_key]
+        path_str = str(file_path)
 
+        if path_str in self._json_cache:
+            if not check_mtime:
+                return self._json_cache[path_str]
+            current_mtime = file_path.stat().st_mtime
+            if current_mtime == self._mtime_cache.get(path_str):
+                return self._json_cache[path_str]
+
+        mtime = file_path.stat().st_mtime
         result = JsonStore.parse_file(file_path, clean=clean, dupkey=dupkey)
-        self._json_cache[cache_key] = result
+        self._json_cache[path_str] = result
+        self._mtime_cache[path_str] = mtime
         return result
 
     # ── 初始化 ──
@@ -268,8 +278,7 @@ class JsonStore:
     def reload_mod(self, mod_id: str) -> None:
         """从磁盘重新加载单个 mod 的所有 JSON 数据，撤销内存中的修改。
 
-        利用 _json_cache 避免重复磁盘 I/O（缓存 key 为 path+mtime，
-        磁盘文件未变则命中缓存，返回原始解析结果）。
+        利用 _json_cache 避免重复磁盘 I/O（磁盘文件未变则命中缓存）。
         """
         config_path = self._mod_config_paths.get(mod_id)
         if config_path is None or not config_path.exists():
@@ -307,7 +316,10 @@ class JsonStore:
 
         返回仍然失败的文件列表。
         """
-        self._json_cache.clear()
+        for p in paths:
+            ps = str(p)
+            self._json_cache.pop(ps, None)
+            self._mtime_cache.pop(ps, None)
         tasks: list[tuple[Path, str, bool, str, str]] = []
 
         for file_path in paths:
@@ -362,7 +374,9 @@ class JsonStore:
             for json_file in mod_dir.rglob("*.json"):
                 rel = normalize_rel_path(json_file, mod_dir)
                 try:
-                    raw = self._load_json(json_file, clean=False, dupkey=False)
+                    raw = self._load_json(
+                        json_file, clean=False, dupkey=False, check_mtime=True,
+                    )
                 except (json.JSONDecodeError, OSError):
                     diag.warn("override", f"override 文件解析失败: {json_file}")
                     continue
@@ -464,3 +478,4 @@ class JsonStore:
             self._game_config_path = None
             self._overrides_dir = None
         self._json_cache.clear()
+        self._mtime_cache.clear()

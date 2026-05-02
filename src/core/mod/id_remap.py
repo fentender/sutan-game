@@ -323,34 +323,29 @@ def allocate_new_ids(
     返回 {(mod_index, entity_type, old_id): new_id}
     """
     remap: dict[tuple[int, str, str], str] = {}
-    # 跟踪已分配的新 ID，避免分配重复
-    newly_allocated: dict[str, set[str]] = {k: set() for k in all_used}
+    effective_used: dict[str, set[str]] = {k: set(v) for k, v in all_used.items()}
 
     for entity_type, id_conflicts in conflicts.items():
-        # 确定分配类型 key
         alloc_key = entity_type
         if alloc_key == "tag_code":
-            continue  # tag code 用后缀方式处理，不走数字分配
-
+            continue
         start_val = ID_ALLOC_START.get(alloc_key, 9000000)
         start = start_val if start_val is not None else 9000000
+        used = effective_used.setdefault(alloc_key, set())
 
         for old_id, mod_indices in id_conflicts.items():
-            # 优先级最高的 mod（索引最大）保留原 ID
             keeper = max(mod_indices)
             for mod_idx in sorted(mod_indices):
                 if mod_idx == keeper:
                     continue
-                # 分配新 ID
-                combined_used = all_used.get(alloc_key, set()) | newly_allocated.get(alloc_key, set())
-                new_id_int = _next_available_id(start, combined_used)
+                new_id_int = _next_available_id(start, used)
                 new_id = str(new_id_int)
                 remap[(mod_idx, entity_type, old_id)] = new_id
-                newly_allocated.setdefault(alloc_key, set()).add(new_id)
-                start = new_id_int + 1  # 下次从更大的值开始
+                used.add(new_id)
+                start = new_id_int + 1
 
-    # tag code 冲突：通过加后缀解决
     if "tag_code" in conflicts:
+        tag_used = effective_used.setdefault("tag", set())
         for old_code, mod_indices in conflicts["tag_code"].items():
             keeper = max(mod_indices)
             suffix_counter = 1
@@ -358,12 +353,11 @@ def allocate_new_ids(
                 if mod_idx == keeper:
                     continue
                 new_code = f"{old_code}_{suffix_counter}"
-                combined_used = all_used.get("tag", set()) | newly_allocated.get("tag", set())
-                while new_code in combined_used:
+                while new_code in tag_used:
                     suffix_counter += 1
                     new_code = f"{old_code}_{suffix_counter}"
                 remap[(mod_idx, "tag_code", old_code)] = new_code
-                newly_allocated.setdefault("tag", set()).add(new_code)
+                tag_used.add(new_code)
                 suffix_counter += 1
 
     return remap

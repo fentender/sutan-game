@@ -75,7 +75,7 @@ def analyze_file_overrides(
     base_data: JsonObject,
     mod_data_list: list[tuple[str, str, JsonObject]],
     schema: JsonObject | None = None,
-    field_path: list[str] | None = None,
+    field_path: tuple[str, ...] | None = None,
 ) -> FileOverrideInfo:
     """
     分析单个文件的覆盖情况。
@@ -197,7 +197,7 @@ def analyze_all_overrides(
         # 查找 schema
         schema = resolve_schema(rel_path, schemas) if schemas else None
         root_key = get_schema_root_key(schema) if schema else None
-        schema_path = [root_key] if root_key else None
+        schema_path = (root_key,) if root_key else None
 
         info = analyze_file_overrides(rel_path, base_data, mod_data_list,
                                        schema=schema, field_path=schema_path)

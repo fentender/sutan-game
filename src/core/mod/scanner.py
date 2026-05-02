@@ -45,28 +45,22 @@ def scan_config_files(mod_path: Path) -> tuple[list[str], list[str]]:
     config_dir = mod_path / "config"
     config_files: list[str] = []
     resource_files: list[str] = []
+    config_exists = config_dir.exists()
 
-    if not config_dir.exists():
-        # 有些 mod 可能没有 config 目录，扫描其他资源
-        for f in mod_path.rglob("*"):
-            if f.is_file() and f.name not in ("Info.json",) and f.stem.lower() != "preview":
-                resource_files.append(str(f.relative_to(mod_path)))
-        return config_files, resource_files
-
-    for f in config_dir.rglob("*"):
-        if f.is_file():
-            rel = normalize_rel_path(f, config_dir)
-            if f.suffix.lower() == '.json':
-                config_files.append(rel)
-            else:
-                resource_files.append("config/" + rel)
-
-    # 扫描 config 目录之外的资源
     for f in mod_path.rglob("*"):
-        if f.is_file() and f.name not in ("Info.json",) and f.stem.lower() != "preview":
-            rel = normalize_rel_path(f, mod_path)
-            if not rel.startswith("config/"):
+        if not f.is_file():
+            continue
+        if f.name == "Info.json" or f.stem.lower() == "preview":
+            continue
+        rel = normalize_rel_path(f, mod_path)
+        if config_exists and rel.startswith("config/"):
+            config_rel = normalize_rel_path(f, config_dir)
+            if f.suffix.lower() == '.json':
+                config_files.append(config_rel)
+            else:
                 resource_files.append(rel)
+        else:
+            resource_files.append(rel)
 
     return config_files, resource_files
 
@@ -126,7 +120,7 @@ def scan_all_mods(workshop_path: Path, exclude_ids: set[str] | None = None) -> l
     steamapps = get_steamapps_from_workshop(workshop_path)
     update_times = get_mod_update_times(steamapps)
     for mod in mods:
-        mod.update_time = update_times.get(mod.mod_id)
+        mod.update_time = update_times.get(mod.mod_id, (1 << 31) - 1)
 
     return mods
 

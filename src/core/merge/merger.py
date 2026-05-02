@@ -34,7 +34,7 @@ class MergeResult:
 # ==================== 合并层 ====================
 
 
-def _build_warn_msg(field_path: list[str] | None, msg: str) -> str:
+def _build_warn_msg(field_path: tuple[str, ...] | None, msg: str) -> str:
     """拼接合并警告消息，从 merge_ctx 读取 mod 名称和文件路径"""
     parts: list[str] = []
     if merge_ctx.mod_name:
@@ -158,7 +158,7 @@ def apply_array_delta(
     base: ArrayFieldDiff,
     delta: ArrayFieldDiff,
     schema: JsonObject | None = None,
-    field_path: list[str] | None = None,
+    field_path: tuple[str, ...] | None = None,
     version: int = 0,
     is_override: bool = False,
 ) -> ArrayFieldDiff:
@@ -192,11 +192,12 @@ def apply_array_delta(
     return base
 
 
+@profile
 def apply_field_delta(
     diff: FieldDiff,
     existing: FieldDiff | None,
     schema: JsonObject | None,
-    child_path: list[str] | None,
+    child_path: tuple[str, ...] | None,
     version: int,
     is_override: bool,
 ) -> FieldDiff:
@@ -234,7 +235,7 @@ def _apply_delta_entry(
     diff: DiffEntry,
     existing: DiffEntry | None,
     schema: JsonObject | None,
-    field_path: list[str] | None,
+    field_path: tuple[str, ...] | None,
     version: int,
     is_override: bool,
 ) -> DiffEntry | None:
@@ -278,7 +279,7 @@ def apply_dict_delta(
     base: DictFieldDiff,
     delta: DictFieldDiff,
     schema: JsonObject | None = None,
-    field_path: list[str] | None = None,
+    field_path: tuple[str, ...] | None = None,
     version: int = 0,
     is_override: bool = False,
 ) -> DictFieldDiff:
@@ -296,7 +297,7 @@ def apply_dict_delta(
         current_def = get_field_def(schema, field_path)
 
     for key, diff in delta.items.items():
-        child_path = field_path + [key] if field_path is not None else None
+        child_path = field_path + (key,) if field_path is not None else None
         existing = base.items.get(key)
 
         # DupList 归一化（仅 dict 需要）
@@ -316,7 +317,7 @@ def apply_dict_delta(
     # 未知 key 警告
     for key in delta.items:
         if not is_known_field(schema, field_path, current_def, key):
-            path_with_key = field_path + [key] if field_path is not None else None
+            path_with_key = field_path + (key,) if field_path is not None else None
             diag.warn("merge", _build_warn_msg(path_with_key, f"未知字段 '{key}'，schema 中未定义"))
 
     return base
@@ -329,7 +330,7 @@ def apply_mod_deltas(
     current: DictFieldDiff,
     mod_data_list: list[tuple[str, str, DictFieldDiff, str]],
     schema: JsonObject | None,
-    field_path: list[str] | None,
+    field_path: tuple[str, ...] | None,
     rel_path: str,
     *,
     step_cb: Callable[[str, str, DictFieldDiff, int], None] | None = None,
@@ -391,7 +392,7 @@ def merge_file(
 
     current = DictFieldDiff.from_dict(base_data)
     root_key = get_schema_root_key(schema) if schema else None
-    fp: list[str] | None = [root_key] if root_key else None
+    fp: tuple[str, ...] | None = (root_key,) if root_key else None
 
     apply_mod_deltas(current, mod_data_list, schema, fp, rel_path)
 
