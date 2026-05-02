@@ -312,7 +312,7 @@ def _validate_type_combination(field_name: str, type_list: list[str]) -> None:
 def _detect_match_key(field_info: FieldInfo) -> list[str] | None:
     """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。
     按 COMMON_MATCH_KEYS 优先级顺序返回第一个命中的字段。"""
-    from ..merge.delta import COMMON_MATCH_KEYS
+    from ..merge.array_match import COMMON_MATCH_KEYS
     for key in COMMON_MATCH_KEYS:
         if field_info.get(f"has_{key}"):
             return [key]
@@ -383,7 +383,7 @@ def _detect_match_key_from_global(canonical: str) -> list[str] | None:
     elem_counts = fi.get("elem_child_key_counts", {})
     if not elem_counts:
         return None
-    from ..merge.delta import COMMON_MATCH_KEYS
+    from ..merge.array_match import COMMON_MATCH_KEYS
     for key in COMMON_MATCH_KEYS:
         if key in elem_counts:
             return [key]

@@ -12,7 +12,7 @@ from pathlib import Path
 from .core.infra.diagnostics import diag
 
 # 应用版本号（发版时与 git tag 同步更新）
-APP_VERSION = "1.3.4"
+APP_VERSION = "1.4.0"
 
 # 更新检查源（GitHub 优先，Gitee 备用）
 UPDATE_SOURCES = [

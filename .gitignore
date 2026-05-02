@@ -28,3 +28,8 @@ dist/
 # 项目自定义文件夹
 bug
 tmp
+.mypy_cache
+.pytest_cache
+.ruff_cache
+sudan.code-workspace
+skills-lock.json
