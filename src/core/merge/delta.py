@@ -80,8 +80,8 @@ def _recursive_delta(
                     child_path = field_path + (key,) if field_path is not None else ()
                     if not smart_allow_deletion(child_path, is_array_element=False):
                         continue
-                items[key] = FieldDiff(ChangeKind.DELETED, None)
-        return DictFieldDiff(items) if items else None
+                items[key] = FieldDiff(ChangeKind.DELETED, None, old_value=base[key])
+        return DictFieldDiff(items=items, kind=ChangeKind.ORIGIN) if items else None
 
     # ── 数组归一化：DupList / 标量 → list ──
     if isinstance(base, DupList) or isinstance(mod, DupList):
@@ -183,7 +183,7 @@ def _array_delta_from_matching(
     if merge_mode != MergeMode.SMART:
         for base_idx in matching.unmatched_base:
             base_id = base_idx + 1  # 1-based
-            diffs.append(FieldDiff(ChangeKind.DELETED, None))
+            diffs.append(FieldDiff(ChangeKind.DELETED, None, old_value=base_arr[base_idx]))
             indices.append(base_id)
 
     if not diffs:
@@ -192,7 +192,7 @@ def _array_delta_from_matching(
     order = _build_order(matching, added_id_map)
     return ArrayFieldDiff(
         diffs=diffs, base_count=base_count, indices=indices, order=order,
-        is_duplist=is_duplist,
+        is_duplist=is_duplist, old_order=None, kind=ChangeKind.ORIGIN,
     )
 
 
@@ -225,7 +225,7 @@ def _remap_delta_to_current(
         cur_has = key in current_data
 
         if isinstance(entry, FieldDiff):
-            remapped = _remap_field_diff(entry, hist_has, hist_val, cur_has, cur_val)
+            remapped = _remap_field_diff(entry, cur_has, cur_val)
             if remapped is not None:
                 new_items[key] = remapped
 
@@ -249,37 +249,47 @@ def _remap_delta_to_current(
 
     if not new_items:
         return None
-    return DictFieldDiff(items=new_items)
+    return DictFieldDiff(items=new_items, kind=delta.kind)
+
+
+def _set_version(entry: DiffEntry, version: int) -> None:
+    """递归设置 DiffEntry 树中所有 FieldDiff 的 version。"""
+    if isinstance(entry, FieldDiff):
+        object.__setattr__(entry, "version", version)
+    elif isinstance(entry, DictFieldDiff):
+        for sub in entry.items.values():
+            _set_version(sub, version)
+    elif isinstance(entry, ArrayFieldDiff):
+        for sub in entry.diffs:
+            _set_version(sub, version)
 
 
 def _remap_field_diff(
     entry: FieldDiff,
-    hist_has: bool,
-    hist_val: JsonValue,
     cur_has: bool,
     cur_val: JsonValue,
-) -> FieldDiff | None:
+) -> DiffEntry | None:
     """重映射单个 FieldDiff，返回 None 表示丢弃。
 
     输入是 compute_delta 产出的原始 delta，不含 MULTI_MOD/OVERRIDE 标志位。
+    当新旧值均为复合类型时递归比较，保证 FieldDiff(CHANGED) 只含标量。
     """
     base_kind = entry.kind.base_kind
 
     if base_kind == ChangeKind.DELETED:
         if not cur_has:
             return None
-        return entry
+        return FieldDiff(ChangeKind.DELETED, None, old_value=cur_val, version=entry.version)
 
     if base_kind == ChangeKind.ADDED:
         if cur_has:
             if cur_val == entry.value:
                 return None
-            return FieldDiff(
-                kind=ChangeKind.CHANGED,
-                value=entry.value,
-                old_value=cur_val,
-                version=entry.version,
-            )
+            result = _recursive_delta(cur_val, entry.value)
+            if result is None:
+                return None
+            _set_version(result, entry.version)
+            return result
         return entry
 
     if base_kind == ChangeKind.CHANGED:
@@ -292,12 +302,11 @@ def _remap_field_diff(
             )
         if cur_val == entry.value:
             return None
-        return FieldDiff(
-            kind=ChangeKind.CHANGED,
-            value=entry.value,
-            old_value=cur_val,
-            version=entry.version,
-        )
+        result = _recursive_delta(cur_val, entry.value)
+        if result is None:
+            return None
+        _set_version(result, entry.version)
+        return result
 
     # ORIGIN：不应出现在稀疏 delta 中，保留原样
     return entry
@@ -373,11 +382,7 @@ def _remap_array_diff(
             assert isinstance(fd, FieldDiff)
             hist_val = hist_arr[hist_idx]
             cur_val = current_arr[cur_idx]
-            remapped = _remap_field_diff(
-                fd,
-                hist_has=True, hist_val=hist_val,
-                cur_has=True, cur_val=cur_val,
-            )
+            remapped = _remap_field_diff(fd, cur_has=True, cur_val=cur_val)
             if remapped is None:
                 continue
             new_diffs.append(remapped)
@@ -414,6 +419,7 @@ def _remap_array_diff(
         indices=new_indices,
         order=new_order,
         is_duplist=delta.is_duplist,
+        old_order=None, kind=delta.kind,
     )
 
 
@@ -456,7 +462,7 @@ def compute_delta(
                     items[key] = sub
         # dictionary 顶层键是实体 ID，mod 不包含某 ID 不代表删除，
         # 任何模式下都不产生 DELETED
-        return DictFieldDiff(items) if items else None
+        return DictFieldDiff(items=items, kind=ChangeKind.ORIGIN) if items else None
     else:
         # entity/config
         result = _recursive_delta(base_data, mod_data, schema, field_path, merge_mode)
@@ -492,7 +498,7 @@ def flatten_delta(
                 elif isinstance(elem_diff, ArrayFieldDiff):
                     result.extend(flatten_delta(DictFieldDiff(items={
                         f"[{eid}]": d for d, eid in zip(elem_diff.diffs, elem_diff.indices)
-                    }), elem_path))
+                    }, kind=ChangeKind.ORIGIN), elem_path))
                 else:
                     assert isinstance(elem_diff, FieldDiff)
                     result.append((elem_path, elem_diff))

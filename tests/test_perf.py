@@ -445,7 +445,7 @@ def perf_format_delta_json_deep():
                     kind=kind, value=f"val_{i}", old_value=f"old_{i}",
                     version=version if kind == ChangeKind.CHANGED else 0,
                 )
-        return DictFieldDiff(items=items)
+        return DictFieldDiff(items=items, kind=ChangeKind.ORIGIN)
 
     dd = _build_nested(depth=3, width=10, version=1)
 

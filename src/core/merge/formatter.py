@@ -362,17 +362,26 @@ def _format_entry(
         if dk.is_origin:
             val_str = _serialize(entry.value, indent, sort_keys=True, _level=level)
             _emit(f'{prefix}{val_str}{comma}', left_lines, right_lines, left_kinds, right_kinds)
-        elif dk.is_added:
-            val_str = _serialize(entry.value, indent, sort_keys=True, _level=level)
-            _emit(f'{prefix}{val_str}{comma}', left_lines, right_lines, left_kinds, right_kinds, kind, "right")
-        elif dk.is_deleted:
-            old_str = _serialize(entry.old_value, indent, sort_keys=True, _level=level)
-            _emit(f'{prefix}{old_str}{comma}', left_lines, right_lines, left_kinds, right_kinds, kind, "left")
-        elif dk.is_changed:
-            old_str = _serialize(entry.old_value, indent, sort_keys=True, _level=level)
-            new_str = _serialize(entry.value, indent, sort_keys=True, _level=level)
-            _emit_changed(f'{prefix}{old_str}{comma}', f'{prefix}{new_str}{comma}',
-                          left_lines, right_lines, left_kinds, right_kinds, kind)
+        else:
+            has_old = entry.old_value is not None
+            has_new = entry.value is not None
+            if has_old and has_new and entry.old_value != entry.value:
+                hl = ChangeKind.CHANGED | kind.flags
+                old_str = _serialize(entry.old_value, indent, sort_keys=True, _level=level)
+                new_str = _serialize(entry.value, indent, sort_keys=True, _level=level)
+                _emit_changed(f'{prefix}{old_str}{comma}', f'{prefix}{new_str}{comma}',
+                              left_lines, right_lines, left_kinds, right_kinds, hl)
+            elif has_new and not has_old:
+                hl = ChangeKind.ADDED | kind.flags
+                val_str = _serialize(entry.value, indent, sort_keys=True, _level=level)
+                _emit(f'{prefix}{val_str}{comma}', left_lines, right_lines, left_kinds, right_kinds, hl, "right")
+            elif has_old and not has_new:
+                hl = ChangeKind.DELETED | kind.flags
+                old_str = _serialize(entry.old_value, indent, sort_keys=True, _level=level)
+                _emit(f'{prefix}{old_str}{comma}', left_lines, right_lines, left_kinds, right_kinds, hl, "left")
+            else:
+                val_str = _serialize(entry.value if has_new else entry.old_value, indent, sort_keys=True, _level=level)
+                _emit(f'{prefix}{val_str}{comma}', left_lines, right_lines, left_kinds, right_kinds)
     else:
         sub_left: list[str] = []
         sub_right: list[str] = []

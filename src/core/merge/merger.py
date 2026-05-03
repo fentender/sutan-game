@@ -123,6 +123,7 @@ def _prepare_array_delta(
         indices=[id_remap.get(i, i) for i in delta.indices],
         order=[id_remap.get(i, i) for i in delta.order],
         is_duplist=delta.is_duplist,
+        old_order=None, kind=delta.kind,
     )
 
 
@@ -170,6 +171,7 @@ def apply_array_delta(
         version: 当前 mod 迭代版本号
         is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
+    base.kind = delta.kind
     delta = _prepare_array_delta(base, delta, is_override)
 
     id_map: dict[int, int] = {eid: pos for pos, eid in enumerate(base.indices)}
@@ -202,12 +204,6 @@ def apply_field_delta(
     is_override: bool,
 ) -> FieldDiff:
     base_kind = diff.kind.base_kind
-    if base_kind == ChangeKind.ADDED and existing is not None:
-        base_kind = ChangeKind.CHANGED
-    elif base_kind != ChangeKind.ADDED and existing is None:
-        if base_kind == ChangeKind.DELETED:
-            return FieldDiff(ChangeKind.DELETED, None, version=version)
-        base_kind = ChangeKind.ADDED
 
     modifier = ChangeKind.ORIGIN
     if is_override:
@@ -240,6 +236,27 @@ def _apply_delta_entry(
     is_override: bool,
 ) -> DiffEntry | None:
     """归一化、类型校验、分派。返回合并后的值，None 表示类型校验失败。"""
+    # FieldDiff(value=dict/list) 展开为对应结构体（只展开一级）
+    if isinstance(diff, FieldDiff) and isinstance(existing, DictFieldDiff) and isinstance(diff.old_value, dict):
+        if not (diff.old_value is not None and diff.kind.base_kind == ChangeKind.DELETED):
+            print(str(field_path) + " " + str(diff) + " " + str(existing))
+        assert diff.old_value is not None and diff.kind.base_kind == ChangeKind.DELETED
+        diff = DictFieldDiff(items={
+            k: FieldDiff(diff.kind, None, old_value=v) for k, v in diff.old_value.items()
+        }, kind=ChangeKind.DELETED)
+    elif isinstance(diff, FieldDiff) and isinstance(existing, ArrayFieldDiff) and isinstance(diff.old_value, list):
+        assert diff.old_value is not None and diff.kind.base_kind == ChangeKind.DELETED
+        elems = diff.old_value
+        n = len(elems)
+        diff = ArrayFieldDiff(
+            diffs=[FieldDiff(diff.kind, None, old_value=elem) for elem in elems],
+            base_count=n,
+            indices=list(range(1, n + 1)),
+            order=[0, *range(1, n + 1), -1],
+            is_duplist=existing.is_duplist,
+            old_order=None, kind=ChangeKind.DELETED,
+        )
+
     # FieldDiff/ArrayFieldDiff 归一化
     if isinstance(diff, ArrayFieldDiff) and isinstance(existing, FieldDiff):
         existing = ArrayFieldDiff.wrap(existing, is_dup=diff.is_duplist)
@@ -292,6 +309,7 @@ def apply_dict_delta(
         is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
     # 查找当前层的 schema 定义
+    base.kind = delta.kind
     current_def: JsonObject | None = None
     if schema and field_path:
         current_def = get_field_def(schema, field_path)
@@ -314,11 +332,12 @@ def apply_dict_delta(
             continue
         base.items[key] = applied
 
-    # 未知 key 警告
-    for key in delta.items:
-        if not is_known_field(schema, field_path, current_def, key):
-            path_with_key = field_path + (key,) if field_path is not None else None
-            diag.warn("merge", _build_warn_msg(path_with_key, f"未知字段 '{key}'，schema 中未定义"))
+    # 暂时不考虑
+    # # 未知 key 警告
+    # for key in delta.items:
+    #     if not is_known_field(schema, field_path, current_def, key):
+    #         path_with_key = field_path + (key,) if field_path is not None else None
+    #         diag.warn("merge", _build_warn_msg(path_with_key, f"未知字段 '{key}'，schema 中未定义"))
 
     return base
 

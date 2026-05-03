@@ -8,7 +8,7 @@ from __future__ import annotations
 import enum
 import json
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TypedDict, cast
 
@@ -163,9 +163,8 @@ class DictFieldDiff:
     作为稀疏 delta 时（compute_delta 产出）：仅含被修改的 key。
     作为全状态树时（from_dict 产出）：包含所有 key，每个标注 ChangeKind。
     """
-    items: dict[str, DiffEntry] = field(
-        default_factory=dict,
-    )
+    items: dict[str, DiffEntry]
+    kind: ChangeKind
 
     @property
     def is_modified(self) -> bool:
@@ -182,22 +181,21 @@ class DictFieldDiff:
                 items[key] = ArrayFieldDiff.from_list(value)
             else:
                 items[key] = FieldDiff(ChangeKind.ORIGIN, value)
-        return cls(items=items)
+        return cls(items=items, kind=ChangeKind.ORIGIN)
 
     def to_dict(self) -> JsonObject:
         """转换回普通 dict，跳过 DELETED 字段"""
         result: JsonObject = {}
         for key, diff in self.items.items():
+            assert isinstance(diff, (FieldDiff, DictFieldDiff, ArrayFieldDiff)), f"字段 '{key}' 类型异常: {type(diff)}"
+            if diff.kind.base_kind == ChangeKind.DELETED:
+                continue
             if isinstance(diff, FieldDiff):
-                if diff.kind.base_kind == ChangeKind.DELETED:
-                    continue
                 result[key] = diff.value
             elif isinstance(diff, DictFieldDiff):
                 result[key] = diff.to_dict()
             elif isinstance(diff, ArrayFieldDiff):
                 result[key] = diff.to_list()
-            else:
-                raise TypeError(f"字段 '{key}' 类型异常: {type(diff)}")
         return result
 
     def to_delta_dict(self) -> JsonObject:
@@ -212,7 +210,7 @@ class DictFieldDiff:
                 items[key] = diff.to_delta_dict()
             else:
                 raise TypeError(f"字段 '{key}' 类型异常: {type(diff)}")
-        return {"__type": "dict_delta", "items": items}
+        return {"__type": "dict_delta", "items": items, "kind": self.kind}
 
     @classmethod
     def from_delta_dict(cls, data: JsonObject) -> DictFieldDiff:
@@ -221,7 +219,7 @@ class DictFieldDiff:
         items: dict[str, DiffEntry] = {}
         for key, raw in items_raw.items():
             items[key] = _delta_entry_from_dict(cast(JsonObject, raw))
-        return cls(items=items)
+        return cls(items=items, kind=cast(ChangeKind, data["kind"]))
 
 
 @dataclass
@@ -240,8 +238,9 @@ class ArrayFieldDiff:
     base_count: int           # base 数组的元素数量
     indices: list[int]        # diffs 中每个元素的 ID (len == len(diffs))
     order: list[int]          # 应用 delta 后数组的完整顺序（含边界标记 0/-1）
-    is_duplist: bool = False  # 原始数组是否为 DupList（重复键序列化需要）
-    old_order: list[int] | None = None  # apply_array_delta 重建 order 时保存旧 order
+    is_duplist: bool
+    old_order: list[int] | None
+    kind: ChangeKind
 
     @property
     def is_modified(self) -> bool:
@@ -253,10 +252,12 @@ class ArrayFieldDiff:
             return ArrayFieldDiff(
                 diffs=[], indices=[], base_count=0,
                 order=[0, -1], is_duplist=is_dup,
+                old_order=None, kind=ChangeKind.ORIGIN,
             )
         return ArrayFieldDiff(
             diffs=[value], indices=[1], base_count=1,
             order=[0, 1, -1], is_duplist=is_dup,
+            old_order=None, kind=ChangeKind.ORIGIN,
         )
 
     @classmethod
@@ -277,6 +278,7 @@ class ArrayFieldDiff:
             indices=list(range(1, n + 1)),
             order=[0, *range(1, n + 1), -1],
             is_duplist=isinstance(data, DupList),
+            old_order=None, kind=ChangeKind.ORIGIN,
         )
 
     def to_list(self) -> JsonArray:
@@ -289,9 +291,11 @@ class ArrayFieldDiff:
             diff = id_to_diff.get(eid)
             if diff is None:
                 continue
+
+            assert isinstance(diff, (FieldDiff, DictFieldDiff, ArrayFieldDiff))
+            if diff.kind.base_kind == ChangeKind.DELETED:
+                continue
             if isinstance(diff, FieldDiff):
-                if diff.kind.base_kind == ChangeKind.DELETED:
-                    continue
                 result.append(diff.value)
             elif isinstance(diff, DictFieldDiff):
                 result.append(diff.to_dict())
@@ -318,6 +322,7 @@ class ArrayFieldDiff:
             "indices": cast(JsonArray, self.indices),
             "order": cast(JsonArray, self.order),
             "is_duplist": self.is_duplist,
+            "kind": self.kind,
         }
         if self.old_order is not None:
             result["old_order"] = cast(JsonArray, self.old_order)
@@ -336,6 +341,7 @@ class ArrayFieldDiff:
             order=list(cast(list[int], data["order"])),
             is_duplist=bool(data.get("is_duplist", False)),
             old_order=list(cast(list[int], raw_old_order)) if raw_old_order is not None else None,
+            kind=cast(ChangeKind, data["kind"]),
         )
 
 
