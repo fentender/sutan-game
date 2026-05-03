@@ -123,7 +123,7 @@ def perf_apply_delta_real():
     store = JsonStore.instance()
     schemas = load_schemas(SCHEMA_DIR) if SCHEMA_DIR.exists() else {}
 
-    tasks: list[tuple[dict, DictFieldDiff, dict | None, tuple[str, ...] | None]] = []
+    tasks: list[tuple[dict, DictFieldDiff, tuple[str, ...] | None]] = []
     for mod_id in mod_ids:
         for rel_path in store.mod_files(mod_id):
             delta = ModDelta.get(mod_id, rel_path)
@@ -135,15 +135,15 @@ def perf_apply_delta_real():
             schema = resolve_schema(rel_path, schemas) if schemas else None
             root_key = get_schema_root_key(schema) if schema else None
             fp: tuple[str, ...] | None = (root_key,) if root_key else None
-            tasks.append((base_data, delta, schema, fp))
+            tasks.append((base_data, delta, fp))
 
     if not tasks:
         skip("没有可用的 delta 数据")
 
     start = time.perf_counter()
-    for base_data, delta, schema, fp in tasks:
+    for base_data, delta, fp in tasks:
         current = DictFieldDiff.from_dict(base_data)
-        apply_dict_delta(current, delta, schema, fp)
+        apply_dict_delta(current, delta, fp)
     elapsed = time.perf_counter() - start
 
     avg = elapsed / len(tasks) * 1000

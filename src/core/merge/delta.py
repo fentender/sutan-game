@@ -6,7 +6,6 @@
 
 所有方法和属性均为类级别，直接通过 ModDelta.get(...) 调用。
 """
-import copy
 import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -34,20 +33,9 @@ from .rules import smart_allow_deletion
 # ==================== Delta 产出（内部函数） ====================
 
 
-def _select_array_matching(
-    base: JsonArray,
-    mod: JsonArray,
-    schema: JsonObject | None,
-    field_path: tuple[str, ...] | None,
-) -> ArrayMatching:
-    """根据 schema 规则选择数组匹配策略。"""
-    return match_by_heuristic(base, mod)
-
-
 def _recursive_delta(
     base: JsonValue,
     mod: JsonValue,
-    schema: JsonObject | None = None,
     field_path: tuple[str, ...] | None = None,
     merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> DictFieldDiff | ArrayFieldDiff | FieldDiff | None:
@@ -68,9 +56,9 @@ def _recursive_delta(
         for key, mod_val in mod.items():
             child_path = field_path + (key,) if field_path is not None else None
             if key not in base:
-                items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
+                items[key] = FieldDiff(ChangeKind.ADDED, mod_val)
             else:
-                sub = _recursive_delta(base[key], mod_val, schema, child_path, merge_mode)
+                sub = _recursive_delta(base[key], mod_val, child_path, merge_mode)
                 if sub is not None:
                     items[key] = sub
         # 删除的字段
@@ -93,10 +81,9 @@ def _recursive_delta(
         base = [base]
 
     if isinstance(base, list) and isinstance(mod, list):
-        # 从 schema 查询合并策略
-        matching = _select_array_matching(base, mod, schema, field_path)
+        matching = match_by_heuristic(base, mod)
         return _array_delta_from_matching(
-            base, mod, matching, schema, field_path,
+            base, mod, matching, field_path,
             is_duplist=isinstance(mod, DupList),
             merge_mode=merge_mode,
         )
@@ -104,7 +91,7 @@ def _recursive_delta(
     # 标量比较
     if base == mod:
         return None
-    return FieldDiff(ChangeKind.CHANGED, copy.deepcopy(mod))
+    return FieldDiff(ChangeKind.CHANGED, mod)
 
 
 def _build_order(
@@ -149,7 +136,6 @@ def _array_delta_from_matching(
     base_arr: JsonArray,
     mod_arr: JsonArray,
     matching: ArrayMatching,
-    schema: JsonObject | None = None,
     field_path: tuple[str, ...] | None = None,
     is_duplist: bool = False,
     merge_mode: MergeMode = MergeMode.NORMAL,
@@ -161,20 +147,18 @@ def _array_delta_from_matching(
     indices: list[int] = []
     next_added_id = base_count + 1
 
-    # 配对元素：递归比较，有差异则记录
     for base_idx, mod_idx in matching.pairs:
         elem_delta = _recursive_delta(
-            base_arr[base_idx], mod_arr[mod_idx], schema, field_path, merge_mode,
+            base_arr[base_idx], mod_arr[mod_idx], field_path, merge_mode,
         )
         if elem_delta is not None:
-            base_id = base_idx + 1  # 1-based
+            base_id = base_idx + 1
             diffs.append(elem_delta)
             indices.append(base_id)
 
-    # 未匹配的 mod 元素 → 新增
     added_id_map: dict[int, int] = {}
     for mod_idx in matching.unmatched_mod:
-        diffs.append(FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_arr[mod_idx])))
+        diffs.append(FieldDiff(ChangeKind.ADDED, mod_arr[mod_idx]))
         indices.append(next_added_id)
         added_id_map[mod_idx] = next_added_id
         next_added_id += 1
@@ -431,7 +415,6 @@ def compute_delta(
     base_data: JsonObject,
     mod_data: JsonObject,
     file_type: str,
-    schema: JsonObject | None = None,
     root_key: str | None = None,
     merge_mode: MergeMode = MergeMode.NORMAL,
 ) -> DictFieldDiff | None:
@@ -444,28 +427,24 @@ def compute_delta(
     field_path = (root_key,) if root_key else None
 
     if not base_data:
-        # 本体无此文件，全部是新增
-        result = _recursive_delta({}, mod_data, schema, field_path, merge_mode)
+        result = _recursive_delta({}, mod_data, field_path, merge_mode)
         assert result is None or isinstance(result, DictFieldDiff), (
             f"_recursive_delta(dict, dict) 返回了非预期类型: {type(result)}"
         )
         return result
 
     if file_type == "dictionary":
-        items = {}
+        items: dict[str, DiffEntry] = {}
         for key, mod_val in mod_data.items():
             if key not in base_data:
-                items[key] = FieldDiff(ChangeKind.ADDED, copy.deepcopy(mod_val))
+                items[key] = FieldDiff(ChangeKind.ADDED, mod_val)
             else:
-                sub = _recursive_delta(base_data[key], mod_val, schema, field_path, merge_mode)
+                sub = _recursive_delta(base_data[key], mod_val, field_path, merge_mode)
                 if sub is not None:
                     items[key] = sub
-        # dictionary 顶层键是实体 ID，mod 不包含某 ID 不代表删除，
-        # 任何模式下都不产生 DELETED
         return DictFieldDiff(items=items, kind=ChangeKind.ORIGIN) if items else None
     else:
-        # entity/config
-        result = _recursive_delta(base_data, mod_data, schema, field_path, merge_mode)
+        result = _recursive_delta(base_data, mod_data, field_path, merge_mode)
         assert result is None or isinstance(result, DictFieldDiff), (
             f"_recursive_delta(dict, dict) 返回了非预期类型: {type(result)}"
         )
@@ -555,7 +534,7 @@ def _process_file_group(
             cumulative_data = current.to_dict()
             delta = compute_delta(
                 cumulative_data, mod_data, file_type,
-                schema=schema, root_key=root_key,
+                root_key=root_key,
             )
         elif effective == MergeMode.ADAPTIVE:
             adaptive_base = base_data
@@ -568,7 +547,7 @@ def _process_file_group(
                     adaptive_base = hist_base_used
             delta = compute_delta(
                 adaptive_base, mod_data, file_type,
-                schema=schema, root_key=root_key,
+                root_key=root_key,
                 merge_mode=MergeMode.SMART,
             )
             if (hist_base_used is not None
@@ -581,7 +560,7 @@ def _process_file_group(
         else:
             delta = compute_delta(
                 base_data, mod_data, file_type,
-                schema=schema, root_key=root_key,
+                root_key=root_key,
                 merge_mode=effective,
             )
 
@@ -591,7 +570,7 @@ def _process_file_group(
             if current is None:
                 current = DictFieldDiff.from_dict(base_data)
             fp: tuple[str, ...] | None = (root_key,) if root_key else None
-            apply_delta(current, delta, schema, fp)
+            apply_delta(current, delta, fp)
 
     return results
 

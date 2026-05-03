@@ -1,10 +1,9 @@
 """
-核心合并算法 - 基于 schema 规则的字典合并、实体合并、数组智能匹配
+核心合并算法 - 字典合并、实体合并、数组智能匹配
 
 delta 产出使用强类型 DiffDict / ArrayFieldDiff / FieldDiff 树，
 替代旧的 _DELETED 哨兵和 _delta/_new_entry/_deleted 魔法标记。
 """
-import copy
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -15,12 +14,7 @@ from ..infra.profiler import profile
 from ..infra.types import *
 from ..json.parser import dump_json
 from ..json.store import JsonStore
-from ..schema.loader import (
-    check_type_match,
-    get_field_def,
-    get_schema_root_key,
-    is_known_field,
-)
+from ..schema.loader import get_schema_root_key
 
 # 需要整文件替换而非合并的文件
 WHOLE_FILE_REPLACE = {'sfx_config.json'}
@@ -47,41 +41,6 @@ def _build_warn_msg(field_path: tuple[str, ...] | None, msg: str) -> str:
         parts.append(".".join(field_path))
     prefix = " > ".join(parts)
     return f"{prefix}: {msg}" if prefix else msg
-
-
-def _resolve_merge_strategy(
-    child_def: JsonObject | None,
-    base_val: object,
-    override_val: object,
-    key: str,
-) -> tuple[str, str | None]:
-    """确定字段的合并策略，返回 (strategy, type_warn_or_None)"""
-    if child_def:
-        strategy_val = child_def.get("__merge__", "replace")
-        strategy = str(strategy_val) if strategy_val is not None else "replace"
-
-        # 类型校验（对 FieldDiff 叶子提取实际值校验）
-        schema_type = child_def.get("__type__")
-        if schema_type and override_val is not None:
-            actual_val = override_val
-            if isinstance(override_val, FieldDiff):
-                actual_val = override_val.value
-
-            if actual_val is not None and not check_type_match(
-                cast(str | list[str] | None, schema_type) if isinstance(schema_type, (str, list)) else None,
-                actual_val,
-            ):
-                from ..json.classify import get_type_str
-                actual = get_type_str(actual_val)
-                type_warn = f"字段 '{key}' 类型不匹配: schema 期望 {schema_type}，实际为 {actual}"
-                return strategy, type_warn
-
-        return strategy, None
-
-    # 无 schema 时的默认策略
-    if isinstance(base_val, dict) and isinstance(override_val, (dict, DictFieldDiff)):
-        return "merge", None
-    return "replace", None
 
 
 def _prepare_array_delta(
@@ -158,7 +117,6 @@ def _rebuild_array_order(
 def apply_array_delta(
     base: ArrayFieldDiff,
     delta: ArrayFieldDiff,
-    schema: JsonObject | None = None,
     field_path: tuple[str, ...] | None = None,
     version: int = 0,
     is_override: bool = False,
@@ -180,7 +138,7 @@ def apply_array_delta(
         pos = id_map.get(elem_id)
         existing = base.diffs[pos] if pos is not None else None
 
-        applied = _apply_delta_entry(diff, existing, schema, field_path, version, is_override)
+        applied = _apply_delta_entry(diff, existing, field_path, version, is_override)
         if applied is None:
             continue
         if pos is None:
@@ -198,8 +156,6 @@ def apply_array_delta(
 def apply_field_delta(
     diff: FieldDiff,
     existing: FieldDiff | None,
-    schema: JsonObject | None,
-    child_path: tuple[str, ...] | None,
     version: int,
     is_override: bool,
 ) -> FieldDiff:
@@ -217,26 +173,17 @@ def apply_field_delta(
         old_val: JsonValue = None
     kind = base_kind | modifier
 
-    if diff.value is not None:
-        key = child_path[-1] if child_path else ""
-        child_def = get_field_def(schema, child_path) if schema and child_path else None
-        _, type_warn = _resolve_merge_strategy(child_def, old_val, diff, key)
-        if type_warn:
-            diag.warn("merge", _build_warn_msg(child_path, type_warn))
-
     return FieldDiff(kind, diff.value, old_value=old_val, version=version)
 
 
 def _apply_delta_entry(
     diff: DiffEntry,
     existing: DiffEntry | None,
-    schema: JsonObject | None,
     field_path: tuple[str, ...] | None,
     version: int,
     is_override: bool,
 ) -> DiffEntry | None:
     """归一化、类型校验、分派。返回合并后的值，None 表示类型校验失败。"""
-    # FieldDiff(value=dict/list) 展开为对应结构体（只展开一级）
     if isinstance(diff, FieldDiff) and isinstance(existing, DictFieldDiff) and isinstance(diff.old_value, dict):
         if not (diff.old_value is not None and diff.kind.base_kind == ChangeKind.DELETED):
             print(str(field_path) + " " + str(diff) + " " + str(existing))
@@ -257,13 +204,11 @@ def _apply_delta_entry(
             old_order=None, kind=ChangeKind.DELETED,
         )
 
-    # FieldDiff/ArrayFieldDiff 归一化
     if isinstance(diff, ArrayFieldDiff) and isinstance(existing, FieldDiff):
         existing = ArrayFieldDiff.wrap(existing, is_dup=diff.is_duplist)
     elif isinstance(existing, ArrayFieldDiff) and isinstance(diff, FieldDiff):
         diff = ArrayFieldDiff.wrap(diff, is_dup=existing.is_duplist)
 
-    # 类型校验
     if existing is not None and type(diff) is not type(existing):
         diag.error("merge", _build_warn_msg(field_path,
             "字段类型不匹配，该 Mod 可能基于旧版本游戏制作"))
@@ -277,16 +222,16 @@ def _apply_delta_entry(
         assert isinstance(existing, FieldDiff) or existing is None
         return apply_field_delta(
             diff, cast(FieldDiff | None, existing),
-            schema, field_path, version, is_override)
+            version, is_override)
 
     if isinstance(diff, DictFieldDiff):
         assert isinstance(existing, DictFieldDiff)
-        apply_dict_delta(existing, diff, schema, field_path,
+        apply_dict_delta(existing, diff, field_path,
                          version=version, is_override=is_override)
         return existing
 
     assert isinstance(diff, ArrayFieldDiff) and isinstance(existing, ArrayFieldDiff)
-    apply_array_delta(existing, diff, schema, field_path,
+    apply_array_delta(existing, diff, field_path,
                       version=version, is_override=is_override)
     return existing
 
@@ -295,7 +240,6 @@ def _apply_delta_entry(
 def apply_dict_delta(
     base: DictFieldDiff,
     delta: DictFieldDiff,
-    schema: JsonObject | None = None,
     field_path: tuple[str, ...] | None = None,
     version: int = 0,
     is_override: bool = False,
@@ -308,17 +252,12 @@ def apply_dict_delta(
         version: 当前 mod 迭代版本号
         is_override: True 时为用户手动覆写，标记 OVERRIDE 且不触发 MULTI_MOD
     """
-    # 查找当前层的 schema 定义
     base.kind = delta.kind
-    current_def: JsonObject | None = None
-    if schema and field_path:
-        current_def = get_field_def(schema, field_path)
 
     for key, diff in delta.items.items():
         child_path = field_path + (key,) if field_path is not None else None
         existing = base.items.get(key)
 
-        # DupList 归一化（仅 dict 需要）
         existing_duplist = isinstance(existing, ArrayFieldDiff) and existing.is_duplist
         diff_duplist = isinstance(diff, ArrayFieldDiff) and diff.is_duplist
         if existing_duplist and not diff_duplist:
@@ -327,17 +266,10 @@ def apply_dict_delta(
             existing = ArrayFieldDiff.wrap(existing, is_dup=True)
             base.items[key] = existing
 
-        applied = _apply_delta_entry(diff, existing, schema, child_path, version, is_override)
+        applied = _apply_delta_entry(diff, existing, child_path, version, is_override)
         if applied is None:
             continue
         base.items[key] = applied
-
-    # 暂时不考虑
-    # # 未知 key 警告
-    # for key in delta.items:
-    #     if not is_known_field(schema, field_path, current_def, key):
-    #         path_with_key = field_path + (key,) if field_path is not None else None
-    #         diag.warn("merge", _build_warn_msg(path_with_key, f"未知字段 '{key}'，schema 中未定义"))
 
     return base
 
@@ -348,7 +280,6 @@ def apply_dict_delta(
 def apply_mod_deltas(
     current: DictFieldDiff,
     mod_data_list: list[tuple[str, str, DictFieldDiff, str]],
-    schema: JsonObject | None,
     field_path: tuple[str, ...] | None,
     rel_path: str,
     *,
@@ -366,11 +297,11 @@ def apply_mod_deltas(
         merge_ctx.rel_path = rel_path
         merge_ctx.source_file = source_file
 
-        apply_dict_delta(current, delta, schema, field_path, version=version)
+        apply_dict_delta(current, delta, field_path, version=version)
 
         override_delta = JsonStore.instance().get_override(mod_id, rel_path)
         if override_delta is not None:
-            apply_dict_delta(current, override_delta, schema, field_path,
+            apply_dict_delta(current, override_delta, field_path,
                              version=version, is_override=True)
 
         if step_cb is not None:
@@ -390,30 +321,29 @@ def merge_file(
         base_data: 游戏本体的 JSON 数据
         mod_data_list: [(mod_id, mod_name, delta, source_file), ...] 按优先级排序
         rel_path: 文件相对路径（用于判断特殊文件）
-        schema: 该文件对应的 schema 规则
+        schema: 仅用于获取 root_key
     """
     result = MergeResult()
     file_name = Path(rel_path).name if rel_path else ""
 
-    # sfx_config.json 等特殊文件：整文件替换
     if file_name in WHOLE_FILE_REPLACE:
         if mod_data_list:
             _, last_mod_name, _, _ = mod_data_list[-1]
             current = DictFieldDiff.from_dict(base_data)
-            for step, (_, _mod_name, delta, _) in enumerate(mod_data_list, 1):
-                apply_dict_delta(current, delta, schema, None, version=step)
+            for step, (_, _, delta, _) in enumerate(mod_data_list, 1):
+                apply_dict_delta(current, delta, None, version=step)
             result.merged_data = current.to_dict()
             if len(mod_data_list) > 1:
                 diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {last_mod_name}")
         else:
-            result.merged_data = copy.deepcopy(base_data)
+            result.merged_data = dict(base_data)
         return result
 
     current = DictFieldDiff.from_dict(base_data)
     root_key = get_schema_root_key(schema) if schema else None
     fp: tuple[str, ...] | None = (root_key,) if root_key else None
 
-    apply_mod_deltas(current, mod_data_list, schema, fp, rel_path)
+    apply_mod_deltas(current, mod_data_list, fp, rel_path)
 
     result.merged_data = current.to_dict()
     return result

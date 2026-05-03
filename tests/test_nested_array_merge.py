@@ -243,7 +243,7 @@ def test_real_5002004_adaptive_hist_with_anchors() -> None:
 
     delta = compute_delta(
         hist_base, mod_data, "entity",
-        schema=schema, root_key=root_key, merge_mode=MergeMode.SMART,
+        root_key=root_key, merge_mode=MergeMode.SMART,
     )
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
@@ -254,7 +254,7 @@ def test_real_5002004_adaptive_hist_with_anchors() -> None:
 
     full_state = DictFieldDiff.from_dict(current_base)
     fp: tuple[str, ...] | None = (root_key,) if root_key else None
-    apply_dict_delta(full_state, remapped, schema, fp, version=1)
+    apply_dict_delta(full_state, remapped, fp, version=1)
     result = full_state.to_dict()
 
     pops = result["cards_slot"]["s4"]["pops"]

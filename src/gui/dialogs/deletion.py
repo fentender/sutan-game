@@ -458,7 +458,7 @@ class DeletionReportDialog(QDialog):
             mod_data = store.get_mod(mod_id, rel_path)
             delta = compute_delta(
                 base_data, mod_data, file_type,
-                schema=schema, root_key=root_key,
+                root_key=root_key,
                 merge_mode=MergeMode.NORMAL,
             )
             if delta:

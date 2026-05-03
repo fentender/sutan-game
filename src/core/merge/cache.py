@@ -129,7 +129,7 @@ class MergeCache:
                 right_kinds=right_kinds,
             ))
 
-        apply_mod_deltas(current, mod_data_list, schema, field_path, rel_path,
+        apply_mod_deltas(current, mod_data_list, field_path, rel_path,
                          step_cb=on_step if need_steps else None)
 
         warnings = [msg for _, msg in diag.snapshot("merge")]
