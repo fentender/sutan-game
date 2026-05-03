@@ -54,6 +54,7 @@ class RemapTable:
     cards: dict[str, str] = field(default_factory=dict)
     tag_codes: dict[str, str] = field(default_factory=dict)
     tag_ids: dict[int, int] = field(default_factory=dict)
+    tag_names: dict[str, str] = field(default_factory=dict)   # code → new_name
     rite: dict[str, str] = field(default_factory=dict)
     event: dict[str, str] = field(default_factory=dict)
     over: dict[str, str] = field(default_factory=dict)
@@ -63,7 +64,7 @@ class RemapTable:
 
     def is_empty(self) -> bool:
         return not any([
-            self.cards, self.tag_codes, self.tag_ids,
+            self.cards, self.tag_codes, self.tag_ids, self.tag_names,
             self.rite, self.event, self.over,
             self.loot, self.rite_template, self.rite_template_mappings,
         ])
@@ -97,8 +98,11 @@ class RemapTable:
 
 # ==================== ID 收集 ====================
 
-def collect_base_ids() -> dict[str, set[str]]:
-    """收集游戏本体的所有 ID（从 JsonStore 读取）"""
+def collect_base_ids() -> tuple[dict[str, set[str]], set[str]]:
+    """收集游戏本体的所有 ID 和 tag name（从 JsonStore 读取）。
+
+    返回 (base_ids, base_tag_names)。
+    """
     from ..json.store import JsonStore
     store = JsonStore.instance()
 
@@ -108,6 +112,7 @@ def collect_base_ids() -> dict[str, set[str]]:
         "loot": set(), "rite_template": set(),
         "rite_template_mappings": set(),
     }
+    base_tag_names: set[str] = set()
 
     # dictionary 类型
     for entity_type, filename in DICT_BASED_TYPES.items():
@@ -116,8 +121,12 @@ def collect_base_ids() -> dict[str, set[str]]:
             base_ids[entity_type] = set(data.keys())
             if entity_type == "tag":
                 for _code, tag_data in data.items():
-                    if isinstance(tag_data, dict) and "id" in tag_data:
-                        base_ids["tag_id"].add(str(tag_data["id"]))
+                    if isinstance(tag_data, dict):
+                        if "id" in tag_data:
+                            base_ids["tag_id"].add(str(tag_data["id"]))
+                        name = tag_data.get("name")
+                        if name:
+                            base_tag_names.add(str(name))
 
     # 文件名即 ID 的类型（从 store 的 base rel_paths 中过滤）
     for entity_type, dirname in FILE_BASED_TYPES.items():
@@ -128,7 +137,7 @@ def collect_base_ids() -> dict[str, set[str]]:
                 if "/" not in stem:  # 只取直接子目录下的文件
                     base_ids[entity_type].add(stem)
 
-    return base_ids
+    return base_ids, base_tag_names
 
 
 @dataclass
@@ -206,12 +215,14 @@ def _detect_dict_conflicts(
 def _detect_tag_conflicts(
     base_ids: set[str],
     base_tag_ids: set[str],
+    base_tag_names: set[str],
     mod_tag_list: list[dict[str, JsonObject]],
-) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
+) -> tuple[dict[str, list[int]], dict[str, list[int]], dict[str, list[tuple[int, str]]]]:
     """
-    检测 tag 冲突，返回 (code_conflicts, id_conflicts)。
+    检测 tag 三类冲突，返回 (code_conflicts, id_conflicts, name_conflicts)。
     code 冲突：相同 code 但不同 name（同 code 同 name 视为同一 tag）。
     id 冲突：不同 code 但相同数字 id。
+    name 冲突：不同 code 但相同 name（与本体或跨 mod 重名）。
     """
     # code 冲突检测
     code_to_mods: dict[str, list[int]] = {}
@@ -244,16 +255,37 @@ def _detect_tag_conflicts(
         if len(mod_indices) > 1:
             id_conflicts[id_str] = mod_indices
 
-    return code_conflicts, id_conflicts
+    # name 冲突检测（独立于 code 和 id）
+    name_to_entries: dict[str, list[tuple[int, str]]] = {}  # name → [(mod_idx, code)]
+    for mod_idx, mod_tags in enumerate(mod_tag_list):
+        for code, tag_data in mod_tags.items():
+            if code in base_ids:
+                continue
+            if isinstance(tag_data, dict):
+                name = tag_data.get("name")
+                if name:
+                    name_to_entries.setdefault(str(name), []).append((mod_idx, code))
+
+    name_conflicts: dict[str, list[tuple[int, str]]] = {}
+    for name, entries in name_to_entries.items():
+        if name in base_tag_names:
+            name_conflicts[name] = entries
+        elif len(entries) > 1:
+            name_conflicts[name] = entries
+
+    return code_conflicts, id_conflicts, name_conflicts
 
 
 def detect_conflicts(
     base_ids: dict[str, set[str]],
+    base_tag_names: set[str],
     mod_ids_list: list[ModIdInfo],
-) -> dict[str, dict[str, list[int]]]:
+) -> tuple[dict[str, dict[str, list[int]]], dict[str, list[tuple[int, str]]]]:
     """
     检测所有类型的 ID 冲突。
-    返回 {entity_type: {id_str: [mod_indices]}}
+    返回 (conflicts, tag_name_conflicts)：
+    - conflicts: {entity_type: {id_str: [mod_indices]}}
+    - tag_name_conflicts: {name: [(mod_idx, code)]}
     """
     conflicts: dict[str, dict[str, list[int]]] = {}
 
@@ -263,17 +295,17 @@ def detect_conflicts(
         if result:
             conflicts[entity_type] = result
 
-    # tag 特殊处理
+    # tag 特殊处理（code、id、name 三类独立检测）
     mod_tags: list[dict[str, JsonObject]] = [m.tag for m in mod_ids_list]
-    code_conflicts, id_conflicts = _detect_tag_conflicts(
-        base_ids["tag"], base_ids.get("tag_id", set()), mod_tags
+    code_conflicts, id_conflicts, name_conflicts = _detect_tag_conflicts(
+        base_ids["tag"], base_ids.get("tag_id", set()), base_tag_names, mod_tags
     )
     if code_conflicts:
         conflicts["tag_code"] = code_conflicts
     if id_conflicts:
         conflicts["tag_id"] = id_conflicts
 
-    return conflicts
+    return conflicts, name_conflicts
 
 
 # ==================== ID 分配 ====================
@@ -361,6 +393,59 @@ def allocate_new_ids(
                 suffix_counter += 1
 
     return remap
+
+
+def _allocate_tag_name_remaps(
+    name_conflicts: dict[str, list[tuple[int, str]]],
+    base_tag_names: set[str],
+    mod_configs: list[tuple[str, str, Path]],
+) -> dict[tuple[int, str], str]:
+    """为 tag name 冲突分配新名称。
+
+    与本体重名 → 所有 mod 条目重命名。
+    仅 mod 间重名 → 最高优先级 mod 保留，其余重命名。
+    新名称格式：「原名（【mod 名称首字符】）」，首字符冲突时扩展更多字符。
+
+    返回 {(mod_idx, code): new_name}
+    """
+    result: dict[tuple[int, str], str] = {}
+
+    for name, entries in name_conflicts.items():
+        if name in base_tag_names:
+            to_rename = entries
+        else:
+            max_idx = max(e[0] for e in entries)
+            keeper_found = False
+            to_rename = []
+            for entry in entries:
+                if entry[0] == max_idx and not keeper_found:
+                    keeper_found = True
+                    continue
+                to_rename.append(entry)
+
+        if not to_rename:
+            continue
+
+        used_suffixes: set[str] = set()
+        for mod_idx, code in to_rename:
+            mod_name = mod_configs[mod_idx][1]
+            first_char = mod_name[0] if mod_name else "?"
+            suffix = first_char
+            if suffix in used_suffixes:
+                for n in range(2, len(mod_name) + 1):
+                    candidate = mod_name[:n]
+                    if candidate not in used_suffixes:
+                        suffix = candidate
+                        break
+                else:
+                    counter = 2
+                    while f"{first_char}{counter}" in used_suffixes:
+                        counter += 1
+                    suffix = f"{first_char}{counter}"
+            used_suffixes.add(suffix)
+            result[(mod_idx, code)] = f"{name}（【{suffix}】）"
+
+    return result
 
 
 def build_remap_table(
@@ -575,7 +660,7 @@ def _remap_dict_keys(rel_str: str, data: JsonObject, remap: RemapTable) -> JsonO
         return new_data
 
     # tag.json
-    if rel_str == "tag.json" and (remap.tag_codes or remap.tag_ids):
+    if rel_str == "tag.json" and (remap.tag_codes or remap.tag_ids or remap.tag_names):
         new_data = {}
         for key, value in data.items():
             new_key = remap.tag_codes.get(key, key)
@@ -585,6 +670,8 @@ def _remap_dict_keys(rel_str: str, data: JsonObject, remap: RemapTable) -> JsonO
                     value["code"] = new_key
                 if "id" in value and isinstance(value["id"], int) and value["id"] in remap.tag_ids:
                     value["id"] = remap.tag_ids[value["id"]]
+                if key in remap.tag_names:
+                    value["name"] = remap.tag_names[key]
             new_data[new_key] = value
         return new_data
 
@@ -633,8 +720,8 @@ def remap_mod_configs(
     if not mod_configs:
         return messages, {}
 
-    # 1. 收集本体 ID
-    base_ids = collect_base_ids()
+    # 1. 收集本体 ID 和 tag name
+    base_ids, base_tag_names = collect_base_ids()
     if cancel_check:
         cancel_check()
 
@@ -645,34 +732,49 @@ def remap_mod_configs(
     if cancel_check:
         cancel_check()
 
-    # 3. 检测冲突
-    conflicts = detect_conflicts(base_ids, mod_ids_list)
-    if not conflicts:
+    # 3. 检测冲突（code、id、name 三类独立）
+    conflicts, tag_name_conflicts = detect_conflicts(base_ids, base_tag_names, mod_ids_list)
+
+    # 4. tag name 重分配
+    tag_name_remap = _allocate_tag_name_remaps(
+        tag_name_conflicts, base_tag_names, mod_configs,
+    )
+
+    if not conflicts and not tag_name_remap:
         return messages, {}
 
     # 汇总冲突信息
-    type_counts = {t: len(ids) for t, ids in conflicts.items()}
+    type_counts: dict[str, int] = {t: len(ids) for t, ids in conflicts.items()}
+    if tag_name_conflicts:
+        type_counts["tag_name"] = len(tag_name_conflicts)
     total = sum(type_counts.values())
     summary_parts = [f"{t}: {c}" for t, c in sorted(type_counts.items())]
     summary = f"ID 冲突检测: 发现 {total} 个冲突 ({', '.join(summary_parts)})"
     messages.append(summary)
     diag.info("remap", summary)
 
-    # 4. 分配新 ID
+    # 5. 分配新 ID（code/id 冲突）
     all_used = _collect_all_used_ids(base_ids, mod_ids_list)
     remap = allocate_new_ids(conflicts, all_used, len(mod_configs))
     if cancel_check:
         cancel_check()
 
-    # 5. 为每个有冲突的 mod 构建 remap table 并应用到 store
+    # 6. 为每个有冲突的 mod 构建 remap table 并应用到 store
     remap_tables: dict[str, RemapTable] = {}
     mods_needing_remap: set[int] = set()
     for (mod_idx, _, _) in remap:
+        mods_needing_remap.add(mod_idx)
+    for (mod_idx, _code) in tag_name_remap:
         mods_needing_remap.add(mod_idx)
 
     for mod_idx in sorted(mods_needing_remap):
         mod_id, mod_name, _ = mod_configs[mod_idx]
         table = build_remap_table(remap, mod_idx, mod_ids_list[mod_idx])
+
+        # 合并 tag name 重分配
+        for (idx, code), new_name in tag_name_remap.items():
+            if idx == mod_idx:
+                table.tag_names[code] = new_name
 
         if table.is_empty():
             continue
@@ -694,6 +796,13 @@ def remap_mod_configs(
                 msg = f"ID 重分配: Mod [{mod_name}] {label} {old_id} → {new_id}"
                 messages.append(msg)
                 diag.info("remap", msg)
+
+        for code, new_name in table.tag_names.items():
+            tag_data = mod_ids_list[mod_idx].tag.get(code, {})
+            old_name = tag_data.get("name", "") if isinstance(tag_data, dict) else ""
+            msg = f"ID 重分配: Mod [{mod_name}] tag name {old_name} → {new_name} (code={code})"
+            messages.append(msg)
+            diag.info("remap", msg)
 
         # 直接更新 store 中的数据
         apply_remap_to_store(mod_id, table)

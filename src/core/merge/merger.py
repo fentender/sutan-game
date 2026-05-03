@@ -470,6 +470,33 @@ def merge_all_files(
         progress_cb(total, total)
     return results
 
+def _append_dict_content(src: Path, dest: Path) -> bool:
+    """将解析失败的 dictionary 文件内容追加到已有合并结果末尾。
+
+    提取 src 外层花括号之间的内容，插入到 dest 最后一个 '}' 之前。
+    返回 True 表示追加成功，False 表示无法提取内容应回退覆盖。
+    """
+    failed_text = src.read_text(encoding='utf-8')
+    first_brace = failed_text.find('{')
+    last_brace = failed_text.rfind('}')
+    if first_brace == -1 or last_brace == -1 or first_brace >= last_brace:
+        return False
+    inner = failed_text[first_brace + 1 : last_brace].strip()
+    if not inner:
+        return False
+
+    existing_text = dest.read_text(encoding='utf-8')
+    close_brace = existing_text.rfind('}')
+    if close_brace == -1:
+        return False
+
+    before = existing_text[:close_brace].rstrip()
+    if before and before[-1] not in ('{', ','):
+        before += ','
+    dest.write_text(before + '\n' + inner + '\n}', encoding='utf-8')
+    return True
+
+
 def copy_failed_files(
     mod_configs: list[tuple[str, str, Path]],
     output_path: Path,
@@ -477,8 +504,11 @@ def copy_failed_files(
     """将解析失败但用户选择忽略的 JSON 文件原样复制到输出目录。
 
     同一 rel_path 有多个失败 mod 时，使用优先级最高（mod_configs 中靠后）的版本。
+    dictionary 类型文件若已有合并结果，追加内容而非覆盖，避免破坏其它 mod 的结果。
     返回被复制的 rel_path 列表。
     """
+    from ..json.classify import classify_json
+
     store = JsonStore.instance()
     ignored = store.get_ignored_failures()
     if not ignored:
@@ -501,6 +531,15 @@ def copy_failed_files(
         src = failure.file_path
         dest = output_path / rel_path
         dest.parent.mkdir(parents=True, exist_ok=True)
+
+        if dest.exists():
+            base_data = store.get_base(rel_path)
+            file_type = classify_json(base_data) if base_data else "config"
+            if file_type == "dictionary" and _append_dict_content(src, dest):
+                diag.warn("merge", f"{rel_path}: JSON 解析失败，已从 {failure.mod_name} 追加内容到合并结果")
+                copied.append(rel_path)
+                continue
+
         shutil.copy2(src, dest)
         diag.warn("merge", f"{rel_path}: JSON 解析失败，已从 {failure.mod_name} 整文件复制")
         copied.append(rel_path)

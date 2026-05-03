@@ -151,18 +151,28 @@ overrides.py    (无 core 依赖，纯文件操作)
 | `cards` | `dict[str, str]` | 卡牌 ID |
 | `tag_codes` | `dict[str, str]` | Tag code |
 | `tag_ids` | `dict[int, int]` | Tag 数字 ID |
+| `tag_names` | `dict[str, str]` | Tag name（code → new_name） |
 | `rite` / `event` / `loot` | `dict[str, str]` | 文件名即 ID 类型 |
 | `over` | `dict[str, str]` | over ID |
 | `rite_template` / `rite_template_mappings` | `dict[str, str]` | 仪式模板 |
 
 ### 核心流程
 
-1. **detect_conflicts** — 检测所有类型的 ID 冲突（tag 特殊：相同 code 但 name 一致不算冲突）
-2. **allocate_new_ids** — 为冲突 ID 分配新值（优先级最高的 Mod 保留原 ID）
-3. **apply_remap_to_store** — 递归替换 store 中的 ID（整数值、字符串嵌入 ID、DSL 表达式、顶层 key、文件名）
-4. **remap_mod_configs** — 主入口，串联完整流程
+1. **detect_conflicts** — 检测所有类型的 ID 冲突（tag 的 code、id、name 三类独立检测）
+2. **allocate_new_ids** — 为 code/id 冲突分配新值（优先级最高的 Mod 保留原 ID）
+3. **_allocate_tag_name_remaps** — 为 tag name 冲突分配新显示名（格式：`原名（【mod名首字符】）`）
+4. **apply_remap_to_store** — 递归替换 store 中的 ID（整数值、字符串嵌入 ID、DSL 表达式、顶层 key、文件名、tag name）
+5. **remap_mod_configs** — 主入口，串联完整流程
 
 各类型的分配起始值（ID_ALLOC_START）：cards 从 2900000，rite 从 5090000，event 从 5390000 等。
+
+#### Tag name 冲突规则
+
+游戏要求 tag 的 code、id、name 各自唯一。当 Mod 新增的 tag（code 不在本体中）的 name 与本体或其他 Mod 的 tag name 重复时：
+
+- 与本体重名 → 所有 Mod 条目重命名
+- 仅 Mod 间重名 → 最高优先级 Mod 保留，其余重命名
+- 新名称格式：`原名（【mod名称首字符】）`，首字符冲突时扩展更多字符
 
 ---
 
