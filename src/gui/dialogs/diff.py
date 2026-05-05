@@ -25,12 +25,11 @@ from src.config import SCHEMA_DIR
 from src.core.infra.profiler import profile
 from src.core.infra.types import ChangeKind
 from src.core.json.parser import _pairs_hook, clean_json_text
-from src.core.json.store import JsonStore
-from src.core.merge.cache import MergeCache
 from src.core.merge.formatter import (
     build_padded_texts,
     diff_opcodes,
 )
+from src.core.service import MergeService
 
 from ..widgets.code_editor import CodeEditor, _format_with_comments
 
@@ -112,8 +111,11 @@ class DiffDialog(QDialog):
     def __init__(self, rel_path: str,
                  mod_configs: list[tuple[str, str, Path]],
                  array_warnings: list[str] | None = None,
+                 service: MergeService | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        assert service is not None
+        self._service = service
         self._rel_path = rel_path
         self._mod_configs = mod_configs
         self._array_warnings = array_warnings or []
@@ -165,11 +167,9 @@ class DiffDialog(QDialog):
         self._line_kinds_pairs.clear()
         self._tab_original_texts.clear()
 
-        cache = MergeCache.instance()
-        state = cache.get(self._rel_path, self._mod_configs, SCHEMA_DIR)
+        state = self._service.get_merge_state(self._rel_path, self._mod_configs, SCHEMA_DIR)
 
-        store = JsonStore.instance()
-        base_data = store.get_base(self._rel_path)
+        base_data = self._service.get_base(self._rel_path)
         from src.core.json.parser import format_json
         self._base_text = format_json(base_data)
 
@@ -771,16 +771,14 @@ class DiffDialog(QDialog):
 
         # 计算 delta
         from src.core.infra.types import MergeMode
-        from src.core.merge.delta import compute_delta
-        delta = compute_delta(old_json, new_json, "config", merge_mode=MergeMode.NORMAL)
+        delta = self._service.compute_delta(old_json, new_json, "config",
+                                            merge_mode=MergeMode.NORMAL)
 
         mod_id = self._diff_pairs[tab_index][0]
-        store = JsonStore.instance()
         if delta is None:
-            # 无实际变化，移除 override
-            store.remove_override(mod_id, self._rel_path)
+            self._service.remove_override(mod_id, self._rel_path)
         else:
-            store.set_override(mod_id, self._rel_path, delta)
+            self._service.set_override(mod_id, self._rel_path, delta)
 
         self._refresh_all()
 
@@ -831,11 +829,10 @@ class DiffDialog(QDialog):
     def _reset_override(self, tab_index: int) -> None:
         """删除 override 文件并刷新"""
         mod_id, mod_name, _, _ = self._diff_pairs[tab_index]
-        store = JsonStore.instance()
-        if not store.has_override(mod_id, self._rel_path):
+        if not self._service.has_override(mod_id, self._rel_path):
             QMessageBox.information(self, "提示", f"{mod_name} 没有自定义覆盖")
             return
-        store.remove_override(mod_id, self._rel_path)
+        self._service.remove_override(mod_id, self._rel_path)
         self._refresh_all()
 
     def _update_warn_bar(self) -> None:
@@ -870,7 +867,7 @@ class DiffDialog(QDialog):
         scroll_val = 0
         if current_tab < len(self._tab_edits):
             scroll_val = self._tab_edits[current_tab][1].verticalScrollBar().value()
-        MergeCache.instance().invalidate(self._rel_path)
+        self._service.invalidate_merge_cache(self._rel_path)
         self._precompute_merge_states()
         # 暂时关闭顶部提示条
         # self._update_warn_bar()

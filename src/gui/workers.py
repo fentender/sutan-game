@@ -8,11 +8,8 @@ from PySide6.QtCore import QThread, Signal
 
 from src.core.infra.diagnostics import diag
 from src.core.infra.types import MergeMode
-from src.core.json.store import JsonStore
-from src.core.merge.merger import copy_failed_files, merge_all_files
-from src.core.mod.conflict import analyze_all_overrides
-from src.core.mod.deployer import copy_resources
 from src.core.mod.id_remap import RemapTable
+from src.core.service import MergeService
 
 from ..config import SCHEMA_DIR
 
@@ -45,15 +42,16 @@ class StoreInitWorker(QThread):
     error = Signal(str)
 
     def __init__(self, game_config_path: Path,
-                 mod_configs: list[tuple[str, str, Path]]) -> None:
+                 mod_configs: list[tuple[str, str, Path]],
+                 service: MergeService) -> None:
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
+        self._service = service
 
     def run(self) -> None:
         try:
-            store = JsonStore.instance()
-            store.init(self.game_config_path, self.mod_configs)
+            self._service.init_store(self.game_config_path, self.mod_configs)
         except Exception as e:
             self.error.emit(f"{type(e).__name__}: {e}")
 
@@ -68,7 +66,8 @@ class DeltaInitWorker(QThread):
                  merge_mode: MergeMode = MergeMode.SMART,
                  mod_merge_modes: dict[str, MergeMode] | None = None,
                  mod_update_times: dict[str, int] | None = None,
-                 history_dir: Path | None = None) -> None:
+                 history_dir: Path | None = None,
+                 service: MergeService | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
         self.schema_dir = schema_dir
@@ -76,11 +75,12 @@ class DeltaInitWorker(QThread):
         self.mod_merge_modes = mod_merge_modes
         self.mod_update_times = mod_update_times
         self.history_dir = history_dir
+        self._service = service
 
     def run(self) -> None:
-        from src.core.merge.delta import ModDelta
         try:
-            ModDelta.init(
+            assert self._service is not None
+            self._service.init_delta(
                 self.mod_ids,
                 schema_dir=self.schema_dir,
                 progress_cb=self.progress.emit,
@@ -101,17 +101,20 @@ class MergeWorker(CancellableWorker):
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  output_path: Path, mod_paths: list[tuple[str, Path]],
-                 remap_tables: dict[str, RemapTable] | None = None) -> None:
+                 remap_tables: dict[str, RemapTable] | None = None,
+                 service: MergeService | None = None) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.output_path = output_path
         self.mod_paths = mod_paths
         self.remap_tables = remap_tables
+        self._service = service
 
     def run(self) -> None:
         try:
+            assert self._service is not None
             self.stage.emit("正在合并 JSON 文件...")
-            results = merge_all_files(
+            results = self._service.merge_all_files(
                 self.mod_configs,
                 self.output_path / "config",
                 schema_dir=SCHEMA_DIR,
@@ -120,14 +123,14 @@ class MergeWorker(CancellableWorker):
             )
             self._check_cancel()
 
-            copy_failed_files(self.mod_configs, self.output_path / "config")
+            self._service.copy_failed_files(self.mod_configs, self.output_path / "config")
 
             # 在工作线程内快照警告，避免跨线程竞态
             warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
             self.stage.emit("正在复制资源文件...")
-            copy_resources(self.mod_paths, self.output_path,
-                           cancel_check=self._check_cancel,
-                           remap_tables=self.remap_tables)
+            self._service.copy_resources(self.mod_paths, self.output_path,
+                                         cancel_check=self._check_cancel,
+                                         remap_tables=self.remap_tables)
             self.done.emit(results, warnings_snapshot)
         except _MergeCancelled:
             pass
@@ -140,15 +143,17 @@ class AnalyzeWorker(CancellableWorker):
     done = Signal(list, list)  # overrides, parse_messages
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
-                 schema_dir: Path) -> None:
+                 schema_dir: Path,
+                 service: MergeService) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.schema_dir = schema_dir
+        self._service = service
 
     def run(self) -> None:
         try:
             diag.snapshot("parse")
-            overrides = analyze_all_overrides(
+            overrides = self._service.analyze_all_overrides(
                 self.mod_configs,
                 schema_dir=self.schema_dir,
                 cancel_check=self._check_cancel,

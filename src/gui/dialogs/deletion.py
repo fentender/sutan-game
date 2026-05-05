@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 
 from src.core.infra.types import FIELD_SEP as SEP
 from src.core.mod.conflict import DeletionRecord, FileOverrideInfo
+from src.core.service import MergeService
 
 # 颜色
 _CLR_FILE = QColor(180, 210, 255)     # 文件节点：浅蓝
@@ -105,8 +106,11 @@ class DeletionReportDialog(QDialog):
 
     def __init__(self, override_data: list[FileOverrideInfo],
                  mod_configs: list[tuple[str, str, Path]] | None = None,
+                 service: MergeService | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        assert service is not None
+        self._service = service
         self.setWindowTitle("删减报告")
         self.resize(900, 600)
         self.setWindowFlags(
@@ -411,52 +415,43 @@ class DeletionReportDialog(QDialog):
 
         from src.config import SCHEMA_DIR
         from src.core.infra.types import DictFieldDiff, MergeMode
-        from src.core.json.classify import classify_json
         from src.core.json.parser import format_json
-        from src.core.json.store import JsonStore
-        from src.core.merge.delta import ModDelta, compute_delta
-        from src.core.merge.merger import merge_file
-        from src.core.schema.loader import (
-            get_schema_root_key,
-            load_schemas,
-            resolve_schema,
-        )
 
         from ..widgets.code_editor import CodeEditor
 
         # 调用方已确认 _mod_configs 非 None
         assert self._mod_configs is not None
-        store = JsonStore.instance()
+        svc = self._service
 
         # 从 store 获取游戏本体数据
-        base_data = store.get_base(rel_path)
+        base_data = svc.get_base(rel_path)
 
         # 加载 schema
-        schemas = load_schemas(SCHEMA_DIR)
-        schema = resolve_schema(rel_path, schemas)
+        schemas = svc.load_schemas(SCHEMA_DIR)
+        schema = svc.resolve_schema(rel_path, schemas)
 
         # 使用缓存的 delta（已按当前模式过滤）合并 → 无删除版本
         mod_data_list_cached: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
-            if not store.has_mod(mod_id, rel_path):
+            if not svc.has_mod(mod_id, rel_path):
                 continue
-            delta = ModDelta.get(mod_id, rel_path)
+            delta = svc.get_delta(mod_id, rel_path)
             if delta:
                 mod_data_list_cached.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
-        result_no_del = merge_file(
+        result_no_del = svc.merge_file(
             base_data, mod_data_list_cached, rel_path, schema=schema,
         )
 
         # 计算 NORMAL 模式 delta（包含所有删除）→ 有删除版本
-        file_type = classify_json(base_data) if base_data else "config"
-        root_key = get_schema_root_key(schema) if schema else None
+        file_type = svc.classify_json(base_data) if base_data else "config"
+        root_key = svc.get_schema_root_key(schema)
         mod_data_list_normal: list[tuple[str, str, DictFieldDiff, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
-            if not store.has_mod(mod_id, rel_path):
+            if not svc.has_mod(mod_id, rel_path):
                 continue
-            mod_data = store.get_mod(mod_id, rel_path)
-            delta = compute_delta(
+            mod_data = svc.get_mod(mod_id, rel_path)
+            delta = svc.compute_delta(
                 base_data, mod_data, file_type,
                 root_key=root_key,
                 merge_mode=MergeMode.NORMAL,
@@ -464,7 +459,7 @@ class DeletionReportDialog(QDialog):
             if delta:
                 mod_data_list_normal.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
-        result_del = merge_file(
+        result_del = svc.merge_file(
             base_data, mod_data_list_normal, rel_path, schema=schema,
         )
 

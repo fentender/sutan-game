@@ -28,7 +28,6 @@ from PySide6.QtWidgets import (
 )
 
 from src.core.mod.scanner import ModInfo
-from src.core.platform.steam import MAJOR_UPDATE_TS
 
 
 class DraggableModList(QListWidget):
@@ -142,6 +141,7 @@ class ModListItem(QWidget):
     def __init__(self, mod: ModInfo, enabled: bool = True,
                  merge_mode: str = "", game_update_time: int | None = None,
                  has_base_overlap: bool | None = None,
+                 major_update_ts: int = 0,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.mod = mod
@@ -169,7 +169,7 @@ class ModListItem(QWidget):
                     f"Mod 最后更新: {mod_date}\n"
                     f"游戏最后更新: {game_date}"
                 )
-            elif mod.update_time < MAJOR_UPDATE_TS:
+            elif mod.update_time < major_update_ts:
                 # 严重：Mod 更新在大版本之前
                 self._warn_label.setText('<b style="color:#d32f2f; font-size:16px;">❗</b>')
                 self._warn_label.setToolTip(
@@ -286,10 +286,12 @@ class ModListPanel(QWidget):
     def set_mods(self, mods: list[ModInfo], order: list[str] | None = None,
                  enabled: list[str] | None = None,
                  merge_modes: dict[str, str] | None = None,
-                 game_update_time: int | None = None) -> None:
+                 game_update_time: int | None = None,
+                 major_update_ts: int = 0) -> None:
         """设置 mod 列表"""
         self._mods = list(mods)
         self._game_update_time = game_update_time
+        self._major_update_ts = major_update_ts
 
         # 按照保存的顺序排列
         if order:
@@ -320,7 +322,8 @@ class ModListPanel(QWidget):
             widget = ModListItem(mod, self._enabled.get(mod.mod_id, True),
                                  merge_mode=self._merge_modes.get(mod.mod_id, ""),
                                  game_update_time=self._game_update_time,
-                                 has_base_overlap=self._overlap.get(mod.mod_id))
+                                 has_base_overlap=self._overlap.get(mod.mod_id),
+                                 major_update_ts=self._major_update_ts)
             widget.toggled.connect(self._on_toggle)
             widget.move_up.connect(self._on_move_up)
             widget.move_down.connect(self._on_move_down)

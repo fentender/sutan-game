@@ -17,16 +17,18 @@ from PySide6.QtWidgets import (
 )
 
 from src.core.infra.types import FIELD_SEP as SEP, FieldDiff
-from src.core.json.store import JsonStore
 from src.core.mod.conflict import FileOverrideInfo
+from src.core.service import MergeService
 
 
 class OverridePanel(QWidget):
     """覆盖详情面板"""
     diff_requested = Signal(str)  # rel_path
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, service: MergeService,
+                 parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._service = service
         self._data: list[FileOverrideInfo] = []
         self._mod_configs: list[tuple[str, str, Path]] | None = None
         self._filter_mode: str = "all"
@@ -119,7 +121,7 @@ class OverridePanel(QWidget):
                               (self._filter_mode == "normal" and not info.has_conflict_or_warning) or
                               (self._filter_mode == "outdated" and
                                any(m in self._outdated_mod_names for m in info.mod_chain) and
-                               JsonStore.instance().has_base(info.rel_path)))
+                               self._service.has_base(info.rel_path)))
                 mod_match = (not selected_mod or selected_mod in info.mod_chain)
             else:
                 mode_match = True

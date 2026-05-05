@@ -30,11 +30,9 @@ from PySide6.QtWidgets import (
 
 from src.core.infra.diagnostics import ERROR, INFO, WARNING, diag
 from src.core.infra.types import MergeMode, ParseFailure
-from src.core.json.store import JsonStore
 from src.core.mod.conflict import FileOverrideInfo
-from src.core.mod.deployer import generate_info_json, scan_synthetic_mods
-from src.core.mod.id_remap import RemapTable, remap_mod_configs
-from src.core.mod.scanner import scan_all_mods
+from src.core.mod.id_remap import RemapTable
+from src.core.service import MergeService
 
 from ..config import (
     APP_VERSION,
@@ -60,6 +58,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 700)
 
         self.config = UserConfig.load()
+        self.service = MergeService(self.config)
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
         self._store_worker: StoreInitWorker | None = None
@@ -120,7 +119,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(splitter, 3)
 
         # 覆盖详情面板
-        self.override_panel = OverridePanel()
+        self.override_panel = OverridePanel(service=self.service)
         main_layout.addWidget(self.override_panel, 2)
 
         # 操作按钮
@@ -196,15 +195,15 @@ class MainWindow(QMainWindow):
                       + str(self.config.game_config_path))
 
         # 扫描 workshop 目录
-        mods = scan_all_mods(
+        mods = self.service.scan_mods(
             self.config.workshop_dir,
-            exclude_ids={SYNTHETIC_MOD_ID}
+            exclude_ids={SYNTHETIC_MOD_ID},
         )
 
         # 扫描本地 mod 目录
         local_dir = self.config.local_mod_dir
         if local_dir.exists():
-            local_mods = scan_all_mods(local_dir)
+            local_mods = self.service.scan_mods(local_dir)
             # 用 mod_id 去重（workshop 优先）
             existing_ids = {m.mod_id for m in mods}
             for lm in local_mods:
@@ -212,9 +211,7 @@ class MainWindow(QMainWindow):
                     mods.append(lm)
 
         # 读取游戏更新时间（用于过时检测）
-        from src.core.platform.steam import get_game_update_time, get_steamapps_from_workshop
-        steamapps = get_steamapps_from_workshop(self.config.workshop_dir)
-        game_update_time = get_game_update_time(steamapps)
+        game_update_time = self.service.get_game_update_time(self.config.workshop_dir)
 
         self.mod_list_panel.set_mods(
             mods,
@@ -222,6 +219,7 @@ class MainWindow(QMainWindow):
             enabled=self.config.enabled_mods or None,
             merge_modes=self.config.mod_merge_modes or None,
             game_update_time=game_update_time,
+            major_update_ts=self.service.get_major_update_ts(),
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 
@@ -254,7 +252,7 @@ class MainWindow(QMainWindow):
 
         self.statusBar().showMessage("正在加载 JSON 资源...")
         self._store_worker = StoreInitWorker(
-            self.config.game_config_path, mod_configs,
+            self.config.game_config_path, mod_configs, self.service,
         )
         self._store_worker.finished.connect(self._on_store_ready)
         self._store_worker.error.connect(self._on_store_error)
@@ -262,8 +260,7 @@ class MainWindow(QMainWindow):
 
     def _on_store_ready(self) -> None:
         """JsonStore 初始化完成，处理错误后触发冲突分析"""
-        store = JsonStore.instance()
-        failures = store.take_failures()
+        failures = self.service.take_failures()
 
         if failures:
             # 弹窗让用户处理解析错误
@@ -284,7 +281,7 @@ class MainWindow(QMainWindow):
             ]
 
             if fixed_paths:
-                remaining = store.reload(fixed_paths)
+                remaining = self.service.reload_files(fixed_paths)
                 if remaining:
                     ignored.extend(remaining)
                     for f in remaining:
@@ -299,7 +296,7 @@ class MainWindow(QMainWindow):
             # 仅保存 mod 文件的失败（非本体），供合并时整文件复制
             mod_ignored = [f for f in ignored if not f.is_base]
             if mod_ignored:
-                store.set_ignored_failures(mod_ignored)
+                self.service.set_ignored_failures(mod_ignored)
 
         # 展示 JSON 加载阶段的诊断消息
         json_msgs = diag.snapshot("json")
@@ -312,9 +309,8 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("JSON 资源加载完成")
 
         # 计算 Mod 与本体的重叠状态（用于过时风险分级）
-        from src.core.mod.overlap import compute_all_overlaps
         all_mod_ids = [m.mod_id for m in self.mod_list_panel._mods]
-        overlap_map = compute_all_overlaps(store, all_mod_ids)
+        overlap_map = self.service.compute_all_overlaps(all_mod_ids)
         self.mod_list_panel.update_overlap(overlap_map)
 
         # 加载用户 override 文件
@@ -322,20 +318,18 @@ class MainWindow(QMainWindow):
             mid for mid in self.config.mod_order
             if mid in set(self.config.enabled_mods)
         ]
-        store.load_overrides(MOD_OVERRIDES_DIR, enabled_ids)
+        self.service.load_overrides(MOD_OVERRIDES_DIR, enabled_ids)
 
         # 启动 delta 预计算
         self._start_delta_init(enabled_ids)
 
     def _refresh_delta(self) -> None:
         """模式变更后重新计算 delta 并刷新覆盖分析"""
-        from src.core.merge.cache import MergeCache
-        MergeCache.instance().invalidate_all()
+        self.service.invalidate_merge_cache()
 
         # 合并模式变更，清理所有 override
-        store = JsonStore.instance()
         all_mod_ids = set(self.config.mod_order)
-        deleted_ids = store.invalidate_overrides(all_mod_ids)
+        deleted_ids = self.service.invalidate_overrides(all_mod_ids)
         if deleted_ids:
             names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
             self._log_message(INFO, f"合并模式变更，已清理覆盖编辑: {names}")
@@ -358,6 +352,7 @@ class MainWindow(QMainWindow):
             mod_merge_modes=self._get_mod_merge_modes(),
             mod_update_times=self._get_mod_update_times(),
             history_dir=HISTORY_DIR,
+            service=self.service,
         )
 
         self._delta_progress = QProgressDialog(
@@ -444,13 +439,13 @@ class MainWindow(QMainWindow):
         dlg = DeletionReportDialog(
             self.override_panel._data,
             mod_configs=self._get_mod_configs(),
+            service=self.service,
             parent=self,
         )
         dlg.exec()
 
     def _save_config(self) -> None:
-        from src.core.merge.cache import MergeCache
-        MergeCache.instance().invalidate_all()
+        self.service.invalidate_merge_cache()
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
 
@@ -471,8 +466,7 @@ class MainWindow(QMainWindow):
                 break
         stale_ids = set(old_enabled_ordered[diverge:]) | set(new_enabled_ordered[diverge:])
 
-        store = JsonStore.instance()
-        deleted_ids = store.invalidate_overrides(stale_ids)
+        deleted_ids = self.service.invalidate_overrides(stale_ids)
         if deleted_ids:
             names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
             self._log_message(
@@ -520,7 +514,7 @@ class MainWindow(QMainWindow):
         # ID 冲突检测与重分配（同步执行，通常很快）
         self._cleanup_remap()
         diag.snapshot("remap")
-        _remap_msgs, remap_tables = remap_mod_configs(mod_configs)
+        _remap_msgs, remap_tables = self.service.remap_mod_configs(mod_configs)
         self._remap_tables = remap_tables
 
         # 展示 remap 日志
@@ -532,21 +526,20 @@ class MainWindow(QMainWindow):
             ])
 
         # 重新预计算 delta（remap 可能修改了 store 数据）
-        from src.core.merge.delta import ModDelta
         enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
-        ModDelta.invalidate()
-        ModDelta.init(enabled_ids, schema_dir=SCHEMA_DIR,
-                      merge_mode=self._get_merge_mode(),
-                      mod_merge_modes=self._get_mod_merge_modes(),
-                      mod_update_times=self._get_mod_update_times(),
-                      history_dir=HISTORY_DIR)
+        self.service.invalidate_delta()
+        self.service.init_delta(enabled_ids, schema_dir=SCHEMA_DIR,
+                                merge_mode=self._get_merge_mode(),
+                                mod_merge_modes=self._get_mod_merge_modes(),
+                                mod_update_times=self._get_mod_update_times(),
+                                history_dir=HISTORY_DIR)
 
         self.statusBar().showMessage("正在分析覆盖情况...")
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
         self._analyze_worker = AnalyzeWorker(
-            self._get_mod_configs(), SCHEMA_DIR,
+            self._get_mod_configs(), SCHEMA_DIR, self.service,
         )
         self._analyze_worker.done.connect(self._on_analyze_finished)
         self._analyze_worker.error.connect(self._on_analyze_error)
@@ -555,11 +548,11 @@ class MainWindow(QMainWindow):
     def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
                              parse_msgs: list[tuple[str, str]]) -> None:
         self.progress_bar.setVisible(False)
-        from src.core.platform.steam import MAJOR_UPDATE_TS
+        major_update_ts = self.service.get_major_update_ts()
         enabled = self.mod_list_panel.get_enabled_mods()
         outdated = {m.name for m in enabled
                     if m.update_time is not None
-                    and m.update_time < MAJOR_UPDATE_TS}
+                    and m.update_time < major_update_ts}
         self.override_panel.set_data(
             overrides,
             self._get_mod_configs(),
@@ -606,6 +599,7 @@ class MainWindow(QMainWindow):
             rel_path=rel_path,
             mod_configs=self._get_mod_configs(),
             array_warnings=array_warnings,
+            service=self.service,
         )
         dlg.exec()
 
@@ -637,8 +631,7 @@ class MainWindow(QMainWindow):
         mod_paths = [(m.name, m.path) for m in enabled]
 
         # 清空目录创建缓存，避免清理后残留缓存导致写入失败
-        from src.core.json.parser import reset_dir_cache
-        reset_dir_cache()
+        self.service.reset_dir_cache()
 
         # 切换按钮为「取消合并」
         self.btn_merge.setText("取消合并")
@@ -661,6 +654,7 @@ class MainWindow(QMainWindow):
             output_path,
             mod_paths,
             remap_tables=self._remap_tables,
+            service=self.service,
         )
         self._worker.progress.connect(self._on_merge_progress)
         self._worker.stage.connect(self._on_merge_stage)
@@ -726,7 +720,7 @@ class MainWindow(QMainWindow):
         # 生成合成 Mod 的 Info.json
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_names = [m.name for m in enabled]
-        generate_info_json(mod_names, self._merge_output_path)
+        self.service.generate_info_json(mod_names, self._merge_output_path)
 
         output = self._merge_output_path
         msg = f"合并完成: {len(results)} 个文件已合并到 {output}"
@@ -747,7 +741,7 @@ class MainWindow(QMainWindow):
 
     def _clean(self) -> None:
         """清理合成 Mod：扫描所有带标记的合成 Mod 并让用户选择删除"""
-        synthetic_mods = scan_synthetic_mods(self.config.local_mod_dir)
+        synthetic_mods = self.service.scan_synthetic_mods(self.config.local_mod_dir)
         if not synthetic_mods:
             QMessageBox.information(self, "提示", "没有找到合成 Mod")
             return
@@ -836,9 +830,7 @@ class MainWindow(QMainWindow):
     def _cleanup_remap(self) -> None:
         """清理 remap 状态，撤销 store 中的 ID 重映射修改"""
         if self._remap_tables:
-            store = JsonStore.instance()
-            for mod_id in self._remap_tables:
-                store.reload_mod(mod_id)
+            self.service.cleanup_remap(self._remap_tables)
         self._remap_tables = None
 
     # ── 检查更新 ──
