@@ -1,6 +1,24 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["scikit-build-core>=0.10", "nanobind>=2.2.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "sudan-game-merger"
+version = "1.4.0"
+requires-python = ">=3.10"
+dependencies = [
+    "PySide6>=6.5.0",
+    "rapidfuzz>=3.0.0",
+]
+
+[tool.scikit-build]
+cmake.version = ">=3.17"
+cmake.build-type = "Release"
+build-dir = "build/{wheel_tag}"
+
+[tool.scikit-build.editable]
+rebuild = true
+verbose = true
 
 [tool.mypy]
 python_version = "3.14"

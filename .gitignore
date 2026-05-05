@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *.so
+*.pyd
 venv/
 .venv/
 
@@ -18,9 +19,10 @@ user_config.json
 _remap_temp
 history_config_pack/
 
-# PyInstaller
+# 构建产物
 build/
 dist/
+_skbuild/
 *.spec
 .agent
 .claude
