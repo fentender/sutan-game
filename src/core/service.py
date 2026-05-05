@@ -7,6 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from ..config import UserConfig
+from .data_manager import DataManager
 from .infra.types import (
     CancelCheck,
     DictFieldDiff,
@@ -52,6 +53,10 @@ class MergeService:
 
     def __init__(self, config: UserConfig) -> None:
         self._config = config
+
+    @property
+    def _data(self) -> DataManager:
+        return DataManager.instance()
 
     @property
     def _store(self) -> JsonStore:
