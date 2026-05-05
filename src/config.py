@@ -199,6 +199,14 @@ class UserConfig:
     def local_mod_dir(self) -> Path:
         return Path(self.local_mod_path)
 
+    def update(self, **kwargs: object) -> None:
+        """批量更新字段并保存"""
+        for key, value in kwargs.items():
+            if not hasattr(self, key):
+                raise AttributeError(f"UserConfig 无字段: {key}")
+            setattr(self, key, value)
+        self.save()
+
     def save(self) -> None:
         """原子保存配置：先写临时文件，再重命名覆盖"""
         content = json.dumps(asdict(self), ensure_ascii=False, indent=4)
@@ -214,7 +222,7 @@ class UserConfig:
             raise
 
     @classmethod
-    def load(cls) -> 'UserConfig':
+    def load(cls) -> UserConfig:
         if USER_CONFIG_PATH.exists():
             try:
                 data = json.loads(USER_CONFIG_PATH.read_text(encoding='utf-8'))

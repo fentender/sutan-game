@@ -399,8 +399,7 @@ class MainWindow(QMainWindow):
     def _on_merge_mode_changed(self, index: int) -> None:
         mode_value = self.cmb_merge_mode.itemData(index)
         if mode_value:
-            self.config.merge_mode = mode_value
-            self.config.save()
+            self.config.update(merge_mode=mode_value)
             self._refresh_delta()
 
     def _get_merge_mode(self) -> MergeMode:
@@ -474,9 +473,7 @@ class MainWindow(QMainWindow):
                 f"Mod 排序/启用变化，已清理失效的覆盖编辑: {names}"
             )
 
-        self.config.mod_order = new_order
-        self.config.enabled_mods = new_enabled
-        self.config.save()
+        self.config.update(mod_order=new_order, enabled_mods=new_enabled)
         self._schedule_analyze()
 
     def _schedule_analyze(self) -> None:
@@ -791,22 +788,19 @@ class MainWindow(QMainWindow):
     def _set_game_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择游戏安装目录", self.config.game_path)
         if path:
-            self.config.game_path = path
-            self.config.save()
+            self.config.update(game_path=path)
             self.statusBar().showMessage(f"游戏路径已更新: {path}")
 
     def _set_workshop_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择 Workshop 目录", self.config.workshop_path)
         if path:
-            self.config.workshop_path = path
-            self.config.save()
+            self.config.update(workshop_path=path)
             self._load_mods()
 
     def _set_local_mod_path(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择本地 Mod 目录", self.config.local_mod_path)
         if path:
-            self.config.local_mod_path = path
-            self.config.save()
+            self.config.update(local_mod_path=path)
             self._load_mods()
 
     def _show_messages(self, messages: list[tuple[str, str]]) -> None:

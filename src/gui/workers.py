@@ -15,12 +15,11 @@ from ..config import SCHEMA_DIR
 
 
 class _MergeCancelled(Exception):
-    """合并被用户取消"""
     pass
 
 
-class CancellableWorker(QThread):
-    """可取消的工作线程基类"""
+class BaseWorker(QThread):
+    """统一异常处理的工作线程基类"""
     error = Signal(str)
 
     def __init__(self) -> None:
@@ -28,18 +27,26 @@ class CancellableWorker(QThread):
         self._cancelled = threading.Event()
 
     def cancel(self) -> None:
-        """请求取消"""
         self._cancelled.set()
 
     def _check_cancel(self) -> None:
-        """检查取消标志，已取消则抛出异常"""
         if self._cancelled.is_set():
             raise _MergeCancelled()
 
+    def run(self) -> None:
+        try:
+            self._run()
+        except _MergeCancelled:
+            pass
+        except Exception as e:
+            self.error.emit(f"{type(e).__name__}: {e}")
 
-class StoreInitWorker(QThread):
+    def _run(self) -> None:
+        raise NotImplementedError
+
+
+class StoreInitWorker(BaseWorker):
     """后台初始化 JsonStore"""
-    error = Signal(str)
 
     def __init__(self, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
@@ -49,17 +56,13 @@ class StoreInitWorker(QThread):
         self.mod_configs = mod_configs
         self._service = service
 
-    def run(self) -> None:
-        try:
-            self._service.init_store(self.game_config_path, self.mod_configs)
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+    def _run(self) -> None:
+        self._service.init_store(self.game_config_path, self.mod_configs)
 
 
-class DeltaInitWorker(QThread):
+class DeltaInitWorker(BaseWorker):
     """后台预计算所有 mod 的 delta"""
     progress = Signal(int, int)  # completed, total
-    error = Signal(str)
 
     def __init__(self, mod_ids: list[str],
                  schema_dir: Path | None = None,
@@ -77,23 +80,20 @@ class DeltaInitWorker(QThread):
         self.history_dir = history_dir
         self._service = service
 
-    def run(self) -> None:
-        try:
-            assert self._service is not None
-            self._service.init_delta(
-                self.mod_ids,
-                schema_dir=self.schema_dir,
-                progress_cb=self.progress.emit,
-                merge_mode=self.merge_mode,
-                mod_merge_modes=self.mod_merge_modes,
-                mod_update_times=self.mod_update_times,
-                history_dir=self.history_dir,
-            )
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+    def _run(self) -> None:
+        assert self._service is not None
+        self._service.init_delta(
+            self.mod_ids,
+            schema_dir=self.schema_dir,
+            progress_cb=self.progress.emit,
+            merge_mode=self.merge_mode,
+            mod_merge_modes=self.mod_merge_modes,
+            mod_update_times=self.mod_update_times,
+            history_dir=self.history_dir,
+        )
 
 
-class MergeWorker(CancellableWorker):
+class MergeWorker(BaseWorker):
     """后台合并线程"""
     done = Signal(dict, list)  # 合并结果, 警告列表
     progress = Signal(int, int)  # completed, total
@@ -110,35 +110,29 @@ class MergeWorker(CancellableWorker):
         self.remap_tables = remap_tables
         self._service = service
 
-    def run(self) -> None:
-        try:
-            assert self._service is not None
-            self.stage.emit("正在合并 JSON 文件...")
-            results = self._service.merge_all_files(
-                self.mod_configs,
-                self.output_path / "config",
-                schema_dir=SCHEMA_DIR,
-                cancel_check=self._check_cancel,
-                progress_cb=lambda c, t: self.progress.emit(c, t),
-            )
-            self._check_cancel()
+    def _run(self) -> None:
+        assert self._service is not None
+        self.stage.emit("正在合并 JSON 文件...")
+        results = self._service.merge_all_files(
+            self.mod_configs,
+            self.output_path / "config",
+            schema_dir=SCHEMA_DIR,
+            cancel_check=self._check_cancel,
+            progress_cb=lambda c, t: self.progress.emit(c, t),
+        )
+        self._check_cancel()
 
-            self._service.copy_failed_files(self.mod_configs, self.output_path / "config")
+        self._service.copy_failed_files(self.mod_configs, self.output_path / "config")
 
-            # 在工作线程内快照警告，避免跨线程竞态
-            warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
-            self.stage.emit("正在复制资源文件...")
-            self._service.copy_resources(self.mod_paths, self.output_path,
-                                         cancel_check=self._check_cancel,
-                                         remap_tables=self.remap_tables)
-            self.done.emit(results, warnings_snapshot)
-        except _MergeCancelled:
-            pass
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+        warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
+        self.stage.emit("正在复制资源文件...")
+        self._service.copy_resources(self.mod_paths, self.output_path,
+                                     cancel_check=self._check_cancel,
+                                     remap_tables=self.remap_tables)
+        self.done.emit(results, warnings_snapshot)
 
 
-class AnalyzeWorker(CancellableWorker):
+class AnalyzeWorker(BaseWorker):
     """后台冲突分析线程"""
     done = Signal(list, list)  # overrides, parse_messages
 
@@ -150,49 +144,40 @@ class AnalyzeWorker(CancellableWorker):
         self.schema_dir = schema_dir
         self._service = service
 
-    def run(self) -> None:
-        try:
-            diag.snapshot("parse")
-            overrides = self._service.analyze_all_overrides(
-                self.mod_configs,
-                schema_dir=self.schema_dir,
-                cancel_check=self._check_cancel,
-            )
-            self._check_cancel()
+    def _run(self) -> None:
+        diag.snapshot("parse")
+        overrides = self._service.analyze_all_overrides(
+            self.mod_configs,
+            schema_dir=self.schema_dir,
+            cancel_check=self._check_cancel,
+        )
+        self._check_cancel()
 
-            parse_msgs = diag.snapshot("parse")
-            self.done.emit(overrides, parse_msgs)
-        except _MergeCancelled:
-            pass
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+        parse_msgs = diag.snapshot("parse")
+        self.done.emit(overrides, parse_msgs)
 
 
-class SchemaWorker(QThread):
+class SchemaWorker(BaseWorker):
     """后台 Schema 生成线程"""
     progress = Signal(int, int, str)  # current, total, name
-    error = Signal(str)
 
     def __init__(self, config_dir: Path, schema_dir: Path) -> None:
         super().__init__()
         self.config_dir = config_dir
         self.schema_dir = schema_dir
 
-    def run(self) -> None:
-        try:
-            from src.core.schema.generator import generate_all
-            generate_all(
-                str(self.config_dir), str(self.schema_dir),
-                progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
-            )
-        except Exception as e:
-            self.error.emit(f"{type(e).__name__}: {e}")
+    def _run(self) -> None:
+        from src.core.schema.generator import generate_all
+        generate_all(
+            str(self.config_dir), str(self.schema_dir),
+            progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
+        )
 
 
-class UpdateCheckWorker(QThread):
+class UpdateCheckWorker(BaseWorker):
     """后台检查更新线程"""
     done = Signal(object)  # dict（有新版本）或 None
 
-    def run(self) -> None:
+    def _run(self) -> None:
         from src.core.platform.updater import check_for_update
         self.done.emit(check_for_update(timeout=8))
