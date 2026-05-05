@@ -89,8 +89,9 @@ def main():
         log.info("=" * 60)
         log.info("功能测试")
         log.info("=" * 60)
-        from tests import test_adaptive_remap, test_core, test_duplist_merge, test_nested_array_merge, test_scalar_to_array
+        from tests.python import test_adaptive_remap, test_core, test_diag, test_duplist_merge, test_nested_array_merge, test_scalar_to_array
         test_core.run_all(result)
+        test_diag.run_all(result)
         test_adaptive_remap.run_all(result)
         test_duplist_merge.run_all(result)
         test_scalar_to_array.run_all(result)
@@ -100,7 +101,7 @@ def main():
         log.info("=" * 60)
         log.info("性能测试")
         log.info("=" * 60)
-        from tests import test_perf
+        from tests.python import test_perf
         test_perf.run_all(result)
 
     log.info("=" * 60)

@@ -9,6 +9,7 @@ on:
       - 'CMakeLists.txt'
       - 'pyproject.toml'
       - 'src/accel/_fast_json.c'
+      - 'tests/**'
   pull_request:
     branches: [master]
 
@@ -35,5 +36,18 @@ jobs:
       - name: Verify sultan_core import
         run: python -c "import sultan_core; print(f'sultan_core {sultan_core.__version__}')"
 
+      - name: Verify sultan_core.diag
+        run: python -c "from sultan_core import diag; print(diag.get_manager())"
+
       - name: Verify _fast_json import
         run: python -c "from src.accel._fast_json import strip_js_comments; print('_fast_json OK')"
+
+      - name: C++ unit tests
+        run: |
+          $nb_dir = python -c "import nanobind; print(nanobind.cmake_dir())"
+          cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$nb_dir"
+          cmake --build build_test --target sultan_tests --config Release
+          ctest --test-dir build_test -C Release --output-on-failure
+
+      - name: Python tests
+        run: python -m tests --func

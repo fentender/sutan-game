@@ -21,6 +21,7 @@ history_config_pack/
 
 # 构建产物
 build/
+build_test/
 dist/
 _skbuild/
 *.spec

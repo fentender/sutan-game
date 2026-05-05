@@ -20,6 +20,14 @@ add_subdirectory(extern/yyjson)
 # C++ 加速层
 add_subdirectory(csrc)
 
+# C++ 单元测试（Catch2）
+option(BUILD_TESTS "Build C++ unit tests" OFF)
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(extern/Catch2)
+    add_subdirectory(tests/cpp)
+endif()
+
 # 现有 _fast_json C 扩展
 python_add_library(_fast_json MODULE WITH_SOABI
     src/accel/_fast_json.c

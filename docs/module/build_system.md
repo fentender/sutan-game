@@ -8,24 +8,64 @@ C++/Python 混合构建系统，基于 **scikit-build-core + CMake + nanobind** 
 
 | 模块 | 语言 | import 路径 | 说明 |
 |------|------|-------------|------|
-| `sultan_core` | C++（nanobind） | `import sultan_core` | C++ 加速层入口，后续阶段逐步添加子模块 |
+| `sultan_core` | C++（nanobind） | `import sultan_core` | C++ 加速层入口，含 `diag` 等子模块 |
 | `_fast_json` | C（Python C API） | `from src.accel import _fast_json` | 已有的 JSON 文本清洗加速（阶段 4 将被 sultan_core 替代） |
 
 ## 文件结构
 
 ```
 project-root/
-├── CMakeLists.txt              # 顶层 CMake：Python 查找、nanobind、yyjson、构建目标
+├── CMakeLists.txt              # 顶层 CMake：Python 查找、nanobind、yyjson、构建目标、测试开关
 ├── pyproject.toml              # scikit-build-core 构建后端 + 项目元数据
-├── .gitmodules                 # yyjson submodule 声明
+├── .gitmodules                 # yyjson + Catch2 submodule 声明
 ├── extern/
-│   └── yyjson/                 # git submodule，锁定 0.12.0
+│   ├── yyjson/                 # git submodule，锁定 0.12.0
+│   └── Catch2/                 # git submodule，锁定 v3.8.0（C++ 测试框架）
 ├── csrc/
-│   ├── CMakeLists.txt          # nanobind_add_module(sultan_core)
-│   └── bindings.cpp            # NB_MODULE 骨架（当前仅 __version__）
+│   ├── CMakeLists.txt          # sultan_core_lib 静态库 + sultan_core nanobind 模块
+│   ├── bindings.cpp            # NB_MODULE 入口 + 子模块绑定注册
+│   ├── diag.h                  # DiagManager 头文件
+│   └── diag.cpp                # DiagManager 实现
+├── tests/
+│   ├── __init__.py
+│   ├── __main__.py             # python -m tests 入口
+│   ├── python/                 # Python 测试
+│   │   ├── test_runner.py      # 自定义测试运行器
+│   │   ├── test_diag.py        # 诊断模块 Python 集成测试
+│   │   ├── test_core.py        # 核心功能测试
+│   │   ├── ...                 # 其他测试模块
+│   │   └── fixtures/           # 测试数据
+│   └── cpp/                    # C++ 单元测试
+│       ├── CMakeLists.txt      # Catch2 测试目标
+│       └── test_diag.cpp       # 诊断模块 C++ 单元测试
 └── .github/workflows/
-    └── build.yml               # CI：Windows + Python 3.12/3.13 矩阵
+    └── build.yml               # CI：构建 + C++ 测试 + Python 测试
 ```
+
+## 构建流程
+
+### 开发模式
+
+```bash
+git submodule update --init --recursive   # 拉取 yyjson + Catch2
+pip install -e . -v                       # editable 安装，自动触发 CMake 构建
+```
+
+editable 模式下，修改 C++ 源码后再次 import 会自动重新编译（由 `[tool.scikit-build.editable] rebuild = true` 控制）。
+
+### C++ 单元测试
+
+```bash
+# 获取 nanobind cmake 路径
+NB_DIR=$(python -c "import nanobind; print(nanobind.cmake_dir())")
+
+# 配置 + 构建 + 运行
+cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$NB_DIR"
+cmake --build build_test --target sultan_tests --config Release
+ctest --test-dir build_test -C Release --output-on-failure
+```
+
+`BUILD_TESTS=OFF`（默认）时不编译 Catch2 和测试，不影响正常构建速度。
 
 ## CMake 构建目标
 
@@ -37,30 +77,56 @@ find_package(nanobind)
     │
     ├─ add_subdirectory(extern/yyjson)     → yyjson 静态库（当前未链接，后续阶段使用）
     │
-    ├─ add_subdirectory(csrc)              → sultan_core.pyd（nanobind 模块）
-    │     └─ NB_STATIC 静态链接 nanobind runtime
+    ├─ add_subdirectory(csrc)
+    │     ├─ sultan_core_lib（静态库）     → C++ 业务逻辑（diag 等模块）
+    │     └─ sultan_core（nanobind 模块）  → 链接 sultan_core_lib，暴露 Python API
+    │
+    ├─ if(BUILD_TESTS)
+    │     ├─ add_subdirectory(extern/Catch2)  → Catch2 测试框架
+    │     └─ add_subdirectory(tests/cpp)      → sultan_tests 可执行文件
+    │           └─ 链接 sultan_core_lib + Catch2WithMain
     │
     └─ python_add_library(_fast_json)      → _fast_json.pyd（纯 C 扩展）
 ```
 
+`sultan_core_lib` 静态库使 C++ 业务逻辑可被 nanobind 模块和 C++ 测试共享，无需重复编译。
+
 MSVC 编译时启用 `/utf-8`，确保 C++ 源码中的中文字符串正确编码。
+
+## 测试
+
+### C++ 单元测试
+
+- 框架：Catch2 v3（git submodule `extern/Catch2`，锁定 v3.8.0）
+- 位置：`tests/cpp/`
+- 构建：`cmake -DBUILD_TESTS=ON` 开启
+- 运行：`ctest` 或直接执行 `sultan_tests.exe`
+- 测试发现：`catch_discover_tests()` 自动注册到 CTest
+
+### Python 测试
+
+- 框架：自定义测试运行器（`tests/python/test_runner.py`）
+- 位置：`tests/python/`
+- 运行：`python -m tests`（`--func` 仅功能 / `--perf` 仅性能）
 
 ## CI
 
 `.github/workflows/build.yml`：
 
-- **触发条件**：push 到 master 且修改了 `csrc/`、`extern/`、`CMakeLists.txt`、`pyproject.toml`、`_fast_json.c`
+- **触发条件**：push 到 master 且修改了 `csrc/`、`extern/`、`CMakeLists.txt`、`pyproject.toml`、`_fast_json.c`、`tests/`
 - **矩阵**：Windows + Python 3.12 / 3.13
-- **步骤**：checkout（含 submodule）→ pip install → 验证两个模块 import
+- **步骤**：checkout（含 submodule）→ pip install → 验证模块 import → C++ 单元测试 → Python 功能测试
 
 ## 扩展指南
 
 后续阶段在 `csrc/` 下添加新模块时：
 
-1. 在 `csrc/` 下创建 `.cpp` 源文件
-2. 在 `csrc/CMakeLists.txt` 的 `nanobind_add_module` 中添加源文件
+1. 在 `csrc/` 下创建 `.h` / `.cpp` 源文件
+2. 在 `csrc/CMakeLists.txt` 的 `sultan_core_lib` 中添加 `.cpp` 文件
 3. 需要链接 yyjson 时，在 `csrc/CMakeLists.txt` 中添加：
    ```cmake
-   target_link_libraries(sultan_core PRIVATE yyjson)
+   target_link_libraries(sultan_core_lib PRIVATE yyjson)
    ```
 4. `bindings.cpp` 中通过 `m.def_submodule("xxx")` 注册子模块
+5. 在 `tests/cpp/` 下创建对应的 C++ 测试文件，添加到 `tests/cpp/CMakeLists.txt`
+6. 在 `tests/python/` 下创建 Python 集成测试，注册到 `test_runner.py`

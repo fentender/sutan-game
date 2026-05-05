@@ -1,0 +1,200 @@
+# C++ 单元测试
+
+## 概述
+
+基于 **Catch2 v3** 的 C++ 单元测试体系。测试目标 `sultan_tests` 链接 `sultan_core_lib` 静态库，直接测试 C++ 业务逻辑，不经过 nanobind 绑定层。
+
+## 依赖
+
+| 组件 | 版本 | 引入方式 |
+|------|------|---------|
+| Catch2 | v3.8.0 | git submodule（`extern/Catch2`） |
+| sultan_core_lib | — | 项目内静态库（`csrc/`） |
+
+## 文件结构
+
+```
+tests/cpp/
+├── CMakeLists.txt      # 测试构建配置
+└── test_diag.cpp       # 诊断模块测试（8 case）
+```
+
+后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
+
+## 构建与运行
+
+```bash
+# 1. 获取 nanobind cmake 路径（顶层 CMake 需要）
+NB_DIR=$(python -c "import nanobind; print(nanobind.cmake_dir())")
+
+# 2. 配置（BUILD_TESTS=ON 开启测试编译）
+cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$NB_DIR"
+
+# 3. 构建测试目标
+cmake --build build_test --target sultan_tests --config Release
+
+# 4a. 通过 CTest 运行（自动发现所有 TEST_CASE）
+ctest --test-dir build_test -C Release --output-on-failure
+
+# 4b. 或直接运行可执行文件
+./build_test/tests/cpp/Release/sultan_tests.exe
+```
+
+`BUILD_TESTS` 默认 OFF，正常 `pip install` 不编译测试，不影响构建速度。
+
+## CMake 配置说明
+
+### 顶层 `CMakeLists.txt`
+
+```cmake
+option(BUILD_TESTS "Build C++ unit tests" OFF)
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(extern/Catch2)
+    add_subdirectory(tests/cpp)
+endif()
+```
+
+### `tests/cpp/CMakeLists.txt`
+
+```cmake
+include(CTest)
+include(Catch)
+
+add_executable(sultan_tests
+    test_diag.cpp
+    # 后续添加：test_resource.cpp, test_json.cpp, ...
+)
+target_link_libraries(sultan_tests PRIVATE
+    sultan_core_lib
+    Catch2::Catch2WithMain
+)
+set_target_properties(sultan_tests PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+
+catch_discover_tests(sultan_tests)
+```
+
+关键点：
+- **Catch2::Catch2WithMain**：自动提供 `main()` 函数，测试文件无需手写入口
+- **catch_discover_tests()**：构建后自动运行可执行文件发现所有 `TEST_CASE`，注册到 CTest
+- **sultan_core_lib**：链接 C++ 业务逻辑静态库，测试直接调用 C++ API
+
+## 编写测试
+
+### 基本模式
+
+```cpp
+#include <catch2/catch_test_macros.hpp>
+#include "diag.h"  // 被测模块头文件
+
+using namespace sultan;
+
+TEST_CASE("module: test description") {
+    // 构造被测对象（使用独立实例，避免全局状态干扰）
+    auto mgr = DiagManager{};
+
+    // 操作
+    mgr.warn("parse", "test message");
+
+    // 断言
+    auto msgs = mgr.snapshot();
+    REQUIRE(msgs.size() == 1);
+    REQUIRE(msgs[0].level == DiagLevel::Warn);
+    REQUIRE(msgs[0].message == "test message");
+}
+```
+
+### 命名规范
+
+`TEST_CASE` 名称格式：`"模块名: 行为描述"`，使用英文（避免 CTest 编码问题）。
+
+```cpp
+TEST_CASE("diag: emit all levels to buffer") { ... }
+TEST_CASE("diag: snapshot filters by category") { ... }
+TEST_CASE("json: parse with trailing commas") { ... }  // 后续模块示例
+```
+
+### 常用断言
+
+| 宏 | 说明 |
+|----|------|
+| `REQUIRE(expr)` | 断言为真，失败则终止当前 test case |
+| `CHECK(expr)` | 断言为真，失败继续执行（收集所有失败） |
+| `REQUIRE_FALSE(expr)` | 断言为假 |
+| `REQUIRE_THROWS(expr)` | 断言抛出异常 |
+| `REQUIRE_NOTHROW(expr)` | 断言不抛异常 |
+
+### 并发测试
+
+使用 `std::thread` + `std::atomic` barrier 确保并发启动：
+
+```cpp
+TEST_CASE("module: thread safety") {
+    auto obj = SomeClass{};
+    const int n_threads = 8;
+    const int ops_per_thread = 100;
+
+    std::vector<std::thread> threads;
+    std::atomic<int> ready{0};
+
+    for (int t = 0; t < n_threads; ++t) {
+        threads.emplace_back([&obj, &ready, t, n_threads, ops_per_thread]() {
+            ready.fetch_add(1);
+            while (ready.load() < n_threads) {}  // barrier
+            for (int i = 0; i < ops_per_thread; ++i) {
+                obj.some_operation(...);
+            }
+        });
+    }
+    for (auto& th : threads) th.join();
+
+    // 验证结果一致性
+    REQUIRE(obj.count() == n_threads * ops_per_thread);
+}
+```
+
+注意：MSVC lambda 中不能隐式捕获 `constexpr` 变量，使用 `const` 并显式捕获。
+
+## 现有测试用例
+
+### test_diag.cpp（8 case，26 assertions）
+
+| 测试 | 验证内容 |
+|------|---------|
+| `diag: emit all levels to buffer` | Info/Warn/Error 三级别消息正确进入 buffer |
+| `diag: snapshot filters by category` | 按类别拉取，其他类别保留 |
+| `diag: snapshot drains buffer` | snapshot 后 buffer 清空 |
+| `diag: notify with callback bypasses buffer` | notify=true + 有回调 → 回调触发，不进 buffer |
+| `diag: notify without callback falls back to buffer` | notify=true + 无回调 → 回退进 buffer |
+| `diag: notify=false with callback goes to buffer` | notify=false + 有回调 → 进 buffer，回调不触发 |
+| `diag: clear callback then notify falls back` | 清除回调后 notify=true 回退进 buffer |
+| `diag: thread safety` | 8 线程各 100 条并发 emit → 总数 800 |
+
+## 添加新模块测试
+
+1. 在 `tests/cpp/` 创建 `test_xxx.cpp`
+2. 在 `tests/cpp/CMakeLists.txt` 的 `add_executable` 中添加源文件：
+   ```cmake
+   add_executable(sultan_tests
+       test_diag.cpp
+       test_xxx.cpp    # 新增
+   )
+   ```
+3. 如需链接额外库（如 yyjson），在 `target_link_libraries` 中添加
+4. 重新 cmake 配置 + 构建即可自动发现新测试
+
+## CI 集成
+
+`.github/workflows/build.yml` 中 C++ 测试步骤：
+
+```yaml
+- name: C++ unit tests
+  run: |
+    $nb_dir = python -c "import nanobind; print(nanobind.cmake_dir())"
+    cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$nb_dir"
+    cmake --build build_test --target sultan_tests --config Release
+    ctest --test-dir build_test -C Release --output-on-failure
+```

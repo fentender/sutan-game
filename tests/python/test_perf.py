@@ -7,7 +7,7 @@ import time
 
 from src.config import SCHEMA_DIR, UserConfig
 from src.core.infra import profiler
-from tests.test_runner import TestResult, assert_true, run_test, skip
+from tests.python.test_runner import TestResult, assert_true, run_test, skip
 
 log = logging.getLogger("test")
 

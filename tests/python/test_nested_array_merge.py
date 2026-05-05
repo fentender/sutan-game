@@ -14,7 +14,7 @@ from src.core.merge.delta import ModDelta, compute_delta, _remap_delta_to_curren
 from src.core.merge.merger import apply_dict_delta
 from src.core.infra.types import DictFieldDiff, MergeMode
 from src.core.schema.loader import load_schemas, resolve_schema, get_schema_root_key
-from tests.test_runner import TestResult, assert_eq, assert_true, run_test, skip
+from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test, skip
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -283,7 +283,7 @@ def run_all(result: TestResult) -> None:
              test_real_5002004_adaptive_hist_with_anchors, result)
 
 if __name__ == "__main__":
-    from tests.test_runner import TestResult
+    from tests.python.test_runner import TestResult
     result = TestResult()
     run_test("real_5002004_adaptive_hist_with_anchors",
              test_real_5002004_adaptive_hist_with_anchors, result)

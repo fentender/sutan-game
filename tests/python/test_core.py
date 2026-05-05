@@ -13,7 +13,7 @@ from src.core.json.parser import _pairs_hook, clean_json_text
 from src.core.json.store import JsonStore
 from src.core.merge.cache import MergeCache
 from src.core.infra.types import JsonArray, JsonObject, MergeMode
-from tests.test_runner import TestResult, assert_eq, assert_true, run_test, skip
+from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test, skip
 
 log = logging.getLogger("test")
 

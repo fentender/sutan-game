@@ -16,7 +16,7 @@ from src.core.infra.types import (
     JsonObject,
     MergeMode,
 )
-from tests.test_runner import TestResult, assert_eq, assert_true, run_test
+from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test
 
 
 def _make_base() -> JsonObject:

@@ -12,7 +12,7 @@ import logging
 
 from src.core.merge.delta import _remap_delta_to_current, compute_delta
 from src.core.infra.types import ArrayFieldDiff, ChangeKind, DictFieldDiff, FieldDiff, MergeMode
-from tests.test_runner import TestResult, assert_eq, assert_true, run_test
+from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test
 
 log = logging.getLogger("test")
 
