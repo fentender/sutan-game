@@ -12,6 +12,7 @@
 import json
 import shutil
 import threading
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import cast
@@ -58,6 +59,8 @@ class JsonStore:
         self._json_cache: dict[str, JsonObject] = {}
         # 缓存时的 mtime：路径字符串 → mtime
         self._mtime_cache: dict[str, float] = {}
+        # override 变更回调（打断 json → merge 循环依赖）
+        self._on_override_change: Callable[[str], None] | None = None
 
     @classmethod
     def instance(cls) -> "JsonStore":
@@ -358,6 +361,14 @@ class JsonStore:
 
     # ── Override 管理 ──
 
+    def set_on_override_change(self, callback: Callable[[str], None]) -> None:
+        """注册 override 变更回调（用于通知合并缓存失效，避免循环导入）"""
+        self._on_override_change = callback
+
+    def _notify_override_change(self, rel_path: str) -> None:
+        if self._on_override_change is not None:
+            self._on_override_change(rel_path)
+
     def load_overrides(self, overrides_dir: Path, enabled_mod_ids: list[str]) -> None:
         """扫描 overrides_dir，加载所有启用 mod 的 override delta 文件"""
         with self._lock:
@@ -407,8 +418,7 @@ class JsonStore:
             serialized = json.dumps(delta.to_delta_dict(), ensure_ascii=False, indent=2)
             override_file.write_text(serialized, encoding="utf-8")
 
-        from ..merge.cache import MergeCache
-        MergeCache.instance().invalidate(rel_path)
+        self._notify_override_change(rel_path)
 
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
         """删除 override：清除内存 + 删磁盘 + 清合并缓存。返回是否存在并删除成功。"""
@@ -430,8 +440,7 @@ class JsonStore:
                     override_file.parent.rmdir()
 
         if existed:
-            from ..merge.cache import MergeCache
-            MergeCache.instance().invalidate(rel_path)
+            self._notify_override_change(rel_path)
 
         return existed
 
@@ -456,10 +465,8 @@ class JsonStore:
                 deleted.append(mod_id)
 
         if affected_paths:
-            from ..merge.cache import MergeCache
-            cache = MergeCache.instance()
             for rel_path in affected_paths:
-                cache.invalidate(rel_path)
+                self._notify_override_change(rel_path)
 
         return deleted
 

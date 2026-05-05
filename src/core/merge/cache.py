@@ -50,6 +50,7 @@ class MergeCache:
     def instance(cls) -> MergeCache:
         if cls._instance is None:
             cls._instance = cls()
+            JsonStore.instance().set_on_override_change(cls._instance.invalidate)
         return cls._instance
 
     def invalidate(self, rel_path: str) -> None:
