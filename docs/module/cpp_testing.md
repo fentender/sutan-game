@@ -17,7 +17,8 @@
 tests/cpp/
 ├── CMakeLists.txt              # 测试构建配置
 ├── test_diag.cpp               # 诊断模块测试（8 case）
-└── test_resource_loader.cpp    # 资源加载模块测试（18 case）
+├── test_resource_loader.cpp    # 资源加载模块测试（18 case）
+└── test_json.cpp               # Json 模块测试（34 case）
 ```
 
 后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
@@ -198,6 +199,72 @@ TEST_CASE("module: thread safety") {
 | `resource: concurrent read_text` | 8 线程并发读同一文件无崩溃 |
 
 测试使用 `TempDir` RAII 结构管理临时目录，构造时创建随机名目录，析构时自动清理。
+
+### test_json.cpp（34 case）
+
+**清洗（13 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: fix_missing_commas after string value` | 字符串值后插入逗号 |
+| `json: fix_missing_commas after number` | 数字后插入逗号 |
+| `json: fix_missing_commas after bool` | true/false 后插入逗号 |
+| `json: fix_missing_commas after null` | null 后插入逗号 |
+| `json: fix_missing_commas after close brace` | `}` 后插入逗号 |
+| `json: fix_missing_commas after close bracket` | `]` 后插入逗号 |
+| `json: fix_missing_commas after negative number` | 负数后插入逗号 |
+| `json: fix_missing_commas no false positive` | 正确 JSON 不变 |
+| `json: fix_missing_commas preserves strings` | 字符串内内容不修改 |
+| `json: strip_duplicate_commas basic` | 连续逗号压缩 |
+| `json: strip_duplicate_commas with whitespace` | 含空白的连续逗号 |
+| `json: strip_duplicate_commas preserves strings` | 字符串内逗号不动 |
+| `json: clean_text combined` | 缺失逗号+连续逗号同时修复 |
+
+**解析（9 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: parse standard json` | 标准 JSON 解析成功 |
+| `json: parse with comments` | `//` 注释正常解析 |
+| `json: parse with trailing commas` | 尾随逗号正常解析 |
+| `json: parse with missing commas` | clean=true 修复后解析 |
+| `json: parse with BOM in text` | BOM 文本容忍 |
+| `json: parse invalid json throws` | 无效 JSON 抛异常 |
+| `json: parse clean=false skips cleaning` | clean=false 不清洗 |
+| `json: parse empty object` | `{}` 解析 |
+| `json: parse empty array` | `[]` 解析 |
+
+**重复键（2 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: duplicate keys preserved in serialization` | 序列化保留重复键 |
+| `json: duplicate keys roundtrip` | parse → to_string → parse → to_string 一致 |
+
+**序列化（3 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: to_string pretty` | 包含换行和缩进 |
+| `json: to_string compact` | 不含换行 |
+| `json: to_string null doc throws` | 空文档抛异常 |
+
+**parse_file（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: parse_file basic` | 读取临时文件解析 |
+| `json: parse_file nonexistent throws` | 不存在文件抛异常 |
+| `json: parse_file with BOM` | 含 BOM 文件正确解析 |
+| `json: parse_file with comments and trailing commas` | 非标准语法文件 |
+| `json: parse_file with missing commas` | 缺失逗号文件 |
+
+**移动语义（2 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `json: move constructor` | 移动后源无效，目标有效 |
+| `json: move assignment` | 移动赋值后源无效 |
 
 ## 添加新模块测试
 

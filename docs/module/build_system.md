@@ -27,7 +27,12 @@ project-root/
 │   ├── diag.h                  # DiagManager 头文件
 │   ├── diag.cpp                # DiagManager 实现
 │   ├── resource_loader.h       # ResourceLoader 头文件
-│   └── resource_loader.cpp     # ResourceLoader 实现
+│   ├── resource_loader.cpp     # ResourceLoader 实现
+│   └── json/                   # Json 模块
+│       ├── json_cleaner.h      # 文本清洗函数声明
+│       ├── json_cleaner.cpp    # fix_missing_commas / strip_duplicate_commas / clean_text
+│       ├── json_doc.h          # JsonDoc 类声明（yyjson RAII 封装）
+│       └── json_doc.cpp        # 解析 / 序列化实现
 ├── tests/
 │   ├── __init__.py
 │   ├── __main__.py             # python -m tests 入口
@@ -40,7 +45,8 @@ project-root/
 │   └── cpp/                    # C++ 单元测试
 │       ├── CMakeLists.txt      # Catch2 测试目标
 │       ├── test_diag.cpp       # 诊断模块 C++ 单元测试
-│       └── test_resource_loader.cpp  # 资源加载模块 C++ 单元测试
+│       ├── test_resource_loader.cpp  # 资源加载模块 C++ 单元测试
+│       └── test_json.cpp       # Json 模块 C++ 单元测试
 └── .github/workflows/
     └── build.yml               # CI：构建 + C++ 测试 + Python 测试
 ```
@@ -78,10 +84,10 @@ ctest --test-dir build_test -C Release --output-on-failure
 find_package(Python)
 find_package(nanobind)
     │
-    ├─ add_subdirectory(extern/yyjson)     → yyjson 静态库（当前未链接，后续阶段使用）
+    ├─ add_subdirectory(extern/yyjson)     → yyjson 静态库（sultan_core_lib 链接）
     │
     ├─ add_subdirectory(csrc)
-    │     ├─ sultan_core_lib（静态库）     → C++ 业务逻辑（diag / resource_loader 等模块）
+    │     ├─ sultan_core_lib（静态库）     → C++ 业务逻辑（diag / resource_loader / json 等模块），链接 yyjson
     │     └─ sultan_core（nanobind 模块）  → 链接 sultan_core_lib，暴露 Python API
     │
     ├─ if(BUILD_TESTS)
