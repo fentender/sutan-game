@@ -15,8 +15,9 @@
 
 ```
 tests/cpp/
-├── CMakeLists.txt      # 测试构建配置
-└── test_diag.cpp       # 诊断模块测试（8 case）
+├── CMakeLists.txt              # 测试构建配置
+├── test_diag.cpp               # 诊断模块测试（8 case）
+└── test_resource_loader.cpp    # 资源加载模块测试（18 case）
 ```
 
 后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
@@ -172,6 +173,31 @@ TEST_CASE("module: thread safety") {
 | `diag: notify=false with callback goes to buffer` | notify=false + 有回调 → 进 buffer，回调不触发 |
 | `diag: clear callback then notify falls back` | 清除回调后 notify=true 回退进 buffer |
 | `diag: thread safety` | 8 线程各 100 条并发 emit → 总数 800 |
+
+### test_resource_loader.cpp（18 case）
+
+| 测试 | 验证内容 |
+|------|---------|
+| `resource: read_text basic` | 读取 UTF-8 文件内容正确 |
+| `resource: read_text strips BOM` | BOM 自动剥离 |
+| `resource: read_bytes preserves BOM` | read_bytes 保留原始数据 |
+| `resource: read_text nonexistent throws` | 不存在文件抛异常 |
+| `resource: cache hit` | 读两次同文件返回同一 shared_ptr，cache_size()==1 |
+| `resource: cache invalidates on mtime change` | 重写文件后 read_text 返回新内容 |
+| `resource: write_text creates parent dirs` | 写入深层路径自动创建目录 |
+| `resource: write_text updates cache` | 写入后 read_text 命中缓存返回写入内容 |
+| `resource: copy_file` | 复制后目标内容一致 |
+| `resource: copy_tree` | 递归复制目录结构 |
+| `resource: remove_file` | 删除后 exists==false |
+| `resource: remove_file nonexistent throws` | 不存在抛异常 |
+| `resource: remove_tree` | 删除整个目录 |
+| `resource: remove_empty_dir` | 空→true, 非空→false |
+| `resource: mkdir recursive` | 深层目录创建 |
+| `resource: list_dir` | 返回直属子项 |
+| `resource: rglob pattern` | `*.json` 只返回 json 文件 |
+| `resource: concurrent read_text` | 8 线程并发读同一文件无崩溃 |
+
+测试使用 `TempDir` RAII 结构管理临时目录，构造时创建随机名目录，析构时自动清理。
 
 ## 添加新模块测试
 

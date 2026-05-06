@@ -25,7 +25,9 @@ project-root/
 │   ├── CMakeLists.txt          # sultan_core_lib 静态库 + sultan_core nanobind 模块
 │   ├── bindings.cpp            # NB_MODULE 入口 + 子模块绑定注册
 │   ├── diag.h                  # DiagManager 头文件
-│   └── diag.cpp                # DiagManager 实现
+│   ├── diag.cpp                # DiagManager 实现
+│   ├── resource_loader.h       # ResourceLoader 头文件
+│   └── resource_loader.cpp     # ResourceLoader 实现
 ├── tests/
 │   ├── __init__.py
 │   ├── __main__.py             # python -m tests 入口
@@ -37,7 +39,8 @@ project-root/
 │   │   └── fixtures/           # 测试数据
 │   └── cpp/                    # C++ 单元测试
 │       ├── CMakeLists.txt      # Catch2 测试目标
-│       └── test_diag.cpp       # 诊断模块 C++ 单元测试
+│       ├── test_diag.cpp       # 诊断模块 C++ 单元测试
+│       └── test_resource_loader.cpp  # 资源加载模块 C++ 单元测试
 └── .github/workflows/
     └── build.yml               # CI：构建 + C++ 测试 + Python 测试
 ```
@@ -78,7 +81,7 @@ find_package(nanobind)
     ├─ add_subdirectory(extern/yyjson)     → yyjson 静态库（当前未链接，后续阶段使用）
     │
     ├─ add_subdirectory(csrc)
-    │     ├─ sultan_core_lib（静态库）     → C++ 业务逻辑（diag 等模块）
+    │     ├─ sultan_core_lib（静态库）     → C++ 业务逻辑（diag / resource_loader 等模块）
     │     └─ sultan_core（nanobind 模块）  → 链接 sultan_core_lib，暴露 Python API
     │
     ├─ if(BUILD_TESTS)

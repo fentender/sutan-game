@@ -3,6 +3,7 @@ include(Catch)
 
 add_executable(sultan_tests
     test_diag.cpp
+    test_resource_loader.cpp
 )
 target_link_libraries(sultan_tests PRIVATE
     sultan_core_lib

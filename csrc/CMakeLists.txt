@@ -1,6 +1,7 @@
 # sultan_core 内部逻辑（静态库，供 nanobind 模块和 C++ 测试共用）
 add_library(sultan_core_lib STATIC
     diag.cpp
+    resource_loader.cpp
 )
 target_include_directories(sultan_core_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(sultan_core_lib PROPERTIES
