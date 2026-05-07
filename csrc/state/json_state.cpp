@@ -1,0 +1,225 @@
+#include "json_state.h"
+#include "json_doc.h"
+#include "json_val.h"
+#include "mut_doc.h"
+#include "mut_val.h"
+#include <algorithm>
+#include <stdexcept>
+
+namespace sultan {
+
+using std::make_unique;
+
+// ── JsonVal → StateNodePtr 递归 ──
+
+static ScalarValue val_to_scalar(JsonVal v) {
+    switch (v.type()) {
+        case JsonType::Null: return nullptr;
+        case JsonType::Bool: return v.get_bool();
+        case JsonType::Int: {
+            uint64_t u = v.get_uint();
+            if (u <= static_cast<uint64_t>(INT64_MAX))
+                return static_cast<int64_t>(u);
+            return static_cast<double>(u);
+        }
+        case JsonType::Real: return v.get_real();
+        case JsonType::Str:  return string(v.get_str());
+        default:             return nullptr;
+    }
+}
+
+static StateNodePtr build_node(JsonVal v);
+
+static StateNodePtr build_dict(JsonVal obj) {
+    auto dict = make_unique<JsonDictState>();
+
+    struct KeyValues { vector<JsonVal> vals; };
+    unordered_map<string, KeyValues> seen;
+    vector<string> key_order;
+
+    auto it = obj.obj_iter();
+    JsonVal::ObjEntry e;
+    while (it.next(e)) {
+        string k(e.key, e.key_len);
+        auto& kv = seen[k];
+        if (kv.vals.empty()) key_order.push_back(k);
+        kv.vals.push_back(e.val);
+    }
+
+    for (auto& k : key_order) {
+        auto& kv = seen[k];
+        if (kv.vals.size() > 1) {
+            auto arr = make_unique<JsonArrayState>();
+            arr->is_duplist = true;
+            int n = static_cast<int>(kv.vals.size());
+            arr->base_count = n;
+            for (int i = 0; i < n; ++i) {
+                arr->diffs.push_back(build_node(kv.vals[i]));
+                arr->indices.push_back(i + 1);
+            }
+            arr->order.push_back(0);
+            for (int i = 1; i <= n; ++i) arr->order.push_back(i);
+            arr->order.push_back(-1);
+            dict->insert(std::move(k), std::move(arr));
+        } else {
+            dict->insert(std::move(k), build_node(kv.vals[0]));
+        }
+    }
+    return dict;
+}
+
+static StateNodePtr build_array(JsonVal arr) {
+    auto node = make_unique<JsonArrayState>();
+    int n = static_cast<int>(arr.arr_size());
+    node->base_count = n;
+
+    auto it = arr.arr_iter();
+    JsonVal elem;
+    int idx = 1;
+    while (it.next(elem)) {
+        node->diffs.push_back(build_node(elem));
+        node->indices.push_back(idx++);
+    }
+
+    node->order.push_back(0);
+    for (int i = 1; i <= n; ++i) node->order.push_back(i);
+    node->order.push_back(-1);
+    return node;
+}
+
+static StateNodePtr build_node(JsonVal v) {
+    switch (v.type()) {
+        case JsonType::Obj: return build_dict(v);
+        case JsonType::Arr: return build_array(v);
+        default:            return make_element(val_to_scalar(v));
+    }
+}
+
+// ── StateNodePtr → MutVal 递归 ──
+
+static MutVal scalar_to_val(const ScalarValue& sv, MutVal ctx) {
+    struct Visitor {
+        MutVal ctx;
+        MutVal operator()(std::nullptr_t) const { return ctx.new_null(); }
+        MutVal operator()(bool v) const          { return ctx.new_bool(v); }
+        MutVal operator()(int64_t v) const       { return ctx.new_int(v); }
+        MutVal operator()(double v) const        { return ctx.new_real(v); }
+        MutVal operator()(const string& v) const { return ctx.new_str(v); }
+    };
+    return std::visit(Visitor{ctx}, sv);
+}
+
+static MutVal state_to_val(const StateBase& node, MutVal ctx);
+
+static MutVal dict_to_val(const JsonDictState& dict, MutVal ctx) {
+    auto obj = ctx.new_obj();
+    vector<string> keys;
+    keys.reserve(dict.entries.size());
+    for (auto& [k, _] : dict.entries) keys.push_back(k);
+    std::sort(keys.begin(), keys.end());
+
+    for (auto& k : keys) {
+        auto it = dict.entries.find(k);
+        auto& child = it->second;
+        if (!child) continue;
+        if (is_deleted(base_kind(child->kind()))) continue;
+
+        if (child->is_array() && child->as_array().is_duplist) {
+            auto& arr = child->as_array();
+            unordered_map<int, size_t> id_to_idx;
+            for (size_t i = 0; i < arr.indices.size(); ++i)
+                id_to_idx[arr.indices[i]] = i;
+
+            for (int eid : arr.order) {
+                if (eid == 0 || eid == -1) continue;
+                auto idx_it = id_to_idx.find(eid);
+                if (idx_it == id_to_idx.end()) continue;
+                auto& elem = arr.diffs[idx_it->second];
+                if (!elem || is_deleted(base_kind(elem->kind()))) continue;
+                obj.obj_add(k, state_to_val(*elem, ctx));
+            }
+        } else {
+            obj.obj_add(k, state_to_val(*child, ctx));
+        }
+    }
+    return obj;
+}
+
+static MutVal array_to_val(const JsonArrayState& arr, MutVal ctx) {
+    auto marr = ctx.new_arr();
+
+    unordered_map<int, size_t> id_to_idx;
+    for (size_t i = 0; i < arr.indices.size(); ++i)
+        id_to_idx[arr.indices[i]] = i;
+
+    for (int eid : arr.order) {
+        if (eid == 0 || eid == -1) continue;
+        auto it = id_to_idx.find(eid);
+        if (it == id_to_idx.end()) continue;
+        auto& elem = arr.diffs[it->second];
+        if (!elem || is_deleted(base_kind(elem->kind()))) continue;
+        marr.arr_append(state_to_val(*elem, ctx));
+    }
+    return marr;
+}
+
+static MutVal state_to_val(const StateBase& node, MutVal ctx) {
+    if (node.is_element())
+        return scalar_to_val(node.as_element().value, ctx);
+    if (node.is_dict())
+        return dict_to_val(node.as_dict(), ctx);
+    return array_to_val(node.as_array(), ctx);
+}
+
+// ── JsonState 实现 ──
+
+JsonState::JsonState(StateNodePtr root) : root_(std::move(root)) {}
+
+JsonState JsonState::from_doc(const JsonDoc& doc) {
+    if (!doc.valid())
+        throw std::runtime_error("JsonState::from_doc: invalid JsonDoc");
+    return JsonState(build_node(doc.root()));
+}
+
+JsonState JsonState::from_text(const string& text, bool clean) {
+    auto doc = JsonDoc::parse(text, clean);
+    return from_doc(doc);
+}
+
+JsonState JsonState::from_file(const string& path, bool clean) {
+    auto doc = JsonDoc::parse_file(path, clean);
+    return from_doc(doc);
+}
+
+JsonDoc JsonState::to_doc() const {
+    if (!root_)
+        throw std::runtime_error("JsonState::to_doc: empty state");
+    MutDoc d;
+    auto ctx = d.root();
+    d.set_root(state_to_val(*root_, ctx));
+    return d.freeze();
+}
+
+FormatResult JsonState::format(int highlight_version) const {
+    if (!root_)
+        return {};
+    return format_state(*root_, highlight_version);
+}
+
+JsonState JsonState::clone() const {
+    if (!root_)
+        return JsonState();
+    return JsonState(root_->clone());
+}
+
+StateBase& JsonState::root() {
+    if (!root_) throw std::runtime_error("JsonState::root: empty state");
+    return *root_;
+}
+
+const StateBase& JsonState::root() const {
+    if (!root_) throw std::runtime_error("JsonState::root: empty state");
+    return *root_;
+}
+
+}  // namespace sultan

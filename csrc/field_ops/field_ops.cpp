@@ -1,54 +1,56 @@
 #include "field_ops.h"
 #include "json_doc.h"
-#include "yyjson.h"
+#include "json_val.h"
+#include "mut_doc.h"
+#include "mut_val.h"
 
-#include <stdexcept>
+#include <cstring>
 
 namespace sultan {
 
 // ── 提取辅助（不可变树遍历） ──
 
-static void collect_strings(yyjson_val* val, const char* name, size_t name_len,
+static void collect_strings(JsonVal val, const char* name, size_t name_len,
                             std::vector<std::string>& out) {
     if (!val) return;
 
-    if (yyjson_is_obj(val)) {
-        yyjson_obj_iter iter = yyjson_obj_iter_with(val);
-        yyjson_val* key;
-        while ((key = yyjson_obj_iter_next(&iter))) {
-            yyjson_val* child = yyjson_obj_iter_get_val(key);
-            if (yyjson_equals_strn(key, name, name_len) && yyjson_is_str(child)) {
-                out.emplace_back(yyjson_get_str(child));
+    if (val.is_obj()) {
+        auto it = val.obj_iter();
+        JsonVal::ObjEntry e;
+        while (it.next(e)) {
+            if (e.key_len == name_len && memcmp(e.key, name, name_len) == 0
+                && e.val.is_str()) {
+                out.emplace_back(e.val.get_str());
             }
-            collect_strings(child, name, name_len, out);
+            collect_strings(e.val, name, name_len, out);
         }
-    } else if (yyjson_is_arr(val)) {
-        yyjson_arr_iter iter = yyjson_arr_iter_with(val);
-        yyjson_val* elem;
-        while ((elem = yyjson_arr_iter_next(&iter))) {
+    } else if (val.is_arr()) {
+        auto it = val.arr_iter();
+        JsonVal elem;
+        while (it.next(elem)) {
             collect_strings(elem, name, name_len, out);
         }
     }
 }
 
-static void collect_ints(yyjson_val* val, const char* name, size_t name_len,
+static void collect_ints(JsonVal val, const char* name, size_t name_len,
                          std::vector<int64_t>& out) {
     if (!val) return;
 
-    if (yyjson_is_obj(val)) {
-        yyjson_obj_iter iter = yyjson_obj_iter_with(val);
-        yyjson_val* key;
-        while ((key = yyjson_obj_iter_next(&iter))) {
-            yyjson_val* child = yyjson_obj_iter_get_val(key);
-            if (yyjson_equals_strn(key, name, name_len) && yyjson_is_int(child)) {
-                out.push_back(yyjson_get_sint(child));
+    if (val.is_obj()) {
+        auto it = val.obj_iter();
+        JsonVal::ObjEntry e;
+        while (it.next(e)) {
+            if (e.key_len == name_len && memcmp(e.key, name, name_len) == 0
+                && e.val.is_int()) {
+                out.push_back(e.val.get_int());
             }
-            collect_ints(child, name, name_len, out);
+            collect_ints(e.val, name, name_len, out);
         }
-    } else if (yyjson_is_arr(val)) {
-        yyjson_arr_iter iter = yyjson_arr_iter_with(val);
-        yyjson_val* elem;
-        while ((elem = yyjson_arr_iter_next(&iter))) {
+    } else if (val.is_arr()) {
+        auto it = val.arr_iter();
+        JsonVal elem;
+        while (it.next(elem)) {
             collect_ints(elem, name, name_len, out);
         }
     }
@@ -73,74 +75,60 @@ std::vector<int64_t> extract_int_values(
 // ── 替换辅助（可变树遍历） ──
 
 static void replace_field_ints_recursive(
-    yyjson_mut_val* val,
+    MutVal val,
     const char* name, size_t name_len,
     const std::unordered_map<int64_t, int64_t>& mapping) {
     if (!val) return;
 
-    if (yyjson_mut_is_obj(val)) {
-        yyjson_mut_obj_iter iter = yyjson_mut_obj_iter_with(val);
-        yyjson_mut_val* key;
-        while ((key = yyjson_mut_obj_iter_next(&iter))) {
-            yyjson_mut_val* child = yyjson_mut_obj_iter_get_val(key);
-            const char* k = yyjson_mut_get_str(key);
-            size_t klen = yyjson_mut_get_len(key);
-            if (klen == name_len && memcmp(k, name, name_len) == 0
-                && yyjson_mut_is_int(child)) {
-                auto it = mapping.find(yyjson_mut_get_sint(child));
-                if (it != mapping.end())
-                    yyjson_mut_set_sint(child, it->second);
+    if (val.is_obj()) {
+        auto it = val.obj_iter();
+        MutVal::ObjEntry e;
+        while (it.next(e)) {
+            if (e.key_len == name_len && memcmp(e.key_str, name, name_len) == 0
+                && e.val.is_int()) {
+                auto found = mapping.find(e.val.get_int());
+                if (found != mapping.end())
+                    e.val.set_int(found->second);
             }
-            replace_field_ints_recursive(child, name, name_len, mapping);
+            replace_field_ints_recursive(e.val, name, name_len, mapping);
         }
-    } else if (yyjson_mut_is_arr(val)) {
-        yyjson_mut_arr_iter iter = yyjson_mut_arr_iter_with(val);
-        yyjson_mut_val* elem;
-        while ((elem = yyjson_mut_arr_iter_next(&iter))) {
+    } else if (val.is_arr()) {
+        auto it = val.arr_iter();
+        MutVal elem;
+        while (it.next(elem)) {
             replace_field_ints_recursive(elem, name, name_len, mapping);
         }
     }
 }
 
 static void replace_field_strs_recursive(
-    yyjson_mut_val* val,
+    MutVal val,
     const char* name, size_t name_len,
     const std::unordered_map<std::string, std::string>& mapping) {
     if (!val) return;
 
-    if (yyjson_mut_is_obj(val)) {
-        yyjson_mut_obj_iter iter = yyjson_mut_obj_iter_with(val);
-        yyjson_mut_val* key;
-        while ((key = yyjson_mut_obj_iter_next(&iter))) {
-            yyjson_mut_val* child = yyjson_mut_obj_iter_get_val(key);
-            const char* k = yyjson_mut_get_str(key);
-            size_t klen = yyjson_mut_get_len(key);
-            if (klen == name_len && memcmp(k, name, name_len) == 0
-                && yyjson_mut_is_str(child)) {
-                const char* s = yyjson_mut_get_str(child);
+    if (val.is_obj()) {
+        auto it = val.obj_iter();
+        MutVal::ObjEntry e;
+        while (it.next(e)) {
+            if (e.key_len == name_len && memcmp(e.key_str, name, name_len) == 0
+                && e.val.is_str()) {
+                auto* s = e.val.get_str();
                 if (s) {
-                    auto it = mapping.find(s);
-                    if (it != mapping.end())
-                        yyjson_mut_set_strn(child, it->second.c_str(), it->second.size());
+                    auto found = mapping.find(s);
+                    if (found != mapping.end())
+                        e.val.set_str(found->second);
                 }
             }
-            replace_field_strs_recursive(child, name, name_len, mapping);
+            replace_field_strs_recursive(e.val, name, name_len, mapping);
         }
-    } else if (yyjson_mut_is_arr(val)) {
-        yyjson_mut_arr_iter iter = yyjson_mut_arr_iter_with(val);
-        yyjson_mut_val* elem;
-        while ((elem = yyjson_mut_arr_iter_next(&iter))) {
+    } else if (val.is_arr()) {
+        auto it = val.arr_iter();
+        MutVal elem;
+        while (it.next(elem)) {
             replace_field_strs_recursive(elem, name, name_len, mapping);
         }
     }
-}
-
-static JsonDoc mut_to_doc(yyjson_mut_doc* mut) {
-    yyjson_doc* result = yyjson_mut_doc_imut_copy(mut, nullptr);
-    yyjson_mut_doc_free(mut);
-    if (!result)
-        throw std::runtime_error("Failed to convert mutable document to immutable");
-    return JsonDoc::from_raw(result);
 }
 
 // ── 替换 API ──
@@ -149,55 +137,43 @@ JsonDoc replace_field_ints(
     const JsonDoc& doc,
     const std::string& field_name,
     const std::unordered_map<int64_t, int64_t>& mapping) {
-    yyjson_mut_doc* mut = yyjson_doc_mut_copy(doc.raw_doc(), nullptr);
-    if (!mut) throw std::runtime_error("Failed to create mutable copy");
-
+    auto d = MutDoc::from(doc);
     if (!mapping.empty())
         replace_field_ints_recursive(
-            yyjson_mut_doc_get_root(mut),
-            field_name.c_str(), field_name.size(), mapping);
-
-    return mut_to_doc(mut);
+            d.root(), field_name.c_str(), field_name.size(), mapping);
+    return d.freeze();
 }
 
 JsonDoc replace_field_strs(
     const JsonDoc& doc,
     const std::string& field_name,
     const std::unordered_map<std::string, std::string>& mapping) {
-    yyjson_mut_doc* mut = yyjson_doc_mut_copy(doc.raw_doc(), nullptr);
-    if (!mut) throw std::runtime_error("Failed to create mutable copy");
-
+    auto d = MutDoc::from(doc);
     if (!mapping.empty())
         replace_field_strs_recursive(
-            yyjson_mut_doc_get_root(mut),
-            field_name.c_str(), field_name.size(), mapping);
-
-    return mut_to_doc(mut);
+            d.root(), field_name.c_str(), field_name.size(), mapping);
+    return d.freeze();
 }
 
 JsonDoc replace_root_keys(
     const JsonDoc& doc,
     const std::unordered_map<std::string, std::string>& mapping) {
-    yyjson_mut_doc* mut = yyjson_doc_mut_copy(doc.raw_doc(), nullptr);
-    if (!mut) throw std::runtime_error("Failed to create mutable copy");
-
+    auto d = MutDoc::from(doc);
     if (!mapping.empty()) {
-        yyjson_mut_val* root = yyjson_mut_doc_get_root(mut);
-        if (root && yyjson_mut_is_obj(root)) {
-            yyjson_mut_obj_iter iter = yyjson_mut_obj_iter_with(root);
-            yyjson_mut_val* key;
-            while ((key = yyjson_mut_obj_iter_next(&iter))) {
-                const char* k = yyjson_mut_get_str(key);
-                if (k) {
-                    auto it = mapping.find(k);
-                    if (it != mapping.end())
-                        yyjson_mut_set_strn(key, it->second.c_str(), it->second.size());
+        auto root = d.root();
+        if (root && root.is_obj()) {
+            auto it = root.obj_iter();
+            MutVal::ObjEntry e;
+            while (it.next(e)) {
+                if (e.key_str) {
+                    auto found = mapping.find(e.key_str);
+                    if (found != mapping.end())
+                        e.key.set_str(found->second);
                 }
             }
         }
     }
-
-    return mut_to_doc(mut);
+    return d.freeze();
 }
 
 }  // namespace sultan

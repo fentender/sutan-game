@@ -82,8 +82,8 @@ std::string JsonDoc::to_string(bool compact) const {
 
 // ── 内部访问 ──
 
-yyjson_val* JsonDoc::root() const {
-    return doc_ ? yyjson_doc_get_root(doc_) : nullptr;
+JsonVal JsonDoc::root() const {
+    return JsonVal(doc_ ? yyjson_doc_get_root(doc_) : nullptr);
 }
 
 JsonDoc JsonDoc::from_raw(yyjson_doc* doc) {

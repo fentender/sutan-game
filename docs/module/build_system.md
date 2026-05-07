@@ -32,10 +32,24 @@ project-root/
 │   │   ├── json_cleaner.h      # 文本清洗函数声明
 │   │   ├── json_cleaner.cpp    # fix_missing_commas / strip_duplicate_commas / clean_text
 │   │   ├── json_doc.h          # JsonDoc 类声明（yyjson RAII 封装）
-│   │   └── json_doc.cpp        # 解析 / 序列化实现
-│   └── field_ops/              # JSON 字段操作模块
-│       ├── field_ops.h         # 批量提取 / 替换 API 声明
-│       └── field_ops.cpp       # 提取 / 替换实现
+│   │   ├── json_doc.cpp        # 解析 / 序列化实现
+│   │   ├── json_val.h          # JsonVal / JsonType（不可变值引用）
+│   │   ├── json_val.cpp        # JsonVal 实现（yyjson 读取 API 封装）
+│   │   ├── mut_val.h           # MutVal（可变值引用）
+│   │   ├── mut_val.cpp         # MutVal 实现（yyjson 可变值 API 封装）
+│   │   ├── mut_doc.h           # MutDoc（可变文档所有者）
+│   │   └── mut_doc.cpp         # MutDoc 实现（可变文档生命周期管理）
+│   ├── field_ops/              # JSON 字段操作模块
+│   │   ├── field_ops.h         # 批量提取 / 替换 API 声明
+│   │   └── field_ops.cpp       # 提取 / 替换实现
+│   └── state/                  # State 模块
+│       ├── change_kind.h       # ChangeKind / MergeMode 枚举 + 位运算
+│       ├── state_node.h        # StateBase 基类 + 三个派生类
+│       ├── state_node.cpp      # clone / serialize_scalar / is_modified
+│       ├── json_state.h        # JsonState 类（工厂 + 转换 + 格式化）
+│       ├── json_state.cpp      # from_doc / to_doc / clone 实现
+│       ├── state_formatter.h   # FormatResult + format_state 声明
+│       └── state_formatter.cpp # 递归格式化实现
 ├── tests/
 │   ├── __init__.py
 │   ├── __main__.py             # python -m tests 入口
@@ -50,7 +64,9 @@ project-root/
 │       ├── test_diag.cpp       # 诊断模块 C++ 单元测试
 │       ├── test_resource_loader.cpp  # 资源加载模块 C++ 单元测试
 │       ├── test_json.cpp       # Json 模块 C++ 单元测试
-│       └── test_field_ops.cpp  # 字段操作模块 C++ 单元测试
+│       ├── test_field_ops.cpp  # 字段操作模块 C++ 单元测试
+│       ├── test_state.cpp     # State 模块 C++ 单元测试
+│       └── test_mut_val.cpp   # MutVal/MutDoc 单元测试
 └── .github/workflows/
     └── build.yml               # CI：构建 + C++ 测试 + Python 测试
 ```

@@ -19,7 +19,9 @@ tests/cpp/
 ├── test_diag.cpp               # 诊断模块测试（8 case）
 ├── test_resource_loader.cpp    # 资源加载模块测试（18 case）
 ├── test_json.cpp               # Json 模块测试（34 case）
-└── test_field_ops.cpp          # 字段操作模块测试（17 case）
+├── test_field_ops.cpp          # 字段操作模块测试（17 case）
+├── test_state.cpp              # State 模块测试（41 case）
+└── test_mut_val.cpp            # MutVal/MutDoc 测试（36 case）
 ```
 
 后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
@@ -295,6 +297,167 @@ TEST_CASE("module: thread safety") {
 | `field_ops: replace_root_keys not recursive` | 嵌套层级同名键不受影响 |
 | `field_ops: replace preserves original` | 替换返回新文档，原文档不变 |
 | `field_ops: replace on empty doc` | 空文档替换不报错 |
+
+### test_state.cpp（41 case）
+
+**ChangeKind（8 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: change_kind base values` | 各枚举值正确 |
+| `state: change_kind bitwise or` | 位或运算 |
+| `state: change_kind base_kind extraction` | 提取基础类型 |
+| `state: change_kind flags extraction` | 提取修饰标志 |
+| `state: change_kind is_* predicates` | 各判断函数 |
+| `state: change_kind multi_mod flag` | MultiMod 标志 |
+| `state: change_kind override flag` | Override 标志 |
+| `state: change_kind combined flags` | 组合标志 |
+
+**ScalarValue（4 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: serialize_scalar null` | null 序列化 |
+| `state: serialize_scalar types` | bool/int/string 序列化 |
+| `state: serialize_scalar double` | 浮点数序列化 |
+| `state: scalar_equal same types` | 相等比较 |
+
+**from_doc 构建（9 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: from_doc simple object` | 简单对象构建 |
+| `state: from_doc nested object` | 嵌套对象 |
+| `state: from_doc array` | 数组构建（indices/order） |
+| `state: from_doc nested array` | 嵌套数组 |
+| `state: from_doc scalar root` | 标量根节点 |
+| `state: from_doc empty object` | 空对象 |
+| `state: from_doc duplicate keys` | 重复键 → DupList |
+| `state: from_doc all types` | null/bool/int/float/string/object/array |
+| `state: from_doc all kinds origin` | 所有 kind 初始为 Origin |
+
+**to_doc 转换（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: to_doc roundtrip simple` | 简单 roundtrip |
+| `state: to_doc roundtrip nested` | 嵌套 roundtrip |
+| `state: to_doc skips deleted` | 跳过 DELETED 字段 |
+| `state: to_doc duplist expansion` | DupList 展开为重复键 |
+| `state: to_doc array order` | 按 order 顺序输出 |
+
+**clone（3 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: clone deep independence` | 修改 clone 不影响原树 |
+| `state: clone preserves structure` | to_string 一致 |
+| `state: clone preserves metadata` | kind/version/old_value 保留 |
+
+**format 格式化（8 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: format all origin` | 全 ORIGIN → left==right |
+| `state: format added field` | ADDED → 右侧显示/左侧填充 |
+| `state: format deleted field` | DELETED → 左侧显示/右侧填充 |
+| `state: format changed field` | CHANGED → 旧值左/新值右 |
+| `state: format highlight version filter` | version 不匹配按 ORIGIN 输出 |
+| `state: format alignment` | 行数预对齐 |
+| `state: format nested structure` | 嵌套递归格式化 |
+| `state: format duplist` | DupList 展开为重复键行 |
+
+**便利工厂 + move 语义（4 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `state: from_text basic` | 文本构建 |
+| `state: from_file basic` | 文件构建 |
+| `state: move constructor` | 移动后源无效 |
+| `state: move assignment` | 移动赋值后源无效 |
+
+### test_mut_val.cpp（36 case）
+
+**MutDoc 生命周期（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: MutDoc default construct` | 空文档，root 无效但 doc_ 有效 |
+| `mutval: MutDoc from immutable doc` | 从不可变文档创建可变副本 |
+| `mutval: MutDoc move constructor` | 移动后目标有效 |
+| `mutval: MutDoc freeze` | 转为不可变 JsonDoc |
+| `mutval: MutDoc freeze null throws` | 空 MutDoc freeze 抛异常 |
+
+**类型检查（3 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: type checks` | 7 种类型全覆盖 |
+| `mutval: type() returns JsonType` | type() 返回正确枚举 |
+| `mutval: invalid val type is Null` | 无效 MutVal 类型为 Null |
+
+**读取（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: get_bool` | 布尔值读取 |
+| `mutval: get_int` | 整数读取 |
+| `mutval: get_real` | 浮点数读取 |
+| `mutval: get_str` | 字符串读取 |
+| `mutval: get_len for string` | 字符串长度 |
+
+**修改标量（4 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: set_int` | 修改整数值 |
+| `mutval: set_bool` | 修改布尔值 |
+| `mutval: set_real` | 修改浮点数 |
+| `mutval: set_str` | 修改字符串值 |
+
+**对象操作（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: obj_get existing key` | 按键查找 |
+| `mutval: obj_get missing key` | 键不存在返回无效 |
+| `mutval: obj_add` | 添加键值对 |
+| `mutval: obj_put replaces existing` | 已存在键替换值 |
+| `mutval: obj_remove` | 删除键值对 |
+| `mutval: obj_size` | 对象大小 |
+
+**数组操作（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: arr_get` | 按索引访问 |
+| `mutval: arr_append` | 尾部追加 |
+| `mutval: arr_prepend` | 头部插入 |
+| `mutval: arr_remove` | 按索引删除 |
+| `mutval: arr_size` | 数组大小 |
+
+**值创建（1 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: new_* via root context` | 通过 root() 上下文创建全部值类型 |
+
+**迭代器（5 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: obj_iter` | 对象迭代基本功能 |
+| `mutval: obj_iter modify values` | 迭代中修改值 |
+| `mutval: obj_iter modify keys` | 迭代中修改键 |
+| `mutval: arr_iter` | 数组迭代求和 |
+| `mutval: arr_iter modify` | 迭代中修改元素 |
+
+**Roundtrip（2 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `mutval: roundtrip from -> modify -> freeze` | 完整修改流程 |
+| `mutval: roundtrip build from scratch` | 从头构建 JSON 文档 |
 
 ## 添加新模块测试
 

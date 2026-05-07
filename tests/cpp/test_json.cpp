@@ -122,7 +122,7 @@ TEST_CASE("json: clean_text combined") {
 TEST_CASE("json: parse standard json") {
     auto doc = JsonDoc::parse(R"({"name":"test","id":42})");
     REQUIRE(doc.valid());
-    REQUIRE(doc.root() != nullptr);
+    REQUIRE(doc.root().valid());
 }
 
 TEST_CASE("json: parse with comments") {

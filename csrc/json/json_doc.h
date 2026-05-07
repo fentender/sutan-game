@@ -1,8 +1,8 @@
 #pragma once
+#include "json_val.h"
 #include <string>
 
 struct yyjson_doc;
-struct yyjson_val;
 
 namespace sultan {
 
@@ -30,10 +30,9 @@ public:
     // ── 内部访问（供 C++ 模块使用） ──
 
     bool valid() const { return doc_ != nullptr; }
-    yyjson_val* root() const;
+    JsonVal root() const;
     yyjson_doc* raw_doc() const { return doc_; }
 
-    // 内部工厂：从裸 yyjson_doc* 构建（调用方转移所有权）
     static JsonDoc from_raw(yyjson_doc* doc);
 
 private:
