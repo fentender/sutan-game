@@ -1,9 +1,12 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 
 #include "diag.h"
+#include "field_ops.h"
+#include "json_doc.h"
 
 namespace nb = nanobind;
 using namespace sultan;
@@ -48,8 +51,43 @@ static void bind_diag(nb::module_& parent) {
           nb::arg("notify") = false);
 }
 
+static void bind_json(nb::module_& parent) {
+    auto m = parent.def_submodule("json");
+
+    nb::class_<JsonDoc>(m, "JsonDoc")
+        .def_static("parse", &JsonDoc::parse,
+            nb::arg("text"), nb::arg("clean") = true)
+        .def_static("parse_file", &JsonDoc::parse_file,
+            nb::arg("path"), nb::arg("clean") = true)
+        .def("to_string", &JsonDoc::to_string,
+            nb::arg("compact") = false)
+        .def("valid", &JsonDoc::valid)
+        .def("__repr__", [](const JsonDoc& d) {
+            return d.valid()
+                ? std::string("<JsonDoc valid>")
+                : std::string("<JsonDoc invalid>");
+        });
+}
+
+static void bind_field_ops(nb::module_& parent) {
+    auto m = parent.def_submodule("field_ops");
+
+    m.def("extract_string_values", &extract_string_values,
+        nb::arg("doc"), nb::arg("field_name"));
+    m.def("extract_int_values", &extract_int_values,
+        nb::arg("doc"), nb::arg("field_name"));
+    m.def("replace_field_ints", &replace_field_ints,
+        nb::arg("doc"), nb::arg("field_name"), nb::arg("mapping"));
+    m.def("replace_field_strs", &replace_field_strs,
+        nb::arg("doc"), nb::arg("field_name"), nb::arg("mapping"));
+    m.def("replace_root_keys", &replace_root_keys,
+        nb::arg("doc"), nb::arg("mapping"));
+}
+
 NB_MODULE(sultan_core, m) {
     m.doc() = "苏丹的游戏 Mod 合并器 - C++ 加速层";
     m.attr("__version__") = "0.1.0";
     bind_diag(m);
+    bind_json(m);
+    bind_field_ops(m);
 }

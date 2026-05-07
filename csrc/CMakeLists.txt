@@ -4,10 +4,12 @@ add_library(sultan_core_lib STATIC
     resource_loader.cpp
     json/json_cleaner.cpp
     json/json_doc.cpp
+    field_ops/field_ops.cpp
 )
 target_include_directories(sultan_core_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/json
+    ${CMAKE_CURRENT_SOURCE_DIR}/field_ops
 )
 target_link_libraries(sultan_core_lib PUBLIC yyjson)
 set_target_properties(sultan_core_lib PROPERTIES

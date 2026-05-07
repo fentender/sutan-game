@@ -1,0 +1,40 @@
+#pragma once
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace sultan {
+
+class JsonDoc;
+
+// ── 提取 ──
+
+// 递归查找所有 key == field_name 的字符串类型字段值
+std::vector<std::string> extract_string_values(
+    const JsonDoc& doc, const std::string& field_name);
+
+// 递归查找所有 key == field_name 的整数类型字段值
+std::vector<int64_t> extract_int_values(
+    const JsonDoc& doc, const std::string& field_name);
+
+// ── 替换（返回新 JsonDoc，原文档不变） ──
+
+// 递归查找所有 key == field_name 的字段，替换其整数值
+JsonDoc replace_field_ints(
+    const JsonDoc& doc,
+    const std::string& field_name,
+    const std::unordered_map<int64_t, int64_t>& mapping);
+
+// 递归查找所有 key == field_name 的字段，替换其字符串值（精确匹配）
+JsonDoc replace_field_strs(
+    const JsonDoc& doc,
+    const std::string& field_name,
+    const std::unordered_map<std::string, std::string>& mapping);
+
+// 仅替换根级对象键（不递归）
+JsonDoc replace_root_keys(
+    const JsonDoc& doc,
+    const std::unordered_map<std::string, std::string>& mapping);
+
+}  // namespace sultan

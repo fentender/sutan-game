@@ -33,6 +33,9 @@ public:
     yyjson_val* root() const;
     yyjson_doc* raw_doc() const { return doc_; }
 
+    // 内部工厂：从裸 yyjson_doc* 构建（调用方转移所有权）
+    static JsonDoc from_raw(yyjson_doc* doc);
+
 private:
     JsonDoc() = default;
     explicit JsonDoc(yyjson_doc* doc);

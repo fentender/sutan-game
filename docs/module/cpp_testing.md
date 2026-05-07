@@ -18,7 +18,8 @@ tests/cpp/
 ├── CMakeLists.txt              # 测试构建配置
 ├── test_diag.cpp               # 诊断模块测试（8 case）
 ├── test_resource_loader.cpp    # 资源加载模块测试（18 case）
-└── test_json.cpp               # Json 模块测试（34 case）
+├── test_json.cpp               # Json 模块测试（34 case）
+└── test_field_ops.cpp          # 字段操作模块测试（17 case）
 ```
 
 后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
@@ -265,6 +266,35 @@ TEST_CASE("module: thread safety") {
 |------|---------|
 | `json: move constructor` | 移动后源无效，目标有效 |
 | `json: move assignment` | 移动赋值后源无效 |
+
+### test_field_ops.cpp（17 case）
+
+**提取（7 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `field_ops: extract_string_values basic` | 从对象提取字符串字段值 |
+| `field_ops: extract_string_values nested` | 深层嵌套对象中提取 |
+| `field_ops: extract_string_values in array` | 数组内对象中提取 |
+| `field_ops: extract_string_values no match` | 字段不存在返回空 |
+| `field_ops: extract_int_values basic` | 提取整数字段值 |
+| `field_ops: extract_int_values mixed types` | 同名字段不同类型，仅收集整数 |
+| `field_ops: extract from empty doc` | 空对象/空数组 |
+
+**替换（10 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `field_ops: replace_field_ints basic` | 按字段名替换整数值 |
+| `field_ops: replace_field_ints only named field` | 同值不同字段名不受影响 |
+| `field_ops: replace_field_ints nested` | 深层嵌套中按名替换 |
+| `field_ops: replace_field_ints no match` | 不匹配不变 |
+| `field_ops: replace_field_strs basic` | 按字段名替换字符串值 |
+| `field_ops: replace_field_strs exact match` | 仅精确匹配 |
+| `field_ops: replace_root_keys basic` | 根级键替换 |
+| `field_ops: replace_root_keys not recursive` | 嵌套层级同名键不受影响 |
+| `field_ops: replace preserves original` | 替换返回新文档，原文档不变 |
+| `field_ops: replace on empty doc` | 空文档替换不报错 |
 
 ## 添加新模块测试
 

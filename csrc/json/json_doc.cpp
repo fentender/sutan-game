@@ -86,4 +86,8 @@ yyjson_val* JsonDoc::root() const {
     return doc_ ? yyjson_doc_get_root(doc_) : nullptr;
 }
 
+JsonDoc JsonDoc::from_raw(yyjson_doc* doc) {
+    return JsonDoc(doc);
+}
+
 }  // namespace sultan
