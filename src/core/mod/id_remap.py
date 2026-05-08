@@ -99,12 +99,12 @@ class RemapTable:
 # ==================== ID 收集 ====================
 
 def collect_base_ids() -> tuple[dict[str, set[str]], set[str]]:
-    """收集游戏本体的所有 ID 和 tag name（从 JsonStore 读取）。
+    """收集游戏本体的所有 ID 和 tag name（从 DataManager 读取）。
 
     返回 (base_ids, base_tag_names)。
     """
-    from ..json.store import JsonStore
-    store = JsonStore.instance()
+    from ..data_manager import DataManager
+    store = DataManager.instance()
 
     base_ids: dict[str, set[str]] = {
         "cards": set(), "tag": set(), "tag_id": set(),
@@ -156,9 +156,9 @@ class ModIdInfo:
 
 
 def collect_mod_ids(mod_id: str) -> ModIdInfo:
-    """收集单个 mod 的所有 ID 定义（从 JsonStore 读取）"""
-    from ..json.store import JsonStore
-    store = JsonStore.instance()
+    """收集单个 mod 的所有 ID 定义（从 DataManager 读取）"""
+    from ..data_manager import DataManager
+    store = DataManager.instance()
 
     info = ModIdInfo()
 
@@ -537,13 +537,13 @@ def replace_in_value(
 
 
 def apply_remap_to_store(mod_id: str, remap: RemapTable) -> None:
-    """将 remap 应用到 store 中该 mod 的所有 JSON 数据（原地更新）。
+    """将 remap 应用到 DataManager 中该 mod 的所有 JSON 数据（原地更新）。
 
-    遍历该 mod 在 store 中的所有文件，替换 ID 引用并更新 store。
+    遍历该 mod 在 DataManager 中的所有文件，替换 ID 引用并更新。
     文件名即 ID 的类型（如 rite/XXXXX.json）会同时更新 rel_path。
     """
-    from ..json.store import JsonStore
-    store = JsonStore.instance()
+    from ..data_manager import DataManager
+    store = DataManager.instance()
 
     int_lookup = remap.build_int_lookup()
     str_lookup = remap.build_str_lookup()

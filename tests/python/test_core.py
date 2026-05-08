@@ -10,7 +10,7 @@ from src.config import SCHEMA_DIR, UserConfig
 from src.core.merge.array_match import match_by_heuristic
 from src.core.merge.delta import ModDelta, compute_delta
 from src.core.json.parser import _pairs_hook, clean_json_text
-from src.core.json.store import JsonStore
+from src.core.data_manager import DataManager
 from src.core.merge.cache import MergeCache
 from src.core.infra.types import JsonArray, JsonObject, MergeMode
 from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test, skip
@@ -111,7 +111,7 @@ def test_heuristic_insert_delete() -> None:
 
 
 def _init_merge_env() -> tuple[
-    list[tuple[str, str, Path]], JsonStore, MergeCache,
+    list[tuple[str, str, Path]], DataManager, MergeCache,
 ]:
     """初始化合并环境：加载 store、计算 delta、返回 mod_configs"""
     config = UserConfig.load()
@@ -134,7 +134,7 @@ def _init_merge_env() -> tuple[
                 mod_configs.append((mod_id, mod_id, config_dir))
                 break
 
-    store = JsonStore.instance()
+    store = DataManager.instance()
     store.init(game_config, mod_configs)
     ModDelta.init([mc[0] for mc in mod_configs], SCHEMA_DIR)
 
@@ -166,7 +166,7 @@ def _get_step_right_json(
 
 
 def _apply_override_and_verify(
-    store: JsonStore,
+    store: DataManager,
     cache: MergeCache,
     mod_configs: list[tuple[str, str, Path]],
     rel_path: str,

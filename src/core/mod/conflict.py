@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..infra.profiler import profile
 from ..infra.types import FIELD_SEP, CancelCheck, ChangeKind, JsonObject
-from ..json.store import JsonStore
+from ..data_manager import DataManager
 from ..merge.delta import ModDelta, flatten_delta
 from ..schema.loader import get_schema_root_key, load_schemas, resolve_schema
 
@@ -171,24 +171,24 @@ def analyze_all_overrides(
     返回:
         FileOverrideInfo 列表
     """
-    store = JsonStore.instance()
+    dm = DataManager.instance()
     schemas = load_schemas(schema_dir) if schema_dir else {}
     mod_ids = [mod_id for mod_id, _, _ in mod_configs]
 
     results: list[FileOverrideInfo] = []
 
-    for rel_path in sorted(store.all_rel_paths()):
+    for rel_path in sorted(dm.all_rel_paths()):
         if cancel_check:
             cancel_check()
 
-        base_data = store.get_base(rel_path)
+        base_data = dm.get_base(rel_path)
 
         mod_data_list: list[tuple[str, str, JsonObject]] = []
         for mod_id in mod_ids:
-            if store.has_mod(mod_id, rel_path):
+            if dm.has_mod(mod_id, rel_path):
                 mod_data_list.append((
-                    mod_id, store.mod_name(mod_id),
-                    store.get_mod(mod_id, rel_path),
+                    mod_id, dm.mod_name(mod_id),
+                    dm.get_mod(mod_id, rel_path),
                 ))
 
         if not mod_data_list:

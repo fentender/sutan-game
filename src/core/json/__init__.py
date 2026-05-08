@@ -1,4 +1,7 @@
-"""JSON 处理层 — 解析、存储、分类"""
+"""JSON 处理层 — 解析、分类
+
+JsonStore 仅供 DataManager 内部使用，不对外导出。
+"""
 
 from .classify import classify_json as classify_json, get_type_str as get_type_str
 from .parser import (
@@ -7,4 +10,3 @@ from .parser import (
     format_json as format_json,
     reset_dir_cache as reset_dir_cache,
 )
-from .store import JsonStore as JsonStore

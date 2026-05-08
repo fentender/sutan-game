@@ -10,7 +10,7 @@ from pathlib import Path
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
 from ..infra.types import ChangeKind, DictFieldDiff, JsonObject
-from ..json.store import JsonStore
+from ..data_manager import DataManager
 from ..schema.loader import get_schema_root_key, load_schemas, resolve_schema
 from .delta import ModDelta
 from .formatter import format_delta_json
@@ -50,7 +50,7 @@ class MergeCache:
     def instance(cls) -> MergeCache:
         if cls._instance is None:
             cls._instance = cls()
-            JsonStore.instance().set_on_override_change(cls._instance.invalidate)
+            DataManager.instance().set_on_override_change(cls._instance.invalidate)
         return cls._instance
 
     def invalidate(self, rel_path: str) -> None:
@@ -93,7 +93,7 @@ class MergeCache:
     ) -> FileMergeState:
         """统一的合并循环：一次遍历产出中间状态和最终结果"""
         diag.snapshot("merge")
-        store = JsonStore.instance()
+        store = DataManager.instance()
         base_data = store.get_base(rel_path)
 
         # schemas 缓存：同一 schema_dir 只加载一次

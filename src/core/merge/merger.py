@@ -13,7 +13,7 @@ from ..infra.diagnostics import diag, merge_ctx
 from ..infra.profiler import profile
 from ..infra.types import *
 from ..json.parser import dump_json
-from ..json.store import JsonStore
+from ..data_manager import DataManager
 from ..schema.loader import get_schema_root_key
 
 # 需要整文件替换而非合并的文件
@@ -299,7 +299,7 @@ def apply_mod_deltas(
 
         apply_dict_delta(current, delta, field_path, version=version)
 
-        override_delta = JsonStore.instance().get_override(mod_id, rel_path)
+        override_delta = DataManager.instance().get_override(mod_id, rel_path)
         if override_delta is not None:
             apply_dict_delta(current, override_delta, field_path,
                              version=version, is_override=True)
@@ -367,7 +367,7 @@ def merge_all_files(
     """
     diag.snapshot("merge")
 
-    store = JsonStore.instance()
+    store = DataManager.instance()
     from .cache import MergeCache
     cache = MergeCache.instance()
     mod_ids = [mod_id for mod_id, _, _ in mod_configs]
@@ -439,7 +439,7 @@ def copy_failed_files(
     """
     from ..json.classify import classify_json
 
-    store = JsonStore.instance()
+    store = DataManager.instance()
     ignored = store.get_ignored_failures()
     if not ignored:
         return []

@@ -17,7 +17,7 @@ from typing import cast
 from ..infra.diagnostics import diag
 from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject, JsonValue
 from ..json.classify import classify_json, get_type_str
-from ..json.store import JsonStore
+from ..data_manager import DataManager
 from .dsl import classify_dsl_key
 
 # 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典
@@ -648,7 +648,7 @@ def _collect_file_info(filepath: str) -> tuple[str, dict[str, FieldInfo], JsonOb
     """收集单个根目录文件的字段信息（不构建 schema）。
     返回 (file_type, info, data) 或 None。
     """
-    data = JsonStore.parse_file(filepath)
+    data = DataManager.parse_file(filepath)
     if data is None:
         return None
     file_type = classify_json(data)
@@ -680,7 +680,7 @@ def _collect_dir_info(dirpath: str) -> tuple[str | None, dict[str, FieldInfo], i
     total = len(files)
 
     def _load(fname: str) -> JsonObject | None:
-        return JsonStore.parse_file(os.path.join(dirpath, fname))
+        return DataManager.parse_file(os.path.join(dirpath, fname))
 
     with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
         results = list(pool.map(_load, files))

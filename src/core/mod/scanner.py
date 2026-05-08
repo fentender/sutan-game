@@ -77,8 +77,8 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
     info_file = mod_path / "Info.json"
     if info_file.exists():
         try:
-            from ..json.store import JsonStore
-            data = JsonStore.parse_file(info_file)
+            from ..data_manager import DataManager
+            data = DataManager.parse_file(info_file)
             name = data.get("name", mod_id)
             info.name = str(name) if name is not None else mod_id
             desc = data.get("description", "")

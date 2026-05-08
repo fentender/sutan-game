@@ -253,6 +253,8 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage("正在加载 JSON 资源...")
         self._store_worker = StoreInitWorker(
             self.config.game_config_path, mod_configs, self.service,
+            history_dir=HISTORY_DIR,
+            mod_update_times=self._get_mod_update_times(),
         )
         self._store_worker.finished.connect(self._on_store_ready)
         self._store_worker.error.connect(self._on_store_error)
@@ -350,8 +352,6 @@ class MainWindow(QMainWindow):
             mod_ids, schema_dir=SCHEMA_DIR,
             merge_mode=self._get_merge_mode(),
             mod_merge_modes=self._get_mod_merge_modes(),
-            mod_update_times=self._get_mod_update_times(),
-            history_dir=HISTORY_DIR,
             service=self.service,
         )
 
@@ -527,9 +527,7 @@ class MainWindow(QMainWindow):
         self.service.invalidate_delta()
         self.service.init_delta(enabled_ids, schema_dir=SCHEMA_DIR,
                                 merge_mode=self._get_merge_mode(),
-                                mod_merge_modes=self._get_mod_merge_modes(),
-                                mod_update_times=self._get_mod_update_times(),
-                                history_dir=HISTORY_DIR)
+                                mod_merge_modes=self._get_mod_merge_modes())
 
         self.statusBar().showMessage("正在分析覆盖情况...")
         self.progress_bar.setVisible(True)

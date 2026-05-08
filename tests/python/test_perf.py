@@ -30,16 +30,16 @@ def _require_real_data():
 
 
 def _init_store_and_delta(game_config, workshop):
-    """初始化 JsonStore 和 ModDelta，返回 (mod_configs, mod_ids)。"""
+    """初始化 DataManager 和 ModDelta，返回 (mod_configs, mod_ids)。"""
     from src.core.merge.delta import ModDelta
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
     from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
         skip("没有可用的 Mod")
     mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
-    store = JsonStore.instance()
+    store = DataManager.instance()
     store.init(game_config, mod_configs)
     mod_ids = [m.mod_id for m in mods]
     ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
@@ -115,12 +115,12 @@ def perf_apply_delta_real():
     game_config, workshop = _require_real_data()
     from src.core.merge.delta import ModDelta
     from src.core.merge.merger import apply_dict_delta
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
     from src.core.infra.types import DictFieldDiff
     from src.core.schema.loader import load_schemas, resolve_schema, get_schema_root_key
 
     _, mod_ids = _init_store_and_delta(game_config, workshop)
-    store = JsonStore.instance()
+    store = DataManager.instance()
     schemas = load_schemas(SCHEMA_DIR) if SCHEMA_DIR.exists() else {}
 
     tasks: list[tuple[dict, DictFieldDiff, tuple[str, ...] | None]] = []
@@ -234,7 +234,7 @@ def perf_merge_all():
 
 def perf_json_parse():
     """JSON 解析性能（含逗号修复）"""
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
 
     game_config, workshop = _require_real_data()
 
@@ -258,7 +258,7 @@ def perf_json_parse():
     repair_count = 0
     for f in all_files:
         try:
-            JsonStore.parse_file(f)
+            DataManager.parse_file(f)
         except Exception:
             repair_count += 1
     elapsed = time.perf_counter() - start
@@ -303,14 +303,14 @@ def perf_delta_init():
     """ModDelta.init() 性能（含并行计算）"""
     game_config, workshop = _require_real_data()
     from src.core.merge.delta import ModDelta
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
     from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
         skip("没有可用的 Mod")
     mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
-    store = JsonStore.instance()
+    store = DataManager.instance()
     store.init(game_config, mod_configs)
     mod_ids = [m.mod_id for m in mods]
 
@@ -327,14 +327,14 @@ def perf_delta_cache_hit():
     """ModDelta 缓存命中性能"""
     game_config, workshop = _require_real_data()
     from src.core.merge.delta import ModDelta
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
     from src.core.mod.scanner import scan_all_mods
 
     mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
     if not mods:
         skip("没有可用的 Mod")
     mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
-    store = JsonStore.instance()
+    store = DataManager.instance()
     store.init(game_config, mod_configs)
     mod_ids = [m.mod_id for m in mods]
     ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
@@ -414,11 +414,11 @@ def perf_merge_cache_compute():
 def perf_compute_all_overlaps():
     """全量 Mod 重叠检测性能"""
     game_config, workshop = _require_real_data()
-    from src.core.json.store import JsonStore
+    from src.core.data_manager import DataManager
     from src.core.mod.overlap import compute_all_overlaps
 
     _, mod_ids = _init_store_and_delta(game_config, workshop)
-    store = JsonStore.instance()
+    store = DataManager.instance()
 
     start = time.perf_counter()
     results = compute_all_overlaps(store, mod_ids)

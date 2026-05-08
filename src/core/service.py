@@ -1,7 +1,7 @@
 """
 MergeService — GUI 与核心模块之间的业务编排层
 
-GUI 通过此类访问所有核心业务功能，不直接操作 JsonStore / MergeCache / ModDelta 等单例。
+GUI 通过此类访问所有核心业务功能，不直接操作 DataManager / MergeCache / ModDelta 等单例。
 """
 from collections.abc import Callable
 from pathlib import Path
@@ -18,7 +18,6 @@ from .infra.types import (
 )
 from .json.classify import classify_json as _classify_json
 from .json.parser import reset_dir_cache as _reset_dir_cache
-from .json.store import JsonStore
 from .merge.cache import FileMergeState, MergeCache
 from .merge.delta import ModDelta, compute_delta as _compute_delta
 from .merge.merger import (
@@ -59,10 +58,6 @@ class MergeService:
         return DataManager.instance()
 
     @property
-    def _store(self) -> JsonStore:
-        return JsonStore.instance()
-
-    @property
     def _merge_cache(self) -> MergeCache:
         return MergeCache.instance()
 
@@ -81,53 +76,59 @@ class MergeService:
 
     # === Store 初始化 ===
 
-    def init_store(self, game_config_path: Path,
-                   mod_configs: list[tuple[str, str, Path]]) -> None:
-        self._store.init(game_config_path, mod_configs)
+    def init_store(
+        self, game_config_path: Path,
+        mod_configs: list[tuple[str, str, Path]],
+        history_dir: Path | None = None,
+        mod_update_times: dict[str, int] | None = None,
+    ) -> None:
+        self._data.init(game_config_path, mod_configs,
+                        history_dir=history_dir,
+                        mod_update_times=mod_update_times)
 
     def take_failures(self) -> list[ParseFailure]:
-        return self._store.take_failures()
+        return self._data.take_failures()
 
     def reload_files(self, paths: list[Path]) -> list[ParseFailure]:
-        return self._store.reload(paths)
+        return self._data.reload(paths)
 
     def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
-        self._store.set_ignored_failures(failures)
+        self._data.set_ignored_failures(failures)
 
     # === Override 管理 ===
 
     def load_overrides(self, overrides_dir: Path, enabled_ids: list[str]) -> None:
-        self._store.load_overrides(overrides_dir, enabled_ids)
+        self._data.load_overrides(overrides_dir, enabled_ids)
 
     def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
-        return self._store.invalidate_overrides(mod_ids)
+        return self._data.invalidate_overrides(mod_ids)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._store.has_override(mod_id, rel_path)
+        return self._data.has_override(mod_id, rel_path)
 
     def set_override(self, mod_id: str, rel_path: str,
                      delta: DictFieldDiff) -> None:
-        self._store.set_override(mod_id, rel_path, delta)
+        self._data.set_override(mod_id, rel_path, delta)
 
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._store.remove_override(mod_id, rel_path)
+        return self._data.remove_override(mod_id, rel_path)
 
     # === 数据查询 ===
 
     def get_base(self, rel_path: str) -> JsonObject:
-        return self._store.get_base(rel_path)
+        return self._data.get_base(rel_path)
 
     def has_base(self, rel_path: str) -> bool:
-        return self._store.has_base(rel_path)
+        return self._data.has_base(rel_path)
 
     def get_mod(self, mod_id: str, rel_path: str) -> JsonObject:
-        return self._store.get_mod(mod_id, rel_path)
+        return self._data.get_mod(mod_id, rel_path)
 
     def has_mod(self, mod_id: str, rel_path: str) -> bool:
-        return self._store.has_mod(mod_id, rel_path)
+        return self._data.has_mod(mod_id, rel_path)
 
     def reload_mod(self, mod_id: str) -> None:
-        self._store.reload_mod(mod_id)
+        self._data.reload_mod(mod_id)
 
     # === Delta 管理 ===
 
@@ -135,16 +136,12 @@ class MergeService:
                    schema_dir: Path | None = None,
                    merge_mode: MergeMode = MergeMode.SMART,
                    mod_merge_modes: dict[str, MergeMode] | None = None,
-                   mod_update_times: dict[str, int] | None = None,
-                   history_dir: Path | None = None,
                    progress_cb: Callable[[int, int], None] | None = None) -> None:
         ModDelta.init(
             mod_ids,
             schema_dir=schema_dir,
             merge_mode=merge_mode,
             mod_merge_modes=mod_merge_modes,
-            mod_update_times=mod_update_times,
-            history_dir=history_dir,
             progress_cb=progress_cb,
         )
 
@@ -184,7 +181,7 @@ class MergeService:
 
     def cleanup_remap(self, remap_tables: dict[str, RemapTable]) -> None:
         for mod_id in remap_tables:
-            self._store.reload_mod(mod_id)
+            self._data.reload_mod(mod_id)
 
     # === 冲突分析 ===
 
@@ -197,7 +194,7 @@ class MergeService:
                                       cancel_check=cancel_check)
 
     def compute_all_overlaps(self, mod_ids: list[str]) -> dict[str, bool]:
-        return _compute_all_overlaps(self._store, mod_ids)
+        return _compute_all_overlaps(self._data, mod_ids)
 
     # === 合并执行 ===
 

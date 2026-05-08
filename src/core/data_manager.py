@@ -173,6 +173,8 @@ class DataManager:
     def __init__(self) -> None:
         self._base = GameData(data_id="", data_type=GameDataType.BASE)
         self._mods: dict[str, GameData] = {}
+        self._history_bases: dict[str, GameData] = {}
+        self._mod_history_map: dict[str, str] = {}
         self._overrides_dir: Path | None = None
         self._failures: list[ParseFailure] = []
         self._ignored_failures: list[ParseFailure] = []
@@ -185,6 +187,15 @@ class DataManager:
             cls._instance = cls()
         return cls._instance
 
+    # ── 文件解析（委托 JsonStore） ──
+
+    @staticmethod
+    def parse_file(
+        file_path: str | Path, *, clean: bool = True, dupkey: bool = True,
+    ) -> JsonObject:
+        from .json.store import JsonStore
+        return JsonStore.parse_file(file_path, clean=clean, dupkey=dupkey)
+
     # ── 初始化 ──
 
     @profile
@@ -192,6 +203,8 @@ class DataManager:
         self,
         game_config_path: Path,
         mod_configs: list[tuple[str, str, Path]],
+        history_dir: Path | None = None,
+        mod_update_times: dict[str, int] | None = None,
     ) -> None:
         from .json.store import JsonStore
         store = JsonStore.instance()
@@ -202,6 +215,8 @@ class DataManager:
                 config_path=game_config_path,
             )
             self._mods.clear()
+            self._history_bases.clear()
+            self._mod_history_map.clear()
             self._failures.clear()
             self._ignored_failures.clear()
 
@@ -227,6 +242,12 @@ class DataManager:
                 tasks.append((json_file, rel, False, mod_id, mod_name))
 
         self._load_tasks(tasks, store)
+
+        self._init_history(
+            history_dir, mod_update_times,
+            [mid for mid, _, _ in mod_configs],
+            store,
+        )
 
     def _load_tasks(
         self,
@@ -266,6 +287,86 @@ class DataManager:
                 self._base.config.set(rel_path, data)
             else:
                 self._mods[mod_id].config.set(rel_path, data)
+
+    # ── 历史版本初始化 ──
+
+    def _init_history(
+        self,
+        history_dir: Path | None,
+        mod_update_times: dict[str, int] | None,
+        mod_ids: list[str],
+        store: object,
+    ) -> None:
+        from .json.store import JsonStore
+        from .platform.history import (
+            PathResolver,
+            find_base_version,
+            parse_history_versions,
+            resolve_path,
+            set_resolver,
+        )
+
+        if history_dir is None:
+            set_resolver(None)
+            return
+
+        set_resolver(PathResolver(history_dir))
+        history_versions = parse_history_versions(history_dir)
+        if not history_versions or mod_update_times is None:
+            return
+
+        version_to_mods: dict[str, list[str]] = {}
+        for mod_id in mod_ids:
+            ut = mod_update_times.get(mod_id)
+            if ut is None:
+                continue
+            base_ver = find_base_version(ut, history_versions)
+            if base_ver is None:
+                continue
+            ver_key = str(base_ver)
+            self._mod_history_map[mod_id] = ver_key
+            version_to_mods.setdefault(ver_key, []).append(mod_id)
+
+        st = cast(JsonStore, store)
+        for ver_key, ver_mod_ids in version_to_mods.items():
+            ver_dir = Path(ver_key)
+            gd = GameData(
+                data_id=ver_dir.name,
+                data_type=GameDataType.BASE,
+                config_path=ver_dir,
+            )
+
+            needed_files: set[str] = set()
+            for mod_id in ver_mod_ids:
+                mod_gd = self._mods.get(mod_id)
+                if mod_gd is not None:
+                    needed_files.update(mod_gd.config.rel_paths())
+
+            for rel_path in needed_files:
+                hist_file = resolve_path(ver_dir, rel_path)
+                if hist_file is None:
+                    continue
+                try:
+                    data = st.load_cached(hist_file)
+                except (json.JSONDecodeError, OSError):
+                    continue
+                gd.config.set(rel_path, data)
+
+            self._history_bases[ver_key] = gd
+
+    # ── 数据访问（历史版本 base） ──
+
+    def get_history_base(self, mod_id: str, rel_path: str) -> JsonObject | None:
+        ver_key = self._mod_history_map.get(mod_id)
+        if ver_key is None:
+            return None
+        gd = self._history_bases.get(ver_key)
+        if gd is None:
+            return None
+        return gd.config.get(rel_path)
+
+    def has_history_base(self, mod_id: str) -> bool:
+        return mod_id in self._mod_history_map
 
     # ── 数据访问（base） ──
 
@@ -538,6 +639,8 @@ class DataManager:
         with self._lock:
             self._base = GameData(data_id="", data_type=GameDataType.BASE)
             self._mods.clear()
+            self._history_bases.clear()
+            self._mod_history_map.clear()
             self._failures.clear()
             self._ignored_failures.clear()
             self._overrides_dir = None

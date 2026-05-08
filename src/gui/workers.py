@@ -46,18 +46,26 @@ class BaseWorker(QThread):
 
 
 class StoreInitWorker(BaseWorker):
-    """后台初始化 JsonStore"""
+    """后台初始化 DataManager"""
 
     def __init__(self, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
-                 service: MergeService) -> None:
+                 service: MergeService,
+                 history_dir: Path | None = None,
+                 mod_update_times: dict[str, int] | None = None) -> None:
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
+        self.history_dir = history_dir
+        self.mod_update_times = mod_update_times
         self._service = service
 
     def _run(self) -> None:
-        self._service.init_store(self.game_config_path, self.mod_configs)
+        self._service.init_store(
+            self.game_config_path, self.mod_configs,
+            history_dir=self.history_dir,
+            mod_update_times=self.mod_update_times,
+        )
 
 
 class DeltaInitWorker(BaseWorker):
@@ -68,16 +76,12 @@ class DeltaInitWorker(BaseWorker):
                  schema_dir: Path | None = None,
                  merge_mode: MergeMode = MergeMode.SMART,
                  mod_merge_modes: dict[str, MergeMode] | None = None,
-                 mod_update_times: dict[str, int] | None = None,
-                 history_dir: Path | None = None,
                  service: MergeService | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
         self.schema_dir = schema_dir
         self.merge_mode = merge_mode
         self.mod_merge_modes = mod_merge_modes
-        self.mod_update_times = mod_update_times
-        self.history_dir = history_dir
         self._service = service
 
     def _run(self) -> None:
@@ -88,8 +92,6 @@ class DeltaInitWorker(BaseWorker):
             progress_cb=self.progress.emit,
             merge_mode=self.merge_mode,
             mod_merge_modes=self.mod_merge_modes,
-            mod_update_times=self.mod_update_times,
-            history_dir=self.history_dir,
         )
 
 

@@ -11,16 +11,10 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from ..platform.history import (
-    PathResolver,
-    find_base_version,
-    parse_history_versions,
-    set_resolver,
-)
+from ..data_manager import DataManager
 from ..infra.profiler import profile
 from ..infra.types import *
 from ..json.classify import classify_json
-from ..json.store import JsonStore
 from ..schema.loader import (
     get_schema_root_key,
     load_schemas,
@@ -502,11 +496,10 @@ def _effective_mode(
 def _process_file_group(
     rel_path: str,
     file_mod_ids: list[str],
-    store: JsonStore,
+    dm: DataManager,
     schemas: dict[str, JsonObject],
     merge_mode: MergeMode,
     mod_merge_modes: dict[str, MergeMode] | None,
-    adaptive_base_dirs: dict[str, Path],
     apply_delta: Callable[..., DictFieldDiff],
 ) -> list[tuple[str, str, DictFieldDiff | None]]:
     """处理单个文件的所有 mod delta 计算。
@@ -514,9 +507,7 @@ def _process_file_group(
     按 mod 优先级顺序处理，维护 REPLACE 模式所需的累积合并状态。
     返回 [(mod_id, rel_path, delta), ...] 结果列表。
     """
-    from ..platform.history import resolve_path
-
-    base_data = store.get_base(rel_path)
+    base_data = dm.get_base(rel_path)
     file_type = classify_json(base_data) if base_data else "config"
     schema = resolve_schema(rel_path, schemas) if schemas else None
     root_key = get_schema_root_key(schema) if schema else None
@@ -526,7 +517,7 @@ def _process_file_group(
 
     for mod_id in file_mod_ids:
         effective = _effective_mode(mod_id, merge_mode, mod_merge_modes)
-        mod_data = store.get_mod(mod_id, rel_path)
+        mod_data = dm.get_mod(mod_id, rel_path)
 
         if effective == MergeMode.REPLACE:
             if current is None:
@@ -538,13 +529,9 @@ def _process_file_group(
             )
         elif effective == MergeMode.ADAPTIVE:
             adaptive_base = base_data
-            hist_base_used: JsonObject | None = None
-            hist_dir = adaptive_base_dirs.get(mod_id)
-            if hist_dir is not None:
-                hist_file = resolve_path(hist_dir, rel_path)
-                if hist_file is not None:
-                    hist_base_used = store._load_json(hist_file)
-                    adaptive_base = hist_base_used
+            hist_base_used = dm.get_history_base(mod_id, rel_path)
+            if hist_base_used is not None:
+                adaptive_base = hist_base_used
             delta = compute_delta(
                 adaptive_base, mod_data, file_type,
                 root_key=root_key,
@@ -597,8 +584,6 @@ class ModDelta:
         progress_cb: ProgressCallback | None = None,
         merge_mode: MergeMode = MergeMode.SMART,
         mod_merge_modes: dict[str, MergeMode] | None = None,
-        mod_update_times: dict[str, int] | None = None,
-        history_dir: Path | None = None,
     ) -> None:
         """预计算所有 mod 的 delta 并缓存。
 
@@ -608,40 +593,15 @@ class ModDelta:
             progress_cb: 进度回调 (completed, total)
             merge_mode: 全局合并模式
             mod_merge_modes: per-mod 合并模式覆盖
-            mod_update_times: mod_id → update_time（ADAPTIVE 模式需要）
-            history_dir: history_config 目录路径（ADAPTIVE 模式需要）
         """
         from .merger import apply_dict_delta
 
-        store = JsonStore.instance()
+        dm = DataManager.instance()
         schemas = load_schemas(schema_dir) if schema_dir else {}
 
-        # ADAPTIVE 模式：解析历史版本目录
-        set_resolver(PathResolver(history_dir) if history_dir else None)
-        history_versions = parse_history_versions(history_dir) if history_dir else []
-
-        # ADAPTIVE 前置校验
-        adaptive_mods = [
-            m for m in mod_ids
-            if _effective_mode(m, merge_mode, mod_merge_modes) == MergeMode.ADAPTIVE
-        ]
-        if adaptive_mods:
-            assert history_dir is not None, "ADAPTIVE 模式要求提供 history_dir"
-            assert mod_update_times is not None, "ADAPTIVE 模式要求提供 mod_update_times"
-
-        # 预计算每个 mod 对应的历史基准目录（仅存入有匹配的 mod）
-        adaptive_base_dirs: dict[str, Path] = {}
-        if history_versions and mod_update_times:
-            for mod_id in mod_ids:
-                ut = mod_update_times[mod_id]
-                base_ver = find_base_version(ut, history_versions)
-                if base_ver is not None:
-                    adaptive_base_dirs[mod_id] = base_ver
-
-        # 按文件分组，保持 mod 优先级顺序
         tasks_by_file: dict[str, list[str]] = defaultdict(list)
         for mod_id in mod_ids:
-            for rel_path in store.mod_files(mod_id):
+            for rel_path in dm.mod_files(mod_id):
                 tasks_by_file[rel_path].append(mod_id)
 
         total = sum(len(mids) for mids in tasks_by_file.values())
@@ -657,8 +617,8 @@ class ModDelta:
             futures = {
                 pool.submit(
                     _process_file_group,
-                    rel_path, file_mod_ids, store, schemas,
-                    merge_mode, mod_merge_modes, adaptive_base_dirs,
+                    rel_path, file_mod_ids, dm, schemas,
+                    merge_mode, mod_merge_modes,
                     apply_dict_delta,
                 ): rel_path
                 for rel_path, file_mod_ids in file_groups
