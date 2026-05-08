@@ -21,7 +21,8 @@ tests/cpp/
 ├── test_json.cpp               # Json 模块测试（34 case）
 ├── test_field_ops.cpp          # 字段操作模块测试（17 case）
 ├── test_state.cpp              # State 模块测试（41 case）
-└── test_mut_val.cpp            # MutVal/MutDoc 测试（36 case）
+├── test_mut_val.cpp            # MutVal/MutDoc 测试（36 case）
+└── test_delta.cpp              # Delta 模块测试（71 case）
 ```
 
 后续模块添加测试时，在此目录新建 `test_xxx.cpp` 并注册到 `CMakeLists.txt`。
@@ -471,6 +472,119 @@ TEST_CASE("module: thread safety") {
    ```
 3. 如需链接额外库（如 yyjson），在 `target_link_libraries` 中添加
 4. 重新 cmake 配置 + 构建即可自动发现新测试
+
+### test_delta.cpp（71 case）
+
+**相似度（9 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: levenshtein empty strings` | 空字符串距离 0 |
+| `delta: levenshtein one empty` | 单空距离等于另一方长度 |
+| `delta: levenshtein identical` | 相同字符串距离 0 |
+| `delta: levenshtein classic` | kitten→sitting = 3 |
+| `delta: levenshtein single char` | 单字符比较 |
+| `delta: string_ratio identical` | 相同 → 1.0 |
+| `delta: string_ratio both empty` | 双空 → 1.0 |
+| `delta: string_ratio completely different` | 完全不同 → 接近 0 |
+| `delta: string_ratio partial` | 部分相同 → 0.4~0.6 |
+
+**删除规则（8 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: rules array element always denied` | 数组元素禁删 |
+| `delta: rules condition context allowed` | condition 上下文允许 |
+| `delta: rules action context allowed` | action 上下文允许 |
+| `delta: rules result context allowed` | result 上下文允许 |
+| `delta: rules result_text field allowed` | result_text 字段允许 |
+| `delta: rules result_title field allowed` | result_title 字段允许 |
+| `delta: rules default denied` | 默认禁止 |
+| `delta: rules empty path denied` | 空路径禁止 |
+
+**Delta 节点（12 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: make_delta_element basic` | 工厂函数基础创建 |
+| `delta: make_delta_element with old_value` | 带旧值和 version |
+| `delta: make_delta_dict insert and find` | 字典插入/查找/大小 |
+| `delta: make_delta_array basic` | 数组初始状态 |
+| `delta: delta_array wrap with value` | wrap 有值 |
+| `delta: delta_array wrap nullptr` | wrap 空值 |
+| `delta: clone element` | 元素深拷贝 |
+| `delta: clone dict deep independence` | 字典深拷贝独立性 |
+| `delta: clone array` | 数组深拷贝 |
+| `delta: as_element throws on dict` | 类型转换异常 |
+| `delta: as_dict throws on element` | 类型转换异常 |
+| `delta: as_array throws on element` | 类型转换异常 |
+
+**数组匹配（6 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: match empty arrays` | 空数组 |
+| `delta: match identical scalar arrays` | 相同标量数组全配对 |
+| `delta: match by guid key` | GUID 精确匹配 |
+| `delta: match by guid key reorder` | 乱序 GUID |
+| `delta: match with added elements` | 新增元素检测 |
+| `delta: match with deleted elements` | 删除元素检测 |
+
+**compute_delta（9 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: compute identical docs returns nullptr` | 无差异 → nullptr |
+| `delta: compute scalar field changed` | 标量字段修改 |
+| `delta: compute field added` | 字段新增 |
+| `delta: compute field deleted` | 字段删除 |
+| `delta: compute nested dict change` | 嵌套 dict 修改 |
+| `delta: compute array element added` | 数组元素新增 |
+| `delta: compute smart mode blocks deletion` | SMART 模式禁删 |
+| `delta: compute smart mode allows condition deletion` | SMART 模式 condition 允删 |
+| `delta: compute added complex value has value_node` | 复杂值 value_node |
+
+**apply_delta（11 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: direct state insert replaces entry` | insert_or_assign 验证 |
+| `delta: apply_field_delta basic` | 字段级应用基础 |
+| `delta: apply added scalar field` | ADDED 应用 |
+| `delta: apply changed scalar field` | CHANGED 应用（old_value 保留） |
+| `delta: apply deleted field` | DELETED 应用 |
+| `delta: apply multi_mod marking` | MULTI_MOD 标志 |
+| `delta: apply override marking` | OVERRIDE 标志 |
+| `delta: apply nested dict delta` | 嵌套 dict 应用 |
+| `delta: apply added complex value with value_node` | 复杂值应用 |
+| `delta: e2e compute then apply scalar changes` | 标量端到端 |
+| `delta: e2e compute then apply nested changes` | 嵌套端到端 |
+
+**序列化（4 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: serialize element roundtrip` | DeltaElement 往返 |
+| `delta: serialize dict roundtrip` | DeltaDict 往返 |
+| `delta: serialize array roundtrip` | DeltaArray 往返 |
+| `delta: serialize nested dict roundtrip` | 嵌套 DeltaDict 往返 |
+
+**remap（12 case）**
+
+| 测试 | 验证内容 |
+|------|---------|
+| `delta: remap deleted field not in current drops` | DELETED 字段不在 current → 丢弃 |
+| `delta: remap deleted field in current updates old_value` | DELETED 字段在 current → 更新 old_value |
+| `delta: remap added field not in current keeps` | ADDED 字段不在 current → 保留 |
+| `delta: remap added field same in current drops` | ADDED 字段已存在且值相同 → 丢弃 |
+| `delta: remap added field different in current recomputes` | ADDED 字段值不同 → 变 CHANGED |
+| `delta: remap changed field not in current converts to added` | CHANGED 字段不在 current → 变 ADDED |
+| `delta: remap changed field same in current drops` | CHANGED 目标值与 current 相同 → 丢弃 |
+| `delta: remap changed field different in current recomputes` | CHANGED 值不同 → 重算 old_value |
+| `delta: remap nested dict recursion` | 嵌套 dict 递归重映射 |
+| `delta: remap array reindex` | 数组元素位置变化后索引重映射 |
+| `delta: remap added complex value` | ADDED 复杂值（obj/arr）保留 |
+| `delta: remap e2e compute remap apply` | 端到端：计算→重映射→应用→验证 |
 
 ## CI 集成
 

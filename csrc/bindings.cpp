@@ -1,6 +1,8 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 
@@ -10,6 +12,10 @@
 #include "change_kind.h"
 #include "json_state.h"
 #include "state_formatter.h"
+#include "delta_node.h"
+#include "compute_delta.h"
+#include "apply_delta.h"
+#include "array_match.h"
 
 namespace nb = nanobind;
 using namespace sultan;
@@ -132,6 +138,55 @@ static void bind_state(nb::module_& parent) {
         .def("valid", &JsonState::valid);
 }
 
+static void bind_delta(nb::module_& parent) {
+    auto m = parent.def_submodule("delta");
+
+    m.def("compute_and_apply",
+        [](const JsonDoc& base, const JsonDoc& mod,
+           JsonState& state, int version, MergeMode merge_mode) {
+            auto delta = compute_delta(base, mod, merge_mode);
+            if (!delta || delta->type() != DeltaType::Dict) return false;
+            apply_delta_to_state(state, delta->as_dict(), nullptr, version, false);
+            return true;
+        },
+        nb::arg("base"), nb::arg("mod"),
+        nb::arg("state"), nb::arg("version"),
+        nb::arg("merge_mode") = MergeMode::Normal);
+
+    m.def("compute_and_serialize",
+        [](const JsonDoc& base, const JsonDoc& mod, MergeMode merge_mode) -> JsonDoc {
+            auto delta = compute_delta(base, mod, merge_mode);
+            if (!delta) return JsonDoc::parse("null");
+            return serialize_delta(*delta);
+        },
+        nb::arg("base"), nb::arg("mod"),
+        nb::arg("merge_mode") = MergeMode::Normal,
+        nb::rv_policy::move);
+
+    m.def("deserialize_and_apply",
+        [](const JsonDoc& delta_doc, JsonState& state, int version, bool is_override) {
+            auto delta = deserialize_delta(delta_doc);
+            if (!delta || delta->type() != DeltaType::Dict) return false;
+            apply_delta_to_state(state, delta->as_dict(), nullptr, version, is_override);
+            return true;
+        },
+        nb::arg("delta_doc"), nb::arg("state"),
+        nb::arg("version") = 0, nb::arg("is_override") = false);
+
+    m.def("remap_delta",
+        [](const JsonDoc& delta_doc, const JsonDoc& hist_base, const JsonDoc& current_base) -> JsonDoc {
+            auto delta = deserialize_delta(delta_doc);
+            if (!delta || delta->type() != DeltaType::Dict)
+                return JsonDoc::parse("null");
+            auto remapped = remap_delta_to_current(delta->as_dict(), hist_base, current_base);
+            if (!remapped)
+                return JsonDoc::parse("null");
+            return serialize_delta(*remapped);
+        },
+        nb::arg("delta_doc"), nb::arg("hist_base"), nb::arg("current_base"),
+        nb::rv_policy::move);
+}
+
 NB_MODULE(sultan_core, m) {
     m.doc() = "苏丹的游戏 Mod 合并器 - C++ 加速层";
     m.attr("__version__") = "0.1.0";
@@ -139,4 +194,5 @@ NB_MODULE(sultan_core, m) {
     bind_json(m);
     bind_field_ops(m);
     bind_state(m);
+    bind_delta(m);
 }

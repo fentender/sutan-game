@@ -22,6 +22,7 @@ public:
     static JsonState from_doc(const JsonDoc& doc);
     static JsonState from_text(const string& text, bool clean = true);
     static JsonState from_file(const string& path, bool clean = true);
+    static JsonState from_node(StateNodePtr root);
 
     JsonDoc to_doc() const;
     FormatResult format(int highlight_version) const;

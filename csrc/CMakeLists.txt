@@ -11,12 +11,19 @@ add_library(sultan_core_lib STATIC
     state/state_node.cpp
     state/json_state.cpp
     state/state_formatter.cpp
+    delta/similarity.cpp
+    delta/delta_node.cpp
+    delta/delta_rules.cpp
+    delta/array_match.cpp
+    delta/compute_delta.cpp
+    delta/apply_delta.cpp
 )
 target_include_directories(sultan_core_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/json
     ${CMAKE_CURRENT_SOURCE_DIR}/field_ops
     ${CMAKE_CURRENT_SOURCE_DIR}/state
+    ${CMAKE_CURRENT_SOURCE_DIR}/delta
 )
 target_link_libraries(sultan_core_lib PUBLIC yyjson)
 set_target_properties(sultan_core_lib PROPERTIES

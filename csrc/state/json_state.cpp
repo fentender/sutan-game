@@ -12,7 +12,7 @@ using std::make_unique;
 
 // ── JsonVal → StateNodePtr 递归 ──
 
-static ScalarValue val_to_scalar(JsonVal v) {
+ScalarValue val_to_scalar(JsonVal v) {
     switch (v.type()) {
         case JsonType::Null: return nullptr;
         case JsonType::Bool: return v.get_bool();
@@ -94,6 +94,8 @@ static StateNodePtr build_node(JsonVal v) {
         default:            return make_element(val_to_scalar(v));
     }
 }
+
+StateNodePtr build_state_node(JsonVal v) { return build_node(v); }
 
 // ── StateNodePtr → MutVal 递归 ──
 
@@ -189,6 +191,10 @@ JsonState JsonState::from_text(const string& text, bool clean) {
 JsonState JsonState::from_file(const string& path, bool clean) {
     auto doc = JsonDoc::parse_file(path, clean);
     return from_doc(doc);
+}
+
+JsonState JsonState::from_node(StateNodePtr root) {
+    return JsonState(std::move(root));
 }
 
 JsonDoc JsonState::to_doc() const {

@@ -42,14 +42,27 @@ project-root/
 │   ├── field_ops/              # JSON 字段操作模块
 │   │   ├── field_ops.h         # 批量提取 / 替换 API 声明
 │   │   └── field_ops.cpp       # 提取 / 替换实现
-│   └── state/                  # State 模块
-│       ├── change_kind.h       # ChangeKind / MergeMode 枚举 + 位运算
-│       ├── state_node.h        # StateBase 基类 + 三个派生类
-│       ├── state_node.cpp      # clone / serialize_scalar / is_modified
-│       ├── json_state.h        # JsonState 类（工厂 + 转换 + 格式化）
-│       ├── json_state.cpp      # from_doc / to_doc / clone 实现
-│       ├── state_formatter.h   # FormatResult + format_state 声明
-│       └── state_formatter.cpp # 递归格式化实现
+│   ├── state/                  # State 模块
+│   │   ├── change_kind.h       # ChangeKind / MergeMode 枚举 + 位运算
+│   │   ├── state_node.h        # StateBase 基类 + 三个派生类
+│   │   ├── state_node.cpp      # clone / serialize_scalar / is_modified
+│   │   ├── json_state.h        # JsonState 类（工厂 + 转换 + 格式化）
+│   │   ├── json_state.cpp      # from_doc / to_doc / clone 实现
+│   │   ├── state_formatter.h   # FormatResult + format_state 声明
+│   │   └── state_formatter.cpp # 递归格式化实现
+│   └── delta/                  # Delta 模块
+│       ├── similarity.h        # Levenshtein 距离 + ratio
+│       ├── similarity.cpp
+│       ├── delta_node.h        # DeltaType 枚举 + DeltaBase + 三个派生类
+│       ├── delta_node.cpp      # clone + 工厂 + 序列化/反序列化
+│       ├── delta_rules.h       # SMART 模式删除判定
+│       ├── delta_rules.cpp
+│       ├── array_match.h       # ArrayMatching + match_by_heuristic
+│       ├── array_match.cpp     # 四阶段数组匹配算法
+│       ├── compute_delta.h     # compute_delta
+│       ├── compute_delta.cpp   # 递归 delta 计算
+│       ├── apply_delta.h       # apply_dict/array/field_delta
+│       └── apply_delta.cpp     # delta 应用 + 类型归一化
 ├── tests/
 │   ├── __init__.py
 │   ├── __main__.py             # python -m tests 入口
@@ -66,7 +79,8 @@ project-root/
 │       ├── test_json.cpp       # Json 模块 C++ 单元测试
 │       ├── test_field_ops.cpp  # 字段操作模块 C++ 单元测试
 │       ├── test_state.cpp     # State 模块 C++ 单元测试
-│       └── test_mut_val.cpp   # MutVal/MutDoc 单元测试
+│       ├── test_mut_val.cpp   # MutVal/MutDoc 单元测试
+│       └── test_delta.cpp    # Delta 模块 C++ 单元测试
 └── .github/workflows/
     └── build.yml               # CI：构建 + C++ 测试 + Python 测试
 ```

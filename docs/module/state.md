@@ -164,6 +164,7 @@ using namespace sultan;
 auto state = JsonState::from_doc(json_doc);           // 从 JsonDoc
 auto state = JsonState::from_text(text, clean=true);  // 从文本
 auto state = JsonState::from_file(path, clean=true);  // 从文件
+auto state = JsonState::from_node(std::move(node));   // 从 StateNodePtr
 
 // ── 转换 ──
 JsonDoc doc = state.to_doc();         // 剥离 ChangeKind，跳过 DELETED

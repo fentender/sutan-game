@@ -131,7 +131,7 @@ StateBase* JsonDictState::find(const string& key) const {
 }
 
 void JsonDictState::insert(string key, StateNodePtr node) {
-    entries.emplace(std::move(key), std::move(node));
+    entries.insert_or_assign(std::move(key), std::move(node));
 }
 
 // ── JsonArrayState ──

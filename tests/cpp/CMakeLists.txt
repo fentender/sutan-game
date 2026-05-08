@@ -8,6 +8,7 @@ add_executable(sultan_tests
     test_field_ops.cpp
     test_state.cpp
     test_mut_val.cpp
+    test_delta.cpp
 )
 target_link_libraries(sultan_tests PRIVATE
     sultan_core_lib

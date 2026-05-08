@@ -20,6 +20,9 @@ using ScalarValue = variant<std::nullptr_t, bool, int64_t, double, string>;
 string serialize_scalar(const ScalarValue& val);
 bool scalar_equal(const ScalarValue& a, const ScalarValue& b);
 
+class JsonVal;
+ScalarValue val_to_scalar(JsonVal v);
+
 struct JsonElementState;
 struct JsonDictState;
 struct JsonArrayState;
@@ -91,5 +94,7 @@ struct JsonArrayState : StateBase {
 StateNodePtr make_element(ScalarValue value, ChangeKind kind = ChangeKind::Origin);
 StateNodePtr make_dict(ChangeKind kind = ChangeKind::Origin);
 StateNodePtr make_array(ChangeKind kind = ChangeKind::Origin);
+
+StateNodePtr build_state_node(JsonVal v);
 
 }  // namespace sultan
