@@ -3,32 +3,28 @@
 
 利用 DataManager 已缓存的 JSON 数据，无需额外文件加载。
 """
-from ..json.classify import classify_json
+import json
+
+from ..json import classify_json
 from ..data_manager import DataManager
 
 
+# TODO 后续：下沉到 C++ 层，通过 JsonVal 直接比较 root keys 交集
 def compute_base_overlap(dm: DataManager, mod_id: str) -> bool:
     """检测 mod 是否修改了本体已有内容。
 
     返回 True 表示有重叠（高风险），False 表示纯增量（低风险）。
-
-    判定逻辑：
-    - 遍历 mod 的所有 config 文件
-    - 若本体无同名文件 → 纯新增，跳过
-    - 若本体有同名文件：
-      - dictionary 类型：比较 key 集合是否有交集
-      - entity/config 类型：文件存在于本体即视为修改
     """
     for rel_path in dm.mod_files(mod_id):
         if not dm.has_base(rel_path):
             continue
 
-        base_data = dm.get_base(rel_path)
-        mod_data = dm.get_mod(mod_id, rel_path)
-
-        file_type = classify_json(base_data)
+        base_doc = dm.get_base(rel_path)
+        file_type = classify_json(base_doc)
         if file_type == "dictionary":
-            if set(mod_data.keys()) & set(base_data.keys()):
+            base_keys = set(json.loads(base_doc.to_string()).keys())
+            mod_keys = set(json.loads(dm.get_mod(mod_id, rel_path).to_string()).keys())
+            if mod_keys & base_keys:
                 return True
         else:
             return True

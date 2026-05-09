@@ -7,7 +7,7 @@
 #include <nanobind/stl/vector.h>
 
 #include "diag.h"
-#include "field_ops.h"
+#include "json_ops.h"
 #include "json_doc.h"
 #include "change_kind.h"
 #include "json_state.h"
@@ -78,8 +78,8 @@ static void bind_json(nb::module_& parent) {
         });
 }
 
-static void bind_field_ops(nb::module_& parent) {
-    auto m = parent.def_submodule("field_ops");
+static void bind_json_ops(nb::module_& parent) {
+    auto m = parent.def_submodule("json_ops");
 
     m.def("extract_string_values", &extract_string_values,
         nb::arg("doc"), nb::arg("field_name"));
@@ -91,6 +91,8 @@ static void bind_field_ops(nb::module_& parent) {
         nb::arg("doc"), nb::arg("field_name"), nb::arg("mapping"));
     m.def("replace_root_keys", &replace_root_keys,
         nb::arg("doc"), nb::arg("mapping"));
+    m.def("classify_json", &classify_json,
+        nb::arg("doc"));
 }
 
 static void bind_state(nb::module_& parent) {
@@ -143,24 +145,28 @@ static void bind_delta(nb::module_& parent) {
 
     m.def("compute_and_apply",
         [](const JsonDoc& base, const JsonDoc& mod,
-           JsonState& state, int version, MergeMode merge_mode) {
-            auto delta = compute_delta(base, mod, merge_mode);
+           JsonState& state, int version, MergeMode merge_mode,
+           bool skip_root_deletion) {
+            auto delta = compute_delta(base, mod, merge_mode, skip_root_deletion);
             if (!delta || delta->type() != DeltaType::Dict) return false;
             apply_delta_to_state(state, delta->as_dict(), nullptr, version, false);
             return true;
         },
         nb::arg("base"), nb::arg("mod"),
         nb::arg("state"), nb::arg("version"),
-        nb::arg("merge_mode") = MergeMode::Normal);
+        nb::arg("merge_mode") = MergeMode::Normal,
+        nb::arg("skip_root_deletion") = false);
 
     m.def("compute_and_serialize",
-        [](const JsonDoc& base, const JsonDoc& mod, MergeMode merge_mode) -> JsonDoc {
-            auto delta = compute_delta(base, mod, merge_mode);
+        [](const JsonDoc& base, const JsonDoc& mod, MergeMode merge_mode,
+           bool skip_root_deletion) -> JsonDoc {
+            auto delta = compute_delta(base, mod, merge_mode, skip_root_deletion);
             if (!delta) return JsonDoc::parse("null");
             return serialize_delta(*delta);
         },
         nb::arg("base"), nb::arg("mod"),
         nb::arg("merge_mode") = MergeMode::Normal,
+        nb::arg("skip_root_deletion") = false,
         nb::rv_policy::move);
 
     m.def("deserialize_and_apply",
@@ -185,6 +191,19 @@ static void bind_delta(nb::module_& parent) {
         },
         nb::arg("delta_doc"), nb::arg("hist_base"), nb::arg("current_base"),
         nb::rv_policy::move);
+
+    nb::class_<FlatField>(m, "FlatField")
+        .def_ro("path", &FlatField::path)
+        .def_ro("kind", &FlatField::kind)
+        .def_ro("value_str", &FlatField::value_str);
+
+    m.def("flatten_delta",
+        [](const JsonDoc& delta_doc) -> vector<FlatField> {
+            auto delta = deserialize_delta(delta_doc);
+            if (!delta || delta->type() != DeltaType::Dict) return {};
+            return flatten_delta(delta->as_dict());
+        },
+        nb::arg("delta_doc"));
 }
 
 NB_MODULE(sultan_core, m) {
@@ -192,7 +211,7 @@ NB_MODULE(sultan_core, m) {
     m.attr("__version__") = "0.1.0";
     bind_diag(m);
     bind_json(m);
-    bind_field_ops(m);
+    bind_json_ops(m);
     bind_state(m);
     bind_delta(m);
 }

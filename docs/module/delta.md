@@ -4,7 +4,7 @@
 
 C++ 层 Delta 计算与应用模块。计算两个 JSON 文档之间的差异（稀疏 delta），将 delta 应用到 State 树，以及 delta 的序列化/反序列化。
 
-**定位**：C++ 核心模块 + nanobind 绑定（`sultan_core.delta` 子模块）。Python 通过函数式 API 访问（`compute_and_apply`、`compute_and_serialize`、`deserialize_and_apply`）。
+**定位**：C++ 核心模块 + nanobind 绑定（`sultan_core.delta` 子模块）。Python 通过函数式 API 访问（`compute_and_apply`、`compute_and_serialize`、`deserialize_and_apply`、`flatten_delta`）。
 
 **依赖**：Json 模块（JsonDoc/JsonVal/MutDoc/MutVal）、State 模块（StateBase 派生类、JsonState）。
 
@@ -18,6 +18,7 @@ C++ 层 Delta 计算与应用模块。计算两个 JSON 文档之间的差异（
 | `DeltaDict` | 字典差异：`unordered_map<string, DeltaNodePtr>` |
 | `DeltaArray` | 数组差异：基于 ID 追踪的元素差异列表 |
 | `ArrayMatching` | 数组匹配结果（pairs/unmatched_mod/unmatched_base/confidence） |
+| `FlatField` | 展平后的叶子条目：path + kind + value_str |
 
 ## 文件结构
 
@@ -144,6 +145,20 @@ DeltaNodePtr deserialize_delta(const JsonDoc& doc);
 - DeltaDict → `{"__type":"dict_delta", "kind":<int>, "items":{...}}`
 - DeltaArray → `{"__type":"array_delta", "kind":<int>, "base_count":<int>, "indices":[...], "order":[...], "diffs":[...], "is_duplist":<bool>}`
 
+### 展平
+
+```cpp
+struct FlatField {
+    vector<string> path;   // 字段路径段（含 "[index]" 数组元素路径）
+    ChangeKind kind;       // base_kind 化的变更类型
+    string value_str;      // serialize_scalar(value)
+};
+
+vector<FlatField> flatten_delta(const DeltaDict& root);
+```
+
+递归遍历 delta 树，将所有叶子节点（DeltaElement）展平为路径+值列表。用于冲突检测模块快速获取字段级差异。
+
 ## nanobind 绑定
 
 `sultan_core.delta` 子模块提供函数式 API（不暴露 Delta 节点类型）：
@@ -152,6 +167,7 @@ DeltaNodePtr deserialize_delta(const JsonDoc& doc);
 from sultan_core.delta import (
     compute_and_apply, compute_and_serialize,
     deserialize_and_apply, remap_delta,
+    flatten_delta, FlatField,
 )
 
 # 计算并应用
@@ -165,6 +181,11 @@ deserialize_and_apply(delta_doc, state, version=1, is_override=False)
 
 # ADAPTIVE 模式：重映射 delta 到当前 base（返回 JsonDoc 或 null doc）
 remapped_doc = remap_delta(delta_doc, hist_base, current_base)
+
+# 展平 delta 为字段列表（冲突检测用）
+flat: list[FlatField] = flatten_delta(delta_doc)
+for entry in flat:
+    print(entry.path, entry.kind, entry.value_str)
 ```
 
 ## 错误处理
@@ -275,3 +296,49 @@ remapped_doc = remap_delta(delta_doc, hist_base, current_base)
 | `remap array reindex` | 数组元素位置变化后索引重映射 |
 | `remap added complex value` | ADDED 复杂值（obj/arr）保留 |
 | `remap e2e compute remap apply` | 端到端：计算→重映射→应用→验证 |
+
+## Python 层调用示例
+
+Python 端已完全迁移到 C++ Delta API，不再有 Python 侧的 `compute_delta` / `apply_dict_delta` 等函数。
+
+### ModDelta 预计算
+
+```python
+from sultan_core.delta import compute_and_serialize, deserialize_and_apply
+from sultan_core.state import JsonState
+
+# delta 计算（ModDelta.init 内部）
+delta_doc = compute_and_serialize(base_doc, mod_doc, cpp_mode, skip_root_deletion=is_dict)
+
+# delta 应用到状态树
+state = JsonState.from_doc(base_doc)
+deserialize_and_apply(delta_doc, state, version=1)
+merged_doc = state.to_doc()
+```
+
+### ADAPTIVE 模式 remap
+
+```python
+from sultan_core.delta import compute_and_serialize, remap_delta
+
+# 基于历史版本计算 delta
+delta_doc = compute_and_serialize(hist_doc, mod_doc, CppMergeMode.SMART, is_dict)
+
+# 重映射到当前版本
+remapped = remap_delta(delta_doc, hist_doc, current_base_doc)
+```
+
+### MergeCache 合并循环
+
+```python
+state = JsonState.from_doc(base_doc)
+for version, (mod_id, mod_name, delta_doc) in enumerate(mod_data_list, 1):
+    deserialize_and_apply(delta_doc, state, version=version)
+    # 可选：应用用户覆写
+    override_doc = dm.get_override_doc(mod_id, rel_path)
+    if override_doc:
+        deserialize_and_apply(override_doc, state, version=version, is_override=True)
+    # 格式化（diff dialog 可视化）
+    fmt = state.format(version)
+final_doc = state.to_doc()
+```

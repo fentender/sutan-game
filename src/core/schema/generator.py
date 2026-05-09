@@ -14,11 +14,23 @@ from pathlib import Path
 
 from typing import cast
 
+from sultan_core.json import JsonDoc
+
 from ..infra.diagnostics import diag
 from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject, JsonValue
-from ..json.classify import classify_json, get_type_str
-from ..data_manager import DataManager
+from ..json import classify_json
+from ..json.classify import get_type_str
 from .dsl import classify_dsl_key
+
+
+def _parse_file_as_dict(filepath: str) -> JsonObject | None:
+    try:
+        doc = JsonDoc.parse_file(filepath)
+        if not doc.valid():
+            return None
+        return cast(JsonObject, json.loads(doc.to_string()))
+    except RuntimeError:
+        return None
 
 # 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典
 DYNAMIC_KEY_THRESHOLD = 100
@@ -309,11 +321,12 @@ def _validate_type_combination(field_name: str, type_list: list[str]) -> None:
         diag.warn("schema", f"字段 '{field_name}' 类型组合可疑（对象+数组）: {type_list}")
 
 
+_COMMON_MATCH_KEYS: tuple[str, ...] = ('guid', 'id', 'tag', 'key')
+
+
 def _detect_match_key(field_info: FieldInfo) -> list[str] | None:
-    """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。
-    按 COMMON_MATCH_KEYS 优先级顺序返回第一个命中的字段。"""
-    from ..merge.array_match import COMMON_MATCH_KEYS
-    for key in COMMON_MATCH_KEYS:
+    """检测 array<object> 元素中是否存在可用于匹配的唯一标识字段。"""
+    for key in _COMMON_MATCH_KEYS:
         if field_info.get(f"has_{key}"):
             return [key]
     return None
@@ -383,8 +396,7 @@ def _detect_match_key_from_global(canonical: str) -> list[str] | None:
     elem_counts = fi.get("elem_child_key_counts", {})
     if not elem_counts:
         return None
-    from ..merge.array_match import COMMON_MATCH_KEYS
-    for key in COMMON_MATCH_KEYS:
+    for key in _COMMON_MATCH_KEYS:
         if key in elem_counts:
             return [key]
     return None
@@ -648,7 +660,7 @@ def _collect_file_info(filepath: str) -> tuple[str, dict[str, FieldInfo], JsonOb
     """收集单个根目录文件的字段信息（不构建 schema）。
     返回 (file_type, info, data) 或 None。
     """
-    data = DataManager.parse_file(filepath)
+    data = _parse_file_as_dict(filepath)
     if data is None:
         return None
     file_type = classify_json(data)
@@ -680,7 +692,7 @@ def _collect_dir_info(dirpath: str) -> tuple[str | None, dict[str, FieldInfo], i
     total = len(files)
 
     def _load(fname: str) -> JsonObject | None:
-        return DataManager.parse_file(os.path.join(dirpath, fname))
+        return _parse_file_as_dict(os.path.join(dirpath, fname))
 
     with ThreadPoolExecutor(max_workers=min(16, max(1, total // 10))) as pool:
         results = list(pool.map(_load, files))

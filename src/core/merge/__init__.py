@@ -1,15 +1,11 @@
-"""合并引擎层 — 差异计算、合并算法、缓存、格式化"""
+"""合并引擎层 — 差异计算、合并、缓存"""
 
 from .cache import MergeCache as MergeCache
 from .delta import (
     ModDelta as ModDelta,
-    compute_delta as compute_delta,
     flatten_delta as flatten_delta,
 )
-from .formatter import format_delta_json as format_delta_json
 from .merger import (
-    apply_dict_delta as apply_dict_delta,
-    apply_mod_deltas as apply_mod_deltas,
     copy_failed_files as copy_failed_files,
     merge_all_files as merge_all_files,
     merge_file as merge_file,

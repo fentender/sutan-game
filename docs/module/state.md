@@ -357,6 +357,35 @@ auto result = state.format(mod_version);
 | `state: format nested structure` | 嵌套递归格式化 |
 | `state: format duplist` | DupList 展开为重复键行 |
 
+## Python 层调用示例
+
+Python 端的 `format_delta_json` 已删除，完全由 C++ `state.format()` 替代。
+
+### MergeCache 逐步格式化
+
+```python
+from sultan_core.state import JsonState
+from sultan_core.delta import deserialize_and_apply
+from src.core.infra.types import ChangeKind
+
+state = JsonState.from_doc(base_doc)
+
+for version, (mod_id, mod_name, delta_doc) in enumerate(mod_data_list, 1):
+    deserialize_and_apply(delta_doc, state, version=version)
+
+    # C++ 格式化输出
+    fmt = state.format(version)
+    left_lines = list(fmt.left_lines)
+    right_lines = list(fmt.right_lines)
+    # -1 表示填充行（None），非负值为 ChangeKind 枚举
+    left_kinds = [ChangeKind(k) if k >= 0 else None for k in fmt.left_kinds]
+    right_kinds = [ChangeKind(k) if k >= 0 else None for k in fmt.right_kinds]
+
+# 转回 JsonDoc 用于写出
+final_doc = state.to_doc()
+text = final_doc.to_string()  # 格式化 JSON 文本
+```
+
 **便利工厂 + move 语义（4 case）**
 
 | 测试 | 验证内容 |

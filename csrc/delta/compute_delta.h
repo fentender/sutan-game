@@ -9,7 +9,8 @@ class JsonDoc;
 DeltaNodePtr compute_delta(
     const JsonDoc& base,
     const JsonDoc& mod,
-    MergeMode merge_mode = MergeMode::Normal);
+    MergeMode merge_mode = MergeMode::Normal,
+    bool skip_root_deletion = false);
 
 DeltaNodePtr remap_delta_to_current(
     const DeltaDict& delta,

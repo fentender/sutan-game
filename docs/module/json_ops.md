@@ -1,8 +1,8 @@
-# JSON 字段操作模块
+# JSON 操作模块
 
 ## 概述
 
-C++ 层 JSON 字段批量提取与替换模块。对不可变 `JsonDoc` 进行递归遍历，按字段名提取值或按映射表替换值/键，供 id_remap 等场景使用。
+C++ 层 JSON 数据操作模块。对不可变 `JsonDoc` 进行分类判定、递归遍历、按字段名提取值或按映射表替换值/键。
 
 **定位**：C++ 模块，通过 nanobind 暴露 Python API。Python 侧通过 opaque `JsonDoc` handle 调用。
 
@@ -11,17 +11,17 @@ C++ 层 JSON 字段批量提取与替换模块。对不可变 `JsonDoc` 进行�
 ## 文件结构
 
 ```
-csrc/field_ops/
-├── field_ops.h       # API 声明
-└── field_ops.cpp     # 提取 / 替换实现
+csrc/json_ops/
+├── json_ops.h       # API 声明
+└── json_ops.cpp     # 提取 / 替换实现
 tests/cpp/
-└── test_field_ops.cpp  # C++ 单元测试（17 case）
+└── test_json_ops.cpp  # C++ 单元测试（17 case）
 ```
 
 ## C++ API
 
 ```cpp
-#include "field_ops.h"
+#include "json_ops.h"
 using namespace sultan;
 
 auto doc = JsonDoc::parse(R"({"cards":{"100":{"id":100},"200":{"id":200}}})");
@@ -47,6 +47,11 @@ auto doc3 = replace_field_strs(doc, "name", {{"old_name", "new_name"}});
 
 // 仅替换根级对象键（不递归到嵌套对象）
 auto doc4 = replace_root_keys(doc, {{"100", "999"}});
+
+// ── 分类 ──
+
+// 判定 JSON 文件类型
+auto type = classify_json(doc);  // "dictionary" | "entity" | "config"
 ```
 
 ## Python API
@@ -59,14 +64,17 @@ doc = sultan_core.json.JsonDoc.parse('{"id": 42, "name": "test"}')
 doc = sultan_core.json.JsonDoc.parse_file("config/cards.json")
 text = doc.to_string(compact=True)
 
+# 分类
+file_type = sultan_core.json_ops.classify_json(doc)  # "entity"
+
 # 字段提取
-ids = sultan_core.field_ops.extract_int_values(doc, "id")       # [42]
-names = sultan_core.field_ops.extract_string_values(doc, "name") # ["test"]
+ids = sultan_core.json_ops.extract_int_values(doc, "id")       # [42]
+names = sultan_core.json_ops.extract_string_values(doc, "name") # ["test"]
 
 # 按字段名定向替换（返回新文档）
-new_doc = sultan_core.field_ops.replace_field_ints(doc, "id", {42: 99})
-new_doc = sultan_core.field_ops.replace_field_strs(doc, "name", {"test": "prod"})
-new_doc = sultan_core.field_ops.replace_root_keys(doc, {"old_key": "new_key"})
+new_doc = sultan_core.json_ops.replace_field_ints(doc, "id", {42: 99})
+new_doc = sultan_core.json_ops.replace_field_strs(doc, "name", {"test": "prod"})
+new_doc = sultan_core.json_ops.replace_root_keys(doc, {"old_key": "new_key"})
 ```
 
 ## 内部实现
@@ -116,10 +124,10 @@ for key, value in data.items():
     new_key = remap.cards.get(key, key)
     value["id"] = int(new_key)
 
-# C++ field_ops 组合：
+# C++ json_ops 组合：
 doc = sultan_core.json.JsonDoc.parse_file(path)
-doc = sultan_core.field_ops.replace_root_keys(doc, cards_mapping)
-doc = sultan_core.field_ops.replace_field_ints(doc, "id", id_mapping)
+doc = sultan_core.json_ops.replace_root_keys(doc, cards_mapping)
+doc = sultan_core.json_ops.replace_field_ints(doc, "id", id_mapping)
 ```
 
 ### State / Delta 模块
@@ -128,31 +136,31 @@ State/Delta 模块可能需要从 JsonDoc 提取特定字段用于匹配和比�
 
 ## 现有测试用例
 
-### test_field_ops.cpp（17 case）
+### test_json_ops.cpp（17 case）
 
 **提取测试（7 case）**
 
 | 测试 | 验证内容 |
 |------|---------|
-| `field_ops: extract_string_values basic` | 从对象提取字符串字段值 |
-| `field_ops: extract_string_values nested` | 深层嵌套对象中提取 |
-| `field_ops: extract_string_values in array` | 数组内对象中提取 |
-| `field_ops: extract_string_values no match` | 字段不存在返回空 |
-| `field_ops: extract_int_values basic` | 提取整数字段值 |
-| `field_ops: extract_int_values mixed types` | 同名字段不同类型，仅收集整数 |
-| `field_ops: extract from empty doc` | 空对象/空数组 |
+| `json_ops: extract_string_values basic` | 从对象提取字符串字段值 |
+| `json_ops: extract_string_values nested` | 深层嵌套对象中提取 |
+| `json_ops: extract_string_values in array` | 数组内对象中提取 |
+| `json_ops: extract_string_values no match` | 字段不存在返回空 |
+| `json_ops: extract_int_values basic` | 提取整数字段值 |
+| `json_ops: extract_int_values mixed types` | 同名字段不同类型，仅收集整数 |
+| `json_ops: extract from empty doc` | 空对象/空数组 |
 
 **替换测试（10 case）**
 
 | 测试 | 验证内容 |
 |------|---------|
-| `field_ops: replace_field_ints basic` | 按字段名替换整数值 |
-| `field_ops: replace_field_ints only named field` | 同值不同字段名不受影响 |
-| `field_ops: replace_field_ints nested` | 深层嵌套中按名替换 |
-| `field_ops: replace_field_ints no match` | 不匹配不变 |
-| `field_ops: replace_field_strs basic` | 按字段名替换字符串值 |
-| `field_ops: replace_field_strs exact match` | 仅精确匹配 |
-| `field_ops: replace_root_keys basic` | 根级键替换 |
-| `field_ops: replace_root_keys not recursive` | 嵌套层级同名键不受影响 |
-| `field_ops: replace preserves original` | 替换返回新文档，原文档不变 |
-| `field_ops: replace on empty doc` | 空文档替换不报错 |
+| `json_ops: replace_field_ints basic` | 按字段名替换整数值 |
+| `json_ops: replace_field_ints only named field` | 同值不同字段名不受影响 |
+| `json_ops: replace_field_ints nested` | 深层嵌套中按名替换 |
+| `json_ops: replace_field_ints no match` | 不匹配不变 |
+| `json_ops: replace_field_strs basic` | 按字段名替换字符串值 |
+| `json_ops: replace_field_strs exact match` | 仅精确匹配 |
+| `json_ops: replace_root_keys basic` | 根级键替换 |
+| `json_ops: replace_root_keys not recursive` | 嵌套层级同名键不受影响 |
+| `json_ops: replace preserves original` | 替换返回新文档，原文档不变 |
+| `json_ops: replace on empty doc` | 空文档替换不报错 |

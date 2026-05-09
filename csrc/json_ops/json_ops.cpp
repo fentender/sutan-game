@@ -1,4 +1,4 @@
-#include "field_ops.h"
+#include "json_ops.h"
 #include "json_doc.h"
 #include "json_val.h"
 #include "mut_doc.h"
@@ -174,6 +174,30 @@ JsonDoc replace_root_keys(
         }
     }
     return d.freeze();
+}
+
+// ── 分类 API ──
+
+std::string classify_json(const JsonDoc& doc) {
+    auto root = doc.root();
+    if (!root || !root.is_obj()) return "config";
+
+    if (root.obj_get("id").valid()) return "entity";
+
+    auto it = root.obj_iter();
+    JsonVal::ObjEntry e;
+    bool all_obj = true;
+    bool any_has_id = false;
+    bool has_values = false;
+
+    while (it.next(e)) {
+        has_values = true;
+        if (!e.val.is_obj()) { all_obj = false; break; }
+        if (e.val.obj_get("id").valid()) any_has_id = true;
+    }
+
+    if (has_values && all_obj && any_has_id) return "dictionary";
+    return "config";
 }
 
 }  // namespace sultan

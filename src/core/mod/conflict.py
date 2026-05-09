@@ -4,11 +4,13 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import sultan_core
+from sultan_core.json import JsonDoc
+
 from ..infra.profiler import profile
-from ..infra.types import FIELD_SEP, CancelCheck, ChangeKind, JsonObject
+from ..infra.types import FIELD_SEP, CancelCheck, ChangeKind
 from ..data_manager import DataManager
-from ..merge.delta import ModDelta, flatten_delta
-from ..schema.loader import get_schema_root_key, load_schemas, resolve_schema
+from ..merge.delta import ModDelta
 
 
 @dataclass
@@ -72,20 +74,13 @@ class FileOverrideInfo:
 
 def analyze_file_overrides(
     rel_path: str,
-    base_data: JsonObject,
-    mod_data_list: list[tuple[str, str, JsonObject]],
-    schema: JsonObject | None = None,
-    field_path: tuple[str, ...] | None = None,
+    mod_data_list: list[tuple[str, str, JsonDoc]],
 ) -> FileOverrideInfo:
-    """
-    分析单个文件的覆盖情况。
+    """分析单个文件的覆盖情况。
 
     参数:
         rel_path: 文件相对路径
-        base_data: 游戏本体数据
-        mod_data_list: [(mod_id, mod_name, mod_data), ...] 按优先级排序
-        schema: 该文件对应的 schema 规则
-        field_path: schema 根路径
+        mod_data_list: [(mod_id, mod_name, mod_doc), ...] 按优先级排序
     """
     info = FileOverrideInfo(rel_path=rel_path)
     info.mod_chain = [name for _, name, _ in mod_data_list]
@@ -96,29 +91,29 @@ def analyze_file_overrides(
     array_mod_tracker: dict[str, set[str]] = {}
 
     for mod_id, mod_name, _ in mod_data_list:
-        delta = ModDelta.get(mod_id, rel_path)
-        if delta is None:
+        delta_doc = ModDelta.get(mod_id, rel_path)
+        if delta_doc is None:
             continue
 
-        flat = flatten_delta(delta)
-        for path_tuple, field_diff in flat:
-            fp = FIELD_SEP.join(path_tuple)
+        flat = sultan_core.delta.flatten_delta(delta_doc)
+        for entry in flat:
+            fp = FIELD_SEP.join(entry.path)
 
             # 追踪数组级触碰：路径中含 "[" 表示这是数组元素
-            for i, seg in enumerate(path_tuple):
+            for i, seg in enumerate(entry.path):
                 if seg.startswith("["):
-                    arr_path = FIELD_SEP.join(path_tuple[:i])
+                    arr_path = FIELD_SEP.join(entry.path[:i])
                     if arr_path not in array_mod_tracker:
                         array_mod_tracker[arr_path] = set()
                     array_mod_tracker[arr_path].add(mod_name)
                     break
 
-            if field_diff.kind.base_kind == ChangeKind.ADDED:
+            if entry.kind == ChangeKind.ADDED:
                 info.new_entries.append((mod_name, f"新增: {fp}"))
-            elif field_diff.kind.base_kind == ChangeKind.DELETED:
+            elif entry.kind == ChangeKind.DELETED:
                 info.new_entries.append((mod_name, f"删除: {fp}"))
                 info.deletions.append(DeletionRecord(
-                    field_path=fp, base_value=field_diff.value, mod_name=mod_name,
+                    field_path=fp, base_value=entry.value_str, mod_name=mod_name,
                 ))
 
             # 所有变更类型统一进入 field_map 参与冲突检测：
@@ -126,7 +121,7 @@ def analyze_file_overrides(
             # 两个 ADDED 值不同 → 冲突
             if fp not in field_map:
                 field_map[fp] = FieldOverride(field_path=fp)
-            field_map[fp].mod_values.append((mod_name, field_diff.value))
+            field_map[fp].mod_values.append((mod_name, entry.value_str))
 
     # 最终值 = 最后一个 mod 的值
     for fo in field_map.values():
@@ -172,7 +167,6 @@ def analyze_all_overrides(
         FileOverrideInfo 列表
     """
     dm = DataManager.instance()
-    schemas = load_schemas(schema_dir) if schema_dir else {}
     mod_ids = [mod_id for mod_id, _, _ in mod_configs]
 
     results: list[FileOverrideInfo] = []
@@ -181,9 +175,7 @@ def analyze_all_overrides(
         if cancel_check:
             cancel_check()
 
-        base_data = dm.get_base(rel_path)
-
-        mod_data_list: list[tuple[str, str, JsonObject]] = []
+        mod_data_list: list[tuple[str, str, JsonDoc]] = []
         for mod_id in mod_ids:
             if dm.has_mod(mod_id, rel_path):
                 mod_data_list.append((
@@ -194,13 +186,7 @@ def analyze_all_overrides(
         if not mod_data_list:
             continue
 
-        # 查找 schema
-        schema = resolve_schema(rel_path, schemas) if schemas else None
-        root_key = get_schema_root_key(schema) if schema else None
-        schema_path = (root_key,) if root_key else None
-
-        info = analyze_file_overrides(rel_path, base_data, mod_data_list,
-                                       schema=schema, field_path=schema_path)
+        info = analyze_file_overrides(rel_path, mod_data_list)
         results.append(info)
 
     return results

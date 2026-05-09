@@ -92,4 +92,14 @@ DeltaNodePtr make_delta_array(ChangeKind kind = ChangeKind::Origin);
 JsonDoc serialize_delta(const DeltaBase& delta);
 DeltaNodePtr deserialize_delta(const JsonDoc& doc);
 
+// ── 展平 ──
+
+struct FlatField {
+    vector<string> path;
+    ChangeKind kind;
+    string value_str;
+};
+
+vector<FlatField> flatten_delta(const DeltaDict& root);
+
 }  // namespace sultan

@@ -1,7 +1,7 @@
 """
 JSON 工具 - 文本清洗、格式化、写出
 
-文件读取功能统一由 JsonStore 管理，本模块只提供：
+文件读取由 C++ JsonDoc.parse_file 处理，本模块提供：
 - DupList 数据类型
 - 文本清洗函数（strip_js_comments 等）
 - 格式化输出（format_json）

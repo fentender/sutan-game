@@ -6,11 +6,16 @@
 """
 import copy
 import json
+import json as _json
 import logging
 from pathlib import Path
 
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
+from sultan_core.delta import compute_and_serialize, remap_delta
+
 from src.config import SCHEMA_DIR
-from src.core.merge.delta import ModDelta, compute_delta, _remap_delta_to_current
+from src.core.merge.delta import ModDelta, _is_valid_delta
 from src.core.merge.merger import apply_dict_delta
 from src.core.infra.types import DictFieldDiff, MergeMode
 from src.core.schema.loader import load_schemas, resolve_schema, get_schema_root_key
@@ -19,6 +24,44 @@ from tests.python.test_runner import TestResult, assert_eq, assert_true, run_tes
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 log = logging.getLogger("test")
+
+
+_CPP_MODE: dict[MergeMode, CppMergeMode] = {
+    MergeMode.NORMAL: CppMergeMode.NORMAL,
+    MergeMode.SMART: CppMergeMode.SMART,
+}
+
+
+def _compute_delta(
+    base_data: dict[str, object],
+    mod_data: dict[str, object],
+    file_type: str,
+    merge_mode: MergeMode = MergeMode.NORMAL,
+    root_key: str | None = None,
+) -> DictFieldDiff | None:
+    """compute_delta 的 C++ API 替代"""
+    base_doc = JsonDoc.parse(_json.dumps(base_data))
+    mod_doc = JsonDoc.parse(_json.dumps(mod_data))
+    is_dict = file_type == "dictionary"
+    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if _is_valid_delta(delta_doc):
+        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    return None
+
+
+def _remap_delta_to_current(
+    delta: DictFieldDiff,
+    hist_base: dict[str, object],
+    current_base: dict[str, object],
+) -> DictFieldDiff | None:
+    """_remap_delta_to_current 的 C++ API 替代"""
+    delta_doc = JsonDoc.parse(_json.dumps(delta.to_delta_dict()))
+    hist_doc = JsonDoc.parse(_json.dumps(hist_base))
+    current_doc = JsonDoc.parse(_json.dumps(current_base))
+    remapped_doc = remap_delta(delta_doc, hist_doc, current_doc)
+    if remapped_doc.valid() and remapped_doc.to_string(True) != "null":
+        return DictFieldDiff.from_delta_dict(_json.loads(remapped_doc.to_string()))
+    return None
 
 
 def _make_base() -> dict:
@@ -71,7 +114,7 @@ def test_nested_array_anchors_normal() -> None:
     base_data = _make_base()
     mod_data = _make_mod(base_data)
 
-    delta = compute_delta(base_data, mod_data, "entity", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(base_data, mod_data, "entity", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
 
@@ -90,7 +133,7 @@ def test_nested_array_anchors_smart() -> None:
     base_data = _make_base()
     mod_data = _make_mod(base_data)
 
-    delta = compute_delta(base_data, mod_data, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(base_data, mod_data, "entity", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
 
@@ -115,7 +158,7 @@ def test_nested_array_anchors_adaptive() -> None:
     current_base = copy.deepcopy(hist_base)
 
     # ADAPTIVE 第一步：基于历史 base 计算 SMART delta
-    delta = compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
 
@@ -146,7 +189,7 @@ def test_nested_array_anchors_adaptive_mod_changes_anchors() -> None:
     guide["anim_type"] = "MouseLeftClick"
     current_base = copy.deepcopy(hist_base)
 
-    delta = compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
 
@@ -201,7 +244,7 @@ def test_real_5002004_adaptive() -> None:
     expected_anchors = _get_anchors(current_base)
     log.info("    当前 base anchors: %s", expected_anchors)
 
-    delta = compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist_base, mod_data, "entity", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
 
@@ -241,7 +284,7 @@ def test_real_5002004_adaptive_hist_with_anchors() -> None:
     expected_anchors = _get_anchors(current_base)
     log.info("    当前 base anchors: %s", expected_anchors)
 
-    delta = compute_delta(
+    delta = _compute_delta(
         hist_base, mod_data, "entity",
         root_key=root_key, merge_mode=MergeMode.SMART,
     )

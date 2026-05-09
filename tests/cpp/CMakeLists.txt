@@ -5,7 +5,7 @@ add_executable(sultan_tests
     test_diag.cpp
     test_resource_loader.cpp
     test_json.cpp
-    test_field_ops.cpp
+    test_json_ops.cpp
     test_state.cpp
     test_mut_val.cpp
     test_delta.cpp

@@ -34,7 +34,7 @@ src/
 │   ├── json/                    # JSON处理
 │   │   ├── parser.py            # 清洗/格式化/序列化
 │   │   ├── store.py             # JsonStore单例(加载/缓存/override)
-│   │   └── classify.py          # classify_json()(dictionary/entity/config)
+│   │   └── classify.py          # get_type_str()(classify_json已下沉C++)
 │   ├── schema/                  # Schema规则
 │   │   ├── loader.py            # load_schemas,resolve_schema,get_field_def
 │   │   ├── generator.py         # 从本体config自动生成schema

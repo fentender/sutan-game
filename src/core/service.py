@@ -6,6 +6,8 @@ GUI 通过此类访问所有核心业务功能，不直接操作 DataManager / M
 from collections.abc import Callable
 from pathlib import Path
 
+from sultan_core.json import JsonDoc
+
 from ..config import UserConfig
 from .data_manager import DataManager
 from .infra.types import (
@@ -16,10 +18,10 @@ from .infra.types import (
     ParseFailure,
     ProgressCallback,
 )
-from .json.classify import classify_json as _classify_json
+from .json import classify_json as _classify_json
 from .json.parser import reset_dir_cache as _reset_dir_cache
 from .merge.cache import FileMergeState, MergeCache
-from .merge.delta import ModDelta, compute_delta as _compute_delta
+from .merge.delta import ModDelta
 from .merge.merger import (
     MergeResult,
     copy_failed_files as _copy_failed_files,
@@ -115,13 +117,13 @@ class MergeService:
 
     # === 数据查询 ===
 
-    def get_base(self, rel_path: str) -> JsonObject:
+    def get_base(self, rel_path: str) -> JsonDoc:
         return self._data.get_base(rel_path)
 
     def has_base(self, rel_path: str) -> bool:
         return self._data.has_base(rel_path)
 
-    def get_mod(self, mod_id: str, rel_path: str) -> JsonObject:
+    def get_mod(self, mod_id: str, rel_path: str) -> JsonDoc:
         return self._data.get_mod(mod_id, rel_path)
 
     def has_mod(self, mod_id: str, rel_path: str) -> bool:
@@ -148,14 +150,21 @@ class MergeService:
     def invalidate_delta(self) -> None:
         ModDelta.invalidate()
 
-    def get_delta(self, mod_id: str, rel_path: str) -> DictFieldDiff | None:
+    def get_delta(self, mod_id: str, rel_path: str) -> JsonDoc | None:
         return ModDelta.get(mod_id, rel_path)
 
-    def compute_delta(self, base: JsonObject, mod: JsonObject, file_type: str,
-                      root_key: str | None = None,
-                      merge_mode: MergeMode = MergeMode.SMART) -> DictFieldDiff | None:
-        return _compute_delta(base, mod, file_type,
-                              root_key=root_key, merge_mode=merge_mode)
+    def compute_delta_doc(
+        self, base_doc: JsonDoc, mod_doc: JsonDoc,
+        file_type: str,
+        merge_mode: MergeMode = MergeMode.SMART,
+    ) -> JsonDoc | None:
+        from sultan_core.delta import compute_and_serialize
+        from .merge.delta import _to_cpp_mode, _is_valid_delta
+        is_dict = (file_type == "dictionary")
+        result = compute_and_serialize(
+            base_doc, mod_doc, _to_cpp_mode(merge_mode), is_dict,
+        )
+        return result if _is_valid_delta(result) else None
 
     # === 合并缓存 ===
 
@@ -235,16 +244,16 @@ class MergeService:
 
     # === Deletion 预览支持 ===
 
-    def classify_json(self, data: JsonObject) -> str:
-        return _classify_json(data)
+    def classify_json(self, doc: JsonDoc) -> str:
+        return _classify_json(doc)
 
     def merge_file(
-        self, base_data: JsonObject,
-        mod_data_list: list[tuple[str, str, DictFieldDiff, str]],
+        self, base_doc: JsonDoc,
+        mod_data_list: list[tuple[str, str, JsonDoc, str]],
         rel_path: str = "",
         schema: JsonObject | None = None,
     ) -> MergeResult:
-        return _merge_file(base_data, mod_data_list, rel_path, schema=schema)
+        return _merge_file(base_doc, mod_data_list, rel_path, schema=schema)
 
     def load_schemas(self, schema_dir: Path) -> dict[str, JsonObject]:
         return _load_schemas(schema_dir)

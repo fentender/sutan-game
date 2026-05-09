@@ -7,8 +7,13 @@ DupList 合并测试 - 验证重复键字段在合并管道中类型和结构的
 合并应输出正确的 DupList 结构，而非产生嵌套数组。
 """
 import copy
+import json as _json
 
-from src.core.merge.delta import compute_delta
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
+from sultan_core.delta import compute_and_serialize
+
+from src.core.merge.delta import _is_valid_delta
 from src.core.json.parser import DupList
 from src.core.merge.merger import apply_dict_delta, merge_file
 from src.core.infra.types import (
@@ -20,6 +25,28 @@ from src.core.infra.types import (
     MergeMode,
 )
 from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test
+
+
+_CPP_MODE: dict[MergeMode, CppMergeMode] = {
+    MergeMode.NORMAL: CppMergeMode.NORMAL,
+    MergeMode.SMART: CppMergeMode.SMART,
+}
+
+
+def _compute_delta(
+    base_data: JsonObject,
+    mod_data: JsonObject,
+    file_type: str,
+    merge_mode: MergeMode = MergeMode.NORMAL,
+) -> DictFieldDiff | None:
+    """compute_delta 的 C++ API 替代"""
+    base_doc = JsonDoc.parse(_json.dumps(base_data))
+    mod_doc = JsonDoc.parse(_json.dumps(mod_data))
+    is_dict = file_type == "dictionary"
+    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if _is_valid_delta(delta_doc):
+        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    return None
 
 
 def _make_base_settlement_entry() -> JsonObject:
@@ -78,7 +105,7 @@ def test_duplist_delta_apply() -> None:
         "settlement": [],
     }
 
-    delta = compute_delta(base_data, mod_data, "entity",
+    delta = _compute_delta(base_data, mod_data, "entity",
                           merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
     assert isinstance(delta, DictFieldDiff)
@@ -160,10 +187,10 @@ def test_duplist_merge_file() -> None:
     ])
     result["loot"] = 6000005
 
-    delta_a = compute_delta(base_data, mod_a_data, "entity",
-                            merge_mode=MergeMode.NORMAL)
-    delta_b = compute_delta(base_data, mod_b_data, "entity",
-                            merge_mode=MergeMode.NORMAL)
+    delta_a = _compute_delta(base_data, mod_a_data, "entity",
+                             merge_mode=MergeMode.NORMAL)
+    delta_b = _compute_delta(base_data, mod_b_data, "entity",
+                             merge_mode=MergeMode.NORMAL)
     assert_true(delta_a is not None, "delta_a 不应为 None")
     assert_true(delta_b is not None, "delta_b 不应为 None")
     assert isinstance(delta_a, DictFieldDiff)
@@ -232,7 +259,7 @@ def test_duplist_no_nested_arrays_in_output() -> None:
         },
     }
 
-    delta = compute_delta(base_data, mod_data, "entity",
+    delta = _compute_delta(base_data, mod_data, "entity",
                           merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
     assert isinstance(delta, DictFieldDiff)

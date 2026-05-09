@@ -5,7 +5,13 @@
 "cards/2000523"，Mod 将其修改为数组 ["cards/2000523", "cards/2000523_1"]。
 合并后应正确体现为数组，diff 面板应显示新增元素。
 """
-from src.core.merge.delta import _remap_delta_to_current, compute_delta
+import json as _json
+
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
+from sultan_core.delta import compute_and_serialize, remap_delta
+
+from src.core.merge.delta import _is_valid_delta
 from src.core.merge.formatter import format_delta_json
 from src.core.merge.merger import apply_dict_delta
 from src.core.infra.types import (
@@ -17,6 +23,43 @@ from src.core.infra.types import (
     MergeMode,
 )
 from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test
+
+
+_CPP_MODE: dict[MergeMode, CppMergeMode] = {
+    MergeMode.NORMAL: CppMergeMode.NORMAL,
+    MergeMode.SMART: CppMergeMode.SMART,
+}
+
+
+def _compute_delta(
+    base_data: dict[str, object],
+    mod_data: dict[str, object],
+    file_type: str,
+    merge_mode: MergeMode = MergeMode.NORMAL,
+) -> DictFieldDiff | None:
+    """compute_delta 的 C++ API 替代"""
+    base_doc = JsonDoc.parse(_json.dumps(base_data))
+    mod_doc = JsonDoc.parse(_json.dumps(mod_data))
+    is_dict = file_type == "dictionary"
+    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if _is_valid_delta(delta_doc):
+        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    return None
+
+
+def _remap_delta_to_current(
+    delta: DictFieldDiff,
+    hist_base: dict[str, object],
+    current_base: dict[str, object],
+) -> DictFieldDiff | None:
+    """_remap_delta_to_current 的 C++ API 替代"""
+    delta_doc = JsonDoc.parse(_json.dumps(delta.to_delta_dict()))
+    hist_doc = JsonDoc.parse(_json.dumps(hist_base))
+    current_doc = JsonDoc.parse(_json.dumps(current_base))
+    remapped_doc = remap_delta(delta_doc, hist_doc, current_doc)
+    if remapped_doc.valid() and remapped_doc.to_string(True) != "null":
+        return DictFieldDiff.from_delta_dict(_json.loads(remapped_doc.to_string()))
+    return None
 
 
 def _make_base() -> JsonObject:
@@ -43,7 +86,7 @@ def test_scalar_to_array_delta() -> None:
     """compute_delta 对标量→数组字段应产出 ArrayFieldDiff"""
     base = {"2000523": _make_base()}
     mod = {"2000523": _make_mod()}
-    delta = compute_delta(base, mod, file_type="dictionary", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(base, mod, file_type="dictionary", merge_mode=MergeMode.NORMAL)
 
     assert_true(delta is not None, "delta 不应为 None")
     assert_true(isinstance(delta, DictFieldDiff), "delta 应为 DiffDict")
@@ -74,7 +117,7 @@ def test_scalar_to_array_apply() -> None:
     """apply_delta 后全状态的 resource 应为含 2 个元素的 ArrayFieldDiff"""
     base_data = {"2000523": _make_base()}
     mod_data = {"2000523": _make_mod()}
-    delta = compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
     assert isinstance(delta, DictFieldDiff)
 
@@ -112,7 +155,7 @@ def test_scalar_to_array_format() -> None:
     """format_delta_json 应正确标记标量→数组的变更"""
     base_data = {"2000523": _make_base()}
     mod_data = {"2000523": _make_mod()}
-    delta = compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(base_data, mod_data, file_type="dictionary", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 不应为 None")
     assert isinstance(delta, DictFieldDiff)
 
@@ -141,7 +184,7 @@ def test_scalar_to_array_adaptive_remap() -> None:
     mod_data = {"2000523": _make_mod()}       # resource = ["cards/2000523", "cards/2000523_1"]
 
     # 基于历史 base 计算 delta（模拟 ADAPTIVE 流程）
-    delta = compute_delta(hist_base, mod_data, file_type="dictionary", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist_base, mod_data, file_type="dictionary", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 不应为 None")
     assert isinstance(delta, DictFieldDiff)
 

@@ -1,7 +1,6 @@
 """
 公共类型工具函数
 """
-from typing import cast
 
 from ..infra.types import *
 
@@ -29,20 +28,3 @@ def get_type_str(value: object) -> str:
     if isinstance(value, dict):
         return "object"
     return type(value).__name__
-
-
-def classify_json(data: JsonObject) -> str:
-    """
-    分类 JSON 文件类型。
-    返回: "dictionary" | "entity" | "config"
-    """
-    if 'id' in data:
-        return "entity"
-
-    values = list(data.values())
-    if values and all(isinstance(v, dict) for v in values):
-        dicts = cast(list[JsonObject], values)
-        if any('id' in d for d in dicts):
-            return "dictionary"
-
-    return "config"

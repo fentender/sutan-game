@@ -39,9 +39,9 @@ project-root/
 │   │   ├── mut_val.cpp         # MutVal 实现（yyjson 可变值 API 封装）
 │   │   ├── mut_doc.h           # MutDoc（可变文档所有者）
 │   │   └── mut_doc.cpp         # MutDoc 实现（可变文档生命周期管理）
-│   ├── field_ops/              # JSON 字段操作模块
-│   │   ├── field_ops.h         # 批量提取 / 替换 API 声明
-│   │   └── field_ops.cpp       # 提取 / 替换实现
+│   ├── json_ops/              # JSON 字段操作模块
+│   │   ├── json_ops.h         # 批量提取 / 替换 API 声明
+│   │   └── json_ops.cpp       # 提取 / 替换实现
 │   ├── state/                  # State 模块
 │   │   ├── change_kind.h       # ChangeKind / MergeMode 枚举 + 位运算
 │   │   ├── state_node.h        # StateBase 基类 + 三个派生类
@@ -77,7 +77,7 @@ project-root/
 │       ├── test_diag.cpp       # 诊断模块 C++ 单元测试
 │       ├── test_resource_loader.cpp  # 资源加载模块 C++ 单元测试
 │       ├── test_json.cpp       # Json 模块 C++ 单元测试
-│       ├── test_field_ops.cpp  # 字段操作模块 C++ 单元测试
+│       ├── test_json_ops.cpp  # 字段操作模块 C++ 单元测试
 │       ├── test_state.cpp     # State 模块 C++ 单元测试
 │       ├── test_mut_val.cpp   # MutVal/MutDoc 单元测试
 │       └── test_delta.cpp    # Delta 模块 C++ 单元测试

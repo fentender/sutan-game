@@ -7,7 +7,7 @@ add_library(sultan_core_lib STATIC
     json/json_val.cpp
     json/mut_val.cpp
     json/mut_doc.cpp
-    field_ops/field_ops.cpp
+    json_ops/json_ops.cpp
     state/state_node.cpp
     state/json_state.cpp
     state/state_formatter.cpp
@@ -21,7 +21,7 @@ add_library(sultan_core_lib STATIC
 target_include_directories(sultan_core_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/json
-    ${CMAKE_CURRENT_SOURCE_DIR}/field_ops
+    ${CMAKE_CURRENT_SOURCE_DIR}/json_ops
     ${CMAKE_CURRENT_SOURCE_DIR}/state
     ${CMAKE_CURRENT_SOURCE_DIR}/delta
 )

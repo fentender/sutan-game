@@ -841,3 +841,55 @@ TEST_CASE("delta: remap e2e compute remap apply") {
     REQUIRE_FALSE(result.root().obj_get("c").valid());
     REQUIRE(result.root().obj_get("d").get_int() == 4);
 }
+
+// ==================== skip_root_deletion ====================
+
+TEST_CASE("delta: skip_root_deletion suppresses root deletions") {
+    auto base = JsonDoc::parse(R"({"a":1,"b":2,"c":3})");
+    auto mod = JsonDoc::parse(R"({"a":10,"c":3})");
+
+    auto delta_normal = compute_delta(base, mod, MergeMode::Normal, false);
+    REQUIRE(delta_normal != nullptr);
+    auto* del_b = delta_normal->as_dict().find("b");
+    REQUIRE(del_b != nullptr);
+    REQUIRE(base_kind(del_b->kind()) == ChangeKind::Deleted);
+
+    auto delta_skip = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta_skip != nullptr);
+    REQUIRE(delta_skip->as_dict().find("b") == nullptr);
+    auto* changed_a = delta_skip->as_dict().find("a");
+    REQUIRE(changed_a != nullptr);
+    REQUIRE(base_kind(changed_a->kind()) == ChangeKind::Changed);
+}
+
+TEST_CASE("delta: skip_root_deletion still detects nested deletions") {
+    auto base = JsonDoc::parse(R"({"a":{"x":1,"y":2}})");
+    auto mod = JsonDoc::parse(R"({"a":{"x":10}})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta != nullptr);
+    auto* a_node = delta->as_dict().find("a");
+    REQUIRE(a_node != nullptr);
+    auto* y_node = a_node->as_dict().find("y");
+    REQUIRE(y_node != nullptr);
+    REQUIRE(base_kind(y_node->kind()) == ChangeKind::Deleted);
+}
+
+TEST_CASE("delta: skip_root_deletion with no changes returns nullptr") {
+    auto base = JsonDoc::parse(R"({"a":1,"b":2})");
+    auto mod = JsonDoc::parse(R"({"a":1})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta == nullptr);
+}
+
+TEST_CASE("delta: skip_root_deletion added keys still detected") {
+    auto base = JsonDoc::parse(R"({"a":1})");
+    auto mod = JsonDoc::parse(R"({"a":1,"b":2})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta != nullptr);
+    auto* b_node = delta->as_dict().find("b");
+    REQUIRE(b_node != nullptr);
+    REQUIRE(base_kind(b_node->kind()) == ChangeKind::Added);
+}

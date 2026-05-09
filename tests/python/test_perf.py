@@ -86,12 +86,12 @@ def perf_analyze_all():
 
 
 def perf_apply_delta_large():
-    """大对象递归合并性能"""
-    from src.core.merge.delta import compute_delta
-    from src.core.merge.merger import apply_dict_delta
-    from src.core.infra.types import DictFieldDiff
+    """大对象递归合并性能（C++ State/Delta）"""
+    import json as _json
+    from sultan_core.json import JsonDoc
+    from sultan_core.state import JsonState
+    from sultan_core.delta import compute_and_apply
 
-    # 构造 1000 key 的嵌套字典
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
                           "nested": {"x": i * 2, "y": i * 3}}
             for i in range(1000)}
@@ -99,12 +99,17 @@ def perf_apply_delta_large():
     for i in range(0, 1000, 2):
         override[f"key_{i}"] = {**base[f"key_{i}"], "sub_a": i * 10}
 
-    delta = compute_delta(base, override, "config")
-    assert_true(delta is not None, "应有变化")
+    base_doc = JsonDoc.parse(_json.dumps(base))
+    mod_doc = JsonDoc.parse(_json.dumps(override))
+
+    state = JsonState.from_doc(base_doc)
+    changed = compute_and_apply(base_doc, mod_doc, state, version=1)
+    assert_true(changed, "应有变化")
 
     start = time.perf_counter()
     for _ in range(10):
-        apply_dict_delta(DictFieldDiff.from_dict(base), delta)
+        s = JsonState.from_doc(base_doc)
+        compute_and_apply(base_doc, mod_doc, s, version=1)
     elapsed = time.perf_counter() - start
     log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
@@ -112,6 +117,7 @@ def perf_apply_delta_large():
 
 def perf_apply_delta_real():
     """真实 Mod 数据 apply_dict_delta 性能"""
+    import json
     game_config, workshop = _require_real_data()
     from src.core.merge.delta import ModDelta
     from src.core.merge.merger import apply_dict_delta
@@ -129,9 +135,10 @@ def perf_apply_delta_real():
             delta = ModDelta.get(mod_id, rel_path)
             if delta is None:
                 continue
-            base_data = store.get_base(rel_path)
-            if base_data is None:
+            base_doc = store.get_base(rel_path)
+            if not base_doc.valid():
                 continue
+            base_data = json.loads(base_doc.to_string())
             schema = resolve_schema(rel_path, schemas) if schemas else None
             root_key = get_schema_root_key(schema) if schema else None
             fp: tuple[str, ...] | None = (root_key,) if root_key else None
@@ -184,9 +191,11 @@ def perf_diff_dialog_tab_load():
     app = QApplication.instance() or QApplication([])
 
     from src.gui.dialogs.diff import DiffDialog
+    from src.core.service import MergeService
+    service = MergeService(UserConfig.load())
 
     start = time.perf_counter()
-    dialog = DiffDialog(target.rel_path, target_mods)
+    dialog = DiffDialog(target.rel_path, target_mods, service=service)
     construct_elapsed = time.perf_counter() - start
     log.info("    DiffDialog 构造（含 precompute + tab 0 加载）%.3fs", construct_elapsed)
 
@@ -234,7 +243,7 @@ def perf_merge_all():
 
 def perf_json_parse():
     """JSON 解析性能（含逗号修复）"""
-    from src.core.data_manager import DataManager
+    from sultan_core.json import JsonDoc
 
     game_config, workshop = _require_real_data()
 
@@ -258,7 +267,7 @@ def perf_json_parse():
     repair_count = 0
     for f in all_files:
         try:
-            DataManager.parse_file(f)
+            JsonDoc.parse_file(str(f))
         except Exception:
             repair_count += 1
     elapsed = time.perf_counter() - start

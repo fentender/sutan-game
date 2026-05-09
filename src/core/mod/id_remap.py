@@ -4,9 +4,12 @@ ID 重分配模块 - 检测并解决多个 Mod 之间的 ID 冲突
 在合并前扫描所有 mod，找出被多个 mod 定义的相同 ID，
 为冲突的 ID 分配新值，并在 store 中原地替换所有引用。
 """
+import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from sultan_core.json import JsonDoc
 
 from ..infra.diagnostics import diag
 from ..infra.types import CancelCheck, DupList, JsonObject
@@ -116,17 +119,18 @@ def collect_base_ids() -> tuple[dict[str, set[str]], set[str]]:
 
     # dictionary 类型
     for entity_type, filename in DICT_BASED_TYPES.items():
-        data = store.get_base(filename)
-        if data:
-            base_ids[entity_type] = set(data.keys())
-            if entity_type == "tag":
-                for _code, tag_data in data.items():
-                    if isinstance(tag_data, dict):
-                        if "id" in tag_data:
-                            base_ids["tag_id"].add(str(tag_data["id"]))
-                        name = tag_data.get("name")
-                        if name:
-                            base_tag_names.add(str(name))
+        if not store.has_base(filename):
+            continue
+        data: JsonObject = json.loads(store.get_base(filename).to_string())
+        base_ids[entity_type] = set(data.keys())
+        if entity_type == "tag":
+            for _code, tag_data in data.items():
+                if isinstance(tag_data, dict):
+                    if "id" in tag_data:
+                        base_ids["tag_id"].add(str(tag_data["id"]))
+                    name = tag_data.get("name")
+                    if name:
+                        base_tag_names.add(str(name))
 
     # 文件名即 ID 的类型（从 store 的 base rel_paths 中过滤）
     for entity_type, dirname in FILE_BASED_TYPES.items():
@@ -164,19 +168,19 @@ def collect_mod_ids(mod_id: str) -> ModIdInfo:
 
     # dictionary 类型
     if store.has_mod(mod_id, "cards.json"):
-        data = store.get_mod(mod_id, "cards.json")
+        data: JsonObject = json.loads(store.get_mod(mod_id, "cards.json").to_string())
         info.cards = {k: v for k, v in data.items() if isinstance(v, dict)}
 
     if store.has_mod(mod_id, "tag.json"):
-        data = store.get_mod(mod_id, "tag.json")
+        data = json.loads(store.get_mod(mod_id, "tag.json").to_string())
         info.tag = {k: v for k, v in data.items() if isinstance(v, dict)}
 
     if store.has_mod(mod_id, "over.json"):
-        data = store.get_mod(mod_id, "over.json")
+        data = json.loads(store.get_mod(mod_id, "over.json").to_string())
         info.over = {k: v for k, v in data.items() if isinstance(v, dict)}
 
     if store.has_mod(mod_id, "rite_template_mappings.json"):
-        data = store.get_mod(mod_id, "rite_template_mappings.json")
+        data = json.loads(store.get_mod(mod_id, "rite_template_mappings.json").to_string())
         info.rite_template_mappings = {
             k: v for k, v in data.items() if isinstance(v, dict)
         }
@@ -549,7 +553,7 @@ def apply_remap_to_store(mod_id: str, remap: RemapTable) -> None:
     str_lookup = remap.build_str_lookup()
 
     for rel_path in list(store.mod_files(mod_id)):
-        data = store.get_mod(mod_id, rel_path)
+        data: JsonObject = json.loads(store.get_mod(mod_id, rel_path).to_string())
 
         # 计算可能的新 rel_path（文件名即 ID 的情况）
         new_rel = _compute_new_rel_path(rel_path, remap)
@@ -566,7 +570,9 @@ def apply_remap_to_store(mod_id: str, remap: RemapTable) -> None:
         if new_rel != rel_path:
             store.remove_mod_file(mod_id, rel_path)
 
-        store.set_mod(mod_id, new_rel, data)
+        # dict → JsonDoc 写回 store
+        doc = JsonDoc.parse(json.dumps(data, ensure_ascii=False), False)
+        store.set_mod(mod_id, new_rel, doc)
 
 
 def _compute_new_rel_path(rel_str: str, remap: RemapTable) -> str:

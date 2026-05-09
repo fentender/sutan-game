@@ -299,4 +299,47 @@ DeltaNodePtr deserialize_delta(const JsonDoc& doc) {
     return deserialize_node(doc.root());
 }
 
+// ── 展平 ──
+
+static void flatten_node(const DeltaBase& node, vector<string>& path,
+                          vector<FlatField>& out) {
+    switch (node.type()) {
+        case DeltaType::Element: {
+            auto& e = node.as_element();
+            out.push_back({vector<string>(path), base_kind(e.kind_),
+                           serialize_scalar(e.value)});
+            break;
+        }
+        case DeltaType::Dict: {
+            auto& dict = node.as_dict();
+            for (const auto& [key, child] : dict.items) {
+                path.push_back(key);
+                flatten_node(*child, path, out);
+                path.pop_back();
+            }
+            break;
+        }
+        case DeltaType::Array: {
+            auto& arr = node.as_array();
+            for (size_t i = 0; i < arr.diffs.size(); ++i) {
+                path.push_back("[" + std::to_string(arr.indices[i]) + "]");
+                flatten_node(*arr.diffs[i], path, out);
+                path.pop_back();
+            }
+            break;
+        }
+    }
+}
+
+vector<FlatField> flatten_delta(const DeltaDict& root) {
+    vector<FlatField> out;
+    vector<string> path;
+    for (const auto& [key, node] : root.items) {
+        path.push_back(key);
+        flatten_node(*node, path, out);
+        path.pop_back();
+    }
+    return out;
+}
+
 }  // namespace sultan

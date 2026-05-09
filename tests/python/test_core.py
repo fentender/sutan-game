@@ -3,19 +3,44 @@
 """
 import copy
 import json
+import json as _json
 import logging
 from pathlib import Path
 
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
+from sultan_core.delta import compute_and_serialize
+
 from src.config import SCHEMA_DIR, UserConfig
 from src.core.merge.array_match import match_by_heuristic
-from src.core.merge.delta import ModDelta, compute_delta
+from src.core.merge.delta import ModDelta, _is_valid_delta
 from src.core.json.parser import _pairs_hook, clean_json_text
 from src.core.data_manager import DataManager
 from src.core.merge.cache import MergeCache
-from src.core.infra.types import JsonArray, JsonObject, MergeMode
+from src.core.infra.types import DictFieldDiff, JsonArray, JsonObject, MergeMode
 from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test, skip
 
 log = logging.getLogger("test")
+
+
+def _compute_delta(
+    base_data: JsonObject,
+    mod_data: JsonObject,
+    file_type: str,
+    merge_mode: MergeMode = MergeMode.NORMAL,
+) -> DictFieldDiff | None:
+    """compute_delta 的 C++ API 替代"""
+    _CPP_MODE: dict[MergeMode, CppMergeMode] = {
+        MergeMode.NORMAL: CppMergeMode.NORMAL,
+        MergeMode.SMART: CppMergeMode.SMART,
+    }
+    base_doc = JsonDoc.parse(_json.dumps(base_data))
+    mod_doc = JsonDoc.parse(_json.dumps(mod_data))
+    is_dict = file_type == "dictionary"
+    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if _is_valid_delta(delta_doc):
+        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    return None
 
 
 ABUDE_MOD_ID = "3497129580"
@@ -176,8 +201,8 @@ def _apply_override_and_verify(
     label: str,
 ) -> None:
     """计算 override delta、保存、重新合并、验证结果一致"""
-    delta = compute_delta(old_json, expected_json, "config",
-                          merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(old_json, expected_json, "config",
+                           merge_mode=MergeMode.NORMAL)
     if delta is None:
         raise AssertionError(f"{label}: compute_delta 返回 None，编辑未产生差异")
 

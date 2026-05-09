@@ -410,28 +410,23 @@ class DeletionReportDialog(QDialog):
 
     def _open_deletion_preview(self, rel_path: str, clicked_record: DeletionRecord) -> None:
         """打开删减预览：合并结果（不执行删除）+ 被删字段标红"""
+
         from PySide6.QtGui import QTextCharFormat, QTextCursor, QTextFormat
         from PySide6.QtWidgets import QTextEdit
 
-        from src.config import SCHEMA_DIR
-        from src.core.infra.types import DictFieldDiff, MergeMode
-        from src.core.json.parser import format_json
+        from sultan_core.json import JsonDoc
+
+        from src.core.infra.types import MergeMode
 
         from ..widgets.code_editor import CodeEditor
 
-        # 调用方已确认 _mod_configs 非 None
         assert self._mod_configs is not None
         svc = self._service
 
-        # 从 store 获取游戏本体数据
-        base_data = svc.get_base(rel_path)
-
-        # 加载 schema
-        schemas = svc.load_schemas(SCHEMA_DIR)
-        schema = svc.resolve_schema(rel_path, schemas)
+        base_doc = svc.get_base(rel_path)
 
         # 使用缓存的 delta（已按当前模式过滤）合并 → 无删除版本
-        mod_data_list_cached: list[tuple[str, str, DictFieldDiff, str]] = []
+        mod_data_list_cached: list[tuple[str, str, JsonDoc, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not svc.has_mod(mod_id, rel_path):
                 continue
@@ -440,32 +435,30 @@ class DeletionReportDialog(QDialog):
                 mod_data_list_cached.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         result_no_del = svc.merge_file(
-            base_data, mod_data_list_cached, rel_path, schema=schema,
+            base_doc, mod_data_list_cached, rel_path,
         )
 
         # 计算 NORMAL 模式 delta（包含所有删除）→ 有删除版本
-        file_type = svc.classify_json(base_data) if base_data else "config"
-        root_key = svc.get_schema_root_key(schema)
-        mod_data_list_normal: list[tuple[str, str, DictFieldDiff, str]] = []
+        file_type = svc.classify_json(base_doc) if svc.has_base(rel_path) else "config"
+        mod_data_list_normal: list[tuple[str, str, JsonDoc, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not svc.has_mod(mod_id, rel_path):
                 continue
-            mod_data = svc.get_mod(mod_id, rel_path)
-            delta = svc.compute_delta(
-                base_data, mod_data, file_type,
-                root_key=root_key,
+            mod_doc = svc.get_mod(mod_id, rel_path)
+            delta_doc = svc.compute_delta_doc(
+                base_doc, mod_doc, file_type,
                 merge_mode=MergeMode.NORMAL,
             )
-            if delta:
-                mod_data_list_normal.append((mod_id, mod_name, delta, str(config_path / rel_path)))
+            if delta_doc:
+                mod_data_list_normal.append((mod_id, mod_name, delta_doc, str(config_path / rel_path)))
 
         result_del = svc.merge_file(
-            base_data, mod_data_list_normal, rel_path, schema=schema,
+            base_doc, mod_data_list_normal, rel_path,
         )
 
         # 格式化两份 JSON 文本
-        text_no_del = format_json(result_no_del.merged_data)
-        text_del = format_json(result_del.merged_data)
+        text_no_del = result_no_del.merged_doc.to_string()
+        text_del = result_del.merged_doc.to_string()
 
         # 用行级 diff 找出"无删除版本有但有删除版本没有"的行 = 被删行
         lines_no_del = text_no_del.splitlines()

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "field_ops.h"
+#include "json_ops.h"
 #include "json_doc.h"
 
 using namespace sultan;
@@ -13,14 +13,14 @@ using namespace sultan;
 // 提取测试
 // ═══════════════════════════════════════════════════════════
 
-TEST_CASE("field_ops: extract_string_values basic") {
+TEST_CASE("json_ops: extract_string_values basic") {
     auto doc = JsonDoc::parse(R"({"name":"alice","age":30,"city":"tokyo"})");
     auto names = extract_string_values(doc, "name");
     REQUIRE(names.size() == 1);
     REQUIRE(names[0] == "alice");
 }
 
-TEST_CASE("field_ops: extract_string_values nested") {
+TEST_CASE("json_ops: extract_string_values nested") {
     auto doc = JsonDoc::parse(R"({
         "a": {"name": "x", "b": {"name": "y"}},
         "name": "z"
@@ -32,7 +32,7 @@ TEST_CASE("field_ops: extract_string_values nested") {
     REQUIRE(names[2] == "z");
 }
 
-TEST_CASE("field_ops: extract_string_values in array") {
+TEST_CASE("json_ops: extract_string_values in array") {
     auto doc = JsonDoc::parse(R"({
         "items": [
             {"name": "a"},
@@ -46,13 +46,13 @@ TEST_CASE("field_ops: extract_string_values in array") {
     REQUIRE(names[1] == "b");
 }
 
-TEST_CASE("field_ops: extract_string_values no match") {
+TEST_CASE("json_ops: extract_string_values no match") {
     auto doc = JsonDoc::parse(R"({"id": 42, "count": 10})");
     auto result = extract_string_values(doc, "name");
     REQUIRE(result.empty());
 }
 
-TEST_CASE("field_ops: extract_int_values basic") {
+TEST_CASE("json_ops: extract_int_values basic") {
     auto doc = JsonDoc::parse(R"({
         "cards": {
             "100": {"id": 100, "name": "card_a"},
@@ -65,7 +65,7 @@ TEST_CASE("field_ops: extract_int_values basic") {
     REQUIRE(ids[1] == 200);
 }
 
-TEST_CASE("field_ops: extract_int_values mixed types") {
+TEST_CASE("json_ops: extract_int_values mixed types") {
     auto doc = JsonDoc::parse(R"({
         "id": 42,
         "sub": {"id": "not_an_int"},
@@ -77,7 +77,7 @@ TEST_CASE("field_ops: extract_int_values mixed types") {
     REQUIRE(ids[1] == 99);
 }
 
-TEST_CASE("field_ops: extract from empty doc") {
+TEST_CASE("json_ops: extract from empty doc") {
     auto doc1 = JsonDoc::parse("{}");
     REQUIRE(extract_string_values(doc1, "x").empty());
     REQUIRE(extract_int_values(doc1, "x").empty());
@@ -91,7 +91,7 @@ TEST_CASE("field_ops: extract from empty doc") {
 // 替换测试
 // ═══════════════════════════════════════════════════════════
 
-TEST_CASE("field_ops: replace_field_ints basic") {
+TEST_CASE("json_ops: replace_field_ints basic") {
     auto doc = JsonDoc::parse(R"({"id": 100, "count": 100})");
     auto result = replace_field_ints(doc, "id", {{100, 999}});
 
@@ -104,7 +104,7 @@ TEST_CASE("field_ops: replace_field_ints basic") {
     REQUIRE(counts[0] == 100);
 }
 
-TEST_CASE("field_ops: replace_field_ints only named field") {
+TEST_CASE("json_ops: replace_field_ints only named field") {
     auto doc = JsonDoc::parse(R"({"id": 42, "ref_id": 42, "damage": 42})");
     auto result = replace_field_ints(doc, "id", {{42, 99}});
 
@@ -113,7 +113,7 @@ TEST_CASE("field_ops: replace_field_ints only named field") {
     REQUIRE(extract_int_values(result, "damage")[0] == 42);
 }
 
-TEST_CASE("field_ops: replace_field_ints nested") {
+TEST_CASE("json_ops: replace_field_ints nested") {
     auto doc = JsonDoc::parse(R"({
         "100": {"id": 100, "name": "a"},
         "200": {"id": 200, "sub": {"id": 100}}
@@ -126,13 +126,13 @@ TEST_CASE("field_ops: replace_field_ints nested") {
     REQUIRE(ids[2] == 999);
 }
 
-TEST_CASE("field_ops: replace_field_ints no match") {
+TEST_CASE("json_ops: replace_field_ints no match") {
     auto doc = JsonDoc::parse(R"({"id": 42})");
     auto result = replace_field_ints(doc, "id", {{999, 1}});
     REQUIRE(extract_int_values(result, "id")[0] == 42);
 }
 
-TEST_CASE("field_ops: replace_field_strs basic") {
+TEST_CASE("json_ops: replace_field_strs basic") {
     auto doc = JsonDoc::parse(R"({"name": "old", "desc": "old"})");
     auto result = replace_field_strs(doc, "name", {{"old", "new"}});
 
@@ -140,7 +140,7 @@ TEST_CASE("field_ops: replace_field_strs basic") {
     REQUIRE(extract_string_values(result, "desc")[0] == "old");
 }
 
-TEST_CASE("field_ops: replace_field_strs exact match") {
+TEST_CASE("json_ops: replace_field_strs exact match") {
     auto doc = JsonDoc::parse(R"({"code": "abc_old", "code2": "abc"})");
     auto result = replace_field_strs(doc, "code", {{"abc", "xyz"}});
 
@@ -150,7 +150,7 @@ TEST_CASE("field_ops: replace_field_strs exact match") {
     REQUIRE(extract_string_values(result2, "code2")[0] == "xyz");
 }
 
-TEST_CASE("field_ops: replace_root_keys basic") {
+TEST_CASE("json_ops: replace_root_keys basic") {
     auto doc = JsonDoc::parse(R"({"100": {"name": "a"}, "200": {"name": "b"}})");
     auto result = replace_root_keys(doc, {{"100", "999"}});
     auto text = result.to_string(true);
@@ -159,7 +159,7 @@ TEST_CASE("field_ops: replace_root_keys basic") {
     REQUIRE(text.find("\"200\"") != std::string::npos);
 }
 
-TEST_CASE("field_ops: replace_root_keys not recursive") {
+TEST_CASE("json_ops: replace_root_keys not recursive") {
     auto doc = JsonDoc::parse(R"({"k": {"k": "v"}})");
     auto result = replace_root_keys(doc, {{"k", "replaced"}});
     auto text = result.to_string(true);
@@ -170,7 +170,7 @@ TEST_CASE("field_ops: replace_root_keys not recursive") {
     REQUIRE(inner[0] == "v");
 }
 
-TEST_CASE("field_ops: replace preserves original") {
+TEST_CASE("json_ops: replace preserves original") {
     auto doc = JsonDoc::parse(R"({"id": 42})");
     auto result = replace_field_ints(doc, "id", {{42, 99}});
 
@@ -178,7 +178,7 @@ TEST_CASE("field_ops: replace preserves original") {
     REQUIRE(extract_int_values(result, "id")[0] == 99);
 }
 
-TEST_CASE("field_ops: replace on empty doc") {
+TEST_CASE("json_ops: replace on empty doc") {
     auto doc = JsonDoc::parse("{}");
     REQUIRE(replace_field_ints(doc, "id", {{1, 2}}).valid());
     REQUIRE(replace_field_strs(doc, "name", {{"a", "b"}}).valid());

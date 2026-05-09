@@ -8,13 +8,55 @@ ADAPTIVE 模式 delta 重映射测试
 
 通过 _remap_delta_to_current 把 delta 从历史 base 坐标系转换到当前 base 坐标系。
 """
+import json as _json
 import logging
 
-from src.core.merge.delta import _remap_delta_to_current, compute_delta
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
+from sultan_core.delta import compute_and_serialize, remap_delta
+
+from src.core.merge.delta import _is_valid_delta
 from src.core.infra.types import ArrayFieldDiff, ChangeKind, DictFieldDiff, FieldDiff, MergeMode
 from tests.python.test_runner import TestResult, assert_eq, assert_true, run_test
 
 log = logging.getLogger("test")
+
+
+_CPP_MODE: dict[MergeMode, CppMergeMode] = {
+    MergeMode.NORMAL: CppMergeMode.NORMAL,
+    MergeMode.SMART: CppMergeMode.SMART,
+}
+
+
+def _compute_delta(
+    base_data: dict[str, object],
+    mod_data: dict[str, object],
+    file_type: str,
+    merge_mode: MergeMode = MergeMode.NORMAL,
+) -> DictFieldDiff | None:
+    """compute_delta 的 C++ API 替代"""
+    base_doc = JsonDoc.parse(_json.dumps(base_data))
+    mod_doc = JsonDoc.parse(_json.dumps(mod_data))
+    is_dict = file_type == "dictionary"
+    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if _is_valid_delta(delta_doc):
+        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    return None
+
+
+def _remap_delta_to_current(
+    delta: DictFieldDiff,
+    hist_base: dict[str, object],
+    current_base: dict[str, object],
+) -> DictFieldDiff | None:
+    """_remap_delta_to_current 的 C++ API 替代"""
+    delta_doc = JsonDoc.parse(_json.dumps(delta.to_delta_dict()))
+    hist_doc = JsonDoc.parse(_json.dumps(hist_base))
+    current_doc = JsonDoc.parse(_json.dumps(current_base))
+    remapped_doc = remap_delta(delta_doc, hist_doc, current_doc)
+    if remapped_doc.valid() and remapped_doc.to_string(True) != "null":
+        return DictFieldDiff.from_delta_dict(_json.loads(remapped_doc.to_string()))
+    return None
 
 
 def _condition_diff_for_guid(delta: DictFieldDiff, guid: str) -> DictFieldDiff | None:
@@ -37,7 +79,7 @@ def test_dict_deleted_missing_in_current() -> None:
     mod = {"a": 1}  # 删除了 b
     current = {"a": 1}  # 当前 base 也没有 b（游戏已自然移除）
 
-    delta = compute_delta(hist, mod, "config", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(hist, mod, "config", merge_mode=MergeMode.NORMAL)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None  # mypy
     assert_true("b" in delta.items, "原始 delta 应含 b: DELETED")
@@ -55,7 +97,7 @@ def test_dict_added_already_present() -> None:
     mod = {"a": 1, "b": 2}  # 新增 b
     current = {"a": 1, "b": 2}  # 当前 base 已有 b 且值相同
 
-    delta = compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
     assert_true(delta is not None, "delta 应非空")
     assert delta is not None
     assert_true("b" in delta.items, "原始 delta 应含 b: ADDED")
@@ -73,7 +115,7 @@ def test_dict_added_present_diff_value() -> None:
     mod = {"a": 1, "b": 2}
     current = {"a": 1, "b": 99}
 
-    delta = compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
     assert delta is not None
 
     remapped = _remap_delta_to_current(delta, hist, current)
@@ -90,7 +132,7 @@ def test_dict_changed_already_equal() -> None:
     mod = {"a": 2}
     current = {"a": 2}  # 游戏已经把 a 改成 2
 
-    delta = compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "config", merge_mode=MergeMode.SMART)
     assert delta is not None
 
     remapped = _remap_delta_to_current(delta, hist, current)
@@ -152,7 +194,7 @@ def test_real_bug_condition_field() -> None:
     mod = {"id": "5000002", "settlement": [mod_elem]}
     current = {"id": "5000002", "settlement": [current_elem]}
 
-    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.NORMAL)
+    delta = _compute_delta(hist, mod, "entity", merge_mode=MergeMode.NORMAL)
     assert delta is not None, "原始 delta 应非空"
 
     cond_delta = _condition_diff_for_guid(delta, guid)
@@ -211,7 +253,7 @@ def test_array_index_remap() -> None:
         ],
     }
 
-    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
     assert delta is not None
     settlement_delta = delta.items.get("settlement")
     assert isinstance(settlement_delta, ArrayFieldDiff)
@@ -255,7 +297,7 @@ def test_array_changed_element_disappeared() -> None:
         ],
     }
 
-    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
     assert delta is not None
 
     remapped = _remap_delta_to_current(delta, hist, current)
@@ -301,7 +343,7 @@ def test_array_order_preserves_origin() -> None:
         ],
     }
 
-    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
     assert delta is not None
     remapped = _remap_delta_to_current(delta, hist, current)
     assert remapped is not None
@@ -327,7 +369,7 @@ def test_array_large_origin_preserved() -> None:
     current_items.insert(3, {"guid": "new", "v": -1})
     current = {"id": "x", "settlement": current_items}
 
-    delta = compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
+    delta = _compute_delta(hist, mod, "entity", merge_mode=MergeMode.SMART)
     assert delta is not None
     remapped = _remap_delta_to_current(delta, hist, current)
     assert remapped is not None

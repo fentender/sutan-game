@@ -37,4 +37,9 @@ JsonDoc replace_root_keys(
     const JsonDoc& doc,
     const std::unordered_map<std::string, std::string>& mapping);
 
+// ── 分类 ──
+
+// 判定 JSON 文件类型："dictionary" | "entity" | "config"
+std::string classify_json(const JsonDoc& doc);
+
 }  // namespace sultan

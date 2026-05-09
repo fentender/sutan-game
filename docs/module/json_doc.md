@@ -39,7 +39,7 @@ tests/cpp/
 
 ## yyjson 隔离
 
-`#include "yyjson.h"` 仅出现在 `csrc/json/*.cpp`（json_doc.cpp、json_val.cpp、mut_val.cpp、mut_doc.cpp）中。外部模块（state/、field_ops/、未来的 delta/）通过 JsonVal（不可变读取）和 MutVal/MutDoc（可变读写）访问 JSON 数据，实现 yyjson 完全隔离。若需更换 JSON 库，只需修改 json/ 目录内的实现文件。
+`#include "yyjson.h"` 仅出现在 `csrc/json/*.cpp`（json_doc.cpp、json_val.cpp、mut_val.cpp、mut_doc.cpp）中。外部模块（state/、json_ops/、未来的 delta/）通过 JsonVal（不可变读取）和 MutVal/MutDoc（可变读写）访问 JSON 数据，实现 yyjson 完全隔离。若需更换 JSON 库，只需修改 json/ 目录内的实现文件。
 
 ## 文本清洗
 

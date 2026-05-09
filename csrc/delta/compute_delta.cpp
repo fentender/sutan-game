@@ -153,7 +153,8 @@ static vector<int> build_order(
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
     const vector<string>* field_path,
-    MergeMode merge_mode);
+    MergeMode merge_mode,
+    bool skip_deletion = false);
 
 static DeltaNodePtr array_delta_from_matching(
     const vector<JsonVal>& base_elems,
@@ -209,7 +210,8 @@ static DeltaNodePtr array_delta_from_matching(
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
     const vector<string>* field_path,
-    MergeMode merge_mode)
+    MergeMode merge_mode,
+    bool skip_deletion)
 {
     if (deep_equal(base, mod))
         return nullptr;
@@ -282,17 +284,19 @@ static DeltaNodePtr recursive_delta(
                 }
             }
 
-            for (auto& key : base_keys.key_order) {
-                if (mod_keys.entries.count(key)) continue;
-                if (merge_mode == MergeMode::Smart) {
-                    vector<string> cp;
-                    if (field_path) cp = *field_path;
-                    cp.push_back(key);
-                    if (!smart_allow_deletion(cp, false)) continue;
+            if (!skip_deletion) {
+                for (auto& key : base_keys.key_order) {
+                    if (mod_keys.entries.count(key)) continue;
+                    if (merge_mode == MergeMode::Smart) {
+                        vector<string> cp;
+                        if (field_path) cp = *field_path;
+                        cp.push_back(key);
+                        if (!smart_allow_deletion(cp, false)) continue;
+                    }
+                    auto& bvals = base_keys.entries[key].vals;
+                    if (bvals.size() == 1)
+                        dict->insert(key, make_deleted_element(bvals[0]));
                 }
-                auto& bvals = base_keys.entries[key].vals;
-                if (bvals.size() == 1)
-                    dict->insert(key, make_deleted_element(bvals[0]));
             }
             if (dict->empty()) return nullptr;
             return dict;
@@ -322,19 +326,21 @@ static DeltaNodePtr recursive_delta(
             }
         }
 
-        auto base_it = base.obj_iter();
-        while (base_it.next(e)) {
-            string key(e.key, e.key_len);
-            JsonVal mod_val = mod.obj_get(e.key);
-            if (mod_val.valid()) continue;
+        if (!skip_deletion) {
+            auto base_it = base.obj_iter();
+            while (base_it.next(e)) {
+                string key(e.key, e.key_len);
+                JsonVal mod_val = mod.obj_get(e.key);
+                if (mod_val.valid()) continue;
 
-            if (merge_mode == MergeMode::Smart) {
-                vector<string> cp;
-                if (field_path) cp = *field_path;
-                cp.push_back(key);
-                if (!smart_allow_deletion(cp, false)) continue;
+                if (merge_mode == MergeMode::Smart) {
+                    vector<string> cp;
+                    if (field_path) cp = *field_path;
+                    cp.push_back(key);
+                    if (!smart_allow_deletion(cp, false)) continue;
+                }
+                dict->insert(key, make_deleted_element(e.val));
             }
-            dict->insert(key, make_deleted_element(e.val));
         }
 
         if (dict->empty()) return nullptr;
@@ -369,13 +375,14 @@ static DeltaNodePtr recursive_delta(
 DeltaNodePtr compute_delta(
     const JsonDoc& base,
     const JsonDoc& mod,
-    MergeMode merge_mode)
+    MergeMode merge_mode,
+    bool skip_root_deletion)
 {
     if (!base.valid() || !mod.valid())
         return nullptr;
     vector<string> root_path;
     vector<string>* fp = (merge_mode == MergeMode::Smart) ? &root_path : nullptr;
-    return recursive_delta(base.root(), mod.root(), fp, merge_mode);
+    return recursive_delta(base.root(), mod.root(), fp, merge_mode, skip_root_deletion);
 }
 
 // ── remap: StateNodePtr → JsonDoc 转换 ──

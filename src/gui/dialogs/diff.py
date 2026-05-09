@@ -169,9 +169,8 @@ class DiffDialog(QDialog):
 
         state = self._service.get_merge_state(self._rel_path, self._mod_configs, SCHEMA_DIR)
 
-        base_data = self._service.get_base(self._rel_path)
-        from src.core.json.parser import format_json
-        self._base_text = format_json(base_data)
+        base_doc = self._service.get_base(self._rel_path)
+        self._base_text = base_doc.to_string()
 
         for step in state.steps:
             prev_text = '\n'.join(step.left_lines)
@@ -501,7 +500,7 @@ class DiffDialog(QDialog):
     def _load_tab(self, index: int) -> None:
         """懒加载：首次切换到某 tab 时设置文本并应用高亮。
 
-        format_delta_json 已产出预对齐文本（含填充行），无需 build_padded_texts。
+        C++ format 已产出预对齐文本（含填充行），无需 build_padded_texts。
         """
         if index in self._loaded_tabs or index >= len(self._diff_pairs):
             return
@@ -770,14 +769,20 @@ class DiffDialog(QDialog):
         old_json = json.loads(old_cleaned, object_pairs_hook=_pairs_hook)
 
         # 计算 delta
-        from src.core.infra.types import MergeMode
-        delta = self._service.compute_delta(old_json, new_json, "config",
-                                            merge_mode=MergeMode.NORMAL)
+        from sultan_core.json import JsonDoc
+        from src.core.infra.types import DictFieldDiff, MergeMode
+        old_doc = JsonDoc.parse(json.dumps(old_json, ensure_ascii=False), False)
+        new_doc = JsonDoc.parse(json.dumps(new_json, ensure_ascii=False), False)
+        delta_doc = self._service.compute_delta_doc(
+            old_doc, new_doc, "config", merge_mode=MergeMode.NORMAL,
+        )
 
         mod_id = self._diff_pairs[tab_index][0]
-        if delta is None:
+        if delta_doc is None:
             self._service.remove_override(mod_id, self._rel_path)
         else:
+            raw = json.loads(delta_doc.to_string())
+            delta = DictFieldDiff.from_delta_dict(raw)
             self._service.set_override(mod_id, self._rel_path, delta)
 
         self._refresh_all()

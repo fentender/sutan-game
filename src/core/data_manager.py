@@ -2,7 +2,7 @@
 数据管理模块 — 管理所有 GameData 生命周期
 
 DataManager 是全局数据所有者，持有本体和所有 Mod 的 GameData 实例。
-JsonStore 退化为纯 I/O 工具，数据存储完全由本模块负责。
+资源加载通过 C++ JsonDoc.parse_file 完成。
 """
 import builtins
 import enum
@@ -13,7 +13,8 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
+
+from sultan_core.json import JsonDoc
 
 from .infra.diagnostics import diag
 from .infra.profiler import profile
@@ -30,7 +31,7 @@ class GameDataType(enum.Enum):
 @dataclass
 class ConfigItem:
     """单个 JSON 配置文件条目"""
-    data: JsonObject
+    doc: JsonDoc
     version: int = 0
 
 
@@ -40,19 +41,19 @@ class ConfigData:
     def __init__(self) -> None:
         self._items: dict[str, ConfigItem] = {}
 
-    def get(self, rel_path: str) -> JsonObject | None:
+    def get(self, rel_path: str) -> JsonDoc | None:
         item = self._items.get(rel_path)
-        return item.data if item is not None else None
+        return item.doc if item is not None else None
 
     def has(self, rel_path: str) -> bool:
         return rel_path in self._items
 
-    def set(self, rel_path: str, data: JsonObject) -> None:
+    def set(self, rel_path: str, doc: JsonDoc) -> None:
         if rel_path in self._items:
-            self._items[rel_path].data = data
+            self._items[rel_path].doc = doc
             self._items[rel_path].version += 1
         else:
-            self._items[rel_path] = ConfigItem(data=data, version=1)
+            self._items[rel_path] = ConfigItem(doc=doc, version=1)
 
     def remove(self, rel_path: str) -> None:
         self._items.pop(rel_path, None)
@@ -72,47 +73,58 @@ class ConfigData:
 
 
 class OverrideData:
-    """override delta 数据。内部复用 ConfigData 存 raw JSON，额外缓存 DictFieldDiff"""
+    """override delta 数据。存储序列化 delta 的 JsonDoc，按需反序列化为 DictFieldDiff"""
 
     def __init__(self) -> None:
-        self._store = ConfigData()
+        self._docs: dict[str, JsonDoc] = {}
+        self._versions: dict[str, int] = {}
         self._cache: dict[str, DictFieldDiff] = {}
+
+    def get_doc(self, rel_path: str) -> JsonDoc | None:
+        return self._docs.get(rel_path)
 
     def get(self, rel_path: str) -> DictFieldDiff | None:
         if rel_path in self._cache:
             return self._cache[rel_path]
-        raw = self._store.get(rel_path)
-        if raw is None:
+        doc = self._docs.get(rel_path)
+        if doc is None:
             return None
+        raw: JsonObject = json.loads(doc.to_string())
         delta = DictFieldDiff.from_delta_dict(raw)
         self._cache[rel_path] = delta
         return delta
 
     def set(self, rel_path: str, delta: DictFieldDiff) -> None:
-        self._store.set(rel_path, cast(JsonObject, delta.to_delta_dict()))
+        raw = delta.to_delta_dict()
+        text = json.dumps(raw, ensure_ascii=False)
+        self._docs[rel_path] = JsonDoc.parse(text, False)
+        self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
         self._cache[rel_path] = delta
 
-    def set_raw(self, rel_path: str, raw: JsonObject) -> None:
-        self._store.set(rel_path, raw)
+    def set_raw(self, rel_path: str, doc: JsonDoc) -> None:
+        self._docs[rel_path] = doc
+        self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
         self._cache.pop(rel_path, None)
 
     def has(self, rel_path: str) -> bool:
-        return self._store.has(rel_path)
+        return rel_path in self._docs
 
     def remove(self, rel_path: str) -> bool:
         self._cache.pop(rel_path, None)
-        existed = self._store.has(rel_path)
-        self._store.remove(rel_path)
+        existed = rel_path in self._docs
+        self._docs.pop(rel_path, None)
+        self._versions.pop(rel_path, None)
         return existed
 
     def version_of(self, rel_path: str) -> int:
-        return self._store.version_of(rel_path)
+        return self._versions.get(rel_path, 0)
 
     def rel_paths(self) -> builtins.set[str]:
-        return self._store.rel_paths()
+        return builtins.set(self._docs.keys())
 
     def clear(self) -> None:
-        self._store.clear()
+        self._docs.clear()
+        self._versions.clear()
         self._cache.clear()
 
 
@@ -187,15 +199,6 @@ class DataManager:
             cls._instance = cls()
         return cls._instance
 
-    # ── 文件解析（委托 JsonStore） ──
-
-    @staticmethod
-    def parse_file(
-        file_path: str | Path, *, clean: bool = True, dupkey: bool = True,
-    ) -> JsonObject:
-        from .json.store import JsonStore
-        return JsonStore.parse_file(file_path, clean=clean, dupkey=dupkey)
-
     # ── 初始化 ──
 
     @profile
@@ -206,9 +209,6 @@ class DataManager:
         history_dir: Path | None = None,
         mod_update_times: dict[str, int] | None = None,
     ) -> None:
-        from .json.store import JsonStore
-        store = JsonStore.instance()
-
         with self._lock:
             self._base = GameData(
                 data_id="", data_type=GameDataType.BASE,
@@ -241,41 +241,40 @@ class DataManager:
                 rel = normalize_rel_path(json_file, config_path)
                 tasks.append((json_file, rel, False, mod_id, mod_name))
 
-        self._load_tasks(tasks, store)
+        self._load_tasks(tasks)
 
         self._init_history(
             history_dir, mod_update_times,
             [mid for mid, _, _ in mod_configs],
-            store,
         )
 
     def _load_tasks(
         self,
         tasks: list[tuple[Path, str, bool, str, str]],
-        store: object,
     ) -> None:
         if len(tasks) <= 20:
             for task in tasks:
-                self._load_single(task, store)
+                self._load_single(task)
             return
         with ThreadPoolExecutor() as pool:
-            futures = {pool.submit(self._load_single, t, store): t for t in tasks}
+            futures = {pool.submit(self._load_single, t): t for t in tasks}
             for future in as_completed(futures):
                 future.result()
 
     def _load_single(
         self,
         task: tuple[Path, str, bool, str, str],
-        store: object,
     ) -> None:
-        from .json.store import JsonStore
         file_path, rel_path, is_base, mod_id, mod_name = task
         try:
-            data = cast(JsonStore, store).load_cached(file_path)
-        except json.JSONDecodeError as e:
-            diag.error("json", f"{file_path}: JSON 解析失败 ({e.msg})")
-            failure = ParseFailure.from_error(
-                e, file_path, rel_path,
+            doc = JsonDoc.parse_file(str(file_path))
+            if not doc.valid():
+                raise RuntimeError("invalid JSON")
+        except RuntimeError as e:
+            diag.error("json", f"{file_path}: JSON 解析失败 ({e})")
+            failure = ParseFailure(
+                file_path=file_path, rel_path=rel_path,
+                error_msg=str(e), error_line=0,
                 is_base=is_base, mod_id=mod_id, mod_name=mod_name,
             )
             with self._lock:
@@ -284,9 +283,9 @@ class DataManager:
 
         with self._lock:
             if is_base:
-                self._base.config.set(rel_path, data)
+                self._base.config.set(rel_path, doc)
             else:
-                self._mods[mod_id].config.set(rel_path, data)
+                self._mods[mod_id].config.set(rel_path, doc)
 
     # ── 历史版本初始化 ──
 
@@ -295,9 +294,7 @@ class DataManager:
         history_dir: Path | None,
         mod_update_times: dict[str, int] | None,
         mod_ids: list[str],
-        store: object,
     ) -> None:
-        from .json.store import JsonStore
         from .platform.history import (
             PathResolver,
             find_base_version,
@@ -327,7 +324,6 @@ class DataManager:
             self._mod_history_map[mod_id] = ver_key
             version_to_mods.setdefault(ver_key, []).append(mod_id)
 
-        st = cast(JsonStore, store)
         for ver_key, ver_mod_ids in version_to_mods.items():
             ver_dir = Path(ver_key)
             gd = GameData(
@@ -347,16 +343,18 @@ class DataManager:
                 if hist_file is None:
                     continue
                 try:
-                    data = st.load_cached(hist_file)
-                except (json.JSONDecodeError, OSError):
+                    doc = JsonDoc.parse_file(str(hist_file))
+                    if not doc.valid():
+                        continue
+                except (RuntimeError, OSError):
                     continue
-                gd.config.set(rel_path, data)
+                gd.config.set(rel_path, doc)
 
             self._history_bases[ver_key] = gd
 
     # ── 数据访问（历史版本 base） ──
 
-    def get_history_base(self, mod_id: str, rel_path: str) -> JsonObject | None:
+    def get_history_base(self, mod_id: str, rel_path: str) -> JsonDoc | None:
         ver_key = self._mod_history_map.get(mod_id)
         if ver_key is None:
             return None
@@ -370,8 +368,10 @@ class DataManager:
 
     # ── 数据访问（base） ──
 
-    def get_base(self, rel_path: str) -> JsonObject:
-        return self._base.config.get(rel_path) or {}
+    _EMPTY_DOC: JsonDoc = JsonDoc.parse("{}")
+
+    def get_base(self, rel_path: str) -> JsonDoc:
+        return self._base.config.get(rel_path) or self._EMPTY_DOC
 
     def has_base(self, rel_path: str) -> bool:
         return self._base.config.has(rel_path)
@@ -390,11 +390,11 @@ class DataManager:
 
     # ── 数据访问（mod） ──
 
-    def get_mod(self, mod_id: str, rel_path: str) -> JsonObject:
-        data = self._mods[mod_id].config.get(rel_path)
-        if data is None:
+    def get_mod(self, mod_id: str, rel_path: str) -> JsonDoc:
+        doc = self._mods[mod_id].config.get(rel_path)
+        if doc is None:
             raise KeyError(f"{mod_id}/{rel_path}")
-        return data
+        return doc
 
     def has_mod(self, mod_id: str, rel_path: str) -> bool:
         gd = self._mods.get(mod_id)
@@ -428,13 +428,13 @@ class DataManager:
 
     # ── 数据修改 ──
 
-    def set_mod(self, mod_id: str, rel_path: str, data: JsonObject) -> None:
+    def set_mod(self, mod_id: str, rel_path: str, doc: JsonDoc) -> None:
         with self._lock:
             if mod_id not in self._mods:
                 self._mods[mod_id] = GameData(
                     data_id=mod_id, data_type=GameDataType.MOD,
                 )
-            self._mods[mod_id].config.set(rel_path, data)
+            self._mods[mod_id].config.set(rel_path, doc)
 
     def remove_mod_file(self, mod_id: str, rel_path: str) -> None:
         with self._lock:
@@ -443,9 +443,6 @@ class DataManager:
                 gd.config.remove(rel_path)
 
     def reload_mod(self, mod_id: str) -> None:
-        from .json.store import JsonStore
-        store = JsonStore.instance()
-
         gd = self._mods.get(mod_id)
         if gd is None or gd.config_path is None or not gd.config_path.exists():
             return
@@ -457,7 +454,7 @@ class DataManager:
         for json_file in config_path.rglob("*.json"):
             rel = normalize_rel_path(json_file, config_path)
             tasks.append((json_file, rel, False, mod_id, mod_name))
-        self._load_tasks(tasks, store)
+        self._load_tasks(tasks)
 
     # ── 错误管理 ──
 
@@ -485,9 +482,6 @@ class DataManager:
             self._on_override_change(rel_path)
 
     def load_overrides(self, overrides_dir: Path, enabled_mod_ids: list[str]) -> None:
-        from .json.store import JsonStore
-        store = JsonStore.instance()
-
         with self._lock:
             for mod_gd in self._mods.values():
                 mod_gd.override.clear()
@@ -506,19 +500,25 @@ class DataManager:
             for json_file in mod_dir.rglob("*.json"):
                 rel = normalize_rel_path(json_file, mod_dir)
                 try:
-                    raw = store.load_cached(
-                        json_file, clean=False, dupkey=False, check_mtime=True,
-                    )
-                except (json.JSONDecodeError, OSError):
+                    doc = JsonDoc.parse_file(str(json_file), False)
+                    if not doc.valid():
+                        raise RuntimeError("invalid JSON")
+                except (RuntimeError, OSError):
                     diag.warn("override", f"override 文件解析失败: {json_file}")
                     continue
-                gd.override.set_raw(rel, raw)
+                gd.override.set_raw(rel, doc)
 
     def get_override(self, mod_id: str, rel_path: str) -> DictFieldDiff | None:
         gd = self._mods.get(mod_id)
         if gd is None:
             return None
         return gd.override.get(rel_path)
+
+    def get_override_doc(self, mod_id: str, rel_path: str) -> JsonDoc | None:
+        gd = self._mods.get(mod_id)
+        if gd is None:
+            return None
+        return gd.override.get_doc(rel_path)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
         gd = self._mods.get(mod_id)
@@ -593,12 +593,6 @@ class DataManager:
     # ── Reload ──
 
     def reload(self, paths: list[Path]) -> list[ParseFailure]:
-        from .json.store import JsonStore
-        store = JsonStore.instance()
-
-        for p in paths:
-            store.invalidate_cache(p)
-
         tasks: list[tuple[Path, str, bool, str, str]] = []
 
         for file_path in paths:
@@ -620,7 +614,7 @@ class DataManager:
                         ))
                         break
 
-        self._load_tasks(tasks, store)
+        self._load_tasks(tasks)
         return self.take_failures()
 
     # ── 版本查询 ──
