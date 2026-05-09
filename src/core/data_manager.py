@@ -6,7 +6,6 @@ DataManager 是全局数据所有者，持有本体和所有 Mod 的 GameData �
 """
 import builtins
 import enum
-import json
 import shutil
 import time
 from collections.abc import Callable
@@ -18,7 +17,7 @@ from sultan_core.delta import DeltaDict, deserialize_delta, serialize_delta
 
 from .infra.diagnostics import diag
 from .infra.profiler import profile
-from .infra.types import DictFieldDiff, JsonObject, ParseFailure, normalize_rel_path
+from .infra.types import ParseFailure, normalize_rel_path
 
 # ── 数据类型定义 ──
 
@@ -73,32 +72,18 @@ class ConfigData:
 
 
 class OverrideData:
-    """override delta 数据。内部存储 C++ DeltaDict，按需转换为 DictFieldDiff 供 GUI 使用"""
+    """override delta 数据。内部存储 C++ DeltaDict"""
 
     def __init__(self) -> None:
         self._nodes: dict[str, DeltaDict] = {}
         self._versions: dict[str, int] = {}
-        self._cache: dict[str, DictFieldDiff] = {}
 
     def get_node(self, rel_path: str) -> DeltaDict | None:
         return self._nodes.get(rel_path)
 
-    def get(self, rel_path: str) -> DictFieldDiff | None:
-        if rel_path in self._cache:
-            return self._cache[rel_path]
-        node = self._nodes.get(rel_path)
-        if node is None:
-            return None
-        doc = serialize_delta(node)
-        raw: JsonObject = json.loads(doc.to_string())
-        delta = DictFieldDiff.from_delta_dict(raw)
-        self._cache[rel_path] = delta
-        return delta
-
     def set_node(self, rel_path: str, node: DeltaDict) -> None:
         self._nodes[rel_path] = node
         self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
-        self._cache.pop(rel_path, None)
 
     def set_raw(self, rel_path: str, doc: JsonDoc) -> None:
         node = deserialize_delta(doc)
@@ -106,13 +91,11 @@ class OverrideData:
             return
         self._nodes[rel_path] = node
         self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
-        self._cache.pop(rel_path, None)
 
     def has(self, rel_path: str) -> bool:
         return rel_path in self._nodes
 
     def remove(self, rel_path: str) -> bool:
-        self._cache.pop(rel_path, None)
         existed = rel_path in self._nodes
         self._nodes.pop(rel_path, None)
         self._versions.pop(rel_path, None)
@@ -127,7 +110,6 @@ class OverrideData:
     def clear(self) -> None:
         self._nodes.clear()
         self._versions.clear()
-        self._cache.clear()
 
 
 @dataclass
@@ -523,12 +505,6 @@ class DataManager:
 
         tasks = self._collect_override_tasks(overrides_dir, enabled_mod_ids)
         self._batch_load(tasks)
-
-    def get_override(self, mod_id: str, rel_path: str) -> DictFieldDiff | None:
-        gd = self._mods.get(mod_id)
-        if gd is None:
-            return None
-        return gd.override.get(rel_path)
 
     def get_override_node(self, mod_id: str, rel_path: str) -> DeltaDict | None:
         gd = self._mods.get(mod_id)

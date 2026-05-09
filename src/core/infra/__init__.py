@@ -12,13 +12,10 @@ from .diagnostics import (
 from .profiler import profile as profile, profile_block as profile_block
 from .types import (
     FIELD_SEP as FIELD_SEP,
-    ArrayFieldDiff as ArrayFieldDiff,
     ArrayMatching as ArrayMatching,
     CancelCheck as CancelCheck,
     ChangeKind as ChangeKind,
-    DictFieldDiff as DictFieldDiff,
     DupList as DupList,
-    FieldDiff as FieldDiff,
     JsonArray as JsonArray,
     JsonObject as JsonObject,
     JsonPrimitive as JsonPrimitive,

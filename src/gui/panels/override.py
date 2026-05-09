@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.types import FIELD_SEP as SEP, FieldDiff
+from src.core.infra.types import FIELD_SEP as SEP
 from src.core.mod.conflict import FileOverrideInfo
 from src.core.service import MergeService
 
@@ -214,9 +214,6 @@ class OverridePanel(QWidget):
 
 def _format_value(val: object) -> str:
     """格式化值用于显示"""
-    # 解包 FieldDiff，只取其中的 value
-    if isinstance(val, FieldDiff):
-        val = val.value
     if val is None:
         return "null"
     if isinstance(val, str) and len(val) > 30:
