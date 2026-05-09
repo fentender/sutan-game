@@ -101,6 +101,8 @@ static void bind_json_ops(nb::module_& parent) {
         nb::arg("doc"), nb::arg("field_name"));
     m.def("extract_int_values", &extract_int_values,
         nb::arg("doc"), nb::arg("field_name"));
+    m.def("extract_root_keys", &extract_root_keys,
+        nb::arg("doc"));
     m.def("replace_field_ints", &replace_field_ints,
         nb::arg("doc"), nb::arg("field_name"), nb::arg("mapping"));
     m.def("replace_field_strs", &replace_field_strs,

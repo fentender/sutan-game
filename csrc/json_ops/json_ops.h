@@ -18,6 +18,9 @@ std::vector<std::string> extract_string_values(
 std::vector<int64_t> extract_int_values(
     const JsonDoc& doc, const std::string& field_name);
 
+// 提取根级对象的所有键（不递归）
+std::vector<std::string> extract_root_keys(const JsonDoc& doc);
+
 // ── 替换（返回新 JsonDoc，原文档不变） ──
 
 // 递归查找所有 key == field_name 的字段，替换其整数值

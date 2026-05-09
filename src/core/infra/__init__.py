@@ -12,7 +12,6 @@ from .diagnostics import (
 from .profiler import profile as profile, profile_block as profile_block
 from .types import (
     FIELD_SEP as FIELD_SEP,
-    ArrayMatching as ArrayMatching,
     CancelCheck as CancelCheck,
     ChangeKind as ChangeKind,
     DupList as DupList,

@@ -35,6 +35,10 @@ auto names = extract_string_values(doc, "name");
 auto ids = extract_int_values(doc, "id");
 // ids == {100, 200}
 
+// 提取根级对象的所有键（不递归）
+auto keys = extract_root_keys(doc);
+// keys == {"cards"}
+
 // ── 按字段名定向替换（返回新 JsonDoc，原文档不变） ──
 
 // 递归查找所有 key == "id" 的字段，替换其整数值
@@ -70,6 +74,7 @@ file_type = sultan_core.json_ops.classify_json(doc)  # "entity"
 # 字段提取
 ids = sultan_core.json_ops.extract_int_values(doc, "id")       # [42]
 names = sultan_core.json_ops.extract_string_values(doc, "name") # ["test"]
+keys = sultan_core.json_ops.extract_root_keys(doc)              # ["id", "name"]
 
 # 按字段名定向替换（返回新文档）
 new_doc = sultan_core.json_ops.replace_field_ints(doc, "id", {42: 99})
@@ -136,9 +141,9 @@ State/Delta 模块可能需要从 JsonDoc 提取特定字段用于匹配和比�
 
 ## 现有测试用例
 
-### test_json_ops.cpp（17 case）
+### test_json_ops.cpp（20 case）
 
-**提取测试（7 case）**
+**提取测试（10 case）**
 
 | 测试 | 验证内容 |
 |------|---------|
@@ -149,6 +154,9 @@ State/Delta 模块可能需要从 JsonDoc 提取特定字段用于匹配和比�
 | `json_ops: extract_int_values basic` | 提取整数字段值 |
 | `json_ops: extract_int_values mixed types` | 同名字段不同类型，仅收集整数 |
 | `json_ops: extract from empty doc` | 空对象/空数组 |
+| `json_ops: extract_root_keys basic` | 提取根级对象所有键 |
+| `json_ops: extract_root_keys empty` | 空对象返回空 |
+| `json_ops: extract_root_keys non-object` | 非对象文档返回空 |
 
 **替换测试（10 case）**
 

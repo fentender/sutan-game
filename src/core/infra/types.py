@@ -106,17 +106,6 @@ class DupList(list):
     与普通 list 通过类型区分，合并逻辑按索引逐元素处理。
     """
 
-
-
-@dataclass(slots=True)
-class ArrayMatching:
-    """base 与 mod 数组的元素对应关系。索引均为 0-based。"""
-    pairs: list[tuple[int, int]]        # (base_idx, mod_idx)
-    unmatched_mod: list[int]            # mod 中无对应 base 的索引
-    unmatched_base: list[int]           # base 中无对应 mod 的索引
-    confidence: float = 1.0             # 匹配置信度（0.0~1.0），1.0 表示完全可信
-
-
 # ── schema_generator 字段信息 TypedDict ──
 
 

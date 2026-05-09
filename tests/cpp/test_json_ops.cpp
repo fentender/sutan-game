@@ -87,6 +87,25 @@ TEST_CASE("json_ops: extract from empty doc") {
     REQUIRE(extract_int_values(doc2, "x").empty());
 }
 
+TEST_CASE("json_ops: extract_root_keys basic") {
+    auto doc = JsonDoc::parse(R"({"100":{"id":100},"200":{"id":200},"300":{}})");
+    auto keys = extract_root_keys(doc);
+    REQUIRE(keys.size() == 3);
+    REQUIRE(keys[0] == "100");
+    REQUIRE(keys[1] == "200");
+    REQUIRE(keys[2] == "300");
+}
+
+TEST_CASE("json_ops: extract_root_keys empty") {
+    auto doc = JsonDoc::parse("{}");
+    REQUIRE(extract_root_keys(doc).empty());
+}
+
+TEST_CASE("json_ops: extract_root_keys non-object") {
+    auto doc = JsonDoc::parse("[1,2,3]");
+    REQUIRE(extract_root_keys(doc).empty());
+}
+
 // ═══════════════════════════════════════════════════════════
 // 替换测试
 // ═══════════════════════════════════════════════════════════

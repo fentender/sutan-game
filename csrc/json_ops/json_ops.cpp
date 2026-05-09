@@ -72,6 +72,20 @@ std::vector<int64_t> extract_int_values(
     return result;
 }
 
+std::vector<std::string> extract_root_keys(const JsonDoc& doc) {
+    std::vector<std::string> result;
+    auto root = doc.root();
+    if (!root || !root.is_obj()) return result;
+
+    result.reserve(root.obj_size());
+    auto it = root.obj_iter();
+    JsonVal::ObjEntry e;
+    while (it.next(e)) {
+        result.emplace_back(e.key, e.key_len);
+    }
+    return result;
+}
+
 // ── 替换辅助（可变树遍历） ──
 
 static void replace_field_ints_recursive(

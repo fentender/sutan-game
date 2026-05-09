@@ -3,13 +3,11 @@
 
 利用 DataManager 已缓存的 JSON 数据，无需额外文件加载。
 """
-import json
+from sultan_core.json_ops import classify_json, extract_root_keys
 
-from ..json import classify_json
 from ..data_manager import DataManager
 
 
-# TODO 后续：下沉到 C++ 层，通过 JsonVal 直接比较 root keys 交集
 def compute_base_overlap(dm: DataManager, mod_id: str) -> bool:
     """检测 mod 是否修改了本体已有内容。
 
@@ -22,8 +20,8 @@ def compute_base_overlap(dm: DataManager, mod_id: str) -> bool:
         base_doc = dm.get_base(rel_path)
         file_type = classify_json(base_doc)
         if file_type == "dictionary":
-            base_keys = set(json.loads(base_doc.to_string()).keys())
-            mod_keys = set(json.loads(dm.get_mod(mod_id, rel_path).to_string()).keys())
+            base_keys = set(extract_root_keys(base_doc))
+            mod_keys = set(extract_root_keys(dm.get_mod(mod_id, rel_path)))
             if mod_keys & base_keys:
                 return True
         else:
