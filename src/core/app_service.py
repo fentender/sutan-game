@@ -10,7 +10,7 @@ from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
 
-from sultan_core.delta import DeltaDict
+from sultan_core.delta import DeltaDict, compute_delta
 from sultan_core.json import JsonDoc, ParseError
 
 from ..config import (
@@ -25,6 +25,7 @@ from ..config import (
     detect_workshop_path,
     infer_workshop_path_from_game,
 )
+from .data_manager import DataManager
 from .infra.diagnostics import diag
 from .infra.types import (
     CancelCheck,
@@ -33,12 +34,35 @@ from .infra.types import (
     ParseFailure,
     ProgressCallback,
 )
+from .json import classify_json as _classify_json
+from .json.parser import reset_dir_cache as _reset_dir_cache
 from .merge.cache import FileMergeState
-from .merge.merger import MergeResult
-from .mod.conflict import FileOverrideInfo
-from .mod.id_remap import RemapTable
-from .mod.scanner import ModInfo
+from .merge.delta import ModDelta, _to_cpp_mode
+from .merge.merger import (
+    MergeResult,
+    copy_failed_files as _copy_failed_files,
+    merge_file as _merge_file,
+)
+from .mod.conflict import FileOverrideInfo, analyze_all_overrides as _analyze_all_overrides
+from .mod.deployer import (
+    copy_resources as _copy_resources,
+    generate_info_json as _generate_info_json,
+    scan_synthetic_mods as _scan_synthetic_mods,
+)
+from .mod.id_remap import RemapTable, remap_mod_configs as _remap_mod_configs
+from .mod.overlap import compute_all_overlaps as _compute_all_overlaps
+from .mod.scanner import ModInfo, scan_all_mods as _scan_all_mods
 from .mod_manager import ModManager
+from .platform.steam import (
+    MAJOR_UPDATE_TS,
+    get_game_update_time as _get_game_update_time,
+    get_steamapps_from_workshop as _get_steamapps_from_workshop,
+)
+from .schema.loader import (
+    get_schema_root_key as _get_schema_root_key,
+    load_schemas as _load_schemas,
+    resolve_schema as _resolve_schema,
+)
 
 
 class StartupState(Enum):
@@ -279,21 +303,22 @@ class AppService:
         return diag.snapshot(*categories)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（Mod 扫描）
+    # Mod 扫描
     # ══════════════════════════════════════════════════════════════
 
     def scan_mods(self, workshop_dir: Path,
                   exclude_ids: set[str] | None = None) -> list[ModInfo]:
-        return self._mod_manager.scan_mods(workshop_dir, exclude_ids=exclude_ids)
+        return _scan_all_mods(workshop_dir, exclude_ids=exclude_ids)
 
     def get_game_update_time(self, workshop_dir: Path) -> int | None:
-        return self._mod_manager.get_game_update_time(workshop_dir)
+        steamapps = _get_steamapps_from_workshop(workshop_dir)
+        return _get_game_update_time(steamapps)
 
     def get_major_update_ts(self) -> int:
-        return self._mod_manager.get_major_update_ts()
+        return MAJOR_UPDATE_TS
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（Store 初始化）
+    # Store 初始化
     # ══════════════════════════════════════════════════════════════
 
     def init_store(
@@ -315,55 +340,55 @@ class AppService:
         )
 
     def take_failures(self) -> list[ParseFailure]:
-        return self._mod_manager.take_failures()
+        return DataManager.instance().take_failures()
 
     def reload_files(self, paths: list[Path]) -> list[ParseFailure]:
-        return self._mod_manager.reload_files(paths)
+        return DataManager.instance().reload(paths)
 
     def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
-        self._mod_manager.set_ignored_failures(failures)
+        DataManager.instance().set_ignored_failures(failures)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（Override）
+    # Override
     # ══════════════════════════════════════════════════════════════
 
     def load_overrides(self, overrides_dir: Path, enabled_ids: list[str]) -> None:
-        self._mod_manager.load_overrides(overrides_dir, enabled_ids)
+        DataManager.instance().load_overrides(overrides_dir, enabled_ids)
 
     def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
-        return self._mod_manager.invalidate_overrides(mod_ids)
+        return DataManager.instance().invalidate_overrides(mod_ids)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._mod_manager.has_override(mod_id, rel_path)
+        return DataManager.instance().has_override(mod_id, rel_path)
 
     def set_override_node(self, mod_id: str, rel_path: str,
                           node: DeltaDict) -> None:
-        self._mod_manager.set_override_node(mod_id, rel_path, node)
+        DataManager.instance().set_override_node(mod_id, rel_path, node)
 
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._mod_manager.remove_override(mod_id, rel_path)
+        return DataManager.instance().remove_override(mod_id, rel_path)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（数据查询）
+    # 数据查询
     # ══════════════════════════════════════════════════════════════
 
     def get_base(self, rel_path: str) -> JsonDoc:
-        return self._mod_manager.get_base(rel_path)
+        return DataManager.instance().get_base(rel_path)
 
     def has_base(self, rel_path: str) -> bool:
-        return self._mod_manager.has_base(rel_path)
+        return DataManager.instance().has_base(rel_path)
 
     def get_mod(self, mod_id: str, rel_path: str) -> JsonDoc:
-        return self._mod_manager.get_mod(mod_id, rel_path)
+        return DataManager.instance().get_mod(mod_id, rel_path)
 
     def has_mod(self, mod_id: str, rel_path: str) -> bool:
-        return self._mod_manager.has_mod(mod_id, rel_path)
+        return DataManager.instance().has_mod(mod_id, rel_path)
 
     def reload_mod(self, mod_id: str) -> None:
-        self._mod_manager.reload_mod(mod_id)
+        DataManager.instance().reload_mod(mod_id)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（Delta）
+    # Delta
     # ══════════════════════════════════════════════════════════════
 
     def init_delta(self, mod_ids: list[str],
@@ -382,19 +407,20 @@ class AppService:
         return self._mod_manager.get_delta(mod_id, rel_path)
 
     def has_delta(self, mod_id: str, rel_path: str) -> bool:
-        return self._mod_manager.has_delta(mod_id, rel_path)
+        return ModDelta.has(mod_id, rel_path)
 
     def compute_delta_node(
         self, base_doc: JsonDoc, mod_doc: JsonDoc,
         file_type: str,
         merge_mode: MergeMode = MergeMode.SMART,
     ) -> DeltaDict | None:
-        return self._mod_manager.compute_delta_node(
-            base_doc, mod_doc, file_type, merge_mode=merge_mode,
+        is_dict = (file_type == "dictionary")
+        return compute_delta(
+            base_doc, mod_doc, _to_cpp_mode(merge_mode), is_dict,
         )
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（合并缓存）
+    # 合并缓存
     # ══════════════════════════════════════════════════════════════
 
     def invalidate_merge_cache(self, rel_path: str | None = None) -> None:
@@ -408,7 +434,7 @@ class AppService:
         )
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（合并执行）
+    # 合并执行
     # ══════════════════════════════════════════════════════════════
 
     def merge_all_files(
@@ -423,35 +449,33 @@ class AppService:
 
     def copy_failed_files(self, mod_configs: list[tuple[str, str, Path]],
                           output_path: Path) -> list[str]:
-        return self._mod_manager.copy_failed_files(mod_configs, output_path)
+        return _copy_failed_files(mod_configs, output_path)
 
     def copy_resources(
         self, mod_paths: list[tuple[str, Path]], output_path: Path,
         cancel_check: CancelCheck | None = None,
         remap_tables: dict[str, RemapTable] | None = None,
     ) -> None:
-        self._mod_manager.copy_resources(
-            mod_paths, output_path,
-            cancel_check=cancel_check, remap_tables=remap_tables,
-        )
+        _copy_resources(mod_paths, output_path,
+                        cancel_check=cancel_check, remap_tables=remap_tables)
 
     def reset_dir_cache(self) -> None:
-        self._mod_manager.reset_dir_cache()
+        _reset_dir_cache()
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（ID Remap）
+    # ID Remap
     # ══════════════════════════════════════════════════════════════
 
     def remap_mod_configs(
         self, mod_configs: list[tuple[str, str, Path]],
     ) -> tuple[list[str], dict[str, RemapTable]]:
-        return self._mod_manager.remap_mod_configs(mod_configs)
+        return _remap_mod_configs(mod_configs)
 
     def cleanup_remap(self, remap_tables: dict[str, RemapTable]) -> None:
         self._mod_manager.cleanup_remap(remap_tables)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（冲突分析）
+    # 冲突分析
     # ══════════════════════════════════════════════════════════════
 
     def analyze_all_overrides(
@@ -459,44 +483,45 @@ class AppService:
         schema_dir: Path | None = None,
         cancel_check: CancelCheck | None = None,
     ) -> list[FileOverrideInfo]:
-        return self._mod_manager.analyze_all_overrides(
-            mod_configs, schema_dir=schema_dir, cancel_check=cancel_check,
-        )
+        return _analyze_all_overrides(mod_configs, schema_dir=schema_dir,
+                                      cancel_check=cancel_check)
 
     def compute_all_overlaps(self, mod_ids: list[str]) -> dict[str, bool]:
-        return self._mod_manager.compute_all_overlaps(mod_ids)
+        return _compute_all_overlaps(DataManager.instance(), mod_ids)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（部署）
+    # 部署
     # ══════════════════════════════════════════════════════════════
 
     def generate_info_json(self, mod_names: list[str], output_path: Path) -> None:
-        self._mod_manager.generate_info_json(mod_names, output_path)
+        _generate_info_json(mod_names, output_path)
 
     def scan_synthetic_mods(self,
                             local_mod_dir: Path) -> list[tuple[str, str, Path]]:
-        return self._mod_manager.scan_synthetic_mods(local_mod_dir)
+        return _scan_synthetic_mods(local_mod_dir)
 
     # ══════════════════════════════════════════════════════════════
-    # ModManager 委托（Schema / Classify / Merge）
+    # Schema / Classify / Merge
     # ══════════════════════════════════════════════════════════════
 
     def classify_json(self, doc: JsonDoc) -> str:
-        return self._mod_manager.classify_json(doc)
+        return _classify_json(doc)
 
     def merge_file(
         self, base_doc: JsonDoc,
         mod_data_list: list[tuple[str, str, DeltaDict, str]],
         rel_path: str = "",
     ) -> MergeResult:
-        return self._mod_manager.merge_file(base_doc, mod_data_list, rel_path)
+        return _merge_file(base_doc, mod_data_list, rel_path)
 
     def load_schemas(self, schema_dir: Path) -> dict[str, JsonObject]:
-        return self._mod_manager.load_schemas(schema_dir)
+        return _load_schemas(schema_dir)
 
     def resolve_schema(self, rel_path: str,
                        schemas: dict[str, JsonObject]) -> JsonObject | None:
-        return self._mod_manager.resolve_schema(rel_path, schemas)
+        return _resolve_schema(rel_path, schemas)
 
     def get_schema_root_key(self, schema: JsonObject | None) -> str | None:
-        return self._mod_manager.get_schema_root_key(schema)
+        if schema is None:
+            return None
+        return _get_schema_root_key(schema)

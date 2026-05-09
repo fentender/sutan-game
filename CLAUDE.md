@@ -31,6 +31,9 @@ src/
 │   │   ├── types.py             # MergeMode,ChangeKind,DiffDict,FieldDiff,DupList
 │   │   ├── diagnostics.py       # Diagnostics单例,MergeContext
 │   │   └── profiler.py          # @profile,profile_block
+│   ├── data_manager/            # 数据管理
+│   │   ├── models.py            # GameData,ConfigData,OverrideData等数据容器
+│   │   └── manager.py           # DataManager全局单例
 │   ├── json/                    # JSON处理
 │   │   ├── parser.py            # 清洗/格式化/序列化
 │   │   ├── store.py             # JsonStore单例(加载/缓存/override)

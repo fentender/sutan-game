@@ -1,170 +1,30 @@
-"""
-数据管理模块 — 管理所有 GameData 生命周期
-
-DataManager 是全局数据所有者，持有本体和所有 Mod 的 GameData 实例。
-资源加载通过 C++ JsonDoc.batch_parse_files 完成。
-"""
-import builtins
-import enum
+"""DataManager — 全局数据所有者单例"""
 import shutil
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from sultan_core.json import JsonDoc
-from sultan_core.delta import DeltaDict, deserialize_delta, serialize_delta
+from sultan_core.delta import DeltaDict, serialize_delta
 
-from .infra.diagnostics import diag
-from .infra.profiler import profile
-from .infra.types import ParseFailure, normalize_rel_path
+from ..infra.diagnostics import diag
+from ..infra.profiler import profile
+from ..infra.types import ParseFailure, normalize_rel_path
+from ..platform.history import (
+    PathResolver,
+    find_base_version,
+    parse_history_versions,
+    resolve_path,
+    set_resolver,
+)
 
-# ── 数据类型定义 ──
-
-
-class GameDataType(enum.Enum):
-    BASE = "base"
-    MOD = "mod"
-
-
-@dataclass
-class ConfigItem:
-    """单个 JSON 配置文件条目"""
-    doc: JsonDoc
-    version: int = 0
-
-
-class ConfigData:
-    """config/ 目录下所有 JSON 资源，per-file version"""
-
-    def __init__(self) -> None:
-        self._items: dict[str, ConfigItem] = {}
-
-    def get(self, rel_path: str) -> JsonDoc | None:
-        item = self._items.get(rel_path)
-        return item.doc if item is not None else None
-
-    def has(self, rel_path: str) -> bool:
-        return rel_path in self._items
-
-    def set(self, rel_path: str, doc: JsonDoc) -> None:
-        if rel_path in self._items:
-            self._items[rel_path].doc = doc
-            self._items[rel_path].version += 1
-        else:
-            self._items[rel_path] = ConfigItem(doc=doc, version=1)
-
-    def remove(self, rel_path: str) -> None:
-        self._items.pop(rel_path, None)
-
-    def version_of(self, rel_path: str) -> int:
-        item = self._items.get(rel_path)
-        return item.version if item is not None else 0
-
-    def rel_paths(self) -> builtins.set[str]:
-        return builtins.set(self._items.keys())
-
-    def keys(self) -> list[str]:
-        return list(self._items.keys())
-
-    def clear(self) -> None:
-        self._items.clear()
-
-
-class OverrideData:
-    """override delta 数据。内部存储 C++ DeltaDict"""
-
-    def __init__(self) -> None:
-        self._nodes: dict[str, DeltaDict] = {}
-        self._versions: dict[str, int] = {}
-
-    def get_node(self, rel_path: str) -> DeltaDict | None:
-        return self._nodes.get(rel_path)
-
-    def set_node(self, rel_path: str, node: DeltaDict) -> None:
-        self._nodes[rel_path] = node
-        self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
-
-    def set_raw(self, rel_path: str, doc: JsonDoc) -> None:
-        node = deserialize_delta(doc)
-        if node is None:
-            return
-        self._nodes[rel_path] = node
-        self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
-
-    def has(self, rel_path: str) -> bool:
-        return rel_path in self._nodes
-
-    def remove(self, rel_path: str) -> bool:
-        existed = rel_path in self._nodes
-        self._nodes.pop(rel_path, None)
-        self._versions.pop(rel_path, None)
-        return existed
-
-    def version_of(self, rel_path: str) -> int:
-        return self._versions.get(rel_path, 0)
-
-    def rel_paths(self) -> builtins.set[str]:
-        return builtins.set(self._nodes.keys())
-
-    def clear(self) -> None:
-        self._nodes.clear()
-        self._versions.clear()
-
-
-@dataclass
-class ModMetadata:
-    """info.json 元数据"""
-    name: str = ""
-    description: str = ""
-    tags: list[str] = field(default_factory=list)
-    mod_version: str = ""
-    update_time: int | None = None
-
-
-@dataclass
-class ImageData:
-    """image/ 目录下图片资源"""
-    files: dict[str, Path] = field(default_factory=dict)
-
-
-@dataclass
-class BGMData:
-    """BGM/ 目录下音频资源"""
-    files: dict[str, Path] = field(default_factory=dict)
-
-
-@dataclass
-class OtherData:
-    """其它资源"""
-    files: dict[str, Path] = field(default_factory=dict)
-
-
-@dataclass
-class GameData:
-    """单个游戏本体或 Mod 的完整数据容器"""
-    data_id: str
-    data_type: GameDataType
-
-    path: Path | None = None
-    config_path: Path | None = None
-    preview_path: Path | None = None
-
-    info: ModMetadata = field(default_factory=ModMetadata)
-    config: ConfigData = field(default_factory=ConfigData)
-    image: ImageData = field(default_factory=ImageData)
-    bgm: BGMData = field(default_factory=BGMData)
-    other: OtherData = field(default_factory=OtherData)
-    override: OverrideData = field(default_factory=OverrideData)
-
-
-# ── DataManager 单例 ──
+from .models import GameData, GameDataType
 
 
 class DataManager:
     """全局数据所有者单例"""
 
-    _instance: DataManager | None = None
+    _instance: "DataManager | None" = None
 
     def __init__(self) -> None:
         self._base = GameData(data_id="", data_type=GameDataType.BASE)
@@ -174,10 +34,9 @@ class DataManager:
         self._overrides_dir: Path | None = None
         self._failures: list[ParseFailure] = []
         self._ignored_failures: list[ParseFailure] = []
-        self._on_override_change: Callable[[str], None] | None = None
 
     @classmethod
-    def instance(cls) -> DataManager:
+    def instance(cls) -> "DataManager":
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
@@ -298,14 +157,6 @@ class DataManager:
         mod_update_times: dict[str, int] | None,
         mod_ids: list[str],
     ) -> list[tuple[Path, str, str, str, str]]:
-        from .platform.history import (
-            PathResolver,
-            find_base_version,
-            parse_history_versions,
-            resolve_path,
-            set_resolver,
-        )
-
         if history_dir is None:
             set_resolver(None)
             return []
@@ -479,8 +330,8 @@ class DataManager:
     # ── 错误管理 ──
 
     def take_failures(self) -> list[ParseFailure]:
-        failures = self._failures.copy()
-        self._failures.clear()
+        failures = self._failures
+        self._failures = []
         return failures
 
     def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
@@ -490,13 +341,6 @@ class DataManager:
         return list(self._ignored_failures)
 
     # ── Override 管理 ──
-
-    def set_on_override_change(self, callback: Callable[[str], None]) -> None:
-        self._on_override_change = callback
-
-    def _notify_override_change(self, rel_path: str) -> None:
-        if self._on_override_change is not None:
-            self._on_override_change(rel_path)
 
     def load_overrides(self, overrides_dir: Path, enabled_mod_ids: list[str]) -> None:
         for mod_gd in self._mods.values():
@@ -530,8 +374,6 @@ class DataManager:
             doc = serialize_delta(node)
             override_file.write_text(doc.to_string(), encoding="utf-8")
 
-        self._notify_override_change(rel_path)
-
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
         gd = self._mods.get(mod_id)
         existed = False
@@ -546,22 +388,16 @@ class DataManager:
                 if override_file.parent.exists() and not any(override_file.parent.iterdir()):
                     override_file.parent.rmdir()
 
-        if existed:
-            self._notify_override_change(rel_path)
-
         return existed
 
     def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
         deleted: list[str] = []
-        affected_paths: set[str] = set()
         for mod_id in mod_ids:
             had_overrides = False
             gd = self._mods.get(mod_id)
             if gd is not None:
-                mod_paths = gd.override.rel_paths()
-                if mod_paths:
+                if gd.override.rel_paths():
                     had_overrides = True
-                    affected_paths.update(mod_paths)
                 gd.override.clear()
 
             had_dir = False
@@ -573,10 +409,6 @@ class DataManager:
 
             if had_overrides or had_dir:
                 deleted.append(mod_id)
-
-        if affected_paths:
-            for rel_path in affected_paths:
-                self._notify_override_change(rel_path)
 
         return deleted
 

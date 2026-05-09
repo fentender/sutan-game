@@ -1,18 +1,16 @@
 """
 ModManager — 服务层最顶层，管理 mod 列表状态 + 合并缓存 + 流程编排
 
-GUI 通过此类访问所有核心业务功能。
+GUI 通过此类访问合并相关业务功能。
 """
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from sultan_core.json import JsonDoc
 from sultan_core.state import JsonState
 from sultan_core.delta import (
     DeltaDict,
-    compute_delta,
     apply_delta,
 )
 
@@ -22,38 +20,16 @@ from .infra.profiler import profile
 from .infra.types import (
     CancelCheck,
     ChangeKind,
-    JsonObject,
     MergeMode,
-    ParseFailure,
     ProgressCallback,
 )
-from .json import classify_json as _classify_json
-from .json.parser import reset_dir_cache as _reset_dir_cache
 from .merge.cache import FileMergeState, StepState
-from .merge.delta import ModDelta, _to_cpp_mode
-from .merge.merger import (
-    MergeResult,
-    copy_failed_files as _copy_failed_files,
-    merge_file as _merge_file,
-)
-from .mod.conflict import FileOverrideInfo, analyze_all_overrides as _analyze_all_overrides
-from .mod.deployer import (
-    copy_resources as _copy_resources,
-    generate_info_json as _generate_info_json,
-    scan_synthetic_mods as _scan_synthetic_mods,
-)
-from .mod.id_remap import RemapTable, remap_mod_configs as _remap_mod_configs
-from .mod.overlap import compute_all_overlaps as _compute_all_overlaps
-from .mod.scanner import ModInfo, scan_all_mods as _scan_all_mods
+from .merge.delta import ModDelta
+from .merge.merger import MergeResult
+from .mod.id_remap import RemapTable
 from .platform.steam import (
-    MAJOR_UPDATE_TS,
     get_game_update_time as _get_game_update_time,
     get_steamapps_from_workshop as _get_steamapps_from_workshop,
-)
-from .schema.loader import (
-    get_schema_root_key as _get_schema_root_key,
-    load_schemas as _load_schemas,
-    resolve_schema as _resolve_schema,
 )
 
 
@@ -79,7 +55,7 @@ class _MergeEntry:
 
 
 class ModManager:
-    """Mod 合并管理器 — GUI 唯一入口，管理 mod 列表状态和合并缓存。"""
+    """Mod 合并管理器 — 管理 mod 列表状态和合并缓存。"""
 
     def __init__(self, config: UserConfig) -> None:
         self._config = config
@@ -91,9 +67,7 @@ class ModManager:
         self._mod_merge_modes: dict[str, MergeMode] = {}
 
         # === 缓存 ===
-        # delta version 快照：用于惰性失效检测（delta_doc 仍由 ModDelta 持有）
         self._delta_versions: dict[tuple[str, str], _DeltaVersionInfo] = {}
-        # merge 缓存：完全由 ModManager 管理
         self._merge_cache: dict[str, _MergeEntry] = {}
 
     @property
@@ -136,16 +110,9 @@ class ModManager:
 
     # === 扫描 ===
 
-    def scan_mods(self, workshop_dir: Path,
-                  exclude_ids: set[str] | None = None) -> list[ModInfo]:
-        return _scan_all_mods(workshop_dir, exclude_ids=exclude_ids)
-
     def get_game_update_time(self, workshop_dir: Path) -> int | None:
         steamapps = _get_steamapps_from_workshop(workshop_dir)
         return _get_game_update_time(steamapps)
-
-    def get_major_update_ts(self) -> int:
-        return MAJOR_UPDATE_TS
 
     # === Store 初始化 ===
 
@@ -164,50 +131,6 @@ class ModManager:
                         overrides_dir=overrides_dir,
                         enabled_mod_ids=enabled_mod_ids,
                         on_progress=on_progress)
-
-    def take_failures(self) -> list[ParseFailure]:
-        return self._data.take_failures()
-
-    def reload_files(self, paths: list[Path]) -> list[ParseFailure]:
-        return self._data.reload(paths)
-
-    def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
-        self._data.set_ignored_failures(failures)
-
-    # === Override 管理 ===
-
-    def load_overrides(self, overrides_dir: Path, enabled_ids: list[str]) -> None:
-        self._data.load_overrides(overrides_dir, enabled_ids)
-
-    def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
-        return self._data.invalidate_overrides(mod_ids)
-
-    def has_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._data.has_override(mod_id, rel_path)
-
-    def set_override_node(self, mod_id: str, rel_path: str,
-                          node: DeltaDict) -> None:
-        self._data.set_override_node(mod_id, rel_path, node)
-
-    def remove_override(self, mod_id: str, rel_path: str) -> bool:
-        return self._data.remove_override(mod_id, rel_path)
-
-    # === 数据查询 ===
-
-    def get_base(self, rel_path: str) -> JsonDoc:
-        return self._data.get_base(rel_path)
-
-    def has_base(self, rel_path: str) -> bool:
-        return self._data.has_base(rel_path)
-
-    def get_mod(self, mod_id: str, rel_path: str) -> JsonDoc:
-        return self._data.get_mod(mod_id, rel_path)
-
-    def has_mod(self, mod_id: str, rel_path: str) -> bool:
-        return self._data.has_mod(mod_id, rel_path)
-
-    def reload_mod(self, mod_id: str) -> None:
-        self._data.reload_mod(mod_id)
 
     # === Delta 管理 ===
 
@@ -257,25 +180,11 @@ class ModManager:
 
         return ModDelta.get(mod_id, rel_path)
 
-    def has_delta(self, mod_id: str, rel_path: str) -> bool:
-        return ModDelta.has(mod_id, rel_path)
-
-    def compute_delta_node(
-        self, base_doc: JsonDoc, mod_doc: JsonDoc,
-        file_type: str,
-        merge_mode: MergeMode = MergeMode.SMART,
-    ) -> DeltaDict | None:
-        is_dict = (file_type == "dictionary")
-        return compute_delta(
-            base_doc, mod_doc, _to_cpp_mode(merge_mode), is_dict,
-        )
-
     # === 合并缓存 ===
 
     def _build_merge_version_key(
         self, rel_path: str, mod_ids: list[str],
     ) -> tuple[tuple[str, int, int], ...]:
-        """构造 merge 缓存的 version_key。"""
         dm = self._data
         parts: list[tuple[str, int, int]] = []
         for mod_id in mod_ids:
@@ -373,27 +282,9 @@ class ModManager:
 
     # === ID 重分配 ===
 
-    def remap_mod_configs(
-        self, mod_configs: list[tuple[str, str, Path]],
-    ) -> tuple[list[str], dict[str, RemapTable]]:
-        return _remap_mod_configs(mod_configs)
-
     def cleanup_remap(self, remap_tables: dict[str, RemapTable]) -> None:
         for mod_id in remap_tables:
             self._data.reload_mod(mod_id)
-
-    # === 冲突分析 ===
-
-    def analyze_all_overrides(
-        self, mod_configs: list[tuple[str, str, Path]],
-        schema_dir: Path | None = None,
-        cancel_check: CancelCheck | None = None,
-    ) -> list[FileOverrideInfo]:
-        return _analyze_all_overrides(mod_configs, schema_dir=schema_dir,
-                                      cancel_check=cancel_check)
-
-    def compute_all_overlaps(self, mod_ids: list[str]) -> dict[str, bool]:
-        return _compute_all_overlaps(self._data, mod_ids)
 
     # === 合并执行 ===
 
@@ -434,51 +325,3 @@ class ModManager:
         if progress_cb:
             progress_cb(total, total)
         return results
-
-    def copy_failed_files(self, mod_configs: list[tuple[str, str, Path]],
-                          output_path: Path) -> list[str]:
-        return _copy_failed_files(mod_configs, output_path)
-
-    def copy_resources(
-        self, mod_paths: list[tuple[str, Path]], output_path: Path,
-        cancel_check: CancelCheck | None = None,
-        remap_tables: dict[str, RemapTable] | None = None,
-    ) -> None:
-        _copy_resources(mod_paths, output_path,
-                        cancel_check=cancel_check, remap_tables=remap_tables)
-
-    def reset_dir_cache(self) -> None:
-        _reset_dir_cache()
-
-    # === 部署 ===
-
-    def generate_info_json(self, mod_names: list[str], output_path: Path) -> None:
-        _generate_info_json(mod_names, output_path)
-
-    def scan_synthetic_mods(self,
-                            local_mod_dir: Path) -> list[tuple[str, str, Path]]:
-        return _scan_synthetic_mods(local_mod_dir)
-
-    # === Deletion 预览支持 ===
-
-    def classify_json(self, doc: JsonDoc) -> str:
-        return _classify_json(doc)
-
-    def merge_file(
-        self, base_doc: JsonDoc,
-        mod_data_list: list[tuple[str, str, DeltaDict, str]],
-        rel_path: str = "",
-    ) -> MergeResult:
-        return _merge_file(base_doc, mod_data_list, rel_path)
-
-    def load_schemas(self, schema_dir: Path) -> dict[str, JsonObject]:
-        return _load_schemas(schema_dir)
-
-    def resolve_schema(self, rel_path: str,
-                       schemas: dict[str, JsonObject]) -> JsonObject | None:
-        return _resolve_schema(rel_path, schemas)
-
-    def get_schema_root_key(self, schema: JsonObject | None) -> str | None:
-        if schema is None:
-            return None
-        return _get_schema_root_key(schema)
