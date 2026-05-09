@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.diagnostics import ERROR, INFO, WARNING
+from src.core.api import ERROR, INFO, WARNING
 
 # 日志项存储级别的自定义角色
 _LEVEL_ROLE = Qt.ItemDataRole.UserRole + 1

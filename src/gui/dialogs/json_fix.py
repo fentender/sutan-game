@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.types import ParseFailure
+from src.core.api import ParseFailure
 
 from ..widgets.code_editor import CodeEditor, _format_with_comments
 
@@ -157,7 +157,7 @@ class JsonFixDialog(QDialog):
         failure.file_path.write_text(content, encoding="utf-8")
 
         # 验证 JSON（不走自动修复，要验证用户是否真正修好了）
-        from sultan_core.json import JsonDoc, ParseError
+        from src.core.api import JsonDoc, ParseError
         try:
             JsonDoc.parse(content)
         except ParseError as e:
@@ -191,7 +191,7 @@ class JsonFixDialog(QDialog):
         """检测指定 Tab 的 JSON 错误并更新高亮"""
         editor = self._editors[idx]
         text = editor.toPlainText()
-        from sultan_core.json import JsonDoc, ParseError
+        from src.core.api import JsonDoc, ParseError
         try:
             JsonDoc.parse(text)
         except ParseError as e:

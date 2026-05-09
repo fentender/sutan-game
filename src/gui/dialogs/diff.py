@@ -20,13 +20,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.core.api import AppService, ChangeKind, build_padded_texts, diff_opcodes
 from src.core.infra.profiler import profile
-from src.core.infra.types import ChangeKind
-from src.core.merge.formatter import (
-    build_padded_texts,
-    diff_opcodes,
-)
-from src.core.service import MergeService
 
 from ..widgets.code_editor import CodeEditor, _format_with_comments
 
@@ -108,7 +103,7 @@ class DiffDialog(QDialog):
     def __init__(self, rel_path: str,
                  mod_configs: list[tuple[str, str, Path]],
                  array_warnings: list[str] | None = None,
-                 service: MergeService | None = None,
+                 service: AppService | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         assert service is not None
@@ -746,24 +741,23 @@ class DiffDialog(QDialog):
         text = _get_real_text(right_edit, right_map)
         error_bar = self._tab_error_bars[tab_index]
 
-        from sultan_core.json import JsonDoc, ParseError
-        from src.core.infra.types import MergeMode
+        from src.core.api import MergeMode
 
-        try:
-            new_doc = JsonDoc.parse(text)
-        except ParseError as e:
-            error_bar.setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
+        valid, err_line, err_msg = self._service.validate_json(text)
+        if not valid:
+            error_bar.setText(f"⚠ 第 {err_line} 行: {err_msg}")
             error_bar.setVisible(True)
-            right_edit.highlight_line(e.lineno)
+            right_edit.highlight_line(err_line)
             QMessageBox.warning(self, "JSON 语法错误",
-                                f"第 {e.lineno} 行: {e.msg}\n请修正后再保存。")
+                                f"第 {err_line} 行: {err_msg}\n请修正后再保存。")
             return
 
         error_bar.setVisible(False)
         right_edit.clear_highlights()
 
         original_text = self._tab_original_texts[tab_index]
-        old_doc = JsonDoc.parse(original_text)
+        new_doc = self._service.parse_json(text)
+        old_doc = self._service.parse_json(original_text)
         delta_node = self._service.compute_delta_node(
             old_doc, new_doc, "config", merge_mode=MergeMode.NORMAL,
         )

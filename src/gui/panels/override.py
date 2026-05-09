@@ -16,16 +16,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.types import FIELD_SEP as SEP
-from src.core.mod.conflict import FileOverrideInfo
-from src.core.service import MergeService
+from src.core.api import FIELD_SEP as SEP, AppService, FileOverrideInfo
 
 
 class OverridePanel(QWidget):
     """覆盖详情面板"""
     diff_requested = Signal(str)  # rel_path
 
-    def __init__(self, service: MergeService,
+    def __init__(self, service: AppService,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._service = service

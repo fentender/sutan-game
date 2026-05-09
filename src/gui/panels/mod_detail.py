@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
-from src.core.mod.scanner import ModInfo
+from src.core.api import ModInfo
 
 
 class ModDetailPanel(QWidget):

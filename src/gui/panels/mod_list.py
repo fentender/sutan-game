@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.mod.scanner import ModInfo
+from src.core.api import ModInfo
 
 
 class DraggableModList(QListWidget):

@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.config import infer_workshop_path_from_game
+from src.core.api import infer_workshop_path_from_game
 
 
 class SetupDialog(QDialog):

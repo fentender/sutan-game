@@ -6,10 +6,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from src.core.infra.diagnostics import diag
-from src.core.infra.types import MergeMode
-from src.core.mod.id_remap import RemapTable
-from src.core.service import MergeService
+from src.core.api import AppService, MergeMode, RemapTable, diag
 
 
 class _MergeCancelled(Exception):
@@ -49,7 +46,7 @@ class StoreInitWorker(BaseWorker):
 
     def __init__(self, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
-                 service: MergeService,
+                 service: AppService,
                  history_dir: Path | None = None,
                  mod_update_times: dict[str, int] | None = None,
                  overrides_dir: Path | None = None,
@@ -76,12 +73,12 @@ class StoreInitWorker(BaseWorker):
 
 class DeltaInitWorker(BaseWorker):
     """后台预计算所有 mod 的 delta"""
-    progress = Signal(int, int)  # completed, total
+    progress = Signal(int, int)
 
     def __init__(self, mod_ids: list[str],
                  merge_mode: MergeMode = MergeMode.SMART,
                  mod_merge_modes: dict[str, MergeMode] | None = None,
-                 service: MergeService | None = None) -> None:
+                 service: AppService | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
         self.merge_mode = merge_mode
@@ -100,14 +97,14 @@ class DeltaInitWorker(BaseWorker):
 
 class MergeWorker(BaseWorker):
     """后台合并线程"""
-    done = Signal(dict, list)  # 合并结果, 警告列表
-    progress = Signal(int, int)  # completed, total
-    stage = Signal(str)  # 阶段描述
+    done = Signal(dict, list)
+    progress = Signal(int, int)
+    stage = Signal(str)
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  output_path: Path, mod_paths: list[tuple[str, Path]],
                  remap_tables: dict[str, RemapTable] | None = None,
-                 service: MergeService | None = None) -> None:
+                 service: AppService | None = None) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.output_path = output_path
@@ -138,11 +135,11 @@ class MergeWorker(BaseWorker):
 
 class AnalyzeWorker(BaseWorker):
     """后台冲突分析线程"""
-    done = Signal(list, list)  # overrides, parse_messages
+    done = Signal(list, list)
 
     def __init__(self, mod_configs: list[tuple[str, str, Path]],
                  schema_dir: Path,
-                 service: MergeService) -> None:
+                 service: AppService) -> None:
         super().__init__()
         self.mod_configs = mod_configs
         self.schema_dir = schema_dir
@@ -163,25 +160,30 @@ class AnalyzeWorker(BaseWorker):
 
 class SchemaWorker(BaseWorker):
     """后台 Schema 生成线程"""
-    progress = Signal(int, int, str)  # current, total, name
+    progress = Signal(int, int, str)
 
-    def __init__(self, config_dir: Path, schema_dir: Path) -> None:
+    def __init__(self, config_dir: Path, schema_dir: Path,
+                 service: AppService) -> None:
         super().__init__()
         self.config_dir = config_dir
         self.schema_dir = schema_dir
+        self._service = service
 
     def _run(self) -> None:
-        from src.core.schema.generator import generate_all
-        generate_all(
-            str(self.config_dir), str(self.schema_dir),
-            progress_callback=lambda cur, total, name: self.progress.emit(cur, total, name),
+        self._service.generate_schemas(
+            self.config_dir, self.schema_dir,
+            progress_cb=lambda cur, total, name: self.progress.emit(cur, total, name),
         )
 
 
 class UpdateCheckWorker(BaseWorker):
     """后台检查更新线程"""
-    done = Signal(object)  # dict（有新版本）或 None
+    done = Signal(object)
+
+    def __init__(self, service: AppService) -> None:
+        super().__init__()
+        self._service = service
 
     def _run(self) -> None:
-        from src.core.platform.updater import check_for_update
-        self.done.emit(check_for_update(timeout=8))
+        self.done.emit(self._service.check_for_update(timeout=8))
+

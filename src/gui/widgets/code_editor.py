@@ -405,7 +405,7 @@ class JsonEditorDialog(QDialog):
         self._error_line = None
         self._error_msg = ""
         text = self._editor.toPlainText()
-        from sultan_core.json import JsonDoc, ParseError
+        from src.core.api import JsonDoc, ParseError
         try:
             JsonDoc.parse(text)
         except ParseError as e:

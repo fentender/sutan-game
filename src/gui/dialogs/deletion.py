@@ -16,9 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.types import FIELD_SEP as SEP
-from src.core.mod.conflict import DeletionRecord, FileOverrideInfo
-from src.core.service import MergeService
+from src.core.api import FIELD_SEP as SEP, AppService, DeletionRecord, FileOverrideInfo
 
 # 颜色
 _CLR_FILE = QColor(180, 210, 255)     # 文件节点：浅蓝
@@ -106,7 +104,7 @@ class DeletionReportDialog(QDialog):
 
     def __init__(self, override_data: list[FileOverrideInfo],
                  mod_configs: list[tuple[str, str, Path]] | None = None,
-                 service: MergeService | None = None,
+                 service: AppService | None = None,
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         assert service is not None
@@ -414,10 +412,7 @@ class DeletionReportDialog(QDialog):
         from PySide6.QtGui import QTextCharFormat, QTextCursor, QTextFormat
         from PySide6.QtWidgets import QTextEdit
 
-        from sultan_core.json import JsonDoc
-        from sultan_core.delta import DeltaDict
-
-        from src.core.infra.types import MergeMode
+        from src.core.api import DeltaDict, JsonDoc, MergeMode
 
         from ..widgets.code_editor import CodeEditor
 

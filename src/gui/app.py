@@ -28,20 +28,19 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.infra.diagnostics import ERROR, INFO, WARNING, diag
-from src.core.infra.types import MergeMode, ParseFailure
-from src.core.mod.conflict import FileOverrideInfo
-from src.core.mod.id_remap import RemapTable
-from src.core.service import MergeService
-
-from ..config import (
-    APP_VERSION,
-    HISTORY_DIR,
-    MOD_OVERRIDES_DIR,
-    SCHEMA_DIR,
-    SYNTHETIC_MOD_ID,
-    UserConfig,
+from src.core.api import (
+    ERROR,
+    INFO,
+    WARNING,
+    AppService,
+    FileOverrideInfo,
+    MergeMode,
+    ParseFailure,
+    RemapTable,
+    StartupState,
+    diag,
 )
+
 from .panels.log import LogPanel, prefix_mod_title
 from .panels.mod_detail import ModDetailPanel
 from .panels.mod_list import ModListPanel
@@ -52,13 +51,12 @@ from .workers import AnalyzeWorker, DeltaInitWorker, MergeWorker, StoreInitWorke
 class MainWindow(QMainWindow):
     """主窗口"""
 
-    def __init__(self) -> None:
+    def __init__(self, service: AppService) -> None:
         super().__init__()
         self.setWindowTitle("苏丹的游戏 - Mod 合并管理器")
         self.setMinimumSize(1000, 700)
 
-        self.config = UserConfig.load()
-        self.service = MergeService(self.config)
+        self.service = service
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
         self._store_worker: StoreInitWorker | None = None
@@ -68,23 +66,92 @@ class MainWindow(QMainWindow):
         self._update_worker: UpdateCheckWorker | None = None
         self._pending_action: Callable[[], None] | None = None
 
-        # ID 重分配缓存：remap 只在 _analyze_conflicts 中做一次，
-        # 结果直接写入 store 内存，供 AnalyzeWorker / DiffDialog / MergeWorker 共用
         self._remap_tables: dict[str, RemapTable] | None = None
 
-        # 防抖定时器：快速连续操作只触发一次分析
         self._analyze_timer = QTimer()
         self._analyze_timer.setSingleShot(True)
         self._analyze_timer.setInterval(300)
         self._analyze_timer.timeout.connect(self._analyze_conflicts)
+
+        # 路径确认（不通过则弹配置对话框）
+        if not self._ensure_paths():
+            import sys
+            sys.exit(0)
+
+        # Schema 初始化
+        self._ensure_schemas()
 
         self._setup_menu()
         self._setup_ui()
         self._setup_statusbar()
         self._load_mods()
 
-        # 启动 3 秒后静默检查更新
         QTimer.singleShot(3000, self._auto_check_update)
+
+    def _ensure_paths(self) -> bool:
+        """确保路径有效，无效则弹配置对话框。返回 True 路径就绪，False 用户取消。"""
+        if self.service.paths_valid():
+            return True
+
+        from .dialogs.setup_wizard import SetupDialog
+
+        default_game = (
+            self.service.game_path
+            if self.service.game_path and Path(self.service.game_path).exists()
+            else self.service.detect_game_path()
+        )
+        default_workshop = (
+            self.service.workshop_path
+            if self.service.workshop_path and Path(self.service.workshop_path).exists()
+            else self.service.detect_workshop_path()
+        )
+
+        dlg = SetupDialog(default_game, default_workshop)
+        if dlg.exec() != SetupDialog.DialogCode.Accepted:
+            return False
+
+        self.service.set_game_path(dlg.game_path)
+        self.service.set_workshop_path(dlg.workshop_path)
+        return True
+
+    def _ensure_schemas(self) -> None:
+        """检查 schema 是否需要生成，需要则显示进度框。"""
+        self.service.start_schema_init()
+        if self.service.startup_state == StartupState.READY:
+            return
+
+        dlg = QProgressDialog("首次运行: 生成 Schema 规则...", "取消", 0, 100)
+        dlg.setWindowTitle("Schema 初始化")
+        dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
+        dlg.setMinimumDuration(0)
+        dlg.setValue(0)
+
+        timer = QTimer()
+        timer.setInterval(100)
+
+        def poll() -> None:
+            state = self.service.startup_state
+            if state == StartupState.READY:
+                timer.stop()
+                dlg.close()
+            elif state == StartupState.ERROR:
+                timer.stop()
+                dlg.close()
+                QMessageBox.critical(
+                    None, "Schema 生成失败",
+                    self.service.startup_error or "未知错误",
+                )
+            else:
+                current, total, name = self.service.startup_progress
+                if total > 0:
+                    dlg.setMaximum(total)
+                    dlg.setValue(current)
+                    dlg.setLabelText(f"生成 Schema 规则: {name} ({current}/{total})")
+
+        timer.timeout.connect(poll)
+        timer.start()
+        dlg.exec()
+        timer.stop()
 
     def _setup_menu(self) -> None:
         menubar = self.menuBar()
@@ -96,7 +163,9 @@ class MainWindow(QMainWindow):
         file_menu.addAction("退出", self.close)
 
         help_menu = menubar.addMenu("帮助")
-        help_menu.addAction(f"检查更新 (当前: v{APP_VERSION})", self._check_update)
+        help_menu.addAction(
+            f"检查更新 (当前: v{self.service.app_version})", self._check_update,
+        )
 
         menubar.addAction("使用教程", self._show_manual)
 
@@ -105,7 +174,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
 
-        # 上半部分：mod 列表 + 详情
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
         self.mod_list_panel = ModListPanel()
@@ -118,11 +186,9 @@ class MainWindow(QMainWindow):
         splitter.setSizes([350, 450])
         main_layout.addWidget(splitter, 3)
 
-        # 覆盖详情面板
         self.override_panel = OverridePanel(service=self.service)
         main_layout.addWidget(self.override_panel, 2)
 
-        # 操作按钮
         btn_layout = QHBoxLayout()
 
         self.btn_merge = QPushButton("执行合并")
@@ -149,8 +215,7 @@ class MainWindow(QMainWindow):
             "正常合并：全部应用 Mod 的增删改\n"
             "简单替换：直接用 Mod 文件替换，不做字段级合并"
         )
-        # 从配置恢复选中项
-        mode_idx = self.cmb_merge_mode.findData(self.config.merge_mode)
+        mode_idx = self.cmb_merge_mode.findData(self.service.merge_mode)
         if mode_idx >= 0:
             self.cmb_merge_mode.setCurrentIndex(mode_idx)
         self.cmb_merge_mode.currentIndexChanged.connect(self._on_merge_mode_changed)
@@ -162,12 +227,10 @@ class MainWindow(QMainWindow):
 
         main_layout.addLayout(btn_layout)
 
-        # 日志面板
         self.log_panel = LogPanel()
         self.log_panel.file_open_requested.connect(self._open_json_editor)
         main_layout.addWidget(self.log_panel)
 
-        # 信号连接
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
         self.mod_list_panel.order_changed.connect(self._save_config)
         self.mod_list_panel.merge_mode_changed.connect(self._on_mod_merge_mode_changed)
@@ -182,62 +245,54 @@ class MainWindow(QMainWindow):
 
     def _load_mods(self) -> None:
         """加载所有 mod（workshop + 本地目录），然后后台初始化 JsonStore"""
-        diag.snapshot("scan", "parse")  # 清空上次的扫描/解析消息
+        diag.snapshot("scan", "parse")
 
-        # 路径有效性检查
-        if not self.config.workshop_dir.exists():
+        if not self.service.workshop_dir.exists():
             diag.warn("scan",
                       "Workshop 路径不存在，请通过 文件 → 设置 Workshop 路径 进行配置: "
-                      + str(self.config.workshop_dir))
-        if not self.config.game_config_path.exists():
+                      + str(self.service.workshop_dir))
+        if not self.service.game_config_path.exists():
             diag.warn("scan",
                       "游戏配置目录不存在，请通过 文件 → 设置游戏路径 进行配置: "
-                      + str(self.config.game_config_path))
+                      + str(self.service.game_config_path))
 
-        # 扫描 workshop 目录
         mods = self.service.scan_mods(
-            self.config.workshop_dir,
-            exclude_ids={SYNTHETIC_MOD_ID},
+            self.service.workshop_dir,
+            exclude_ids={self.service.synthetic_mod_id},
         )
 
-        # 扫描本地 mod 目录
-        local_dir = self.config.local_mod_dir
+        local_dir = self.service.local_mod_dir
         if local_dir.exists():
             local_mods = self.service.scan_mods(local_dir)
-            # 用 mod_id 去重（workshop 优先）
             existing_ids = {m.mod_id for m in mods}
             for lm in local_mods:
                 if lm.mod_id not in existing_ids:
                     mods.append(lm)
 
-        # 读取游戏更新时间（用于过时检测）
-        game_update_time = self.service.get_game_update_time(self.config.workshop_dir)
+        game_update_time = self.service.get_game_update_time(self.service.workshop_dir)
 
         self.mod_list_panel.set_mods(
             mods,
-            order=self.config.mod_order or None,
-            enabled=self.config.enabled_mods or None,
-            merge_modes=self.config.mod_merge_modes or None,
+            order=self.service.mod_order or None,
+            enabled=self.service.enabled_mods or None,
+            merge_modes=self.service.mod_merge_modes or None,
             game_update_time=game_update_time,
             major_update_ts=self.service.get_major_update_ts(),
         )
         self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 
-        # 缓存 mod_id -> mod_name 映射（仅含成功读取名称的 mod）
         self._mod_name_map = {
             m.mod_id: m.name
             for m in self.mod_list_panel._mods
             if m.name and m.name != m.mod_id
         }
 
-        # 汇总所有错误和警告，添加 mod 名称前缀
         all_messages = diag.snapshot("scan", "parse")
         self._show_messages([
             (level, prefix_mod_title(msg, self._mod_name_map))
             for level, msg in all_messages
         ])
 
-        # 后台初始化 JsonStore（加载所有 mod 的 config JSON）
         all_mod_configs: list[tuple[str, str, Path]] = [
             (m.mod_id, m.name, m.path / "config")
             for m in self.mod_list_panel._mods
@@ -245,22 +300,20 @@ class MainWindow(QMainWindow):
         self._start_store_init(all_mod_configs)
 
     def _start_store_init(self, mod_configs: list[tuple[str, str, Path]]) -> None:
-        """启动后台 store 初始化"""
-        # 取消正在进行的 store 初始化
         if self._store_worker and self._store_worker.isRunning():
             self._store_worker.wait()
 
         enabled_ids = [
-            mid for mid in self.config.mod_order
-            if mid in set(self.config.enabled_mods)
+            mid for mid in self.service.mod_order
+            if mid in set(self.service.enabled_mods)
         ]
 
         self.statusBar().showMessage("正在加载 JSON 资源...")
         self._store_worker = StoreInitWorker(
-            self.config.game_config_path, mod_configs, self.service,
-            history_dir=HISTORY_DIR,
+            self.service.game_config_path, mod_configs, self.service,
+            history_dir=self.service.history_dir,
             mod_update_times=self._get_mod_update_times(),
-            overrides_dir=MOD_OVERRIDES_DIR,
+            overrides_dir=self.service.overrides_dir,
             enabled_mod_ids=enabled_ids,
         )
         self._store_worker.finished.connect(self._on_store_ready)
@@ -276,18 +329,15 @@ class MainWindow(QMainWindow):
         failures = self.service.take_failures()
 
         if failures:
-            # 弹窗让用户处理解析错误
             from .dialogs.json_fix import JsonFixDialog
             dialog = JsonFixDialog(failures, parent=self)
             dialog.exec()
 
-            # 收集用户修复的文件路径
             fixed_paths = [
                 f.file_path for f in failures
                 if dialog.resolutions.get(str(f.file_path), {}).get('action') == 'fixed'
             ]
 
-            # 收集用户忽略的失败记录
             ignored: list[ParseFailure] = [
                 f for f in failures
                 if dialog.resolutions.get(str(f.file_path), {}).get('action') != 'fixed'
@@ -306,12 +356,10 @@ class MainWindow(QMainWindow):
                             ),
                         )
 
-            # 仅保存 mod 文件的失败（非本体），供合并时整文件复制
             mod_ignored = [f for f in ignored if not f.is_base]
             if mod_ignored:
                 self.service.set_ignored_failures(mod_ignored)
 
-        # 展示 JSON 加载阶段的诊断消息
         json_msgs = diag.snapshot("json")
         if json_msgs:
             self._show_messages([
@@ -321,15 +369,13 @@ class MainWindow(QMainWindow):
 
         self.statusBar().showMessage("JSON 资源加载完成")
 
-        # 计算 Mod 与本体的重叠状态（用于过时风险分级）
         all_mod_ids = [m.mod_id for m in self.mod_list_panel._mods]
         overlap_map = self.service.compute_all_overlaps(all_mod_ids)
         self.mod_list_panel.update_overlap(overlap_map)
 
-        # 启动 delta 预计算
         enabled_ids = [
-            mid for mid in self.config.mod_order
-            if mid in set(self.config.enabled_mods)
+            mid for mid in self.service.mod_order
+            if mid in set(self.service.enabled_mods)
         ]
         self._start_delta_init(enabled_ids)
 
@@ -337,23 +383,21 @@ class MainWindow(QMainWindow):
         """模式变更后重新计算 delta 并刷新覆盖分析"""
         self.service.invalidate_merge_cache()
 
-        # 合并模式变更，清理所有 override
-        all_mod_ids = set(self.config.mod_order)
+        all_mod_ids = set(self.service.mod_order)
         deleted_ids = self.service.invalidate_overrides(all_mod_ids)
         if deleted_ids:
             names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
             self._log_message(INFO, f"合并模式变更，已清理覆盖编辑: {names}")
 
         enabled_ids = [
-            mid for mid in self.config.mod_order
-            if mid in set(self.config.enabled_mods)
+            mid for mid in self.service.mod_order
+            if mid in set(self.service.enabled_mods)
         ]
         if not enabled_ids:
             return
         self._start_delta_init(enabled_ids)
 
     def _start_delta_init(self, mod_ids: list[str]) -> None:
-        """启动后台 delta 预计算，并显示进度对话框"""
         if self._delta_worker and self._delta_worker.isRunning():
             self._delta_worker.wait()
         self._delta_worker = DeltaInitWorker(
@@ -378,13 +422,11 @@ class MainWindow(QMainWindow):
         self._delta_worker.start()
 
     def _on_delta_progress(self, completed: int, total: int) -> None:
-        """更新 delta 预计算进度"""
         if hasattr(self, '_delta_progress') and self._delta_progress is not None:
             self._delta_progress.setMaximum(total)
             self._delta_progress.setValue(completed)
 
     def _on_delta_ready(self) -> None:
-        """Delta 预计算完成"""
         if hasattr(self, '_delta_progress') and self._delta_progress is not None:
             self._delta_progress.close()
             self._delta_progress = None
@@ -392,7 +434,6 @@ class MainWindow(QMainWindow):
         self._schedule_analyze()
 
     def _on_delta_error(self, error: str) -> None:
-        """Delta 预计算失败"""
         if hasattr(self, '_delta_progress') and self._delta_progress is not None:
             self._delta_progress.close()
             self._delta_progress = None
@@ -400,27 +441,24 @@ class MainWindow(QMainWindow):
         self._log_message(ERROR, f"差异预计算失败: {error}")
 
     def _on_store_error(self, error: str) -> None:
-        """JsonStore 初始化失败"""
         self.statusBar().showMessage(f"JSON 资源加载失败: {error}")
         self._log_message(ERROR, f"JSON 资源加载失败: {error}")
 
     def _on_merge_mode_changed(self, index: int) -> None:
         mode_value = self.cmb_merge_mode.itemData(index)
         if mode_value:
-            self.config.update(merge_mode=mode_value)
+            self.service.update_merge_mode(mode_value)
             self._refresh_delta()
 
     def _get_merge_mode(self) -> MergeMode:
-        """从配置获取当前全局合并模式"""
         try:
-            return MergeMode(self.config.merge_mode)
+            return MergeMode(self.service.merge_mode)
         except ValueError:
             return MergeMode.SMART
 
     def _get_mod_merge_modes(self) -> dict[str, MergeMode]:
-        """从配置获取 per-mod 合并模式覆盖"""
         result: dict[str, MergeMode] = {}
-        for mod_id, mode_str in self.config.mod_merge_modes.items():
+        for mod_id, mode_str in self.service.mod_merge_modes.items():
             try:
                 result[mod_id] = MergeMode(mode_str)
             except ValueError:
@@ -428,20 +466,16 @@ class MainWindow(QMainWindow):
         return result
 
     def _get_mod_update_times(self) -> dict[str, int]:
-        """获取所有启用 mod 的 update_time 映射"""
         enabled = self.mod_list_panel.get_enabled_mods()
         return {m.mod_id: m.update_time for m in enabled if m.update_time is not None}
 
     def _on_mod_merge_mode_changed(self, mod_id: str, mode_value: str) -> None:
-        if mode_value:
-            self.config.mod_merge_modes[mod_id] = mode_value
-        else:
-            self.config.mod_merge_modes.pop(mod_id, None)
-        self.config.save()
+        self.service.update_mod_merge_mode(
+            mod_id, mode_value if mode_value else None,
+        )
         self._refresh_delta()
 
     def _show_deletion_report(self) -> None:
-        """打开删减报告对话框（懒加载）"""
         from .dialogs.deletion import DeletionReportDialog
         dlg = DeletionReportDialog(
             self.override_panel._data,
@@ -456,15 +490,13 @@ class MainWindow(QMainWindow):
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
 
-        # 计算变化前后的启用有序列表，清理失效的 override
-        old_enabled_set = set(self.config.enabled_mods)
-        old_enabled_ordered = [mid for mid in self.config.mod_order
+        old_enabled_set = set(self.service.enabled_mods)
+        old_enabled_ordered = [mid for mid in self.service.mod_order
                                if mid in old_enabled_set]
         new_enabled_set = set(new_enabled)
         new_enabled_ordered = [mid for mid in new_order
                                if mid in new_enabled_set]
 
-        # 找到第一个差异位置，之后的 mod 全部失效
         min_len = min(len(old_enabled_ordered), len(new_enabled_ordered))
         diverge = min_len
         for i in range(min_len):
@@ -481,15 +513,13 @@ class MainWindow(QMainWindow):
                 f"Mod 排序/启用变化，已清理失效的覆盖编辑: {names}"
             )
 
-        self.config.update(mod_order=new_order, enabled_mods=new_enabled)
+        self.service.update_mod_order(new_order, new_enabled)
         self._schedule_analyze()
 
     def _schedule_analyze(self) -> None:
-        """防抖触发冲突分析（重置 300ms 定时器）"""
         self._analyze_timer.start()
 
     def _get_mod_configs(self) -> list[tuple[str, str, Path]]:
-        """获取启用的 mod 配置路径列表"""
         enabled = self.mod_list_panel.get_enabled_mods()
         return [
             (m.mod_id, m.name, m.path / "config")
@@ -497,12 +527,9 @@ class MainWindow(QMainWindow):
         ]
 
     def _analyze_conflicts(self) -> None:
-        """异步分析冲突（由防抖定时器触发）"""
-        # 合并期间不重新分析
         if self._worker and self._worker.isRunning():
             return
 
-        # 取消正在进行的分析，等待线程退出（避免 QThread 被销毁时仍在运行）
         if self._analyze_worker and self._analyze_worker.isRunning():
             self._analyze_worker.done.disconnect()
             self._analyze_worker.error.disconnect()
@@ -516,13 +543,11 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("没有启用的 Mod")
             return
 
-        # ID 冲突检测与重分配（同步执行，通常很快）
         self._cleanup_remap()
         diag.snapshot("remap")
         _remap_msgs, remap_tables = self.service.remap_mod_configs(mod_configs)
         self._remap_tables = remap_tables
 
-        # 展示 remap 日志
         remap_messages = diag.snapshot("remap")
         if remap_messages:
             self._show_messages([
@@ -530,7 +555,6 @@ class MainWindow(QMainWindow):
                 for level, msg in remap_messages
             ])
 
-        # 重新预计算 delta（remap 可能修改了 store 数据）
         enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
         self.service.invalidate_delta()
         self.service.init_delta(enabled_ids,
@@ -542,7 +566,7 @@ class MainWindow(QMainWindow):
         self.progress_bar.setRange(0, 0)
 
         self._analyze_worker = AnalyzeWorker(
-            self._get_mod_configs(), SCHEMA_DIR, self.service,
+            self._get_mod_configs(), self.service.schema_dir, self.service,
         )
         self._analyze_worker.done.connect(self._on_analyze_finished)
         self._analyze_worker.error.connect(self._on_analyze_error)
@@ -573,7 +597,6 @@ class MainWindow(QMainWindow):
             status_parts.append(f"{warning_count} 个存在数组合并")
         self.statusBar().showMessage(", ".join(status_parts))
 
-        # 执行挂起的操作
         if self._pending_action:
             action = self._pending_action
             self._pending_action = None
@@ -585,14 +608,12 @@ class MainWindow(QMainWindow):
         self._log_message(ERROR, f"冲突分析失败: {error}")
 
     def _open_diff(self, rel_path: str) -> None:
-        """打开 Diff 对比窗口（分析进行中则排队等待）"""
         if self._analyze_worker and self._analyze_worker.isRunning():
             self.statusBar().showMessage("等待冲突分析完成...")
             self._pending_action = lambda: self._open_diff(rel_path)
             return
 
         from .dialogs.diff import DiffDialog
-        # 查找该文件的数组合并警告
         array_warnings: list[str] = []
         for info in self.override_panel._data:
             if info.rel_path == rel_path:
@@ -607,7 +628,6 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _execute_merge(self) -> None:
-        """执行合并"""
         if self._analyze_worker and self._analyze_worker.isRunning():
             self.statusBar().showMessage("等待冲突分析完成...")
             self._pending_action = self._execute_merge
@@ -619,13 +639,11 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "提示", "没有启用的 Mod")
             return
 
-        # 弹出命名输入框
         folder_name = self._ask_synthetic_mod_name()
         if folder_name is None:
-            return  # 用户取消
+            return
 
-        # 输出到本地 Mod 目录
-        output_path = self.config.local_mod_dir / folder_name
+        output_path = self.service.local_mod_dir / folder_name
         if output_path.exists():
             shutil.rmtree(output_path)
         output_path.mkdir(parents=True)
@@ -633,15 +651,12 @@ class MainWindow(QMainWindow):
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_paths = [(m.name, m.path) for m in enabled]
 
-        # 清空目录创建缓存，避免清理后残留缓存导致写入失败
         self.service.reset_dir_cache()
 
-        # 切换按钮为「取消合并」
         self.btn_merge.setText("取消合并")
         self.btn_merge.clicked.disconnect()
         self.btn_merge.clicked.connect(self._cancel_merge)
 
-        # 模态进度对话框
         self._merge_progress = QProgressDialog(
             "正在合并 JSON 文件...", "取消", 0, 0, self,
         )
@@ -668,18 +683,17 @@ class MainWindow(QMainWindow):
     _VALID_NAME_RE = re.compile(r'^[A-Za-z0-9_]+$')
 
     def _ask_synthetic_mod_name(self) -> str | None:
-        """弹出输入框让用户命名合成 Mod 文件夹。返回 None 表示取消。"""
         while True:
             text, ok = QInputDialog.getText(
                 self, "命名合成 Mod",
                 "输入合成 Mod 文件夹名（仅限英文、数字、下划线）：",
-                text=SYNTHETIC_MOD_ID,
+                text=self.service.synthetic_mod_id,
             )
             if not ok:
                 return None
             name = text.strip()
             if not name:
-                name = SYNTHETIC_MOD_ID
+                name = self.service.synthetic_mod_id
             if self._VALID_NAME_RE.match(name):
                 return name
             QMessageBox.warning(
@@ -688,13 +702,11 @@ class MainWindow(QMainWindow):
             )
 
     def _cancel_merge(self) -> None:
-        """取消正在进行的合并"""
         if self._worker:
             self._worker.cancel()
         self.statusBar().showMessage("正在取消...")
 
     def _restore_merge_btn(self) -> None:
-        """恢复合并按钮到初始状态"""
         self.btn_merge.setText("执行合并")
         self.btn_merge.setEnabled(True)
         self.btn_merge.clicked.disconnect()
@@ -704,23 +716,19 @@ class MainWindow(QMainWindow):
             self._merge_progress = None
 
     def _on_merge_progress(self, completed: int, total: int) -> None:
-        """更新合并进度"""
         if hasattr(self, '_merge_progress') and self._merge_progress is not None:
             self._merge_progress.setMaximum(total)
             self._merge_progress.setValue(completed)
 
     def _on_merge_stage(self, msg: str) -> None:
-        """更新合并阶段描述"""
         if hasattr(self, '_merge_progress') and self._merge_progress is not None:
             self._merge_progress.setLabelText(msg)
-            # 资源复制阶段切回不确定进度
             self._merge_progress.setMaximum(0)
             self._merge_progress.setValue(0)
         self.statusBar().showMessage(msg)
 
     def _on_merge_finished(self, results: dict[str, object], warnings: list[str]) -> None:
         self._restore_merge_btn()
-        # 生成合成 Mod 的 Info.json
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_names = [m.name for m in enabled]
         self.service.generate_info_json(mod_names, self._merge_output_path)
@@ -728,14 +736,12 @@ class MainWindow(QMainWindow):
         output = self._merge_output_path
         msg = f"合并完成: {len(results)} 个文件已合并到 {output}"
         self.statusBar().showMessage(msg)
-        # 展示合并过程中的警告（通过信号从工作线程传递，避免竞态）
         for w in warnings:
             self._log_message(WARNING, prefix_mod_title(w, self._mod_name_map))
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
     def _on_merge_error(self, error: str) -> None:
         self._restore_merge_btn()
-        # 清理合并失败后残留的半成品输出目录
         if self._merge_output_path and self._merge_output_path.exists():
             shutil.rmtree(self._merge_output_path, ignore_errors=True)
         self.statusBar().showMessage(f"合并失败: {error}")
@@ -743,8 +749,7 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, "合并失败", error)
 
     def _clean(self) -> None:
-        """清理合成 Mod：扫描所有带标记的合成 Mod 并让用户选择删除"""
-        synthetic_mods = self.service.scan_synthetic_mods(self.config.local_mod_dir)
+        synthetic_mods = self.service.scan_synthetic_mods(self.service.local_mod_dir)
         if not synthetic_mods:
             QMessageBox.information(self, "提示", "没有找到合成 Mod")
             return
@@ -777,7 +782,7 @@ class MainWindow(QMainWindow):
             item = list_widget.item(i)
             if item and item.checkState() == Qt.CheckState.Checked:
                 folder_name = item.data(Qt.ItemDataRole.UserRole)
-                target = self.config.local_mod_dir / folder_name
+                target = self.service.local_mod_dir / folder_name
                 if target.exists():
                     shutil.rmtree(target)
                     deleted.append(folder_name)
@@ -792,33 +797,36 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "提示", "未选择任何合成 Mod")
 
     def _set_game_path(self) -> None:
-        path = QFileDialog.getExistingDirectory(self, "选择游戏安装目录", self.config.game_path)
+        path = QFileDialog.getExistingDirectory(
+            self, "选择游戏安装目录", self.service.game_path,
+        )
         if path:
-            self.config.update(game_path=path)
+            self.service.set_game_path(path)
             self.statusBar().showMessage(f"游戏路径已更新: {path}")
 
     def _set_workshop_path(self) -> None:
-        path = QFileDialog.getExistingDirectory(self, "选择 Workshop 目录", self.config.workshop_path)
+        path = QFileDialog.getExistingDirectory(
+            self, "选择 Workshop 目录", self.service.workshop_path,
+        )
         if path:
-            self.config.update(workshop_path=path)
+            self.service.set_workshop_path(path)
             self._load_mods()
 
     def _set_local_mod_path(self) -> None:
-        path = QFileDialog.getExistingDirectory(self, "选择本地 Mod 目录", self.config.local_mod_path)
+        path = QFileDialog.getExistingDirectory(
+            self, "选择本地 Mod 目录", self.service.local_mod_path,
+        )
         if path:
-            self.config.update(local_mod_path=path)
+            self.service.set_local_mod_path(path)
             self._load_mods()
 
     def _show_messages(self, messages: list[tuple[str, str]]) -> None:
-        """显示或隐藏日志面板，messages 为 [(level, msg), ...]"""
         self.log_panel.show_messages(messages)
 
     def _log_message(self, level: str, msg: str) -> None:
-        """追加一条日志到面板"""
         self.log_panel.log_message(level, msg)
 
     def _open_json_editor(self, file_path: str, search_key: str = "") -> None:
-        """打开 JSON 编辑器（由日志面板双击触发）"""
         path = Path(file_path)
         if not path.exists():
             QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
@@ -828,7 +836,6 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _cleanup_remap(self) -> None:
-        """清理 remap 状态，撤销 store 中的 ID 重映射修改"""
         if self._remap_tables:
             self.service.cleanup_remap(self._remap_tables)
         self._remap_tables = None
@@ -836,24 +843,20 @@ class MainWindow(QMainWindow):
     # ── 检查更新 ──
 
     def _auto_check_update(self) -> None:
-        """启动时自动检查更新（静默模式）"""
         self._do_check_update(silent=True)
 
     def _show_manual(self) -> None:
-        """打开使用教程对话框"""
         from src.gui.dialogs.manual import ManualDialog
-
         dlg = ManualDialog(self)
         dlg.exec()
 
     def _check_update(self) -> None:
-        """用户手动触发检查更新"""
         self._do_check_update(silent=False)
 
     def _do_check_update(self, silent: bool) -> None:
         if self._update_worker and self._update_worker.isRunning():
             return
-        self._update_worker = UpdateCheckWorker()
+        self._update_worker = UpdateCheckWorker(service=self.service)
         self._update_worker.done.connect(
             lambda result: self._on_update_checked(result, silent)
         )
@@ -863,8 +866,10 @@ class MainWindow(QMainWindow):
         if result:
             self._show_update_dialog(result)
         elif not silent:
-            QMessageBox.information(self, "检查更新",
-                                    f"当前版本 v{APP_VERSION} 已是最新版本。")
+            QMessageBox.information(
+                self, "检查更新",
+                f"当前版本 v{self.service.app_version} 已是最新版本。",
+            )
 
     def _show_update_dialog(self, info: dict[str, str]) -> None:
         tag = info["tag_name"]
@@ -876,7 +881,10 @@ class MainWindow(QMainWindow):
         msg = QMessageBox(self)
         msg.setWindowTitle("发现新版本")
         msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText(f"新版本 {name} 可用！\n\n当前版本: v{APP_VERSION}\n最新版本: {tag}")
+        msg.setText(
+            f"新版本 {name} 可用！\n\n"
+            f"当前版本: v{self.service.app_version}\n最新版本: {tag}"
+        )
         if body:
             msg.setDetailedText(body)
         btn_download = msg.addButton("前往下载", QMessageBox.ButtonRole.AcceptRole)
@@ -886,7 +894,6 @@ class MainWindow(QMainWindow):
             QDesktopServices.openUrl(QUrl(info.get("download_url", "")))
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        """关闭窗口时协作式等待工作线程结束"""
         self._analyze_timer.stop()
         if self._store_worker is not None and self._store_worker.isRunning():
             self._store_worker.wait(5000)

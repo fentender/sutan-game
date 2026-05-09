@@ -184,8 +184,6 @@ class UserConfig:
     merge_mode: str = "adaptive"
     # per-mod 合并模式覆盖（key=mod_id，value=模式名）
     mod_merge_modes: dict[str, str] = field(default_factory=dict)
-    # 是否启用性能评估（启用后记录各函数执行时间，输出到日志）
-    enable_profiler: bool = False
 
     @property
     def game_config_path(self) -> Path:
