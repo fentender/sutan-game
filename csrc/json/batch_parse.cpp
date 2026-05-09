@@ -1,5 +1,4 @@
 #include "batch_parse.h"
-#include "resource_loader.h"
 
 #include <algorithm>
 
@@ -63,12 +62,9 @@ void BatchHandle::run() {
             auto idx = next_idx.fetch_add(1, std::memory_order_relaxed);
             if (idx >= total) break;
             try {
-                auto content = resource_loader().read_text(paths_[idx]);
-                result_.docs[idx] = JsonDoc::parse(*content, true);
+                result_.docs[idx] = JsonDoc::parse_file(paths_[idx], true);
             } catch (const std::exception& e) {
                 result_.errors[idx] = e.what();
-            } catch (...) {
-                result_.errors[idx] = "unknown error";
             }
             completed_.fetch_add(1, std::memory_order_release);
         }
@@ -86,9 +82,11 @@ void BatchHandle::run() {
     done_.store(true, std::memory_order_release);
 }
 
-BatchResult batch_parse_files(const std::vector<std::string>& paths) {
-    BatchHandle handle(paths);
-    return handle.result();
+BatchHandle* JsonDoc::batch_parse_files(
+    const std::vector<std::string>& paths, bool async) {
+    auto* handle = new BatchHandle(paths);
+    if (!async) handle->wait();
+    return handle;
 }
 
 }  // namespace sultan

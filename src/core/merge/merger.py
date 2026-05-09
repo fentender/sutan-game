@@ -13,7 +13,6 @@ from ..infra.diagnostics import diag, merge_ctx
 from ..infra.profiler import profile
 from ..infra.types import (
     CancelCheck,
-    JsonObject,
     ParseFailure,
     ProgressCallback,
 )
@@ -33,7 +32,6 @@ def merge_file(
     base_doc: JsonDoc,
     mod_data_list: list[tuple[str, str, DeltaDict, str]],
     rel_path: str = "",
-    schema: JsonObject | None = None,
 ) -> MergeResult:
     """合并单个文件（C++ State/Delta API）。
 
@@ -41,7 +39,6 @@ def merge_file(
         base_doc: 游戏本体 JSON 文档
         mod_data_list: [(mod_id, mod_name, delta, source_file), ...] 按优先级排序
         rel_path: 文件相对路径
-        schema: 仅用于兼容签名（C++ 层已内化 schema 语义）
     """
     result = MergeResult()
     file_name = Path(rel_path).name if rel_path else ""
@@ -83,7 +80,6 @@ def merge_file(
 def merge_all_files(
     mod_configs: list[tuple[str, str, Path]],
     output_path: Path,
-    schema_dir: Path | None = None,
     cancel_check: CancelCheck | None = None,
     progress_cb: ProgressCallback | None = None,
 ) -> dict[str, MergeResult]:

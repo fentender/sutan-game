@@ -11,8 +11,6 @@ from src.core.infra.types import MergeMode
 from src.core.mod.id_remap import RemapTable
 from src.core.service import MergeService
 
-from ..config import SCHEMA_DIR
-
 
 class _MergeCancelled(Exception):
     pass
@@ -81,13 +79,11 @@ class DeltaInitWorker(BaseWorker):
     progress = Signal(int, int)  # completed, total
 
     def __init__(self, mod_ids: list[str],
-                 schema_dir: Path | None = None,
                  merge_mode: MergeMode = MergeMode.SMART,
                  mod_merge_modes: dict[str, MergeMode] | None = None,
                  service: MergeService | None = None) -> None:
         super().__init__()
         self.mod_ids = mod_ids
-        self.schema_dir = schema_dir
         self.merge_mode = merge_mode
         self.mod_merge_modes = mod_merge_modes
         self._service = service
@@ -96,7 +92,6 @@ class DeltaInitWorker(BaseWorker):
         assert self._service is not None
         self._service.init_delta(
             self.mod_ids,
-            schema_dir=self.schema_dir,
             progress_cb=self.progress.emit,
             merge_mode=self.merge_mode,
             mod_merge_modes=self.mod_merge_modes,
@@ -126,7 +121,6 @@ class MergeWorker(BaseWorker):
         results = self._service.merge_all_files(
             self.mod_configs,
             self.output_path / "config",
-            schema_dir=SCHEMA_DIR,
             cancel_check=self._check_cancel,
             progress_cb=lambda c, t: self.progress.emit(c, t),
         )

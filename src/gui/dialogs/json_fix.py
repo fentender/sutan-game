@@ -1,7 +1,6 @@
 """
 多 Tab JSON 修复弹窗 - 展示解析失败的文件供用户修复
 """
-import json
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QColor
@@ -17,7 +16,6 @@ from PySide6.QtWidgets import (
 )
 
 from src.core.infra.types import ParseFailure
-from src.core.json.parser import clean_json_text
 
 from ..widgets.code_editor import CodeEditor, _format_with_comments
 
@@ -159,10 +157,10 @@ class JsonFixDialog(QDialog):
         failure.file_path.write_text(content, encoding="utf-8")
 
         # 验证 JSON（不走自动修复，要验证用户是否真正修好了）
-        cleaned = clean_json_text(content)
+        from sultan_core.json import JsonDoc, ParseError
         try:
-            json.loads(cleaned)
-        except json.JSONDecodeError as e:
+            JsonDoc.parse(content)
+        except ParseError as e:
             # 仍有错误
             self._error_bars[idx].setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             self._error_bars[idx].setStyleSheet(
@@ -193,10 +191,10 @@ class JsonFixDialog(QDialog):
         """检测指定 Tab 的 JSON 错误并更新高亮"""
         editor = self._editors[idx]
         text = editor.toPlainText()
-        cleaned = clean_json_text(text)
+        from sultan_core.json import JsonDoc, ParseError
         try:
-            json.loads(cleaned)
-        except json.JSONDecodeError as e:
+            JsonDoc.parse(text)
+        except ParseError as e:
             self._error_bars[idx].setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             self._error_bars[idx].setStyleSheet(
                 "background-color: #5a1a1a; color: #f99; padding: 4px 8px; font-weight: bold;"

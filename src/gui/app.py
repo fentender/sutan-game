@@ -357,7 +357,7 @@ class MainWindow(QMainWindow):
         if self._delta_worker and self._delta_worker.isRunning():
             self._delta_worker.wait()
         self._delta_worker = DeltaInitWorker(
-            mod_ids, schema_dir=SCHEMA_DIR,
+            mod_ids,
             merge_mode=self._get_merge_mode(),
             mod_merge_modes=self._get_mod_merge_modes(),
             service=self.service,
@@ -533,7 +533,7 @@ class MainWindow(QMainWindow):
         # 重新预计算 delta（remap 可能修改了 store 数据）
         enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
         self.service.invalidate_delta()
-        self.service.init_delta(enabled_ids, schema_dir=SCHEMA_DIR,
+        self.service.init_delta(enabled_ids,
                                 merge_mode=self._get_merge_mode(),
                                 mod_merge_modes=self._get_mod_merge_modes())
 

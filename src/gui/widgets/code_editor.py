@@ -1,7 +1,6 @@
 """
 内置 JSON 文本编辑器 - 行号栏 + 错误行高亮 + 保存
 """
-import json
 from pathlib import Path
 
 from PySide6.QtCore import QMimeData, QRect, QSize, Qt
@@ -26,8 +25,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-from src.core.json.parser import clean_json_text
 
 _FONT = QFont("Consolas", 10)
 _INDENT = "    "
@@ -408,10 +405,10 @@ class JsonEditorDialog(QDialog):
         self._error_line = None
         self._error_msg = ""
         text = self._editor.toPlainText()
-        cleaned = clean_json_text(text)
+        from sultan_core.json import JsonDoc, ParseError
         try:
-            json.loads(cleaned)
-        except json.JSONDecodeError as e:
+            JsonDoc.parse(text)
+        except ParseError as e:
             self._error_line = e.lineno
             self._error_msg = e.msg
 

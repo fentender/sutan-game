@@ -212,14 +212,12 @@ class ModManager:
     # === Delta 管理 ===
 
     def init_delta(self, mod_ids: list[str],
-                   schema_dir: Path | None = None,
                    merge_mode: MergeMode = MergeMode.SMART,
                    mod_merge_modes: dict[str, MergeMode] | None = None,
                    progress_cb: Callable[[int, int], None] | None = None) -> None:
         """预计算所有 mod 的 delta（委托 ModDelta），并记录 version 快照。"""
         ModDelta.init(
             mod_ids,
-            schema_dir=schema_dir,
             merge_mode=merge_mode,
             mod_merge_modes=mod_merge_modes,
             progress_cb=progress_cb,
@@ -297,7 +295,6 @@ class ModManager:
 
     def get_merge_state(self, rel_path: str,
                         mod_configs: list[tuple[str, str, Path]],
-                        schema_dir: Path | None = None,
                         need_steps: bool = True) -> FileMergeState:
         """获取文件的合并状态，version 惰性失效。"""
         mod_ids = [mid for mid, _, _ in mod_configs]
@@ -402,7 +399,6 @@ class ModManager:
 
     def merge_all_files(
         self, mod_configs: list[tuple[str, str, Path]], output_path: Path,
-        schema_dir: Path | None = None,
         cancel_check: CancelCheck | None = None,
         progress_cb: ProgressCallback | None = None,
     ) -> dict[str, MergeResult]:
@@ -427,7 +423,7 @@ class ModManager:
                 continue
 
             merge_state = self.get_merge_state(rel_path, mod_configs,
-                                               schema_dir, need_steps=False)
+                                               need_steps=False)
             result = MergeResult(merged_doc=merge_state.final_doc)
             results[rel_path] = result
 
@@ -472,9 +468,8 @@ class ModManager:
         self, base_doc: JsonDoc,
         mod_data_list: list[tuple[str, str, DeltaDict, str]],
         rel_path: str = "",
-        schema: JsonObject | None = None,
     ) -> MergeResult:
-        return _merge_file(base_doc, mod_data_list, rel_path, schema=schema)
+        return _merge_file(base_doc, mod_data_list, rel_path)
 
     def load_schemas(self, schema_dir: Path) -> dict[str, JsonObject]:
         return _load_schemas(schema_dir)

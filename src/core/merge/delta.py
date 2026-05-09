@@ -9,7 +9,6 @@
 import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
 
 from sultan_core.state import JsonState, MergeMode as CppMergeMode
 from sultan_core.delta import (
@@ -22,14 +21,10 @@ from sultan_core.delta import (
 from ..data_manager import DataManager
 from ..infra.profiler import profile
 from ..infra.types import (
-    JsonObject,
     MergeMode,
     ProgressCallback,
 )
 from ..json import classify_json
-from ..schema.loader import (
-    load_schemas,
-)
 
 
 # ==================== MergeMode 映射 ====================
@@ -69,7 +64,6 @@ def _process_file_group(
     rel_path: str,
     file_mod_ids: list[str],
     dm: DataManager,
-    schemas: dict[str, JsonObject],
     merge_mode: MergeMode,
     mod_merge_modes: dict[str, MergeMode] | None,
 ) -> list[tuple[str, str, DeltaDict | None]]:
@@ -134,13 +128,11 @@ class ModDelta:
     def init(
         cls,
         mod_ids: list[str],
-        schema_dir: Path | None = None,
         progress_cb: ProgressCallback | None = None,
         merge_mode: MergeMode = MergeMode.SMART,
         mod_merge_modes: dict[str, MergeMode] | None = None,
     ) -> None:
         dm = DataManager.instance()
-        schemas = load_schemas(schema_dir) if schema_dir else {}
 
         tasks_by_file: dict[str, list[str]] = defaultdict(list)
         for mod_id in mod_ids:
@@ -160,7 +152,7 @@ class ModDelta:
             futures = {
                 pool.submit(
                     _process_file_group,
-                    rel_path, file_mod_ids, dm, schemas,
+                    rel_path, file_mod_ids, dm,
                     merge_mode, mod_merge_modes,
                 ): rel_path
                 for rel_path, file_mod_ids in file_groups

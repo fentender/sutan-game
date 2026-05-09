@@ -65,8 +65,35 @@ static void bind_diag(nb::module_& parent) {
           nb::arg("notify") = false);
 }
 
+static PyObject* s_parse_error = nullptr;
+
 static void bind_json(nb::module_& parent) {
     auto m = parent.def_submodule("json");
+
+    s_parse_error = PyErr_NewExceptionWithDoc(
+        "sultan_core.json.ParseError",
+        "JSON 解析错误，携带 .lineno 和 .msg 属性",
+        PyExc_ValueError, nullptr);
+    Py_INCREF(s_parse_error);
+    m.attr("ParseError") = nb::handle(s_parse_error);
+
+    nb::register_exception_translator(
+        [](const std::exception_ptr& p, void*) {
+            try {
+                std::rethrow_exception(p);
+            } catch (const JsonParseError& e) {
+                PyObject* exc = PyObject_CallFunction(
+                    s_parse_error, "s", e.what());
+                PyObject_SetAttrString(
+                    exc, "lineno",
+                    PyLong_FromSsize_t(static_cast<Py_ssize_t>(e.line)));
+                PyObject_SetAttrString(
+                    exc, "msg",
+                    PyUnicode_FromString(e.detail.c_str()));
+                PyErr_SetObject(s_parse_error, exc);
+                Py_DECREF(exc);
+            }
+        });
 
     nb::class_<BatchHandle>(m, "BatchHandle")
         .def("total", &BatchHandle::total)
@@ -81,9 +108,9 @@ static void bind_json(nb::module_& parent) {
             nb::arg("text"), nb::arg("clean") = true)
         .def_static("parse_file", &JsonDoc::parse_file,
             nb::arg("path"), nb::arg("clean") = true)
-        .def_static("start_batch_parse", [](const std::vector<std::string>& paths) {
-            return new BatchHandle(paths);
-        }, nb::arg("paths"), nb::rv_policy::take_ownership)
+        .def_static("batch_parse_files", &JsonDoc::batch_parse_files,
+            nb::arg("paths"), nb::arg("async_") = true,
+            nb::rv_policy::take_ownership)
         .def("to_string", &JsonDoc::to_string,
             nb::arg("compact") = false)
         .def("valid", &JsonDoc::valid)

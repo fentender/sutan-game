@@ -2,7 +2,7 @@
 数据管理模块 — 管理所有 GameData 生命周期
 
 DataManager 是全局数据所有者，持有本体和所有 Mod 的 GameData 实例。
-资源加载通过 C++ JsonDoc.start_batch_parse 完成。
+资源加载通过 C++ JsonDoc.batch_parse_files 完成。
 """
 import builtins
 import enum
@@ -248,7 +248,7 @@ class DataManager:
             return
 
         paths = [str(t[0]) for t in tasks]
-        handle = JsonDoc.start_batch_parse(paths)
+        handle = JsonDoc.batch_parse_files(paths)
 
         while not handle.done():
             if on_progress:

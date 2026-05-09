@@ -43,6 +43,4 @@ private:
     void run();
 };
 
-BatchResult batch_parse_files(const std::vector<std::string>& paths);
-
 }  // namespace sultan

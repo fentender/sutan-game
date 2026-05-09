@@ -1,10 +1,21 @@
 #pragma once
 #include "json_val.h"
+#include <stdexcept>
 #include <string>
+#include <vector>
 
 struct yyjson_doc;
 
 namespace sultan {
+
+class BatchHandle;
+
+struct JsonParseError : std::runtime_error {
+    size_t line;
+    std::string detail;
+    JsonParseError(const std::string& what, size_t ln, std::string det)
+        : std::runtime_error(what), line(ln), detail(std::move(det)) {}
+};
 
 class JsonDoc {
 public:
@@ -34,6 +45,9 @@ public:
     yyjson_doc* raw_doc() const { return doc_; }
 
     static JsonDoc from_raw(yyjson_doc* doc);
+
+    static BatchHandle* batch_parse_files(
+        const std::vector<std::string>& paths, bool async = true);
 
     JsonDoc() = default;
 

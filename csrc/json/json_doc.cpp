@@ -44,13 +44,15 @@ JsonDoc JsonDoc::parse(const std::string& text, bool clean) {
         kReadFlags, nullptr, &err);
 
     if (!doc) {
-        std::string msg = "JSON parse error";
-        if (err.msg) {
-            msg += ": ";
-            msg += err.msg;
-            msg += " (pos: " + std::to_string(err.pos) + ")";
+        size_t line = 1;
+        for (size_t i = 0; i < err.pos && i < input.size(); ++i) {
+            if (input[i] == '\n') ++line;
         }
-        throw std::runtime_error(msg);
+        std::string detail = err.msg ? err.msg : "unknown error";
+        std::string what = "JSON parse error: " + detail
+            + " (line: " + std::to_string(line)
+            + ", pos: " + std::to_string(err.pos) + ")";
+        throw JsonParseError(what, line, detail);
     }
     return JsonDoc(doc);
 }

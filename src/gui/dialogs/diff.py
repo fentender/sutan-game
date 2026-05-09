@@ -2,7 +2,6 @@
 Diff 对比窗口 - 逐级展示游戏本体经各 Mod 覆盖后的行级差异
 左侧只读 CodeEditor 显示合并前状态，右侧可编辑 CodeEditor 显示合并结果
 """
-import json
 from pathlib import Path
 
 from PySide6.QtCore import Qt
@@ -21,10 +20,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.config import SCHEMA_DIR
 from src.core.infra.profiler import profile
 from src.core.infra.types import ChangeKind
-from src.core.json.parser import _pairs_hook, clean_json_text
 from src.core.merge.formatter import (
     build_padded_texts,
     diff_opcodes,
@@ -167,7 +164,7 @@ class DiffDialog(QDialog):
         self._line_kinds_pairs.clear()
         self._tab_original_texts.clear()
 
-        state = self._service.get_merge_state(self._rel_path, self._mod_configs, SCHEMA_DIR)
+        state = self._service.get_merge_state(self._rel_path, self._mod_configs)
 
         base_doc = self._service.get_base(self._rel_path)
         self._base_text = base_doc.to_string()
@@ -749,10 +746,12 @@ class DiffDialog(QDialog):
         text = _get_real_text(right_edit, right_map)
         error_bar = self._tab_error_bars[tab_index]
 
-        cleaned = clean_json_text(text)
+        from sultan_core.json import JsonDoc, ParseError
+        from src.core.infra.types import MergeMode
+
         try:
-            new_json = json.loads(cleaned, object_pairs_hook=_pairs_hook)
-        except json.JSONDecodeError as e:
+            new_doc = JsonDoc.parse(text)
+        except ParseError as e:
             error_bar.setText(f"⚠ 第 {e.lineno} 行: {e.msg}")
             error_bar.setVisible(True)
             right_edit.highlight_line(e.lineno)
@@ -763,16 +762,8 @@ class DiffDialog(QDialog):
         error_bar.setVisible(False)
         right_edit.clear_highlights()
 
-        # 解析编辑前的原始文本
         original_text = self._tab_original_texts[tab_index]
-        old_cleaned = clean_json_text(original_text)
-        old_json = json.loads(old_cleaned, object_pairs_hook=_pairs_hook)
-
-        # 计算 delta
-        from sultan_core.json import JsonDoc
-        from src.core.infra.types import MergeMode
-        old_doc = JsonDoc.parse(json.dumps(old_json, ensure_ascii=False), False)
-        new_doc = JsonDoc.parse(json.dumps(new_json, ensure_ascii=False), False)
+        old_doc = JsonDoc.parse(original_text)
         delta_node = self._service.compute_delta_node(
             old_doc, new_doc, "config", merge_mode=MergeMode.NORMAL,
         )
