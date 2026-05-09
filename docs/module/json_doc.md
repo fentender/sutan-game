@@ -136,6 +136,83 @@ YYJSON_READ_ALLOW_BOM              // UTF-8 BOM 容忍（防御性）
 2. parse(*content, clean)                  → clean_text + yyjson 解析
 ```
 
+## 批量解析
+
+### 概述
+
+`BatchHandle` 提供 C++ 多线程批量解析，绕过 Python GIL 实现真正并行 I/O + 解析。异步接口，Python 侧通过轮询获取进度。
+
+### 文件
+
+```
+csrc/json/
+├── batch_parse.h            # BatchResult + BatchHandle 声明
+└── batch_parse.cpp          # 线程池实现
+```
+
+### C++ API
+
+```cpp
+#include "batch_parse.h"
+using namespace sultan;
+
+// ── 异步批量解析 ──
+
+std::vector<std::string> paths = {"a.json", "b.json", "c.json"};
+BatchHandle handle(paths);           // 构造即启动后台线程池
+
+handle.total();                      // 总文件数
+handle.completed();                  // 已完成数（atomic 无锁读）
+handle.done();                       // 是否全部完成
+
+handle.wait();                       // 阻塞等待所有线程完成
+JsonDoc doc = handle.take_doc(0);    // 取出第 i 个结果（移动语义，仅一次）
+const std::string& err = handle.error(0); // 空串=成功，非空=错误信息
+
+// ── 同步便捷版 ──
+
+BatchResult result = batch_parse_files(paths);
+// result.docs[i]   — 解析结果
+// result.errors[i] — 错误信息
+```
+
+### Python API（`sultan_core.json`）
+
+```python
+from sultan_core.json import JsonDoc
+
+# 异步批量解析
+handle = JsonDoc.start_batch_parse(["a.json", "b.json", "c.json"])
+
+# 轮询进度
+while not handle.done():
+    print(f"{handle.completed()}/{handle.total()}")
+    time.sleep(0.03)
+
+# 获取结果
+handle.wait()
+for i in range(handle.total()):
+    err = handle.error(i)
+    if err:
+        print(f"文件 {i} 解析失败: {err}")
+    else:
+        doc = handle.take_doc(i)  # JsonDoc，移动语义
+```
+
+### 线程模型
+
+- 构造 `BatchHandle` 时立即启动一个协调线程
+- 协调线程内部启动 `hardware_concurrency()` 个 worker 线程
+- Worker 通过 `atomic<size_t>` work-stealing 分配任务
+- 每个 worker：`resource_loader().read_text()` → `JsonDoc::parse(*content, true)`
+- `ResourceLoader` 的缓存有 mutex 保护，线程安全
+
+### 错误处理
+
+- Per-file 容错：某个文件失败不影响其他文件
+- `error(i)` 返回空串表示成功，非空串为错误信息
+- 失败的 `take_doc(i)` 返回 invalid JsonDoc（`valid() == false`）
+
 ### 重复键
 
 yyjson 默认保留重复键。解析 `{"a":1,"a":2}` 后内部存储两个 `"a"` 键值对，序列化时完整输出。

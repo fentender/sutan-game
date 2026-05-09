@@ -35,8 +35,9 @@ public:
 
     static JsonDoc from_raw(yyjson_doc* doc);
 
-private:
     JsonDoc() = default;
+
+private:
     explicit JsonDoc(yyjson_doc* doc);
 
     yyjson_doc* doc_ = nullptr;

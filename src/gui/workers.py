@@ -47,17 +47,22 @@ class BaseWorker(QThread):
 
 class StoreInitWorker(BaseWorker):
     """后台初始化 DataManager"""
+    progress = Signal(int, int)
 
     def __init__(self, game_config_path: Path,
                  mod_configs: list[tuple[str, str, Path]],
                  service: MergeService,
                  history_dir: Path | None = None,
-                 mod_update_times: dict[str, int] | None = None) -> None:
+                 mod_update_times: dict[str, int] | None = None,
+                 overrides_dir: Path | None = None,
+                 enabled_mod_ids: list[str] | None = None) -> None:
         super().__init__()
         self.game_config_path = game_config_path
         self.mod_configs = mod_configs
         self.history_dir = history_dir
         self.mod_update_times = mod_update_times
+        self.overrides_dir = overrides_dir
+        self.enabled_mod_ids = enabled_mod_ids
         self._service = service
 
     def _run(self) -> None:
@@ -65,6 +70,9 @@ class StoreInitWorker(BaseWorker):
             self.game_config_path, self.mod_configs,
             history_dir=self.history_dir,
             mod_update_times=self.mod_update_times,
+            overrides_dir=self.overrides_dir,
+            enabled_mod_ids=self.enabled_mod_ids,
+            on_progress=self.progress.emit,
         )
 
 

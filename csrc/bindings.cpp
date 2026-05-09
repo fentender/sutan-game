@@ -9,6 +9,7 @@
 #include "diag.h"
 #include "json_ops.h"
 #include "json_doc.h"
+#include "batch_parse.h"
 #include "change_kind.h"
 #include "json_state.h"
 #include "state_formatter.h"
@@ -63,11 +64,22 @@ static void bind_diag(nb::module_& parent) {
 static void bind_json(nb::module_& parent) {
     auto m = parent.def_submodule("json");
 
+    nb::class_<BatchHandle>(m, "BatchHandle")
+        .def("total", &BatchHandle::total)
+        .def("completed", &BatchHandle::completed)
+        .def("done", &BatchHandle::done)
+        .def("wait", &BatchHandle::wait)
+        .def("take_doc", &BatchHandle::take_doc, nb::arg("index"))
+        .def("error", &BatchHandle::error, nb::arg("index"));
+
     nb::class_<JsonDoc>(m, "JsonDoc")
         .def_static("parse", &JsonDoc::parse,
             nb::arg("text"), nb::arg("clean") = true)
         .def_static("parse_file", &JsonDoc::parse_file,
             nb::arg("path"), nb::arg("clean") = true)
+        .def_static("start_batch_parse", [](const std::vector<std::string>& paths) {
+            return new BatchHandle(paths);
+        }, nb::arg("paths"), nb::rv_policy::take_ownership)
         .def("to_string", &JsonDoc::to_string,
             nb::arg("compact") = false)
         .def("valid", &JsonDoc::valid)

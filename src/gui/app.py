@@ -250,15 +250,26 @@ class MainWindow(QMainWindow):
         if self._store_worker and self._store_worker.isRunning():
             self._store_worker.wait()
 
+        enabled_ids = [
+            mid for mid in self.config.mod_order
+            if mid in set(self.config.enabled_mods)
+        ]
+
         self.statusBar().showMessage("正在加载 JSON 资源...")
         self._store_worker = StoreInitWorker(
             self.config.game_config_path, mod_configs, self.service,
             history_dir=HISTORY_DIR,
             mod_update_times=self._get_mod_update_times(),
+            overrides_dir=MOD_OVERRIDES_DIR,
+            enabled_mod_ids=enabled_ids,
         )
         self._store_worker.finished.connect(self._on_store_ready)
         self._store_worker.error.connect(self._on_store_error)
+        self._store_worker.progress.connect(self._on_store_progress)
         self._store_worker.start()
+
+    def _on_store_progress(self, completed: int, total: int) -> None:
+        self.statusBar().showMessage(f"正在加载 JSON 资源... ({completed}/{total})")
 
     def _on_store_ready(self) -> None:
         """JsonStore 初始化完成，处理错误后触发冲突分析"""
@@ -315,14 +326,11 @@ class MainWindow(QMainWindow):
         overlap_map = self.service.compute_all_overlaps(all_mod_ids)
         self.mod_list_panel.update_overlap(overlap_map)
 
-        # 加载用户 override 文件
+        # 启动 delta 预计算
         enabled_ids = [
             mid for mid in self.config.mod_order
             if mid in set(self.config.enabled_mods)
         ]
-        self.service.load_overrides(MOD_OVERRIDES_DIR, enabled_ids)
-
-        # 启动 delta 预计算
         self._start_delta_init(enabled_ids)
 
     def _refresh_delta(self) -> None:

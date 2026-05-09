@@ -154,10 +154,16 @@ class ModManager:
         mod_configs: list[tuple[str, str, Path]],
         history_dir: Path | None = None,
         mod_update_times: dict[str, int] | None = None,
+        overrides_dir: Path | None = None,
+        enabled_mod_ids: list[str] | None = None,
+        on_progress: Callable[[int, int], None] | None = None,
     ) -> None:
         self._data.init(game_config_path, mod_configs,
                         history_dir=history_dir,
-                        mod_update_times=mod_update_times)
+                        mod_update_times=mod_update_times,
+                        overrides_dir=overrides_dir,
+                        enabled_mod_ids=enabled_mod_ids,
+                        on_progress=on_progress)
 
     def take_failures(self) -> list[ParseFailure]:
         return self._data.take_failures()

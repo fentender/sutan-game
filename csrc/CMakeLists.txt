@@ -4,6 +4,7 @@ add_library(sultan_core_lib STATIC
     resource_loader.cpp
     json/json_cleaner.cpp
     json/json_doc.cpp
+    json/batch_parse.cpp
     json/json_val.cpp
     json/mut_val.cpp
     json/mut_doc.cpp

@@ -2,15 +2,14 @@
 数据管理模块 — 管理所有 GameData 生命周期
 
 DataManager 是全局数据所有者，持有本体和所有 Mod 的 GameData 实例。
-资源加载通过 C++ JsonDoc.parse_file 完成。
+资源加载通过 C++ JsonDoc.start_batch_parse 完成。
 """
 import builtins
 import enum
 import json
 import shutil
-import threading
+import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -190,7 +189,6 @@ class DataManager:
         self._overrides_dir: Path | None = None
         self._failures: list[ParseFailure] = []
         self._ignored_failures: list[ParseFailure] = []
-        self._lock = threading.Lock()
         self._on_override_change: Callable[[str], None] | None = None
 
     @classmethod
@@ -208,24 +206,30 @@ class DataManager:
         mod_configs: list[tuple[str, str, Path]],
         history_dir: Path | None = None,
         mod_update_times: dict[str, int] | None = None,
+        overrides_dir: Path | None = None,
+        enabled_mod_ids: list[str] | None = None,
+        on_progress: Callable[[int, int], None] | None = None,
     ) -> None:
-        with self._lock:
-            self._base = GameData(
-                data_id="", data_type=GameDataType.BASE,
-                config_path=game_config_path,
-            )
-            self._mods.clear()
-            self._history_bases.clear()
-            self._mod_history_map.clear()
-            self._failures.clear()
-            self._ignored_failures.clear()
+        self._base = GameData(
+            data_id="", data_type=GameDataType.BASE,
+            config_path=game_config_path,
+        )
+        self._mods.clear()
+        self._history_bases.clear()
+        self._mod_history_map.clear()
+        self._failures.clear()
+        self._ignored_failures.clear()
+        if overrides_dir is not None:
+            self._overrides_dir = overrides_dir
+            for mod_gd in self._mods.values():
+                mod_gd.override.clear()
 
-        tasks: list[tuple[Path, str, bool, str, str]] = []
+        tasks: list[tuple[Path, str, str, str, str]] = []
 
         if game_config_path.exists():
             for json_file in game_config_path.rglob("*.json"):
                 rel = normalize_rel_path(json_file, game_config_path)
-                tasks.append((json_file, rel, True, "", ""))
+                tasks.append((json_file, rel, "base", "", ""))
 
         for mod_id, mod_name, config_path in mod_configs:
             gd = GameData(
@@ -233,68 +237,82 @@ class DataManager:
                 config_path=config_path,
             )
             gd.info.name = mod_name
-            with self._lock:
-                self._mods[mod_id] = gd
+            self._mods[mod_id] = gd
             if not config_path.exists():
                 continue
             for json_file in config_path.rglob("*.json"):
                 rel = normalize_rel_path(json_file, config_path)
-                tasks.append((json_file, rel, False, mod_id, mod_name))
+                tasks.append((json_file, rel, "mod", mod_id, mod_name))
 
-        self._load_tasks(tasks)
+        mod_ids = [mid for mid, _, _ in mod_configs]
+        tasks.extend(self._collect_history_tasks(
+            history_dir, mod_update_times, mod_ids,
+        ))
+        tasks.extend(self._collect_override_tasks(
+            overrides_dir, enabled_mod_ids or [],
+        ))
 
-        self._init_history(
-            history_dir, mod_update_times,
-            [mid for mid, _, _ in mod_configs],
-        )
+        self._batch_load(tasks, on_progress)
 
-    def _load_tasks(
+    def _batch_load(
         self,
-        tasks: list[tuple[Path, str, bool, str, str]],
+        tasks: list[tuple[Path, str, str, str, str]],
+        on_progress: Callable[[int, int], None] | None = None,
     ) -> None:
-        if len(tasks) <= 20:
-            for task in tasks:
-                self._load_single(task)
+        if not tasks:
             return
-        with ThreadPoolExecutor() as pool:
-            futures = {pool.submit(self._load_single, t): t for t in tasks}
-            for future in as_completed(futures):
-                future.result()
 
-    def _load_single(
-        self,
-        task: tuple[Path, str, bool, str, str],
-    ) -> None:
-        file_path, rel_path, is_base, mod_id, mod_name = task
-        try:
-            doc = JsonDoc.parse_file(str(file_path))
+        paths = [str(t[0]) for t in tasks]
+        handle = JsonDoc.start_batch_parse(paths)
+
+        while not handle.done():
+            if on_progress:
+                on_progress(handle.completed(), handle.total())
+            time.sleep(0.03)
+        handle.wait()
+
+        if on_progress:
+            on_progress(handle.total(), handle.total())
+
+        for i, (file_path, rel_path, category, owner_id, mod_name) in enumerate(tasks):
+            err = handle.error(i)
+            if err:
+                if category == "override":
+                    diag.warn("override", f"override 文件解析失败: {file_path}")
+                elif category == "history":
+                    pass
+                else:
+                    diag.error("json", f"{file_path}: JSON 解析失败 ({err})")
+                    self._failures.append(ParseFailure(
+                        file_path=file_path, rel_path=rel_path,
+                        error_msg=err, error_line=0,
+                        is_base=(category == "base"),
+                        mod_id=owner_id, mod_name=mod_name,
+                    ))
+                continue
+
+            doc = handle.take_doc(i)
             if not doc.valid():
-                raise RuntimeError("invalid JSON")
-        except RuntimeError as e:
-            diag.error("json", f"{file_path}: JSON 解析失败 ({e})")
-            failure = ParseFailure(
-                file_path=file_path, rel_path=rel_path,
-                error_msg=str(e), error_line=0,
-                is_base=is_base, mod_id=mod_id, mod_name=mod_name,
-            )
-            with self._lock:
-                self._failures.append(failure)
-            return
+                continue
 
-        with self._lock:
-            if is_base:
-                self._base.config.set(rel_path, doc)
-            else:
-                self._mods[mod_id].config.set(rel_path, doc)
+            match category:
+                case "base":
+                    self._base.config.set(rel_path, doc)
+                case "mod":
+                    self._mods[owner_id].config.set(rel_path, doc)
+                case "history":
+                    self._history_bases[owner_id].config.set(rel_path, doc)
+                case "override":
+                    self._mods[owner_id].override.set_raw(rel_path, doc)
 
-    # ── 历史版本初始化 ──
+    # ── 历史版本收集 ──
 
-    def _init_history(
+    def _collect_history_tasks(
         self,
         history_dir: Path | None,
         mod_update_times: dict[str, int] | None,
         mod_ids: list[str],
-    ) -> None:
+    ) -> list[tuple[Path, str, str, str, str]]:
         from .platform.history import (
             PathResolver,
             find_base_version,
@@ -305,12 +323,12 @@ class DataManager:
 
         if history_dir is None:
             set_resolver(None)
-            return
+            return []
 
         set_resolver(PathResolver(history_dir))
         history_versions = parse_history_versions(history_dir)
         if not history_versions or mod_update_times is None:
-            return
+            return []
 
         version_to_mods: dict[str, list[str]] = {}
         for mod_id in mod_ids:
@@ -324,6 +342,7 @@ class DataManager:
             self._mod_history_map[mod_id] = ver_key
             version_to_mods.setdefault(ver_key, []).append(mod_id)
 
+        tasks: list[tuple[Path, str, str, str, str]] = []
         for ver_key, ver_mod_ids in version_to_mods.items():
             ver_dir = Path(ver_key)
             gd = GameData(
@@ -331,6 +350,7 @@ class DataManager:
                 data_type=GameDataType.BASE,
                 config_path=ver_dir,
             )
+            self._history_bases[ver_key] = gd
 
             needed_files: set[str] = set()
             for mod_id in ver_mod_ids:
@@ -342,15 +362,33 @@ class DataManager:
                 hist_file = resolve_path(ver_dir, rel_path)
                 if hist_file is None:
                     continue
-                try:
-                    doc = JsonDoc.parse_file(str(hist_file))
-                    if not doc.valid():
-                        continue
-                except (RuntimeError, OSError):
-                    continue
-                gd.config.set(rel_path, doc)
+                tasks.append((hist_file, rel_path, "history", ver_key, ""))
 
-            self._history_bases[ver_key] = gd
+        return tasks
+
+    # ── Override 收集 ──
+
+    def _collect_override_tasks(
+        self,
+        overrides_dir: Path | None,
+        enabled_mod_ids: list[str],
+    ) -> list[tuple[Path, str, str, str, str]]:
+        if overrides_dir is None or not overrides_dir.exists():
+            return []
+
+        tasks: list[tuple[Path, str, str, str, str]] = []
+        for mod_id in enabled_mod_ids:
+            mod_dir = overrides_dir / mod_id
+            if not mod_dir.exists():
+                continue
+            gd = self._mods.get(mod_id)
+            if gd is None:
+                continue
+            for json_file in mod_dir.rglob("*.json"):
+                rel = normalize_rel_path(json_file, mod_dir)
+                tasks.append((json_file, rel, "override", mod_id, ""))
+
+        return tasks
 
     # ── 数据访问（历史版本 base） ──
 
@@ -429,48 +467,42 @@ class DataManager:
     # ── 数据修改 ──
 
     def set_mod(self, mod_id: str, rel_path: str, doc: JsonDoc) -> None:
-        with self._lock:
-            if mod_id not in self._mods:
-                self._mods[mod_id] = GameData(
-                    data_id=mod_id, data_type=GameDataType.MOD,
-                )
-            self._mods[mod_id].config.set(rel_path, doc)
+        if mod_id not in self._mods:
+            self._mods[mod_id] = GameData(
+                data_id=mod_id, data_type=GameDataType.MOD,
+            )
+        self._mods[mod_id].config.set(rel_path, doc)
 
     def remove_mod_file(self, mod_id: str, rel_path: str) -> None:
-        with self._lock:
-            gd = self._mods.get(mod_id)
-            if gd is not None:
-                gd.config.remove(rel_path)
+        gd = self._mods.get(mod_id)
+        if gd is not None:
+            gd.config.remove(rel_path)
 
     def reload_mod(self, mod_id: str) -> None:
         gd = self._mods.get(mod_id)
         if gd is None or gd.config_path is None or not gd.config_path.exists():
             return
         config_path = gd.config_path
-        with self._lock:
-            gd.config.clear()
+        gd.config.clear()
         mod_name = gd.info.name or mod_id
-        tasks: list[tuple[Path, str, bool, str, str]] = []
+        tasks: list[tuple[Path, str, str, str, str]] = []
         for json_file in config_path.rglob("*.json"):
             rel = normalize_rel_path(json_file, config_path)
-            tasks.append((json_file, rel, False, mod_id, mod_name))
-        self._load_tasks(tasks)
+            tasks.append((json_file, rel, "mod", mod_id, mod_name))
+        self._batch_load(tasks)
 
     # ── 错误管理 ──
 
     def take_failures(self) -> list[ParseFailure]:
-        with self._lock:
-            failures = self._failures.copy()
-            self._failures.clear()
+        failures = self._failures.copy()
+        self._failures.clear()
         return failures
 
     def set_ignored_failures(self, failures: list[ParseFailure]) -> None:
-        with self._lock:
-            self._ignored_failures = list(failures)
+        self._ignored_failures = list(failures)
 
     def get_ignored_failures(self) -> list[ParseFailure]:
-        with self._lock:
-            return list(self._ignored_failures)
+        return list(self._ignored_failures)
 
     # ── Override 管理 ──
 
@@ -482,31 +514,12 @@ class DataManager:
             self._on_override_change(rel_path)
 
     def load_overrides(self, overrides_dir: Path, enabled_mod_ids: list[str]) -> None:
-        with self._lock:
-            for mod_gd in self._mods.values():
-                mod_gd.override.clear()
-            self._overrides_dir = overrides_dir
+        for mod_gd in self._mods.values():
+            mod_gd.override.clear()
+        self._overrides_dir = overrides_dir
 
-        if not overrides_dir.exists():
-            return
-
-        for mod_id in enabled_mod_ids:
-            mod_dir = overrides_dir / mod_id
-            if not mod_dir.exists():
-                continue
-            gd = self._mods.get(mod_id)
-            if gd is None:
-                continue
-            for json_file in mod_dir.rglob("*.json"):
-                rel = normalize_rel_path(json_file, mod_dir)
-                try:
-                    doc = JsonDoc.parse_file(str(json_file), False)
-                    if not doc.valid():
-                        raise RuntimeError("invalid JSON")
-                except (RuntimeError, OSError):
-                    diag.warn("override", f"override 文件解析失败: {json_file}")
-                    continue
-                gd.override.set_raw(rel, doc)
+        tasks = self._collect_override_tasks(overrides_dir, enabled_mod_ids)
+        self._batch_load(tasks)
 
     def get_override(self, mod_id: str, rel_path: str) -> DictFieldDiff | None:
         gd = self._mods.get(mod_id)
@@ -593,28 +606,26 @@ class DataManager:
     # ── Reload ──
 
     def reload(self, paths: list[Path]) -> list[ParseFailure]:
-        tasks: list[tuple[Path, str, bool, str, str]] = []
+        tasks: list[tuple[Path, str, str, str, str]] = []
 
         for file_path in paths:
             base_cfg = self._base.config_path
             if base_cfg and self._is_under(file_path, base_cfg):
                 rel = normalize_rel_path(file_path, base_cfg)
-                with self._lock:
-                    self._base.config.remove(rel)
-                tasks.append((file_path, rel, True, "", ""))
+                self._base.config.remove(rel)
+                tasks.append((file_path, rel, "base", "", ""))
             else:
                 for mod_id, gd in self._mods.items():
                     if gd.config_path and self._is_under(file_path, gd.config_path):
                         rel = normalize_rel_path(file_path, gd.config_path)
-                        with self._lock:
-                            gd.config.remove(rel)
+                        gd.config.remove(rel)
                         tasks.append((
-                            file_path, rel, False,
+                            file_path, rel, "mod",
                             mod_id, gd.info.name or mod_id,
                         ))
                         break
 
-        self._load_tasks(tasks)
+        self._batch_load(tasks)
         return self.take_failures()
 
     # ── 版本查询 ──
@@ -636,14 +647,13 @@ class DataManager:
     # ── 生命周期 ──
 
     def clear(self) -> None:
-        with self._lock:
-            self._base = GameData(data_id="", data_type=GameDataType.BASE)
-            self._mods.clear()
-            self._history_bases.clear()
-            self._mod_history_map.clear()
-            self._failures.clear()
-            self._ignored_failures.clear()
-            self._overrides_dir = None
+        self._base = GameData(data_id="", data_type=GameDataType.BASE)
+        self._mods.clear()
+        self._history_bases.clear()
+        self._mod_history_map.clear()
+        self._failures.clear()
+        self._ignored_failures.clear()
+        self._overrides_dir = None
 
     @staticmethod
     def _is_under(path: Path, parent: Path) -> bool:
