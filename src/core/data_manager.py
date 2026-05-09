@@ -627,6 +627,12 @@ class DataManager:
             return 0
         return gd.config.version_of(rel_path)
 
+    def override_version(self, mod_id: str, rel_path: str) -> int:
+        gd = self._mods.get(mod_id)
+        if gd is None:
+            return 0
+        return gd.override.version_of(rel_path)
+
     # ── 生命周期 ──
 
     def clear(self) -> None:

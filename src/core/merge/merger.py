@@ -91,8 +91,7 @@ def merge_all_files(
     diag.snapshot("merge")
 
     store = DataManager.instance()
-    from .cache import MergeCache
-    cache = MergeCache.instance()
+    from .delta import ModDelta
     mod_ids = [mod_id for mod_id, _, _ in mod_configs]
 
     results: dict[str, MergeResult] = {}
@@ -109,13 +108,23 @@ def merge_all_files(
         if not has_mod:
             continue
 
-        state = cache.get(rel_path, mod_configs, schema_dir, need_steps=False)
-        result = MergeResult(merged_doc=state.final_doc)
+        # 直接计算合并（不使用缓存）
+        base_doc = store.get_base(rel_path)
+        mod_data_list: list[tuple[str, str, JsonDoc, str]] = []
+        for mod_id, mod_name, config_path in mod_configs:
+            if not store.has_mod(mod_id, rel_path):
+                continue
+            delta_doc = ModDelta.get(mod_id, rel_path)
+            if delta_doc is None:
+                continue
+            mod_data_list.append((mod_id, mod_name, delta_doc, str(config_path / rel_path)))
+
+        result = merge_file(base_doc, mod_data_list, rel_path)
         results[rel_path] = result
 
         out_file = output_path / rel_path
         out_file.parent.mkdir(parents=True, exist_ok=True)
-        out_file.write_text(state.final_doc.to_string(), encoding='utf-8')
+        out_file.write_text(result.merged_doc.to_string(), encoding='utf-8')
 
     if progress_cb:
         progress_cb(total, total)

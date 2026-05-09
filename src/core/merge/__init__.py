@@ -1,9 +1,8 @@
 """合并引擎层 — 差异计算、合并、缓存"""
 
-from .cache import MergeCache as MergeCache
+from .cache import FileMergeState as FileMergeState, StepState as StepState
 from .delta import (
     ModDelta as ModDelta,
-    flatten_delta as flatten_delta,
 )
 from .merger import (
     copy_failed_files as copy_failed_files,
