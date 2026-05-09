@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from sultan_core.json import JsonDoc
+from sultan_core.delta import DeltaDict, deserialize_delta, serialize_delta
 
 from .infra.diagnostics import diag
 from .infra.profiler import profile
@@ -72,46 +73,48 @@ class ConfigData:
 
 
 class OverrideData:
-    """override delta 数据。存储序列化 delta 的 JsonDoc，按需反序列化为 DictFieldDiff"""
+    """override delta 数据。内部存储 C++ DeltaDict，按需转换为 DictFieldDiff 供 GUI 使用"""
 
     def __init__(self) -> None:
-        self._docs: dict[str, JsonDoc] = {}
+        self._nodes: dict[str, DeltaDict] = {}
         self._versions: dict[str, int] = {}
         self._cache: dict[str, DictFieldDiff] = {}
 
-    def get_doc(self, rel_path: str) -> JsonDoc | None:
-        return self._docs.get(rel_path)
+    def get_node(self, rel_path: str) -> DeltaDict | None:
+        return self._nodes.get(rel_path)
 
     def get(self, rel_path: str) -> DictFieldDiff | None:
         if rel_path in self._cache:
             return self._cache[rel_path]
-        doc = self._docs.get(rel_path)
-        if doc is None:
+        node = self._nodes.get(rel_path)
+        if node is None:
             return None
+        doc = serialize_delta(node)
         raw: JsonObject = json.loads(doc.to_string())
         delta = DictFieldDiff.from_delta_dict(raw)
         self._cache[rel_path] = delta
         return delta
 
-    def set(self, rel_path: str, delta: DictFieldDiff) -> None:
-        raw = delta.to_delta_dict()
-        text = json.dumps(raw, ensure_ascii=False)
-        self._docs[rel_path] = JsonDoc.parse(text, False)
+    def set_node(self, rel_path: str, node: DeltaDict) -> None:
+        self._nodes[rel_path] = node
         self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
-        self._cache[rel_path] = delta
+        self._cache.pop(rel_path, None)
 
     def set_raw(self, rel_path: str, doc: JsonDoc) -> None:
-        self._docs[rel_path] = doc
+        node = deserialize_delta(doc)
+        if node is None:
+            return
+        self._nodes[rel_path] = node
         self._versions[rel_path] = self._versions.get(rel_path, 0) + 1
         self._cache.pop(rel_path, None)
 
     def has(self, rel_path: str) -> bool:
-        return rel_path in self._docs
+        return rel_path in self._nodes
 
     def remove(self, rel_path: str) -> bool:
         self._cache.pop(rel_path, None)
-        existed = rel_path in self._docs
-        self._docs.pop(rel_path, None)
+        existed = rel_path in self._nodes
+        self._nodes.pop(rel_path, None)
         self._versions.pop(rel_path, None)
         return existed
 
@@ -119,10 +122,10 @@ class OverrideData:
         return self._versions.get(rel_path, 0)
 
     def rel_paths(self) -> builtins.set[str]:
-        return builtins.set(self._docs.keys())
+        return builtins.set(self._nodes.keys())
 
     def clear(self) -> None:
-        self._docs.clear()
+        self._nodes.clear()
         self._versions.clear()
         self._cache.clear()
 
@@ -527,11 +530,11 @@ class DataManager:
             return None
         return gd.override.get(rel_path)
 
-    def get_override_doc(self, mod_id: str, rel_path: str) -> JsonDoc | None:
+    def get_override_node(self, mod_id: str, rel_path: str) -> DeltaDict | None:
         gd = self._mods.get(mod_id)
         if gd is None:
             return None
-        return gd.override.get_doc(rel_path)
+        return gd.override.get_node(rel_path)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
         gd = self._mods.get(mod_id)
@@ -539,19 +542,17 @@ class DataManager:
             return False
         return gd.override.has(rel_path)
 
-    def set_override(self, mod_id: str, rel_path: str, delta: DictFieldDiff) -> None:
+    def set_override_node(self, mod_id: str, rel_path: str, node: DeltaDict) -> None:
         gd = self._mods.get(mod_id)
         if gd is None:
             return
-        gd.override.set(rel_path, delta)
+        gd.override.set_node(rel_path, node)
 
         if self._overrides_dir is not None:
             override_file = self._overrides_dir / mod_id / rel_path
             override_file.parent.mkdir(parents=True, exist_ok=True)
-            serialized = json.dumps(
-                delta.to_delta_dict(), ensure_ascii=False, indent=2,
-            )
-            override_file.write_text(serialized, encoding="utf-8")
+            doc = serialize_delta(node)
+            override_file.write_text(doc.to_string(), encoding="utf-8")
 
         self._notify_override_change(rel_path)
 

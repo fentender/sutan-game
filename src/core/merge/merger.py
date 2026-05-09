@@ -7,7 +7,7 @@ from pathlib import Path
 
 from sultan_core.json import JsonDoc
 from sultan_core.state import JsonState
-from sultan_core.delta import deserialize_and_apply
+from sultan_core.delta import DeltaDict, apply_delta
 
 from ..infra.diagnostics import diag, merge_ctx
 from ..infra.profiler import profile
@@ -31,7 +31,7 @@ class MergeResult:
 @profile
 def merge_file(
     base_doc: JsonDoc,
-    mod_data_list: list[tuple[str, str, JsonDoc, str]],
+    mod_data_list: list[tuple[str, str, DeltaDict, str]],
     rel_path: str = "",
     schema: JsonObject | None = None,
 ) -> MergeResult:
@@ -39,7 +39,7 @@ def merge_file(
 
     参数:
         base_doc: 游戏本体 JSON 文档
-        mod_data_list: [(mod_id, mod_name, delta_doc, source_file), ...] 按优先级排序
+        mod_data_list: [(mod_id, mod_name, delta, source_file), ...] 按优先级排序
         rel_path: 文件相对路径
         schema: 仅用于兼容签名（C++ 层已内化 schema 语义）
     """
@@ -50,8 +50,8 @@ def merge_file(
         if mod_data_list:
             _, last_mod_name, _, _ = mod_data_list[-1]
             state = JsonState.from_doc(base_doc)
-            for step, (_, _, delta_doc, _) in enumerate(mod_data_list, 1):
-                deserialize_and_apply(delta_doc, state, version=step)
+            for step, (_, _, delta, _) in enumerate(mod_data_list, 1):
+                apply_delta(delta, state, version=step)
             result.merged_doc = state.to_doc()
             if len(mod_data_list) > 1:
                 diag.warn("merge", f"{rel_path}: 多个 mod 修改此文件（整文件替换模式），最终使用 {last_mod_name}")
@@ -62,18 +62,18 @@ def merge_file(
     state = JsonState.from_doc(base_doc)
     dm = DataManager.instance()
 
-    for version, (mod_id, mod_name, delta_doc, source_file) in enumerate(mod_data_list, 1):
+    for version, (mod_id, mod_name, delta, source_file) in enumerate(mod_data_list, 1):
         merge_ctx.mod_name = mod_name
         merge_ctx.mod_id = mod_id
         merge_ctx.rel_path = rel_path
         merge_ctx.source_file = source_file
 
-        deserialize_and_apply(delta_doc, state, version=version)
+        apply_delta(delta, state, version=version)
 
-        override_doc = dm.get_override_doc(mod_id, rel_path)
-        if override_doc is not None:
-            deserialize_and_apply(override_doc, state,
-                                  version=version, is_override=True)
+        override_node = dm.get_override_node(mod_id, rel_path)
+        if override_node is not None:
+            apply_delta(override_node, state,
+                        version=version, is_override=True)
 
     result.merged_doc = state.to_doc()
     return result
@@ -110,14 +110,14 @@ def merge_all_files(
 
         # 直接计算合并（不使用缓存）
         base_doc = store.get_base(rel_path)
-        mod_data_list: list[tuple[str, str, JsonDoc, str]] = []
+        mod_data_list: list[tuple[str, str, DeltaDict, str]] = []
         for mod_id, mod_name, config_path in mod_configs:
             if not store.has_mod(mod_id, rel_path):
                 continue
-            delta_doc = ModDelta.get(mod_id, rel_path)
-            if delta_doc is None:
+            delta = ModDelta.get(mod_id, rel_path)
+            if delta is None:
                 continue
-            mod_data_list.append((mod_id, mod_name, delta_doc, str(config_path / rel_path)))
+            mod_data_list.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         result = merge_file(base_doc, mod_data_list, rel_path)
         results[rel_path] = result

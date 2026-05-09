@@ -9,11 +9,11 @@ from pathlib import Path
 
 from sultan_core.json import JsonDoc
 from sultan_core.state import MergeMode as CppMergeMode
-from sultan_core.delta import compute_and_serialize
+from sultan_core.delta import compute_delta, serialize_delta, deserialize_delta, DeltaDict
 
 from src.config import SCHEMA_DIR, UserConfig
 from src.core.merge.array_match import match_by_heuristic
-from src.core.merge.delta import ModDelta, _is_valid_delta
+from src.core.merge.delta import ModDelta
 from src.core.json.parser import _pairs_hook, clean_json_text
 from src.core.data_manager import DataManager
 from src.core.merge.cache import MergeCache
@@ -37,9 +37,10 @@ def _compute_delta(
     base_doc = JsonDoc.parse(_json.dumps(base_data))
     mod_doc = JsonDoc.parse(_json.dumps(mod_data))
     is_dict = file_type == "dictionary"
-    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
-    if _is_valid_delta(delta_doc):
-        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    delta = compute_delta(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if delta is not None:
+        doc = serialize_delta(delta)
+        return DictFieldDiff.from_delta_dict(_json.loads(doc.to_string()))
     return None
 
 
@@ -201,13 +202,18 @@ def _apply_override_and_verify(
     label: str,
 ) -> None:
     """计算 override delta、保存、重新合并、验证结果一致"""
-    delta = _compute_delta(old_json, expected_json, "config",
-                           merge_mode=MergeMode.NORMAL)
-    if delta is None:
+    _CPP_MODE_LOCAL: dict[MergeMode, CppMergeMode] = {
+        MergeMode.NORMAL: CppMergeMode.NORMAL,
+        MergeMode.SMART: CppMergeMode.SMART,
+    }
+    base_doc = JsonDoc.parse(_json.dumps(old_json))
+    mod_doc = JsonDoc.parse(_json.dumps(expected_json))
+    delta_node = compute_delta(base_doc, mod_doc, _CPP_MODE_LOCAL[MergeMode.NORMAL], False)
+    if delta_node is None:
         raise AssertionError(f"{label}: compute_delta 返回 None，编辑未产生差异")
 
     try:
-        store.set_override(target_mod, rel_path, delta)
+        store.set_override_node(target_mod, rel_path, delta_node)
         cache.invalidate(rel_path)
         actual_json = _get_step_right_json(cache, mod_configs, rel_path,
                                            target_mod)

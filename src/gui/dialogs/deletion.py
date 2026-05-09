@@ -415,6 +415,7 @@ class DeletionReportDialog(QDialog):
         from PySide6.QtWidgets import QTextEdit
 
         from sultan_core.json import JsonDoc
+        from sultan_core.delta import DeltaDict
 
         from src.core.infra.types import MergeMode
 
@@ -426,7 +427,7 @@ class DeletionReportDialog(QDialog):
         base_doc = svc.get_base(rel_path)
 
         # 使用缓存的 delta（已按当前模式过滤）合并 → 无删除版本
-        mod_data_list_cached: list[tuple[str, str, JsonDoc, str]] = []
+        mod_data_list_cached: list[tuple[str, str, DeltaDict, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not svc.has_mod(mod_id, rel_path):
                 continue
@@ -440,17 +441,17 @@ class DeletionReportDialog(QDialog):
 
         # 计算 NORMAL 模式 delta（包含所有删除）→ 有删除版本
         file_type = svc.classify_json(base_doc) if svc.has_base(rel_path) else "config"
-        mod_data_list_normal: list[tuple[str, str, JsonDoc, str]] = []
+        mod_data_list_normal: list[tuple[str, str, DeltaDict, str]] = []
         for mod_id, mod_name, config_path in self._mod_configs:
             if not svc.has_mod(mod_id, rel_path):
                 continue
             mod_doc = svc.get_mod(mod_id, rel_path)
-            delta_doc = svc.compute_delta_doc(
+            delta = svc.compute_delta_node(
                 base_doc, mod_doc, file_type,
                 merge_mode=MergeMode.NORMAL,
             )
-            if delta_doc:
-                mod_data_list_normal.append((mod_id, mod_name, delta_doc, str(config_path / rel_path)))
+            if delta:
+                mod_data_list_normal.append((mod_id, mod_name, delta, str(config_path / rel_path)))
 
         result_del = svc.merge_file(
             base_doc, mod_data_list_normal, rel_path,

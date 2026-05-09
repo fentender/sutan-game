@@ -11,11 +11,11 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from sultan_core.json import JsonDoc
 from sultan_core.state import JsonState, MergeMode as CppMergeMode
 from sultan_core.delta import (
-    compute_and_serialize,
-    deserialize_and_apply,
+    DeltaDict,
+    compute_delta,
+    apply_delta,
     remap_delta,
 )
 
@@ -47,11 +47,8 @@ def _to_cpp_mode(mode: MergeMode) -> CppMergeMode:
     return _CPP_MODE[mode]
 
 
-def _is_valid_delta(doc: JsonDoc) -> bool:
-    if not doc.valid():
-        return False
-    s = doc.to_string(True)
-    return s != "null" and s != "{}"
+def _is_valid_delta(delta: DeltaDict | None) -> bool:
+    return delta is not None
 
 
 # ==================== init() 辅助函数 ====================
@@ -75,13 +72,13 @@ def _process_file_group(
     schemas: dict[str, JsonObject],
     merge_mode: MergeMode,
     mod_merge_modes: dict[str, MergeMode] | None,
-) -> list[tuple[str, str, JsonDoc | None]]:
+) -> list[tuple[str, str, DeltaDict | None]]:
     """处理单个文件的所有 mod delta 计算（C++ API）。"""
     base_doc = dm.get_base(rel_path)
     is_dict = classify_json(base_doc) == "dictionary"
 
     state: JsonState | None = None
-    results: list[tuple[str, str, JsonDoc | None]] = []
+    results: list[tuple[str, str, DeltaDict | None]] = []
 
     for mod_id in file_mod_ids:
         effective = _effective_mode(mod_id, merge_mode, mod_merge_modes)
@@ -90,31 +87,31 @@ def _process_file_group(
 
         if effective == MergeMode.REPLACE:
             cumulative_doc = state.to_doc() if state is not None else base_doc
-            delta_doc = compute_and_serialize(
+            delta = compute_delta(
                 cumulative_doc, mod_doc, cpp_mode, is_dict,
             )
         elif effective == MergeMode.ADAPTIVE:
             hist_doc = dm.get_history_base(mod_id, rel_path)
             adaptive_doc = hist_doc if hist_doc is not None else base_doc
-            delta_doc = compute_and_serialize(
+            delta = compute_delta(
                 adaptive_doc, mod_doc, CppMergeMode.SMART, is_dict,
             )
-            if hist_doc is not None and _is_valid_delta(delta_doc):
-                remapped = remap_delta(delta_doc, hist_doc, base_doc)
-                if remapped.valid():
-                    delta_doc = remapped
+            if hist_doc is not None and _is_valid_delta(delta):
+                remapped = remap_delta(delta, hist_doc, base_doc)
+                if remapped is not None:
+                    delta = remapped
         else:
-            delta_doc = compute_and_serialize(
+            delta = compute_delta(
                 base_doc, mod_doc, cpp_mode, is_dict,
             )
 
-        valid = _is_valid_delta(delta_doc)
-        results.append((mod_id, rel_path, delta_doc if valid else None))
+        valid = _is_valid_delta(delta)
+        results.append((mod_id, rel_path, delta if valid else None))
 
         if valid:
             if state is None:
                 state = JsonState.from_doc(base_doc)
-            deserialize_and_apply(delta_doc, state, version=0)
+            apply_delta(delta, state, version=0)
 
     return results
 
@@ -126,10 +123,10 @@ class ModDelta:
     """全局 Delta 缓存管理器（纯静态类）。
 
     启动时调用 init() 预计算所有 delta，后续通过 get() 直接取缓存结果。
-    缓存存储 C++ JsonDoc（序列化的 delta）。
+    缓存存储 C++ DeltaDict（内存中的 delta 树）。
     """
 
-    _cache: dict[tuple[str, str], JsonDoc | None] = {}
+    _cache: dict[tuple[str, str], DeltaDict | None] = {}
     _progress: tuple[int, int] = (0, 0)
     _lock: threading.Lock = threading.Lock()
 
@@ -169,16 +166,16 @@ class ModDelta:
                 for rel_path, file_mod_ids in file_groups
             }
             for future in as_completed(futures):
-                for mod_id, rel_path, delta_doc in future.result():
+                for mod_id, rel_path, delta in future.result():
                     with cls._lock:
-                        cls._cache[(mod_id, rel_path)] = delta_doc
+                        cls._cache[(mod_id, rel_path)] = delta
                         completed += 1
                         cls._progress = (completed, total)
                     if progress_cb:
                         progress_cb(completed, total)
 
     @classmethod
-    def get(cls, mod_id: str, rel_path: str) -> JsonDoc | None:
+    def get(cls, mod_id: str, rel_path: str) -> DeltaDict | None:
         return cls._cache[(mod_id, rel_path)]
 
     @classmethod

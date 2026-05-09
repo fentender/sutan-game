@@ -9,9 +9,8 @@ import json as _json
 
 from sultan_core.json import JsonDoc
 from sultan_core.state import MergeMode as CppMergeMode
-from sultan_core.delta import compute_and_serialize, remap_delta
+from sultan_core.delta import compute_delta, remap_delta, serialize_delta, deserialize_delta
 
-from src.core.merge.delta import _is_valid_delta
 from src.core.merge.formatter import format_delta_json
 from src.core.merge.merger import apply_dict_delta
 from src.core.infra.types import (
@@ -41,9 +40,10 @@ def _compute_delta(
     base_doc = JsonDoc.parse(_json.dumps(base_data))
     mod_doc = JsonDoc.parse(_json.dumps(mod_data))
     is_dict = file_type == "dictionary"
-    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
-    if _is_valid_delta(delta_doc):
-        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    delta = compute_delta(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if delta is not None:
+        doc = serialize_delta(delta)
+        return DictFieldDiff.from_delta_dict(_json.loads(doc.to_string()))
     return None
 
 
@@ -54,11 +54,15 @@ def _remap_delta_to_current(
 ) -> DictFieldDiff | None:
     """_remap_delta_to_current 的 C++ API 替代"""
     delta_doc = JsonDoc.parse(_json.dumps(delta.to_delta_dict()))
+    delta_node = deserialize_delta(delta_doc)
+    if delta_node is None:
+        return None
     hist_doc = JsonDoc.parse(_json.dumps(hist_base))
     current_doc = JsonDoc.parse(_json.dumps(current_base))
-    remapped_doc = remap_delta(delta_doc, hist_doc, current_doc)
-    if remapped_doc.valid() and remapped_doc.to_string(True) != "null":
-        return DictFieldDiff.from_delta_dict(_json.loads(remapped_doc.to_string()))
+    remapped_node = remap_delta(delta_node, hist_doc, current_doc)
+    if remapped_node is not None:
+        doc = serialize_delta(remapped_node)
+        return DictFieldDiff.from_delta_dict(_json.loads(doc.to_string()))
     return None
 
 

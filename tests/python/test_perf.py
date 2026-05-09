@@ -90,7 +90,7 @@ def perf_apply_delta_large():
     import json as _json
     from sultan_core.json import JsonDoc
     from sultan_core.state import JsonState
-    from sultan_core.delta import compute_and_apply
+    from sultan_core.delta import compute_delta, apply_delta
 
     base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
                           "nested": {"x": i * 2, "y": i * 3}}
@@ -103,13 +103,18 @@ def perf_apply_delta_large():
     mod_doc = JsonDoc.parse(_json.dumps(override))
 
     state = JsonState.from_doc(base_doc)
-    changed = compute_and_apply(base_doc, mod_doc, state, version=1)
+    delta = compute_delta(base_doc, mod_doc)
+    changed = delta is not None
+    if changed:
+        apply_delta(delta, state, version=1)
     assert_true(changed, "应有变化")
 
     start = time.perf_counter()
     for _ in range(10):
         s = JsonState.from_doc(base_doc)
-        compute_and_apply(base_doc, mod_doc, s, version=1)
+        d = compute_delta(base_doc, mod_doc)
+        if d is not None:
+            apply_delta(d, s, version=1)
     elapsed = time.perf_counter() - start
     log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
     assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")

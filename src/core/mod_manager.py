@@ -11,8 +11,9 @@ from pathlib import Path
 from sultan_core.json import JsonDoc
 from sultan_core.state import JsonState
 from sultan_core.delta import (
-    compute_and_serialize,
-    deserialize_and_apply,
+    DeltaDict,
+    compute_delta,
+    apply_delta,
 )
 
 from ..config import UserConfig
@@ -21,7 +22,6 @@ from .infra.profiler import profile
 from .infra.types import (
     CancelCheck,
     ChangeKind,
-    DictFieldDiff,
     JsonObject,
     MergeMode,
     ParseFailure,
@@ -30,7 +30,7 @@ from .infra.types import (
 from .json import classify_json as _classify_json
 from .json.parser import reset_dir_cache as _reset_dir_cache
 from .merge.cache import FileMergeState, StepState
-from .merge.delta import ModDelta, _to_cpp_mode, _is_valid_delta
+from .merge.delta import ModDelta, _to_cpp_mode
 from .merge.merger import (
     MergeResult,
     copy_failed_files as _copy_failed_files,
@@ -185,9 +185,9 @@ class ModManager:
     def has_override(self, mod_id: str, rel_path: str) -> bool:
         return self._data.has_override(mod_id, rel_path)
 
-    def set_override(self, mod_id: str, rel_path: str,
-                     delta: DictFieldDiff) -> None:
-        self._data.set_override(mod_id, rel_path, delta)
+    def set_override_node(self, mod_id: str, rel_path: str,
+                          node: DeltaDict) -> None:
+        self._data.set_override_node(mod_id, rel_path, node)
 
     def remove_override(self, mod_id: str, rel_path: str) -> bool:
         return self._data.remove_override(mod_id, rel_path)
@@ -242,7 +242,7 @@ class ModManager:
             self._delta_versions.clear()
             self._merge_cache.clear()
 
-    def get_delta(self, mod_id: str, rel_path: str) -> JsonDoc | None:
+    def get_delta(self, mod_id: str, rel_path: str) -> DeltaDict | None:
         """获取 delta，带 version 惰性失效检测。"""
         key = (mod_id, rel_path)
         if not ModDelta.has(mod_id, rel_path):
@@ -262,16 +262,15 @@ class ModManager:
     def has_delta(self, mod_id: str, rel_path: str) -> bool:
         return ModDelta.has(mod_id, rel_path)
 
-    def compute_delta_doc(
+    def compute_delta_node(
         self, base_doc: JsonDoc, mod_doc: JsonDoc,
         file_type: str,
         merge_mode: MergeMode = MergeMode.SMART,
-    ) -> JsonDoc | None:
+    ) -> DeltaDict | None:
         is_dict = (file_type == "dictionary")
-        result = compute_and_serialize(
+        return compute_delta(
             base_doc, mod_doc, _to_cpp_mode(merge_mode), is_dict,
         )
-        return result if _is_valid_delta(result) else None
 
     # === 合并缓存 ===
 
@@ -335,23 +334,23 @@ class ModManager:
         base_doc = dm.get_base(rel_path)
         state = JsonState.from_doc(base_doc)
 
-        mod_data_list: list[tuple[str, str, JsonDoc]] = []
+        mod_data_list: list[tuple[str, str, DeltaDict]] = []
         for mod_id, mod_name, _ in mod_configs:
             if not dm.has_mod(mod_id, rel_path):
                 continue
-            delta_doc = self.get_delta(mod_id, rel_path)
-            if delta_doc is None:
+            delta = self.get_delta(mod_id, rel_path)
+            if delta is None:
                 continue
-            mod_data_list.append((mod_id, mod_name, delta_doc))
+            mod_data_list.append((mod_id, mod_name, delta))
 
         steps: list[StepState] = []
-        for version, (mod_id, mod_name, delta_doc) in enumerate(mod_data_list, 1):
-            deserialize_and_apply(delta_doc, state, version=version)
+        for version, (mod_id, mod_name, delta) in enumerate(mod_data_list, 1):
+            apply_delta(delta, state, version=version)
 
-            override_doc = dm.get_override_doc(mod_id, rel_path)
-            if override_doc is not None:
-                deserialize_and_apply(override_doc, state,
-                                      version=version, is_override=True)
+            override_node = dm.get_override_node(mod_id, rel_path)
+            if override_node is not None:
+                apply_delta(override_node, state,
+                            version=version, is_override=True)
 
             if need_steps:
                 fmt = state.format(version)
@@ -471,7 +470,7 @@ class ModManager:
 
     def merge_file(
         self, base_doc: JsonDoc,
-        mod_data_list: list[tuple[str, str, JsonDoc, str]],
+        mod_data_list: list[tuple[str, str, DeltaDict, str]],
         rel_path: str = "",
         schema: JsonObject | None = None,
     ) -> MergeResult:

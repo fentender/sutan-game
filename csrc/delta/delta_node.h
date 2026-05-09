@@ -24,6 +24,12 @@ struct DeltaArray;
 
 struct DeltaBase {
     virtual ~DeltaBase() = default;
+    DeltaBase() = default;
+    DeltaBase(const DeltaBase&) = delete;
+    DeltaBase& operator=(const DeltaBase&) = delete;
+    DeltaBase(DeltaBase&&) = default;
+    DeltaBase& operator=(DeltaBase&&) = default;
+
     virtual DeltaType type() const = 0;
     virtual ChangeKind kind() const = 0;
     virtual unique_ptr<DeltaBase> clone() const = 0;

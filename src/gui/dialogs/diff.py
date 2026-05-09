@@ -770,20 +770,18 @@ class DiffDialog(QDialog):
 
         # 计算 delta
         from sultan_core.json import JsonDoc
-        from src.core.infra.types import DictFieldDiff, MergeMode
+        from src.core.infra.types import MergeMode
         old_doc = JsonDoc.parse(json.dumps(old_json, ensure_ascii=False), False)
         new_doc = JsonDoc.parse(json.dumps(new_json, ensure_ascii=False), False)
-        delta_doc = self._service.compute_delta_doc(
+        delta_node = self._service.compute_delta_node(
             old_doc, new_doc, "config", merge_mode=MergeMode.NORMAL,
         )
 
         mod_id = self._diff_pairs[tab_index][0]
-        if delta_doc is None:
+        if delta_node is None:
             self._service.remove_override(mod_id, self._rel_path)
         else:
-            raw = json.loads(delta_doc.to_string())
-            delta = DictFieldDiff.from_delta_dict(raw)
-            self._service.set_override(mod_id, self._rel_path, delta)
+            self._service.set_override_node(mod_id, self._rel_path, delta_node)
 
         self._refresh_all()
 

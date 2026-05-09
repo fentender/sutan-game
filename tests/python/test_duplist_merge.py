@@ -11,9 +11,8 @@ import json as _json
 
 from sultan_core.json import JsonDoc
 from sultan_core.state import MergeMode as CppMergeMode
-from sultan_core.delta import compute_and_serialize
+from sultan_core.delta import compute_delta, serialize_delta
 
-from src.core.merge.delta import _is_valid_delta
 from src.core.json.parser import DupList
 from src.core.merge.merger import apply_dict_delta, merge_file
 from src.core.infra.types import (
@@ -43,9 +42,10 @@ def _compute_delta(
     base_doc = JsonDoc.parse(_json.dumps(base_data))
     mod_doc = JsonDoc.parse(_json.dumps(mod_data))
     is_dict = file_type == "dictionary"
-    delta_doc = compute_and_serialize(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
-    if _is_valid_delta(delta_doc):
-        return DictFieldDiff.from_delta_dict(_json.loads(delta_doc.to_string()))
+    delta = compute_delta(base_doc, mod_doc, _CPP_MODE[merge_mode], is_dict)
+    if delta is not None:
+        doc = serialize_delta(delta)
+        return DictFieldDiff.from_delta_dict(_json.loads(doc.to_string()))
     return None
 
 
