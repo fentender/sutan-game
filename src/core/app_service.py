@@ -32,6 +32,7 @@ from .infra.async_task import (
     TaskDone,
     TaskError,
     TaskProgress,
+    TaskStage,
     _Cancelled,
     async_task,
 )
@@ -544,6 +545,103 @@ class AppService:
                 progress_cb=_progress,
                 cancel_check=handle.check_cancel,
             )
+            cb(TaskDone())
+        except _Cancelled:
+            pass
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
+
+    @async_task
+    def merge_async(
+        self,
+        mod_configs: list[tuple[str, str, Path]],
+        output_path: Path,
+        mod_paths: list[tuple[str, Path]],
+        remap_tables: dict[str, RemapTable] | None,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            cb(TaskStage("正在合并 JSON 文件..."))
+
+            def _progress(c: int, t: int) -> None:
+                handle.check_cancel()
+                cb(TaskProgress(c, t))
+
+            results = self.merge_all_files(
+                mod_configs, output_path / "config",
+                cancel_check=handle.check_cancel, progress_cb=_progress,
+            )
+            handle.check_cancel()
+            self.copy_failed_files(mod_configs, output_path / "config")
+            warnings_snapshot = [msg for _, msg in diag.snapshot("merge")]
+            cb(TaskStage("正在复制资源文件..."))
+            self.copy_resources(
+                mod_paths, output_path,
+                cancel_check=handle.check_cancel, remap_tables=remap_tables,
+            )
+            cb(TaskDone(result=(results, warnings_snapshot)))
+        except _Cancelled:
+            pass
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
+
+    @async_task
+    def analyze_async(
+        self,
+        mod_configs: list[tuple[str, str, Path]],
+        schema_dir: Path,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            diag.snapshot("parse")
+            overrides = self.analyze_all_overrides(
+                mod_configs, schema_dir=schema_dir,
+                cancel_check=handle.check_cancel,
+            )
+            handle.check_cancel()
+            parse_msgs = diag.snapshot("parse")
+            cb(TaskDone(result=(overrides, parse_msgs)))
+        except _Cancelled:
+            pass
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
+
+    @async_task
+    def check_update_async(
+        self,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            result = self.check_for_update(timeout=8)
+            cb(TaskDone(result=result))
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
+
+    @async_task
+    def generate_schemas_async(
+        self,
+        config_dir: Path,
+        schema_dir: Path,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            def _progress(cur: int, total: int, _name: str) -> None:
+                handle.check_cancel()
+                cb(TaskProgress(cur, total))
+
+            self.generate_schemas(config_dir, schema_dir, progress_cb=_progress)
             cb(TaskDone())
         except _Cancelled:
             pass

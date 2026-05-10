@@ -41,6 +41,7 @@ from src.core.api import (
     TaskError,
     TaskEvent,
     TaskProgress,
+    TaskStage,
     diag,
 )
 
@@ -48,7 +49,6 @@ from .panels.log import LogPanel, prefix_mod_title
 from .panels.mod_detail import ModDetailPanel
 from .panels.mod_list import ModListPanel
 from .panels.override import OverridePanel
-from .workers import AnalyzeWorker, MergeWorker, UpdateCheckWorker
 
 
 class _TaskBridge(QObject):
@@ -64,14 +64,22 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 700)
 
         self.service = service
-        self._worker: MergeWorker | None = None
-        self._analyze_worker: AnalyzeWorker | None = None
         self._delta_handle: AsyncTaskHandle | None = None
         self._delta_progress: QProgressDialog | None = None
         self._delta_bridge = _TaskBridge(self)
         self._delta_bridge.task_event.connect(self._on_delta_event)
+        self._merge_handle: AsyncTaskHandle | None = None
         self._merge_progress: QProgressDialog | None = None
-        self._update_worker: UpdateCheckWorker | None = None
+        self._merge_bridge = _TaskBridge(self)
+        self._merge_bridge.task_event.connect(self._on_merge_event)
+        self._analyze_handle: AsyncTaskHandle | None = None
+        self._analyze_bridge = _TaskBridge(self)
+        self._analyze_bridge.task_event.connect(self._on_analyze_event)
+        self._analyze_gen: int = 0
+        self._update_handle: AsyncTaskHandle | None = None
+        self._update_bridge = _TaskBridge(self)
+        self._update_bridge.task_event.connect(self._on_update_event)
+        self._update_silent: bool = True
         self._pending_action: Callable[[], None] | None = None
 
         self._remap_tables: dict[str, RemapTable] | None = None
@@ -417,15 +425,15 @@ class MainWindow(QMainWindow):
             for m in enabled
         ]
 
+    def _is_analyzing(self) -> bool:
+        return self._analyze_handle is not None and not self._analyze_handle.is_done
+
     def _analyze_conflicts(self) -> None:
-        if self._worker and self._worker.isRunning():
+        if self._merge_handle and not self._merge_handle.is_done:
             return
 
-        if self._analyze_worker and self._analyze_worker.isRunning():
-            self._analyze_worker.done.disconnect()
-            self._analyze_worker.error.disconnect()
-            self._analyze_worker.cancel()
-            self._analyze_worker.wait()
+        if self._analyze_handle and not self._analyze_handle.is_done:
+            self._analyze_handle.cancel()
 
         mod_configs = self._get_mod_configs()
         if not mod_configs:
@@ -456,12 +464,23 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
-        self._analyze_worker = AnalyzeWorker(
-            self._get_mod_configs(), self.service.schema_dir, self.service,
+        self._analyze_gen += 1
+        gen = self._analyze_gen
+
+        def _cb(ev: TaskEvent) -> None:
+            if self._analyze_gen == gen:
+                self._analyze_bridge.task_event.emit(ev)
+
+        self._analyze_handle = self.service.analyze_async(
+            self._get_mod_configs(), self.service.schema_dir, cb=_cb,
         )
-        self._analyze_worker.done.connect(self._on_analyze_finished)
-        self._analyze_worker.error.connect(self._on_analyze_error)
-        self._analyze_worker.start()
+
+    def _on_analyze_event(self, event: TaskEvent) -> None:
+        match event:
+            case TaskDone(result=(overrides, parse_msgs)):
+                self._on_analyze_finished(overrides, parse_msgs)
+            case TaskError(message=message):
+                self._on_analyze_error(message)
 
     def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
                              parse_msgs: list[tuple[str, str]]) -> None:
@@ -499,7 +518,7 @@ class MainWindow(QMainWindow):
         self._log_message(ERROR, f"冲突分析失败: {error}")
 
     def _open_diff(self, rel_path: str) -> None:
-        if self._analyze_worker and self._analyze_worker.isRunning():
+        if self._is_analyzing():
             self.statusBar().showMessage("等待冲突分析完成...")
             self._pending_action = lambda: self._open_diff(rel_path)
             return
@@ -519,7 +538,7 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _execute_merge(self) -> None:
-        if self._analyze_worker and self._analyze_worker.isRunning():
+        if self._is_analyzing():
             self.statusBar().showMessage("等待冲突分析完成...")
             self._pending_action = self._execute_merge
             return
@@ -558,18 +577,13 @@ class MainWindow(QMainWindow):
         self._merge_progress.show()
 
         self._merge_output_path = output_path
-        self._worker = MergeWorker(
+        self._merge_handle = self.service.merge_async(
             mod_configs,
             output_path,
             mod_paths,
             remap_tables=self._remap_tables,
-            service=self.service,
+            cb=self._merge_bridge.task_event.emit,
         )
-        self._worker.progress.connect(self._on_merge_progress)
-        self._worker.stage.connect(self._on_merge_stage)
-        self._worker.done.connect(self._on_merge_finished)
-        self._worker.error.connect(self._on_merge_error)
-        self._worker.start()
 
     _VALID_NAME_RE = re.compile(r'^[A-Za-z0-9_]+$')
 
@@ -593,8 +607,8 @@ class MainWindow(QMainWindow):
             )
 
     def _cancel_merge(self) -> None:
-        if self._worker:
-            self._worker.cancel()
+        if self._merge_handle:
+            self._merge_handle.cancel()
         self.statusBar().showMessage("正在取消...")
 
     def _restore_merge_btn(self) -> None:
@@ -605,6 +619,17 @@ class MainWindow(QMainWindow):
         if hasattr(self, '_merge_progress') and self._merge_progress is not None:
             self._merge_progress.close()
             self._merge_progress = None
+
+    def _on_merge_event(self, event: TaskEvent) -> None:
+        match event:
+            case TaskStage(message=message):
+                self._on_merge_stage(message)
+            case TaskProgress(completed=completed, total=total):
+                self._on_merge_progress(completed, total)
+            case TaskDone(result=(results, warnings)):
+                self._on_merge_finished(results, warnings)
+            case TaskError(message=message):
+                self._on_merge_error(message)
 
     def _on_merge_progress(self, completed: int, total: int) -> None:
         if hasattr(self, '_merge_progress') and self._merge_progress is not None:
@@ -745,13 +770,22 @@ class MainWindow(QMainWindow):
         self._do_check_update(silent=False)
 
     def _do_check_update(self, silent: bool) -> None:
-        if self._update_worker and self._update_worker.isRunning():
+        if self._update_handle and not self._update_handle.is_done:
             return
-        self._update_worker = UpdateCheckWorker(service=self.service)
-        self._update_worker.done.connect(
-            lambda result: self._on_update_checked(result, silent)
+        self._update_silent = silent
+        self._update_handle = self.service.check_update_async(
+            cb=self._update_bridge.task_event.emit,
         )
-        self._update_worker.start()
+
+    def _on_update_event(self, event: TaskEvent) -> None:
+        match event:
+            case TaskDone(result=result):
+                self._on_update_checked(
+                    result,  # type: ignore[arg-type]
+                    self._update_silent,
+                )
+            case TaskError():
+                pass
 
     def _on_update_checked(self, result: dict[str, str] | None, silent: bool) -> None:
         if result:
@@ -787,13 +821,13 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         self._analyze_timer.stop()
         self._init_timer.stop()
-        if self._analyze_worker is not None and self._analyze_worker.isRunning():
-            self._analyze_worker.cancel()
-            self._analyze_worker.wait(5000)
-        if self._worker is not None and self._worker.isRunning():
-            self._worker.cancel()
-            self._worker.wait(5000)
-        if self._update_worker is not None and self._update_worker.isRunning():
-            self._update_worker.wait(2000)
+        if self._analyze_handle and not self._analyze_handle.is_done:
+            self._analyze_handle.cancel()
+            self._analyze_handle.wait(5.0)
+        if self._merge_handle and not self._merge_handle.is_done:
+            self._merge_handle.cancel()
+            self._merge_handle.wait(5.0)
+        if self._update_handle and not self._update_handle.is_done:
+            self._update_handle.wait(2.0)
         self._cleanup_remap()
         event.accept()

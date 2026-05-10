@@ -20,7 +20,7 @@ class TaskProgress:
 
 @dataclass
 class TaskDone:
-    pass
+    result: object = None
 
 
 @dataclass
@@ -28,7 +28,12 @@ class TaskError:
     message: str
 
 
-type TaskEvent = TaskProgress | TaskDone | TaskError
+@dataclass
+class TaskStage:
+    message: str
+
+
+type TaskEvent = TaskProgress | TaskDone | TaskError | TaskStage
 type TaskCallback = Callable[[TaskEvent], None]
 
 
@@ -37,6 +42,7 @@ class AsyncTaskHandle:
 
     def __init__(self) -> None:
         self._cancelled = threading.Event()
+        self._done = threading.Event()
 
     def cancel(self) -> None:
         self._cancelled.set()
@@ -48,6 +54,13 @@ class AsyncTaskHandle:
     def check_cancel(self) -> None:
         if self._cancelled.is_set():
             raise _Cancelled()
+
+    @property
+    def is_done(self) -> bool:
+        return self._done.is_set()
+
+    def wait(self, timeout: float | None = None) -> bool:
+        return self._done.wait(timeout)
 
 
 def async_task(fn: Callable[..., None]) -> Callable[..., AsyncTaskHandle]:
@@ -61,8 +74,14 @@ def async_task(fn: Callable[..., None]) -> Callable[..., AsyncTaskHandle]:
         handle = AsyncTaskHandle()
         kwargs['handle'] = handle
 
+        def _target() -> None:
+            try:
+                fn(*args, **kwargs)
+            finally:
+                handle._done.set()
+
         threading.Thread(
-            target=fn, args=args, kwargs=kwargs, daemon=True,
+            target=_target, daemon=True,
         ).start()
         return handle
 

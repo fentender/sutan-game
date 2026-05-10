@@ -15,6 +15,7 @@ from .infra.async_task import (
     TaskError,
     TaskEvent,
     TaskProgress,
+    TaskStage,
 )
 from .infra.diagnostics import ERROR, INFO, WARNING, diag
 from .infra.types import FIELD_SEP, ChangeKind, MergeMode, ParseFailure
@@ -48,6 +49,7 @@ __all__ = [
     "TaskError",
     "TaskEvent",
     "TaskProgress",
+    "TaskStage",
     "WARNING",
     "build_padded_texts",
     "diag",

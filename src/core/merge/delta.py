@@ -6,9 +6,7 @@
 
 所有方法和属性均为类级别，直接通过 ModDelta.get(...) 调用。
 """
-import threading
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from sultan_core.delta import (
     DeltaDict,
@@ -40,11 +38,6 @@ _CPP_MODE: dict[MergeMode, CppMergeMode] = {
 
 def _to_cpp_mode(mode: MergeMode) -> CppMergeMode:
     return _CPP_MODE[mode]
-
-
-def _is_valid_delta(delta: DeltaDict | None) -> bool:
-    return delta is not None
-
 
 # ==================== init() 辅助函数 ====================
 
@@ -90,7 +83,7 @@ def _process_file_group(
             delta = compute_delta(
                 adaptive_doc, mod_doc, CppMergeMode.SMART, is_dict,
             )
-            if hist_doc is not None and _is_valid_delta(delta):
+            if hist_doc is not None and delta is not None:
                 remapped = remap_delta(delta, hist_doc, base_doc)
                 if remapped is not None:
                     delta = remapped
@@ -99,7 +92,7 @@ def _process_file_group(
                 base_doc, mod_doc, cpp_mode, is_dict,
             )
 
-        valid = _is_valid_delta(delta)
+        valid = delta is not None
         results.append((mod_id, rel_path, delta if valid else None))
 
         if valid:
@@ -122,7 +115,6 @@ class ModDelta:
 
     _cache: dict[tuple[str, str], DeltaDict | None] = {}
     _progress: tuple[int, int] = (0, 0)
-    _lock: threading.Lock = threading.Lock()
 
     @classmethod
     def init(
@@ -142,32 +134,24 @@ class ModDelta:
 
         total = sum(len(mids) for mids in tasks_by_file.values())
         completed = 0
-        with cls._lock:
-            cls._cache.clear()
-            cls._progress = (0, total)
+        cls._cache.clear()
+        cls._progress = (0, total)
         if progress_cb:
             progress_cb(0, total)
 
-        file_groups = list(tasks_by_file.items())
-        with ThreadPoolExecutor() as pool:
-            futures = {
-                pool.submit(
-                    _process_file_group,
-                    rel_path, file_mod_ids, dm,
-                    merge_mode, mod_merge_modes,
-                ): rel_path
-                for rel_path, file_mod_ids in file_groups
-            }
-            for future in as_completed(futures):
-                if cancel_check:
-                    cancel_check()
-                for mod_id, rel_path, delta in future.result():
-                    with cls._lock:
-                        cls._cache[(mod_id, rel_path)] = delta
-                        completed += 1
-                        cls._progress = (completed, total)
-                    if progress_cb:
-                        progress_cb(completed, total)
+        for rel_path, file_mod_ids in tasks_by_file.items():
+            if cancel_check:
+                cancel_check()
+            results = _process_file_group(
+                rel_path, file_mod_ids, dm,
+                merge_mode, mod_merge_modes,
+            )
+            for mod_id, rp, delta in results:
+                cls._cache[(mod_id, rp)] = delta
+                completed += 1
+                cls._progress = (completed, total)
+            if progress_cb:
+                progress_cb(completed, total)
 
     @classmethod
     def get(cls, mod_id: str, rel_path: str) -> DeltaDict | None:
@@ -179,17 +163,14 @@ class ModDelta:
 
     @classmethod
     def progress(cls) -> tuple[int, int]:
-        with cls._lock:
-            return cls._progress
+        return cls._progress
 
     @classmethod
     def invalidate(cls) -> None:
-        with cls._lock:
-            cls._cache.clear()
-            cls._progress = (0, 0)
+        cls._cache.clear()
+        cls._progress = (0, 0)
 
     @classmethod
     def clear(cls) -> None:
-        with cls._lock:
-            cls._cache.clear()
-            cls._progress = (0, 0)
+        cls._cache.clear()
+        cls._progress = (0, 0)
