@@ -17,12 +17,8 @@ ScalarValue val_to_scalar(JsonVal v) {
     switch (v.type()) {
         case JsonType::Null: return nullptr;
         case JsonType::Bool: return v.get_bool();
-        case JsonType::Int: {
-            uint64_t u = v.get_uint();
-            if (u <= static_cast<uint64_t>(INT64_MAX))
-                return static_cast<int64_t>(u);
-            return static_cast<double>(u);
-        }
+        case JsonType::Int:
+            return v.get_int();
         case JsonType::Real: return v.get_real();
         case JsonType::Str:  return string(v.get_str());
         default:             return nullptr;

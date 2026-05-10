@@ -151,15 +151,15 @@ def collect_base_ids() -> tuple[dict[str, set[str]], set[str]]:
 @dataclass
 class ModIdInfo:
     """单个 mod 的 ID 信息"""
-    cards_keys: set[str] = field(default_factory=set)
+    cards_keys: list[str] = field(default_factory=list)
     cards_names: dict[str, str] = field(default_factory=dict)
 
-    tag_keys: set[str] = field(default_factory=set)
+    tag_keys: list[str] = field(default_factory=list)
     tag_ids: dict[str, int] = field(default_factory=dict)
     tag_names: dict[str, str] = field(default_factory=dict)
 
-    over_keys: set[str] = field(default_factory=set)
-    rite_template_mappings_keys: set[str] = field(default_factory=set)
+    over_keys: list[str] = field(default_factory=list)
+    rite_template_mappings_keys: list[str] = field(default_factory=list)
 
     # 文件类型：{id_str: rel_path}
     rite: dict[str, str] = field(default_factory=dict)
@@ -178,21 +178,21 @@ def collect_mod_ids(mod_id: str) -> ModIdInfo:
     # dictionary 类型
     if store.has_mod(mod_id, "cards.json"):
         doc = store.get_mod(mod_id, "cards.json")
-        info.cards_keys = set(extract_root_keys(doc))
+        info.cards_keys = extract_root_keys(doc)
         info.cards_names = extract_root_field_strs(doc, "name")
 
     if store.has_mod(mod_id, "tag.json"):
         doc = store.get_mod(mod_id, "tag.json")
-        info.tag_keys = set(extract_root_keys(doc))
+        info.tag_keys = extract_root_keys(doc)
         info.tag_ids = extract_root_field_ints(doc, "id")
         info.tag_names = extract_root_field_strs(doc, "name")
 
     if store.has_mod(mod_id, "over.json"):
-        info.over_keys = set(extract_root_keys(store.get_mod(mod_id, "over.json")))
+        info.over_keys = extract_root_keys(store.get_mod(mod_id, "over.json"))
 
     if store.has_mod(mod_id, "rite_template_mappings.json"):
-        info.rite_template_mappings_keys = set(
-            extract_root_keys(store.get_mod(mod_id, "rite_template_mappings.json"))
+        info.rite_template_mappings_keys = extract_root_keys(
+            store.get_mod(mod_id, "rite_template_mappings.json")
         )
 
     # 文件类型：从 store 的文件列表中过滤
@@ -211,20 +211,20 @@ def collect_mod_ids(mod_id: str) -> ModIdInfo:
 
 # ==================== 冲突检测 ====================
 
-def _get_id_keys(info: ModIdInfo, entity_type: str) -> set[str]:
-    """从 ModIdInfo 中获取指定实体类型的 ID 键集合"""
+def _get_id_keys(info: ModIdInfo, entity_type: str) -> list[str]:
+    """从 ModIdInfo 中获取指定实体类型的 ID 键列表（保持插入顺序）"""
     if entity_type == "cards":
         return info.cards_keys
     if entity_type == "over":
         return info.over_keys
     if entity_type == "rite_template_mappings":
         return info.rite_template_mappings_keys
-    return set(getattr(info, entity_type).keys())
+    return list(getattr(info, entity_type).keys())
 
 
 def _detect_dict_conflicts(
     base_ids: set[str],
-    mod_key_sets: list[set[str]],
+    mod_key_sets: list[list[str]],
 ) -> dict[str, list[int]]:
     """检测 dictionary 类型实体的 ID 冲突"""
     id_to_mods: dict[str, list[int]] = {}

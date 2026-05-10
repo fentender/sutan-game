@@ -237,6 +237,7 @@ class MainWindow(QMainWindow):
             outdated,
         )
         self.statusBar().showMessage("初始化完成")
+        self._schedule_analyze()
 
     def _setup_menu(self) -> None:
         menubar = self.menuBar()
@@ -317,7 +318,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.log_panel)
 
         self.mod_list_panel.mod_selected.connect(self.mod_detail_panel.show_mod)
-        self.mod_list_panel.order_changed.connect(self._save_config)
+        self.mod_list_panel.order_changed.connect(self._on_mod_order_changed)
         self.mod_list_panel.merge_mode_changed.connect(self._on_mod_merge_mode_changed)
         self.override_panel.diff_requested.connect(self._open_diff)
 
@@ -416,6 +417,9 @@ class MainWindow(QMainWindow):
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
         self.service.update_mod_order(new_order, new_enabled)
+
+    def _on_mod_order_changed(self) -> None:
+        self._save_config()
         self._schedule_analyze()
 
     def _schedule_analyze(self) -> None:
