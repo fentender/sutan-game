@@ -4,8 +4,13 @@
 #include "delta_node.h"
 #include "compute_delta.h"
 #include "array_match.h"
+#include "apply_delta.h"
 #include "json_doc.h"
 #include "json_val.h"
+#include "json_state.h"
+
+#include <filesystem>
+#include <set>
 
 using namespace sultan;
 
@@ -892,4 +897,764 @@ TEST_CASE("delta: skip_root_deletion added keys still detected") {
     auto* b_node = delta->as_dict().find("b");
     REQUIRE(b_node != nullptr);
     REQUIRE(base_kind(b_node->kind()) == ChangeKind::Added);
+}
+
+// ==================== array_match (fixture) ====================
+
+static std::string fixtures_path(const std::string& name) {
+    return std::string(FIXTURES_DIR) + "/" + name;
+}
+
+TEST_CASE("delta: match insert and delete no cascade") {
+    auto path_base = fixtures_path("rite_5000003_base.json");
+    auto path_mod = fixtures_path("rite_5000003_mod_abude.json");
+    if (!std::filesystem::exists(path_base) || !std::filesystem::exists(path_mod)) {
+        SKIP("fixture files not found");
+    }
+
+    auto base_doc = JsonDoc::parse_file(path_base);
+    auto mod_doc = JsonDoc::parse_file(path_mod);
+
+    auto base_settlement = base_doc.root().obj_get("settlement");
+    auto mod_settlement = mod_doc.root().obj_get("settlement");
+    REQUIRE(base_settlement.valid());
+    REQUIRE(mod_settlement.valid());
+
+    auto result = match_by_heuristic(base_settlement, mod_settlement);
+
+    // base[16] (guid=95077769...) 应被删除 → 在 unmatched_base 中
+    std::set<int> ub(result.unmatched_base.begin(), result.unmatched_base.end());
+    REQUIRE(ub.count(16) == 1);
+
+    // mod[14] 为新插入 → 在 unmatched_mod 中
+    std::set<int> um(result.unmatched_mod.begin(), result.unmatched_mod.end());
+    REQUIRE(um.count(14) == 1);
+
+    // 其余元素通过 guid 精确配对
+    // base[0..13] → mod[0..13]
+    std::unordered_map<int, int> pair_map;
+    for (auto& [bi, mi] : result.pairs) {
+        pair_map[bi] = mi;
+    }
+    for (int i = 0; i < 14; ++i) {
+        REQUIRE(pair_map.count(i) == 1);
+        REQUIRE(pair_map[i] == i);
+    }
+    // base[14] → mod[15], base[15] → mod[16]
+    REQUIRE(pair_map[14] == 15);
+    REQUIRE(pair_map[15] == 16);
+}
+
+// ==================== remap (array) ====================
+
+TEST_CASE("delta: remap array insert reindex") {
+    auto hist = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3}
+        ]
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 99},
+            {"guid": "c", "v": 3}
+        ]
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "x", "v": 50},
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3}
+        ]
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Smart);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped != nullptr);
+
+    // 应用到 current state，验证 b.v == 99
+    auto state = JsonState::from_doc(current);
+    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    auto items = result_doc.root().obj_get("settlement");
+    REQUIRE(items.valid());
+    auto it = items.arr_iter();
+    JsonVal elem;
+    bool found_b = false;
+    while (it.next(elem)) {
+        auto guid = elem.obj_get("guid");
+        if (guid.valid() && std::string(guid.get_str()) == "b") {
+            REQUIRE(elem.obj_get("v").get_int() == 99);
+            found_b = true;
+        }
+    }
+    REQUIRE(found_b);
+}
+
+TEST_CASE("delta: remap array changed element disappeared") {
+    auto hist = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 2}
+        ]
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 99}
+        ]
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1}
+        ]
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Smart);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    // b 已被删除，对 b 的 CHANGED 应被丢弃
+    // remapped 可能为 nullptr（全部丢弃）或 settlement delta 无 diffs
+    if (remapped != nullptr) {
+        auto* settlement = remapped->as_dict().find("settlement");
+        if (settlement != nullptr && settlement->type() == DeltaType::Array) {
+            REQUIRE(settlement->as_array().diffs.empty());
+        }
+    }
+}
+
+TEST_CASE("delta: remap array order preserves origin elements") {
+    auto hist = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4}
+        ]
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "b", "v": 99},
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4}
+        ]
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "x",
+        "settlement": [
+            {"guid": "a", "v": 1},
+            {"guid": "x", "v": 50},
+            {"guid": "b", "v": 2},
+            {"guid": "c", "v": 3},
+            {"guid": "d", "v": 4}
+        ]
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Smart);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped != nullptr);
+
+    auto* settlement = remapped->as_dict().find("settlement");
+    REQUIRE(settlement != nullptr);
+    REQUIRE(settlement->type() == DeltaType::Array);
+    auto& arr = settlement->as_array();
+
+    // order 应包含 A(1), B(3), C(4), D(5)，不含 X(2)；边界 0/-1
+    std::vector<int> inner;
+    for (int x : arr.order) {
+        if (x != 0 && x != -1) inner.push_back(x);
+    }
+    REQUIRE(inner == std::vector<int>{1, 3, 4, 5});
+}
+
+TEST_CASE("delta: remap array large preserves all origin") {
+    // 10 元素数组只改第 6 个，current 在位置 3 插入新元素
+    std::string hist_json = R"({"id":"x","settlement":[)";
+    std::string mod_json = R"({"id":"x","settlement":[)";
+    std::string current_json = R"({"id":"x","settlement":[)";
+    for (int i = 0; i < 10; ++i) {
+        std::string comma = (i > 0) ? "," : "";
+        hist_json += comma + R"({"guid":"g)" + std::to_string(i) + R"(","v":)" + std::to_string(i) + "}";
+        int v = (i == 5) ? 999 : i;
+        mod_json += comma + R"({"guid":"g)" + std::to_string(i) + R"(","v":)" + std::to_string(v) + "}";
+        if (i == 3) {
+            current_json += comma + R"({"guid":"new","v":-1})";
+            current_json += R"(,{"guid":"g)" + std::to_string(i) + R"(","v":)" + std::to_string(i) + "}";
+        } else {
+            current_json += comma + R"({"guid":"g)" + std::to_string(i) + R"(","v":)" + std::to_string(i) + "}";
+        }
+    }
+    hist_json += "]}";
+    mod_json += "]}";
+    current_json += "]}";
+
+    auto hist = JsonDoc::parse(hist_json);
+    auto mod = JsonDoc::parse(mod_json);
+    auto current = JsonDoc::parse(current_json);
+
+    auto delta = compute_delta(hist, mod, MergeMode::Smart);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped != nullptr);
+
+    auto* settlement = remapped->as_dict().find("settlement");
+    REQUIRE(settlement != nullptr);
+    REQUIRE(settlement->type() == DeltaType::Array);
+    auto& arr = settlement->as_array();
+
+    std::vector<int> inner;
+    for (int x : arr.order) {
+        if (x != 0 && x != -1) inner.push_back(x);
+    }
+    // 10 个历史元素应全部出现（current 有 11 个元素，历史 10 个全匹配）
+    REQUIRE(inner.size() == 10);
+}
+
+TEST_CASE("delta: remap nested settlement condition real bug") {
+    // 复现真实 bug：rite/5000002.json guid=f2dde237 的 condition 字段
+    auto hist = JsonDoc::parse(R"({
+        "id": "5000002",
+        "settlement": [{
+            "guid": "f2dde237-b19d-40ab-94f2-8292381277aa",
+            "condition": {"s1.is": 2000757, "have.2000056": 1},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {"event_on": 5321035}
+        }]
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "5000002",
+        "settlement": [{
+            "guid": "f2dde237-b19d-40ab-94f2-8292381277aa",
+            "condition": {"s1.is": 2000757, "have.2000056.追随者": 1},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {"event_on": 5321035}
+        }]
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "5000002",
+        "settlement": [{
+            "guid": "f2dde237-b19d-40ab-94f2-8292381277aa",
+            "condition": {"s1.is": 2000757, "table_have.2000056": 1, "have.2000056.追随者": 1},
+            "result_title": "",
+            "result_text": "",
+            "result": {},
+            "action": {"event_on": 5321035}
+        }]
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Normal);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    // have.2000056: DELETED 应被丢弃（current 中不存在）
+    // have.2000056.追随者: ADDED 应被丢弃（current 中已存在且值相同）
+    // 因此整个 delta 应为空或 condition 子 delta 为空
+    if (remapped != nullptr) {
+        auto* settlement = remapped->as_dict().find("settlement");
+        if (settlement != nullptr && settlement->type() == DeltaType::Array) {
+            auto& arr = settlement->as_array();
+            if (!arr.diffs.empty() && arr.diffs[0] != nullptr) {
+                auto* elem_delta = arr.diffs[0].get();
+                if (elem_delta->type() == DeltaType::Dict) {
+                    auto* cond = elem_delta->as_dict().find("condition");
+                    if (cond != nullptr) {
+                        // condition 中不应有 have.2000056 和 have.2000056.追随者
+                        REQUIRE(cond->as_dict().find("have.2000056") == nullptr);
+                        auto key = std::string("have.2000056.\xe8\xbf\xbd\xe9\x9a\x8f\xe8\x80\x85");
+                        REQUIRE(cond->as_dict().find(key) == nullptr);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== compute_delta (scalar to array) ====================
+
+TEST_CASE("delta: compute scalar to array type change") {
+    auto base = JsonDoc::parse(R"({"2000523":{"id":2000523,"name":"test","resource":"cards/2000523","rare":4}})");
+    auto mod = JsonDoc::parse(R"({"2000523":{"id":2000523,"name":"test","resource":["cards/2000523","cards/2000523_1"],"rare":4}})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta != nullptr);
+
+    auto* entry = delta->as_dict().find("2000523");
+    REQUIRE(entry != nullptr);
+    REQUIRE(entry->type() == DeltaType::Dict);
+
+    // resource 字段应为 DeltaArray（标量归一化为单元素数组后做数组差异）
+    auto* resource = entry->as_dict().find("resource");
+    REQUIRE(resource != nullptr);
+    REQUIRE(resource->type() == DeltaType::Array);
+
+    auto& arr = resource->as_array();
+    // base_count=1（原标量归一化为单元素数组）
+    REQUIRE(arr.base_count == 1);
+    // 应有 1 个 ADDED 元素
+    int added_count = 0;
+    for (auto& d : arr.diffs) {
+        if (d && base_kind(d->kind()) == ChangeKind::Added) ++added_count;
+    }
+    REQUIRE(added_count == 1);
+}
+
+TEST_CASE("delta: remap scalar to array not dropped") {
+    auto hist_base = JsonDoc::parse(R"({"2000523":{"id":2000523,"resource":"cards/2000523","rare":4}})");
+    auto current_base = JsonDoc::parse(R"({"2000523":{"id":2000523,"resource":"cards/2000523","rare":4}})");
+    auto mod = JsonDoc::parse(R"({"2000523":{"id":2000523,"resource":["cards/2000523","cards/2000523_1"],"rare":4}})");
+
+    auto delta = compute_delta(hist_base, mod, MergeMode::Smart, true);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist_base, current_base);
+    REQUIRE(remapped != nullptr);
+
+    auto* entry = remapped->as_dict().find("2000523");
+    REQUIRE(entry != nullptr);
+    auto* resource = entry->as_dict().find("resource");
+    REQUIRE(resource != nullptr);
+    REQUIRE(resource->type() == DeltaType::Array);
+}
+
+// ==================== e2e (compute + apply) ====================
+
+TEST_CASE("delta: e2e scalar to array apply") {
+    auto base = JsonDoc::parse(R"({"2000523":{"id":2000523,"name":"test","resource":"cards/2000523","rare":4}})");
+    auto mod = JsonDoc::parse(R"({"2000523":{"id":2000523,"name":"test","resource":["cards/2000523","cards/2000523_1"],"rare":4}})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    auto entry = result_doc.root().obj_get("2000523");
+    REQUIRE(entry.valid());
+    auto resource = entry.obj_get("resource");
+    REQUIRE(resource.valid());
+    REQUIRE(resource.is_arr());
+
+    int count = 0;
+    auto it = resource.arr_iter();
+    JsonVal v;
+    while (it.next(v)) ++count;
+    REQUIRE(count == 2);
+}
+
+TEST_CASE("delta: e2e duplist single to multi") {
+    // base: result 中有一个 card 键
+    auto base = JsonDoc::parse(R"({
+        "id": 9999999,
+        "settlement_prior": [{
+            "guid": "test-guid-0001",
+            "condition": {"s3.x": 1},
+            "result": {"clean.s1": 1, "card": [2000123, "a+1", "b+1"]}
+        }]
+    })");
+    // mod: result 中有两个 card 键（duplicate key）
+    auto mod = JsonDoc::parse(R"({
+        "id": 9999999,
+        "settlement_prior": [{
+            "guid": "test-guid-0001",
+            "condition": {"s3.x": 1},
+            "result": {"clean.s1": 1, "card": [2000123, "a+1"], "card": [2000808, "b+1"]}
+        }]
+    })");
+
+    auto delta = compute_delta(base, mod);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    // 验证输出包含 duplist（两个 card 键）
+    auto sp = result_doc.root().obj_get("settlement_prior");
+    REQUIRE(sp.valid());
+    auto sp_it = sp.arr_iter();
+    JsonVal sp_elem;
+    REQUIRE(sp_it.next(sp_elem));
+    auto result_obj = sp_elem.obj_get("result");
+    REQUIRE(result_obj.valid());
+
+    // 遍历 result 对象，统计 card 键出现次数
+    int card_count = 0;
+    auto obj_it = result_obj.obj_iter();
+    JsonVal::ObjEntry oe;
+    while (obj_it.next(oe)) {
+        if (std::string(oe.key, oe.key_len) == "card") ++card_count;
+    }
+    REQUIRE(card_count == 2);
+}
+
+TEST_CASE("delta: e2e duplist multi mod merge") {
+    auto base = JsonDoc::parse(R"({
+        "id": 9999999,
+        "tips_text": ["orig"],
+        "settlement_prior": [{
+            "guid": "test-guid-0001",
+            "condition": {"s3.x": 1},
+            "result": {"clean.s1": 1, "card": [2000123, "a+1", "b+1"]}
+        }]
+    })");
+    // Mod A: 只改 tips_text
+    auto mod_a = JsonDoc::parse(R"({
+        "id": 9999999,
+        "tips_text": ["orig", "new_tip"],
+        "settlement_prior": [{
+            "guid": "test-guid-0001",
+            "condition": {"s3.x": 1},
+            "result": {"clean.s1": 1, "card": [2000123, "a+1", "b+1"]}
+        }]
+    })");
+    // Mod B: 改 card 为 duplist + 新增 loot
+    auto mod_b = JsonDoc::parse(R"({
+        "id": 9999999,
+        "tips_text": ["orig"],
+        "settlement_prior": [{
+            "guid": "test-guid-0001",
+            "condition": {"s3.x": 1},
+            "result": {"clean.s1": 1, "card": [2000123, "a+1"], "card": [2000808, "b+1"], "loot": 6000005}
+        }]
+    })");
+
+    auto delta_a = compute_delta(base, mod_a);
+    auto delta_b = compute_delta(base, mod_b);
+    REQUIRE(delta_a != nullptr);
+    REQUIRE(delta_b != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta_a->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta_b->as_dict(), nullptr, 2, false);
+    auto result_doc = state.to_doc();
+
+    // 验证 tips_text 有 2 项
+    auto tips = result_doc.root().obj_get("tips_text");
+    REQUIRE(tips.valid());
+    int tips_count = 0;
+    auto tips_it = tips.arr_iter();
+    JsonVal tv;
+    while (tips_it.next(tv)) ++tips_count;
+    REQUIRE(tips_count == 2);
+
+    // 验证 loot == 6000005
+    auto sp = result_doc.root().obj_get("settlement_prior");
+    auto sp_it = sp.arr_iter();
+    JsonVal sp_elem;
+    REQUIRE(sp_it.next(sp_elem));
+    auto result_obj = sp_elem.obj_get("result");
+    REQUIRE(result_obj.valid());
+    auto loot = result_obj.obj_get("loot");
+    REQUIRE(loot.valid());
+    REQUIRE(loot.get_int() == 6000005);
+}
+
+TEST_CASE("delta: e2e nested array anchors unchanged") {
+    auto base = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseRightClick",
+                    "bind": "UI/Submit",
+                    "pos": [-1024, -404],
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
+                    "is_on_in_mobile": true
+                }
+            }}
+        ]}}
+    })");
+    // mod 改了 begin_guide 的其他字段，anchors 不变
+    auto mod = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseLeftClick",
+                    "bind": "UI/Submit",
+                    "pos": [-800, -300],
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
+                    "is_on_in_mobile": false
+                }
+            }}
+        ]}}
+    })");
+
+    auto delta = compute_delta(base, mod);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    // 验证 anchors 保持 [[0.5,0.5],[0.5,0.5],[0.5,0.5]]
+    auto pops = result_doc.root().obj_get("cards_slot").obj_get("s4").obj_get("pops");
+    auto pops_it = pops.arr_iter();
+    JsonVal pop;
+    pops_it.next(pop); // pop-0
+    pops_it.next(pop); // pop-1
+    auto guide = pop.obj_get("action").obj_get("begin_guide");
+    auto anchors = guide.obj_get("anchors");
+    REQUIRE(anchors.valid());
+    REQUIRE(anchors.is_arr());
+
+    int anchor_count = 0;
+    auto anch_it = anchors.arr_iter();
+    JsonVal anch;
+    while (anch_it.next(anch)) {
+        REQUIRE(anch.is_arr());
+        int inner_count = 0;
+        auto inner_it = anch.arr_iter();
+        JsonVal iv;
+        while (inner_it.next(iv)) {
+            REQUIRE(iv.get_real() == 0.5);
+            ++inner_count;
+        }
+        REQUIRE(inner_count == 2);
+        ++anchor_count;
+    }
+    REQUIRE(anchor_count == 3);
+}
+
+TEST_CASE("delta: e2e nested array anchors adaptive remap") {
+    auto hist = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseRightClick",
+                    "bind": "UI/Submit",
+                    "pos": [-1024, -404],
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
+                    "is_on_in_mobile": true
+                }
+            }}
+        ]}}
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseLeftClick",
+                    "bind": "UI/Submit",
+                    "pos": [-800, -300],
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
+                    "is_on_in_mobile": false
+                }
+            }}
+        ]}}
+    })");
+    // current == hist（相同）
+    auto current = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseRightClick",
+                    "bind": "UI/Submit",
+                    "pos": [-1024, -404],
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]],
+                    "is_on_in_mobile": true
+                }
+            }}
+        ]}}
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Smart);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped != nullptr);
+
+    auto state = JsonState::from_doc(current);
+    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    auto pops = result_doc.root().obj_get("cards_slot").obj_get("s4").obj_get("pops");
+    auto pops_it = pops.arr_iter();
+    JsonVal pop;
+    pops_it.next(pop);
+    pops_it.next(pop);
+    auto guide = pop.obj_get("action").obj_get("begin_guide");
+    auto anchors = guide.obj_get("anchors");
+    REQUIRE(anchors.valid());
+
+    int anchor_count = 0;
+    auto anch_it = anchors.arr_iter();
+    JsonVal anch;
+    while (anch_it.next(anch)) {
+        int inner_count = 0;
+        auto inner_it = anch.arr_iter();
+        JsonVal iv;
+        while (inner_it.next(iv)) ++inner_count;
+        REQUIRE(inner_count == 2);
+        ++anchor_count;
+    }
+    REQUIRE(anchor_count == 3);
+}
+
+TEST_CASE("delta: e2e nested array anchors mod changes") {
+    auto hist = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseRightClick",
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]
+                }
+            }}
+        ]}}
+    })");
+    // mod 修改了 anchors 值
+    auto mod = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseLeftClick",
+                    "anchors": [[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]]
+                }
+            }}
+        ]}}
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "5002004",
+        "cards_slot": {"s4": {"pops": [
+            {"guid": "pop-0", "condition": {"s1.is": 100}, "action": {"event_on": 9000}},
+            {"guid": "pop-1", "condition": {"s1.is": 200}, "action": {
+                "event_on": 9001,
+                "begin_guide": {
+                    "type": "FILL_COIN",
+                    "anim_type": "MouseRightClick",
+                    "anchors": [[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]
+                }
+            }}
+        ]}}
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Normal);
+    REQUIRE(delta != nullptr);
+
+    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped != nullptr);
+
+    auto state = JsonState::from_doc(current);
+    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    auto result_doc = state.to_doc();
+
+    auto pops = result_doc.root().obj_get("cards_slot").obj_get("s4").obj_get("pops");
+    auto pops_it = pops.arr_iter();
+    JsonVal pop;
+    pops_it.next(pop);
+    pops_it.next(pop);
+    auto guide = pop.obj_get("action").obj_get("begin_guide");
+    auto anchors = guide.obj_get("anchors");
+    REQUIRE(anchors.valid());
+
+    auto anch_it = anchors.arr_iter();
+    JsonVal anch;
+    // anchors[0] == [0.0, 1.0]
+    REQUIRE(anch_it.next(anch));
+    auto a0_it = anch.arr_iter();
+    JsonVal a0v;
+    REQUIRE(a0_it.next(a0v));
+    REQUIRE(a0v.get_real() == 0.0);
+    REQUIRE(a0_it.next(a0v));
+    REQUIRE(a0v.get_real() == 1.0);
+
+    // anchors[1] == [1.0, 0.0]
+    REQUIRE(anch_it.next(anch));
+    auto a1_it = anch.arr_iter();
+    JsonVal a1v;
+    REQUIRE(a1_it.next(a1v));
+    REQUIRE(a1v.get_real() == 1.0);
+    REQUIRE(a1_it.next(a1v));
+    REQUIRE(a1v.get_real() == 0.0);
+
+    // anchors[2] == [0.5, 0.5]
+    REQUIRE(anch_it.next(anch));
+    auto a2_it = anch.arr_iter();
+    JsonVal a2v;
+    REQUIRE(a2_it.next(a2v));
+    REQUIRE(a2v.get_real() == 0.5);
+    REQUIRE(a2_it.next(a2v));
+    REQUIRE(a2v.get_real() == 0.5);
+}
+
+// ==================== format (scalar to array) ====================
+
+TEST_CASE("delta: format scalar to array change") {
+    auto base = JsonDoc::parse(
+        R"({"2000523":{"resource":"cards/2000523"}})");
+    auto mod = JsonDoc::parse(
+        R"({"2000523":{"resource":["cards/2000523","cards/2000523_1"]}})");
+
+    auto delta = compute_delta(base, mod, MergeMode::Normal, true);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+
+    auto fmt = state.format(1);
+    REQUIRE(fmt.size() > 0);
+
+    // 右侧应包含 "cards/2000523_1" 文本
+    bool found_added_text = false;
+    bool found_added_kind = false;
+    for (size_t i = 0; i < fmt.size(); ++i) {
+        if (fmt.right_lines[i].find("cards/2000523_1") != std::string::npos) {
+            found_added_text = true;
+        }
+        if (fmt.right_kinds[i] >= 0 && is_added(static_cast<ChangeKind>(fmt.right_kinds[i]))) {
+            found_added_kind = true;
+        }
+    }
+    REQUIRE(found_added_text);
+    REQUIRE(found_added_kind);
 }

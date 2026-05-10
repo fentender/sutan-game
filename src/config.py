@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -171,19 +172,36 @@ else:
 
 
 @dataclass
+class ConfigChangeEvent:
+    """配置变更事件"""
+    changed_fields: set[str]
+    old_values: dict[str, object]
+    new_values: dict[str, object]
+
+
+_MOD_FIELDS = frozenset({'mod_order', 'enabled_mods', 'merge_mode', 'mod_merge_modes'})
+
+
+@dataclass
 class UserConfig:
     """用户配置"""
     game_path: str = str(DEFAULT_GAME_PATH)
     workshop_path: str = str(DEFAULT_WORKSHOP_PATH)
     local_mod_path: str = str(DEFAULT_LOCAL_MOD_PATH)
-    # mod 排序列表（mod_id 字符串，越靠后优先级越高）
     mod_order: list[str] = field(default_factory=list)
-    # 启用的 mod 集合
     enabled_mods: list[str] = field(default_factory=list)
-    # 合并模式（normal/smart/replace，默认 smart）
     merge_mode: str = "adaptive"
-    # per-mod 合并模式覆盖（key=mod_id，value=模式名）
     mod_merge_modes: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        self._listeners: list[Callable[[ConfigChangeEvent], None]] = []
+
+    def register_listener(self, cb: Callable[[ConfigChangeEvent], None]) -> None:
+        self._listeners.append(cb)
+
+    def _notify(self, event: ConfigChangeEvent) -> None:
+        for cb in self._listeners:
+            cb(event)
 
     @property
     def game_config_path(self) -> Path:
@@ -198,12 +216,30 @@ class UserConfig:
         return Path(self.local_mod_path)
 
     def update(self, **kwargs: object) -> None:
-        """批量更新字段并保存"""
+        """批量更新字段并保存，mod 相关字段变更时通知监听者"""
+        old_values: dict[str, object] = {}
         for key, value in kwargs.items():
             if not hasattr(self, key):
                 raise AttributeError(f"UserConfig 无字段: {key}")
+            if key in _MOD_FIELDS:
+                old_val = getattr(self, key)
+                if isinstance(old_val, (list, dict)):
+                    old_values[key] = type(old_val)(old_val)
+                else:
+                    old_values[key] = old_val
+
+        for key, value in kwargs.items():
             setattr(self, key, value)
         self.save()
+
+        if old_values:
+            changed = {k for k in old_values if old_values[k] != kwargs[k]}
+            if changed:
+                self._notify(ConfigChangeEvent(
+                    changed_fields=changed,
+                    old_values={k: old_values[k] for k in changed},
+                    new_values={k: kwargs[k] for k in changed},
+                ))
 
     def save(self) -> None:
         """原子保存配置：先写临时文件，再重命名覆盖"""

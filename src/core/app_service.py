@@ -65,10 +65,14 @@ from .schema.loader import (
 )
 
 
-class StartupState(Enum):
-    PENDING = "pending"
-    CHECKING_SCHEMAS = "checking_schemas"
+class InitState(Enum):
+    IDLE = "idle"
+    SCANNING = "scanning"
     GENERATING_SCHEMAS = "generating_schemas"
+    LOADING_JSON = "loading_json"
+    AWAITING_FIX = "awaiting_fix"
+    COMPUTING_DELTA = "computing_delta"
+    ANALYZING = "analyzing"
     READY = "ready"
     ERROR = "error"
 
@@ -84,65 +88,195 @@ class AppService:
         self._config = UserConfig.load()
         self._mod_manager = ModManager(self._config)
 
-        self._startup_state: StartupState = StartupState.PENDING
-        self._startup_progress: tuple[int, int, str] = (0, 0, "")
-        self._startup_error: str | None = None
+        # ── 初始化状态机 ──
+        self._init_state: InitState = InitState.IDLE
+        self._init_progress: tuple[int, int] = (0, 0)
+        self._init_schema_progress: tuple[int, int, str] = (0, 0, "")
+        self._init_error: str | None = None
+        self._mods: list[ModInfo] = []
+        self._mod_configs: list[tuple[str, str, Path]] = []
+        self._parse_failures: list[ParseFailure] = []
+        self._overrides: list[FileOverrideInfo] = []
+        self._overlap_map: dict[str, bool] = {}
+
+        if self.paths_valid():
+            self._init_state = InitState.SCANNING
+            self._do_scan()
+            self._init_state = InitState.LOADING_JSON
+            threading.Thread(target=self._async_init_chain, daemon=True).start()
 
     # ══════════════════════════════════════════════════════════════
-    # 启动状态（非 GUI 发起的初始化）
+    # 初始化状态机
     # ══════════════════════════════════════════════════════════════
 
     @property
-    def startup_state(self) -> StartupState:
-        return self._startup_state
+    def init_state(self) -> InitState:
+        return self._init_state
 
     @property
-    def startup_progress(self) -> tuple[int, int, str]:
-        return self._startup_progress
+    def init_progress(self) -> tuple[int, int]:
+        return self._init_progress
 
     @property
-    def startup_error(self) -> str | None:
-        return self._startup_error
+    def init_schema_progress(self) -> tuple[int, int, str]:
+        return self._init_schema_progress
 
-    def start_schema_init(self) -> None:
-        """启动 schema 检查/生成（非阻塞）。
+    @property
+    def init_error(self) -> str | None:
+        return self._init_error
 
-        GUI 通过轮询 startup_state / startup_progress 获取进度。
-        """
-        if self._startup_state not in (StartupState.PENDING, StartupState.ERROR):
+    @property
+    def mods(self) -> list[ModInfo]:
+        return self._mods
+
+    @property
+    def parse_failures(self) -> list[ParseFailure]:
+        return self._parse_failures
+
+    @property
+    def init_overrides(self) -> list[FileOverrideInfo]:
+        return self._overrides
+
+    @property
+    def overlap_map(self) -> dict[str, bool]:
+        return self._overlap_map
+
+    def restart_init(self) -> None:
+        """路径配置变更后重新启动初始化链"""
+        if not self.paths_valid():
+            return
+        self._init_state = InitState.SCANNING
+        self._init_error = None
+        self._do_scan()
+        self._init_state = InitState.LOADING_JSON
+        threading.Thread(target=self._async_init_chain, daemon=True).start()
+
+    def continue_after_fix(self, fixed_paths: list[Path],
+                           ignored: list[ParseFailure]) -> None:
+        """JSON 修复完成后继续初始化链。"""
+        dm = DataManager.instance()
+        remaining_failures: list[ParseFailure] = []
+
+        if fixed_paths:
+            remaining_failures = dm.reload(fixed_paths)
+
+        mod_ignored = [f for f in ignored if not f.is_base]
+        if mod_ignored:
+            dm.set_ignored_failures(mod_ignored)
+
+        ignored_paths = {str(f.file_path) for f in ignored}
+        still_broken = [f for f in remaining_failures
+                        if str(f.file_path) not in ignored_paths]
+        if still_broken:
+            self._parse_failures = still_broken
             return
 
+        self._parse_failures = []
+        threading.Thread(target=self._continue_after_load, daemon=True).start()
+
+    def _async_init_chain(self) -> None:
+        try:
+            self._ensure_schemas()
+            self._do_load_json()
+            failures = DataManager.instance().take_failures()
+            if failures:
+                self._parse_failures = failures
+                self._init_state = InitState.AWAITING_FIX
+                return
+            self._continue_after_load()
+        except Exception as e:
+            self._init_error = f"{type(e).__name__}: {e}"
+            self._init_state = InitState.ERROR
+
+    def _ensure_schemas(self) -> None:
         schema_dir = SCHEMA_DIR
         config_dir = self._config.game_config_path
-
         if not config_dir.exists():
-            self._startup_state = StartupState.READY
             return
-
         if schema_dir.exists() and any(schema_dir.glob("*.schema.json")):
-            self._startup_state = StartupState.READY
             return
-
-        self._startup_state = StartupState.GENERATING_SCHEMAS
-        thread = threading.Thread(
-            target=self._generate_schemas_background,
-            args=(config_dir, schema_dir),
-            daemon=True,
+        self._init_state = InitState.GENERATING_SCHEMAS
+        from .schema.generator import generate_all
+        generate_all(
+            str(config_dir), str(schema_dir),
+            lambda cur, total, name: setattr(
+                self, '_init_schema_progress', (cur, total, name),
+            ),
         )
-        thread.start()
+        self._init_state = InitState.LOADING_JSON
 
-    def _generate_schemas_background(self, config_dir: Path, schema_dir: Path) -> None:
+    def _continue_after_load(self) -> None:
         try:
-            from .schema.generator import generate_all
+            all_mod_ids = [m.mod_id for m in self._mods]
+            self._overlap_map = _compute_all_overlaps(
+                DataManager.instance(), all_mod_ids,
+            )
 
-            def on_progress(current: int, total: int, name: str) -> None:
-                self._startup_progress = (current, total, name)
+            self._init_state = InitState.COMPUTING_DELTA
+            self._init_progress = (0, 0)
+            enabled_ids = [mid for mid in self._config.mod_order
+                           if mid in set(self._config.enabled_mods)]
+            if enabled_ids:
+                try:
+                    merge_mode = MergeMode(self._config.merge_mode)
+                except ValueError:
+                    merge_mode = MergeMode.SMART
+                mod_merge_modes: dict[str, MergeMode] = {}
+                for k, v in self._config.mod_merge_modes.items():
+                    try:
+                        mod_merge_modes[k] = MergeMode(v)
+                    except ValueError:
+                        continue
+                self._mod_manager.init_delta(
+                    enabled_ids,
+                    merge_mode=merge_mode,
+                    mod_merge_modes=mod_merge_modes,
+                    progress_cb=lambda c, t: setattr(self, '_init_progress', (c, t)),
+                )
 
-            generate_all(str(config_dir), str(schema_dir), on_progress)
-            self._startup_state = StartupState.READY
+            self._init_state = InitState.ANALYZING
+            mod_configs = self._get_enabled_mod_configs()
+            if mod_configs:
+                self._overrides = _analyze_all_overrides(
+                    mod_configs, schema_dir=SCHEMA_DIR,
+                )
+
+            self._init_state = InitState.READY
         except Exception as e:
-            self._startup_error = f"{type(e).__name__}: {e}"
-            self._startup_state = StartupState.ERROR
+            self._init_error = f"{type(e).__name__}: {e}"
+            self._init_state = InitState.ERROR
+
+    def _do_scan(self) -> None:
+        diag.snapshot("scan", "parse")
+        mods = _scan_all_mods(
+            self._config.workshop_dir,
+            exclude_ids={SYNTHETIC_MOD_ID},
+        )
+        local_dir = self._config.local_mod_dir
+        if local_dir.exists():
+            local_mods = _scan_all_mods(local_dir)
+            existing_ids = {m.mod_id for m in mods}
+            for lm in local_mods:
+                if lm.mod_id not in existing_ids:
+                    mods.append(lm)
+        self._mods = mods
+        self._mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+
+    def _do_load_json(self) -> None:
+        mod_update_times = {
+            m.mod_id: m.update_time
+            for m in self._mods if m.update_time is not None
+        }
+        DataManager.instance().init(
+            self._config, self._mod_configs,
+            mod_update_times=mod_update_times or None,
+            on_progress=lambda c, t: setattr(self, '_init_progress', (c, t)),
+        )
+
+    def _get_enabled_mod_configs(self) -> list[tuple[str, str, Path]]:
+        enabled_set = set(self._config.enabled_mods)
+        return [(mid, name, path) for mid, name, path in self._mod_configs
+                if mid in enabled_set]
 
     # ══════════════════════════════════════════════════════════════
     # 业务常量
@@ -232,11 +366,12 @@ class AppService:
         self._config.update(merge_mode=mode)
 
     def update_mod_merge_mode(self, mod_id: str, mode: str | None) -> None:
+        new_modes = dict(self._config.mod_merge_modes)
         if mode is not None:
-            self._config.mod_merge_modes[mod_id] = mode
+            new_modes[mod_id] = mode
         else:
-            self._config.mod_merge_modes.pop(mod_id, None)
-        self._config.save()
+            new_modes.pop(mod_id, None)
+        self._config.update(mod_merge_modes=new_modes)
 
     def paths_valid(self) -> bool:
         return (
@@ -321,24 +456,6 @@ class AppService:
     # Store 初始化
     # ══════════════════════════════════════════════════════════════
 
-    def init_store(
-        self, game_config_path: Path,
-        mod_configs: list[tuple[str, str, Path]],
-        history_dir: Path | None = None,
-        mod_update_times: dict[str, int] | None = None,
-        overrides_dir: Path | None = None,
-        enabled_mod_ids: list[str] | None = None,
-        on_progress: Callable[[int, int], None] | None = None,
-    ) -> None:
-        self._mod_manager.init_store(
-            game_config_path, mod_configs,
-            history_dir=history_dir,
-            mod_update_times=mod_update_times,
-            overrides_dir=overrides_dir,
-            enabled_mod_ids=enabled_mod_ids,
-            on_progress=on_progress,
-        )
-
     def take_failures(self) -> list[ParseFailure]:
         return DataManager.instance().take_failures()
 
@@ -354,9 +471,6 @@ class AppService:
 
     def load_overrides(self, overrides_dir: Path, enabled_ids: list[str]) -> None:
         DataManager.instance().load_overrides(overrides_dir, enabled_ids)
-
-    def invalidate_overrides(self, mod_ids: set[str]) -> list[str]:
-        return DataManager.instance().invalidate_overrides(mod_ids)
 
     def has_override(self, mod_id: str, rel_path: str) -> bool:
         return DataManager.instance().has_override(mod_id, rel_path)

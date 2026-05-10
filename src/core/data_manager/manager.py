@@ -7,6 +7,7 @@ from pathlib import Path
 from sultan_core.json import JsonDoc
 from sultan_core.delta import DeltaDict, serialize_delta
 
+from ...config import ConfigChangeEvent, HISTORY_DIR, MOD_OVERRIDES_DIR, UserConfig
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
 from ..infra.types import ParseFailure, normalize_rel_path
@@ -46,14 +47,17 @@ class DataManager:
     @profile
     def init(
         self,
-        game_config_path: Path,
+        config: UserConfig,
         mod_configs: list[tuple[str, str, Path]],
-        history_dir: Path | None = None,
         mod_update_times: dict[str, int] | None = None,
-        overrides_dir: Path | None = None,
-        enabled_mod_ids: list[str] | None = None,
         on_progress: Callable[[int, int], None] | None = None,
     ) -> None:
+        config.register_listener(self._on_config_changed)
+
+        game_config_path = config.game_config_path
+        overrides_dir = MOD_OVERRIDES_DIR
+        enabled_mod_ids = config.enabled_mods
+
         self._base = GameData(
             data_id="", data_type=GameDataType.BASE,
             config_path=game_config_path,
@@ -63,10 +67,9 @@ class DataManager:
         self._mod_history_map.clear()
         self._failures.clear()
         self._ignored_failures.clear()
-        if overrides_dir is not None:
-            self._overrides_dir = overrides_dir
-            for mod_gd in self._mods.values():
-                mod_gd.override.clear()
+        self._overrides_dir = overrides_dir
+        for mod_gd in self._mods.values():
+            mod_gd.override.clear()
 
         tasks: list[tuple[Path, str, str, str, str]] = []
 
@@ -90,7 +93,7 @@ class DataManager:
 
         mod_ids = [mid for mid, _, _ in mod_configs]
         tasks.extend(self._collect_history_tasks(
-            history_dir, mod_update_times, mod_ids,
+            HISTORY_DIR, mod_update_times, mod_ids,
         ))
         tasks.extend(self._collect_override_tasks(
             overrides_dir, enabled_mod_ids or [],
@@ -411,6 +414,43 @@ class DataManager:
                 deleted.append(mod_id)
 
         return deleted
+
+    # ── Config 变更回调 ──
+
+    def _on_config_changed(self, event: ConfigChangeEvent) -> None:
+        if event.changed_fields & {'merge_mode', 'mod_merge_modes'}:
+            all_mod_ids = set(self._mods.keys())
+            deleted = self.invalidate_overrides(all_mod_ids)
+            if deleted:
+                diag.info("config", f"合并模式变更，已清理覆盖编辑: {'、'.join(deleted)}")
+        elif event.changed_fields & {'mod_order', 'enabled_mods'}:
+            stale_ids = self._compute_stale_mods(event)
+            if stale_ids:
+                deleted = self.invalidate_overrides(stale_ids)
+                if deleted:
+                    diag.info("config", f"Mod 排序/启用变化，已清理覆盖编辑: {'、'.join(deleted)}")
+
+    def _compute_stale_mods(self, event: ConfigChangeEvent) -> set[str]:
+        old_order: list[str] = event.old_values.get('mod_order', [])  # type: ignore[assignment]
+        old_enabled: list[str] = event.old_values.get('enabled_mods', [])  # type: ignore[assignment]
+        new_order: list[str] = event.new_values.get('mod_order', [])  # type: ignore[assignment]
+        new_enabled: list[str] = event.new_values.get('enabled_mods', [])  # type: ignore[assignment]
+        if 'mod_order' not in event.changed_fields:
+            old_order = new_order = list(new_order)
+        if 'enabled_mods' not in event.changed_fields:
+            old_enabled = new_enabled = list(new_enabled)
+
+        old_set = set(old_enabled)
+        old_eo = [m for m in old_order if m in old_set]
+        new_set = set(new_enabled)
+        new_eo = [m for m in new_order if m in new_set]
+
+        diverge = min(len(old_eo), len(new_eo))
+        for i in range(diverge):
+            if old_eo[i] != new_eo[i]:
+                diverge = i
+                break
+        return set(old_eo[diverge:]) | set(new_eo[diverge:])
 
     # ── Reload ──
 

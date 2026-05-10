@@ -148,6 +148,10 @@ static vector<int> build_order(
     return order;
 }
 
+// ── 标量包装为单元素数组（类型归一化用） ──
+
+static JsonDoc wrap_scalar_as_array(JsonVal v);
+
 // ── 递归 delta 计算 ──
 
 static DeltaNodePtr recursive_delta(
@@ -217,6 +221,7 @@ static DeltaNodePtr recursive_delta(
         return nullptr;
 
     // dict vs dict
+    // TODO： 修改
     if (base.is_obj() && mod.is_obj()) {
         bool base_dup = has_duplicate_keys(base);
         bool mod_dup = has_duplicate_keys(mod);
@@ -347,20 +352,30 @@ static DeltaNodePtr recursive_delta(
         return dict;
     }
 
-    // array vs array
-    if (base.is_arr() && mod.is_arr()) {
+    // array vs array（含标量↔数组归一化）
+    JsonVal base_arr = base, mod_arr = mod;
+    std::optional<JsonDoc> base_wrap, mod_wrap;
+    if (!base.is_arr() && !base.is_obj() && mod.is_arr()) {
+        base_wrap.emplace(wrap_scalar_as_array(base));
+        base_arr = base_wrap->root();
+    }
+    if (base.is_arr() && !mod.is_arr() && !mod.is_obj()) {
+        mod_wrap.emplace(wrap_scalar_as_array(mod));
+        mod_arr = mod_wrap->root();
+    }
+    if (base_arr.is_arr() && mod_arr.is_arr()) {
         vector<JsonVal> base_elems, mod_elems;
         {
-            auto it = base.arr_iter();
+            auto it = base_arr.arr_iter();
             JsonVal elem;
             while (it.next(elem)) base_elems.push_back(elem);
         }
         {
-            auto it = mod.arr_iter();
+            auto it = mod_arr.arr_iter();
             JsonVal elem;
             while (it.next(elem)) mod_elems.push_back(elem);
         }
-        auto matching = match_by_heuristic(base, mod);
+        auto matching = match_by_heuristic(base_arr, mod_arr);
         return array_delta_from_matching(
             base_elems, mod_elems, matching, field_path, false, merge_mode);
     }

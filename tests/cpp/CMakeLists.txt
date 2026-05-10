@@ -14,6 +14,9 @@ target_link_libraries(sultan_tests PRIVATE
     sultan_core_lib
     Catch2::Catch2WithMain
 )
+target_compile_definitions(sultan_tests PRIVATE
+    FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+)
 set_target_properties(sultan_tests PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON

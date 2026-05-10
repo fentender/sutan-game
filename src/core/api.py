@@ -7,7 +7,7 @@ from sultan_core.delta import DeltaDict
 from sultan_core.json import JsonDoc, ParseError
 
 from ..config import infer_workshop_path_from_game
-from .app_service import AppService, StartupState
+from .app_service import AppService, InitState
 from .infra.diagnostics import ERROR, INFO, WARNING, diag
 from .infra.types import FIELD_SEP, ChangeKind, MergeMode, ParseFailure
 from .merge.cache import FileMergeState, StepState
@@ -32,7 +32,7 @@ __all__ = [
     "ParseError",
     "ParseFailure",
     "RemapTable",
-    "StartupState",
+    "InitState",
     "StepState",
     "WARNING",
     "build_padded_texts",

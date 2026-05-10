@@ -14,7 +14,7 @@ from sultan_core.delta import (
     apply_delta,
 )
 
-from ..config import UserConfig
+from ..config import ConfigChangeEvent, UserConfig
 from .data_manager import DataManager
 from .infra.profiler import profile
 from .infra.types import (
@@ -61,76 +61,27 @@ class ModManager:
         self._config = config
         self._lock = threading.RLock()
 
-        # === 状态 ===
-        self._enabled_mods: list[str] = []
-        self._merge_mode: MergeMode = MergeMode.SMART
-        self._mod_merge_modes: dict[str, MergeMode] = {}
-
         # === 缓存 ===
         self._delta_versions: dict[tuple[str, str], _DeltaVersionInfo] = {}
         self._merge_cache: dict[str, _MergeEntry] = {}
 
+        config.register_listener(self._on_config_changed)
+
+    def _on_config_changed(self, event: ConfigChangeEvent) -> None:
+        if event.changed_fields & {'merge_mode', 'mod_merge_modes'}:
+            self.invalidate_delta()
+        elif event.changed_fields & {'mod_order', 'enabled_mods'}:
+            self.invalidate_merge_cache()
+
     @property
     def _data(self) -> DataManager:
         return DataManager.instance()
-
-    # === Mod 列表管理 ===
-
-    @property
-    def enabled_mods(self) -> list[str]:
-        return list(self._enabled_mods)
-
-    def set_enabled_mods(self, mod_ids: list[str]) -> None:
-        with self._lock:
-            self._enabled_mods = list(mod_ids)
-            self._merge_cache.clear()
-
-    @property
-    def merge_mode(self) -> MergeMode:
-        return self._merge_mode
-
-    def set_merge_mode(self, mode: MergeMode) -> None:
-        with self._lock:
-            self._merge_mode = mode
-            self._delta_versions.clear()
-            self._merge_cache.clear()
-
-    def set_mod_merge_mode(self, mod_id: str, mode: MergeMode | None) -> None:
-        with self._lock:
-            if mode is None:
-                self._mod_merge_modes.pop(mod_id, None)
-            else:
-                self._mod_merge_modes[mod_id] = mode
-            self._delta_versions.clear()
-            self._merge_cache.clear()
-
-    @property
-    def mod_merge_modes(self) -> dict[str, MergeMode]:
-        return dict(self._mod_merge_modes)
 
     # === 扫描 ===
 
     def get_game_update_time(self, workshop_dir: Path) -> int | None:
         steamapps = _get_steamapps_from_workshop(workshop_dir)
         return _get_game_update_time(steamapps)
-
-    # === Store 初始化 ===
-
-    def init_store(
-        self, game_config_path: Path,
-        mod_configs: list[tuple[str, str, Path]],
-        history_dir: Path | None = None,
-        mod_update_times: dict[str, int] | None = None,
-        overrides_dir: Path | None = None,
-        enabled_mod_ids: list[str] | None = None,
-        on_progress: Callable[[int, int], None] | None = None,
-    ) -> None:
-        self._data.init(game_config_path, mod_configs,
-                        history_dir=history_dir,
-                        mod_update_times=mod_update_times,
-                        overrides_dir=overrides_dir,
-                        enabled_mod_ids=enabled_mod_ids,
-                        on_progress=on_progress)
 
     # === Delta 管理 ===
 

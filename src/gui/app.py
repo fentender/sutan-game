@@ -30,14 +30,12 @@ from PySide6.QtWidgets import (
 
 from src.core.api import (
     ERROR,
-    INFO,
     WARNING,
     AppService,
     FileOverrideInfo,
+    InitState,
     MergeMode,
-    ParseFailure,
     RemapTable,
-    StartupState,
     diag,
 )
 
@@ -45,7 +43,7 @@ from .panels.log import LogPanel, prefix_mod_title
 from .panels.mod_detail import ModDetailPanel
 from .panels.mod_list import ModListPanel
 from .panels.override import OverridePanel
-from .workers import AnalyzeWorker, DeltaInitWorker, MergeWorker, StoreInitWorker, UpdateCheckWorker
+from .workers import AnalyzeWorker, DeltaInitWorker, MergeWorker, UpdateCheckWorker
 
 
 class MainWindow(QMainWindow):
@@ -59,7 +57,6 @@ class MainWindow(QMainWindow):
         self.service = service
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
-        self._store_worker: StoreInitWorker | None = None
         self._delta_worker: DeltaInitWorker | None = None
         self._delta_progress: QProgressDialog | None = None
         self._merge_progress: QProgressDialog | None = None
@@ -67,24 +64,29 @@ class MainWindow(QMainWindow):
         self._pending_action: Callable[[], None] | None = None
 
         self._remap_tables: dict[str, RemapTable] | None = None
+        self._mod_name_map: dict[str, str] = {}
 
         self._analyze_timer = QTimer()
         self._analyze_timer.setSingleShot(True)
         self._analyze_timer.setInterval(300)
         self._analyze_timer.timeout.connect(self._analyze_conflicts)
 
+        self._init_timer = QTimer()
+        self._init_timer.setInterval(50)
+        self._init_timer.timeout.connect(self._poll_init_state)
+
         # 路径确认（不通过则弹配置对话框）
         if not self._ensure_paths():
             import sys
             sys.exit(0)
 
-        # Schema 初始化
-        self._ensure_schemas()
-
         self._setup_menu()
         self._setup_ui()
         self._setup_statusbar()
-        self._load_mods()
+
+        # AppService 构造时已同步扫描 + 启动异步链
+        if service.init_state != InitState.IDLE:
+            self._load_mods()
 
         QTimer.singleShot(3000, self._auto_check_update)
 
@@ -114,44 +116,105 @@ class MainWindow(QMainWindow):
         self.service.set_workshop_path(dlg.workshop_path)
         return True
 
-    def _ensure_schemas(self) -> None:
-        """检查 schema 是否需要生成，需要则显示进度框。"""
-        self.service.start_schema_init()
-        if self.service.startup_state == StartupState.READY:
-            return
+    def _load_mods(self) -> None:
+        """读取 AppService 同步扫描结果，填充面板，启动轮询"""
+        mods = self.service.mods
+        self.mod_list_panel.set_mods(
+            mods,
+            order=self.service.mod_order or None,
+            enabled=self.service.enabled_mods or None,
+            merge_modes=self.service.mod_merge_modes or None,
+            game_update_time=self.service.get_game_update_time(self.service.workshop_dir),
+            major_update_ts=self.service.get_major_update_ts(),
+        )
+        self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
 
-        dlg = QProgressDialog("首次运行: 生成 Schema 规则...", "取消", 0, 100)
-        dlg.setWindowTitle("Schema 初始化")
-        dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
-        dlg.setMinimumDuration(0)
-        dlg.setValue(0)
+        self._mod_name_map = {
+            m.mod_id: m.name
+            for m in self.mod_list_panel._mods
+            if m.name and m.name != m.mod_id
+        }
 
-        timer = QTimer()
-        timer.setInterval(100)
+        all_messages = diag.snapshot("scan", "parse")
+        self._show_messages([
+            (level, prefix_mod_title(msg, self._mod_name_map))
+            for level, msg in all_messages
+        ])
 
-        def poll() -> None:
-            state = self.service.startup_state
-            if state == StartupState.READY:
-                timer.stop()
-                dlg.close()
-            elif state == StartupState.ERROR:
-                timer.stop()
-                dlg.close()
-                QMessageBox.critical(
-                    None, "Schema 生成失败",
-                    self.service.startup_error or "未知错误",
-                )
-            else:
-                current, total, name = self.service.startup_progress
+        self._init_timer.start()
+
+    def _poll_init_state(self) -> None:
+        state = self.service.init_state
+        match state:
+            case InitState.SCANNING:
+                self.statusBar().showMessage("正在扫描 Mod...")
+            case InitState.GENERATING_SCHEMAS:
+                cur, total, name = self.service.init_schema_progress
                 if total > 0:
-                    dlg.setMaximum(total)
-                    dlg.setValue(current)
-                    dlg.setLabelText(f"生成 Schema 规则: {name} ({current}/{total})")
+                    self.statusBar().showMessage(
+                        f"首次运行: 生成 Schema 规则... {name} ({cur}/{total})")
+                else:
+                    self.statusBar().showMessage("首次运行: 生成 Schema 规则...")
+            case InitState.LOADING_JSON:
+                cur, total = self.service.init_progress
+                if total > 0:
+                    self.statusBar().showMessage(f"正在加载 JSON 资源... ({cur}/{total})")
+                else:
+                    self.statusBar().showMessage("正在加载 JSON 资源...")
+            case InitState.AWAITING_FIX:
+                self._init_timer.stop()
+                self._handle_parse_failures()
+            case InitState.COMPUTING_DELTA:
+                cur, total = self.service.init_progress
+                if total > 0:
+                    self.statusBar().showMessage(f"正在预计算差异... ({cur}/{total})")
+                else:
+                    self.statusBar().showMessage("正在预计算差异...")
+            case InitState.ANALYZING:
+                self.statusBar().showMessage("正在分析覆盖情况...")
+            case InitState.READY:
+                self._init_timer.stop()
+                self._on_init_complete()
+            case InitState.ERROR:
+                self._init_timer.stop()
+                self._log_message(ERROR, f"初始化失败: {self.service.init_error}")
+                self.statusBar().showMessage("初始化失败")
 
-        timer.timeout.connect(poll)
-        timer.start()
-        dlg.exec()
-        timer.stop()
+    def _handle_parse_failures(self) -> None:
+        failures = self.service.parse_failures
+        from .dialogs.json_fix import JsonFixDialog
+        dialog = JsonFixDialog(failures, parent=self)
+        dialog.exec()
+
+        fixed_paths = [f.file_path for f in failures
+                       if dialog.resolutions.get(str(f.file_path), {}).get('action') == 'fixed']
+        ignored = [f for f in failures
+                   if dialog.resolutions.get(str(f.file_path), {}).get('action') != 'fixed']
+
+        self.service.continue_after_fix(fixed_paths, ignored)
+        self._init_timer.start()
+
+    def _on_init_complete(self) -> None:
+        json_msgs = diag.snapshot("json")
+        if json_msgs:
+            self._show_messages([
+                (level, prefix_mod_title(msg, self._mod_name_map))
+                for level, msg in json_msgs
+            ])
+
+        self.mod_list_panel.update_overlap(self.service.overlap_map)
+
+        enabled = self.mod_list_panel.get_enabled_mods()
+        major_update_ts = self.service.get_major_update_ts()
+        outdated = {m.name for m in enabled
+                    if m.update_time is not None
+                    and m.update_time < major_update_ts}
+        self.override_panel.set_data(
+            self.service.init_overrides,
+            self._get_mod_configs(),
+            outdated,
+        )
+        self.statusBar().showMessage("初始化完成")
 
     def _setup_menu(self) -> None:
         menubar = self.menuBar()
@@ -243,152 +306,8 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         self.statusBar().addPermanentWidget(self.progress_bar)
 
-    def _load_mods(self) -> None:
-        """加载所有 mod（workshop + 本地目录），然后后台初始化 JsonStore"""
-        diag.snapshot("scan", "parse")
-
-        if not self.service.workshop_dir.exists():
-            diag.warn("scan",
-                      "Workshop 路径不存在，请通过 文件 → 设置 Workshop 路径 进行配置: "
-                      + str(self.service.workshop_dir))
-        if not self.service.game_config_path.exists():
-            diag.warn("scan",
-                      "游戏配置目录不存在，请通过 文件 → 设置游戏路径 进行配置: "
-                      + str(self.service.game_config_path))
-
-        mods = self.service.scan_mods(
-            self.service.workshop_dir,
-            exclude_ids={self.service.synthetic_mod_id},
-        )
-
-        local_dir = self.service.local_mod_dir
-        if local_dir.exists():
-            local_mods = self.service.scan_mods(local_dir)
-            existing_ids = {m.mod_id for m in mods}
-            for lm in local_mods:
-                if lm.mod_id not in existing_ids:
-                    mods.append(lm)
-
-        game_update_time = self.service.get_game_update_time(self.service.workshop_dir)
-
-        self.mod_list_panel.set_mods(
-            mods,
-            order=self.service.mod_order or None,
-            enabled=self.service.enabled_mods or None,
-            merge_modes=self.service.mod_merge_modes or None,
-            game_update_time=game_update_time,
-            major_update_ts=self.service.get_major_update_ts(),
-        )
-        self.statusBar().showMessage(f"已加载 {len(mods)} 个 Mod")
-
-        self._mod_name_map = {
-            m.mod_id: m.name
-            for m in self.mod_list_panel._mods
-            if m.name and m.name != m.mod_id
-        }
-
-        all_messages = diag.snapshot("scan", "parse")
-        self._show_messages([
-            (level, prefix_mod_title(msg, self._mod_name_map))
-            for level, msg in all_messages
-        ])
-
-        all_mod_configs: list[tuple[str, str, Path]] = [
-            (m.mod_id, m.name, m.path / "config")
-            for m in self.mod_list_panel._mods
-        ]
-        self._start_store_init(all_mod_configs)
-
-    def _start_store_init(self, mod_configs: list[tuple[str, str, Path]]) -> None:
-        if self._store_worker and self._store_worker.isRunning():
-            self._store_worker.wait()
-
-        enabled_ids = [
-            mid for mid in self.service.mod_order
-            if mid in set(self.service.enabled_mods)
-        ]
-
-        self.statusBar().showMessage("正在加载 JSON 资源...")
-        self._store_worker = StoreInitWorker(
-            self.service.game_config_path, mod_configs, self.service,
-            history_dir=self.service.history_dir,
-            mod_update_times=self._get_mod_update_times(),
-            overrides_dir=self.service.overrides_dir,
-            enabled_mod_ids=enabled_ids,
-        )
-        self._store_worker.finished.connect(self._on_store_ready)
-        self._store_worker.error.connect(self._on_store_error)
-        self._store_worker.progress.connect(self._on_store_progress)
-        self._store_worker.start()
-
-    def _on_store_progress(self, completed: int, total: int) -> None:
-        self.statusBar().showMessage(f"正在加载 JSON 资源... ({completed}/{total})")
-
-    def _on_store_ready(self) -> None:
-        """JsonStore 初始化完成，处理错误后触发冲突分析"""
-        failures = self.service.take_failures()
-
-        if failures:
-            from .dialogs.json_fix import JsonFixDialog
-            dialog = JsonFixDialog(failures, parent=self)
-            dialog.exec()
-
-            fixed_paths = [
-                f.file_path for f in failures
-                if dialog.resolutions.get(str(f.file_path), {}).get('action') == 'fixed'
-            ]
-
-            ignored: list[ParseFailure] = [
-                f for f in failures
-                if dialog.resolutions.get(str(f.file_path), {}).get('action') != 'fixed'
-            ]
-
-            if fixed_paths:
-                remaining = self.service.reload_files(fixed_paths)
-                if remaining:
-                    ignored.extend(remaining)
-                    for f in remaining:
-                        self._log_message(
-                            ERROR,
-                            prefix_mod_title(
-                                f"{f.file_path}: JSON 解析失败 ({f.error_msg})",
-                                self._mod_name_map,
-                            ),
-                        )
-
-            mod_ignored = [f for f in ignored if not f.is_base]
-            if mod_ignored:
-                self.service.set_ignored_failures(mod_ignored)
-
-        json_msgs = diag.snapshot("json")
-        if json_msgs:
-            self._show_messages([
-                (level, prefix_mod_title(msg, self._mod_name_map))
-                for level, msg in json_msgs
-            ])
-
-        self.statusBar().showMessage("JSON 资源加载完成")
-
-        all_mod_ids = [m.mod_id for m in self.mod_list_panel._mods]
-        overlap_map = self.service.compute_all_overlaps(all_mod_ids)
-        self.mod_list_panel.update_overlap(overlap_map)
-
-        enabled_ids = [
-            mid for mid in self.service.mod_order
-            if mid in set(self.service.enabled_mods)
-        ]
-        self._start_delta_init(enabled_ids)
-
     def _refresh_delta(self) -> None:
-        """模式变更后重新计算 delta 并刷新覆盖分析"""
-        self.service.invalidate_merge_cache()
-
-        all_mod_ids = set(self.service.mod_order)
-        deleted_ids = self.service.invalidate_overrides(all_mod_ids)
-        if deleted_ids:
-            names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
-            self._log_message(INFO, f"合并模式变更，已清理覆盖编辑: {names}")
-
+        """模式变更后重新计算 delta"""
         enabled_ids = [
             mid for mid in self.service.mod_order
             if mid in set(self.service.enabled_mods)
@@ -440,10 +359,6 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"差异预计算失败: {error}")
         self._log_message(ERROR, f"差异预计算失败: {error}")
 
-    def _on_store_error(self, error: str) -> None:
-        self.statusBar().showMessage(f"JSON 资源加载失败: {error}")
-        self._log_message(ERROR, f"JSON 资源加载失败: {error}")
-
     def _on_merge_mode_changed(self, index: int) -> None:
         mode_value = self.cmb_merge_mode.itemData(index)
         if mode_value:
@@ -486,33 +401,8 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _save_config(self) -> None:
-        self.service.invalidate_merge_cache()
         new_order = self.mod_list_panel.get_mod_order()
         new_enabled = self.mod_list_panel.get_enabled_ids()
-
-        old_enabled_set = set(self.service.enabled_mods)
-        old_enabled_ordered = [mid for mid in self.service.mod_order
-                               if mid in old_enabled_set]
-        new_enabled_set = set(new_enabled)
-        new_enabled_ordered = [mid for mid in new_order
-                               if mid in new_enabled_set]
-
-        min_len = min(len(old_enabled_ordered), len(new_enabled_ordered))
-        diverge = min_len
-        for i in range(min_len):
-            if old_enabled_ordered[i] != new_enabled_ordered[i]:
-                diverge = i
-                break
-        stale_ids = set(old_enabled_ordered[diverge:]) | set(new_enabled_ordered[diverge:])
-
-        deleted_ids = self.service.invalidate_overrides(stale_ids)
-        if deleted_ids:
-            names = "、".join(self._mod_name_map.get(mid, mid) for mid in deleted_ids)
-            self._log_message(
-                INFO,
-                f"Mod 排序/启用变化，已清理失效的覆盖编辑: {names}"
-            )
-
         self.service.update_mod_order(new_order, new_enabled)
         self._schedule_analyze()
 
@@ -895,8 +785,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self._analyze_timer.stop()
-        if self._store_worker is not None and self._store_worker.isRunning():
-            self._store_worker.wait(5000)
+        self._init_timer.stop()
         if self._analyze_worker is not None and self._analyze_worker.isRunning():
             self._analyze_worker.cancel()
             self._analyze_worker.wait(5000)

@@ -89,13 +89,7 @@ def main():
         log.info("=" * 60)
         log.info("功能测试")
         log.info("=" * 60)
-        from tests.python import test_adaptive_remap, test_core, test_diag, test_duplist_merge, test_nested_array_merge, test_scalar_to_array
-        test_core.run_all(result)
-        test_diag.run_all(result)
-        test_adaptive_remap.run_all(result)
-        test_duplist_merge.run_all(result)
-        test_scalar_to_array.run_all(result)
-        test_nested_array_merge.run_all(result)
+        log.info("  (功能测试已迁移至 C++ 单元测试)")
 
     if run_perf:
         log.info("=" * 60)

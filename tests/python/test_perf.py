@@ -39,8 +39,9 @@ def _init_store_and_delta(game_config, workshop):
     if not mods:
         skip("没有可用的 Mod")
     mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    config = UserConfig.load()
     store = DataManager.instance()
-    store.init(game_config, mod_configs)
+    store.init(config, mod_configs)
     mod_ids = [m.mod_id for m in mods]
     ModDelta.init(mod_ids, schema_dir=SCHEMA_DIR)
     return mod_configs, mod_ids
