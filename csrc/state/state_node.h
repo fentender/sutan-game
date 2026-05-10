@@ -27,15 +27,19 @@ struct JsonElementState;
 struct JsonDictState;
 struct JsonArrayState;
 
+enum class StateType : uint8_t { Element, Dict, Array };
+
 struct StateBase {
+    StateType state_type_;
+
     virtual ~StateBase() = default;
     virtual ChangeKind kind() const = 0;
     virtual bool is_modified() const = 0;
     virtual unique_ptr<StateBase> clone() const = 0;
 
-    bool is_element() const;
-    bool is_dict() const;
-    bool is_array() const;
+    bool is_element() const { return state_type_ == StateType::Element; }
+    bool is_dict() const    { return state_type_ == StateType::Dict; }
+    bool is_array() const   { return state_type_ == StateType::Array; }
 
     JsonElementState& as_element();
     JsonDictState& as_dict();
@@ -43,6 +47,9 @@ struct StateBase {
     const JsonElementState& as_element() const;
     const JsonDictState& as_dict() const;
     const JsonArrayState& as_array() const;
+
+protected:
+    explicit StateBase(StateType t) : state_type_(t) {}
 };
 
 using StateNodePtr = unique_ptr<StateBase>;
@@ -50,6 +57,7 @@ using StateNodePtr = unique_ptr<StateBase>;
 // ── 叶子：标量 ──
 
 struct JsonElementState : StateBase {
+    JsonElementState() : StateBase(StateType::Element) {}
     ChangeKind kind_ = ChangeKind::Origin;
     ScalarValue value;
     ScalarValue old_value;  // 无旧值时为 nullptr
@@ -63,6 +71,7 @@ struct JsonElementState : StateBase {
 // ── 字典 ──
 
 struct JsonDictState : StateBase {
+    JsonDictState() : StateBase(StateType::Dict) {}
     ChangeKind kind_ = ChangeKind::Origin;
     unordered_map<string, StateNodePtr> entries;
 
@@ -78,6 +87,7 @@ struct JsonDictState : StateBase {
 // ── 数组 ──
 
 struct JsonArrayState : StateBase {
+    JsonArrayState() : StateBase(StateType::Array) {}
     ChangeKind kind_ = ChangeKind::Origin;
     vector<StateNodePtr> diffs;
     int base_count = 0;

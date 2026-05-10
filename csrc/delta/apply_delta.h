@@ -11,14 +11,14 @@ class JsonState;
 void apply_dict_delta(
     JsonDictState& base,
     const DeltaDict& delta,
-    const std::vector<std::string>* field_path = nullptr,
+    std::vector<std::string>* field_path = nullptr,
     int version = 0,
     bool is_override = false);
 
 void apply_array_delta(
     JsonArrayState& base,
     const DeltaArray& delta,
-    const std::vector<std::string>* field_path = nullptr,
+    std::vector<std::string>* field_path = nullptr,
     int version = 0,
     bool is_override = false);
 
@@ -31,7 +31,7 @@ StateNodePtr apply_field_delta(
 void apply_delta_to_state(
     JsonState& state,
     const DeltaDict& delta,
-    const std::vector<std::string>* field_path = nullptr,
+    std::vector<std::string>* field_path = nullptr,
     int version = 0,
     bool is_override = false);
 

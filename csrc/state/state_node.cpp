@@ -56,39 +56,35 @@ bool scalar_equal(const ScalarValue& a, const ScalarValue& b) {
 
 // ── StateBase ──
 
-bool StateBase::is_element() const { return dynamic_cast<const JsonElementState*>(this) != nullptr; }
-bool StateBase::is_dict() const    { return dynamic_cast<const JsonDictState*>(this) != nullptr; }
-bool StateBase::is_array() const   { return dynamic_cast<const JsonArrayState*>(this) != nullptr; }
-
 JsonElementState& StateBase::as_element() {
-    auto* p = dynamic_cast<JsonElementState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not an element");
-    return *p;
+    if (state_type_ != StateType::Element)
+        throw std::runtime_error("StateBase: not an element");
+    return static_cast<JsonElementState&>(*this);
 }
 JsonDictState& StateBase::as_dict() {
-    auto* p = dynamic_cast<JsonDictState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not a dict");
-    return *p;
+    if (state_type_ != StateType::Dict)
+        throw std::runtime_error("StateBase: not a dict");
+    return static_cast<JsonDictState&>(*this);
 }
 JsonArrayState& StateBase::as_array() {
-    auto* p = dynamic_cast<JsonArrayState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not an array");
-    return *p;
+    if (state_type_ != StateType::Array)
+        throw std::runtime_error("StateBase: not an array");
+    return static_cast<JsonArrayState&>(*this);
 }
 const JsonElementState& StateBase::as_element() const {
-    auto* p = dynamic_cast<const JsonElementState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not an element");
-    return *p;
+    if (state_type_ != StateType::Element)
+        throw std::runtime_error("StateBase: not an element");
+    return static_cast<const JsonElementState&>(*this);
 }
 const JsonDictState& StateBase::as_dict() const {
-    auto* p = dynamic_cast<const JsonDictState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not a dict");
-    return *p;
+    if (state_type_ != StateType::Dict)
+        throw std::runtime_error("StateBase: not a dict");
+    return static_cast<const JsonDictState&>(*this);
 }
 const JsonArrayState& StateBase::as_array() const {
-    auto* p = dynamic_cast<const JsonArrayState*>(this);
-    if (!p) throw std::runtime_error("StateBase: not an array");
-    return *p;
+    if (state_type_ != StateType::Array)
+        throw std::runtime_error("StateBase: not an array");
+    return static_cast<const JsonArrayState&>(*this);
 }
 
 // ── JsonElementState ──

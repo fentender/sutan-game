@@ -9,7 +9,9 @@
 #include "perf.h"
 #include "state_node.h"
 #include <algorithm>
+#include <cstring>
 #include <optional>
+#include <string_view>
 #include <unordered_map>
 
 namespace sultan {
@@ -46,13 +48,34 @@ static DeltaNodePtr make_deleted_element(JsonVal v) {
 static bool deep_equal(JsonVal a, JsonVal b);
 
 static bool obj_equal(JsonVal a, JsonVal b) {
-    if (a.obj_size() != b.obj_size()) return false;
-    auto it = a.obj_iter();
-    JsonVal::ObjEntry e;
-    while (it.next(e)) {
-        JsonVal bv = b.obj_get(e.key);
-        if (!bv.valid()) return false;
-        if (!deep_equal(e.val, bv)) return false;
+    size_t n = a.obj_size();
+    if (n != b.obj_size()) return false;
+
+    struct KVEntry { std::string_view key; JsonVal val; };
+    vector<KVEntry> avec, bvec;
+    avec.reserve(n);
+    bvec.reserve(n);
+
+    {
+        auto it = a.obj_iter();
+        JsonVal::ObjEntry e;
+        while (it.next(e))
+            avec.push_back({std::string_view(e.key, e.key_len), e.val});
+    }
+    {
+        auto it = b.obj_iter();
+        JsonVal::ObjEntry e;
+        while (it.next(e))
+            bvec.push_back({std::string_view(e.key, e.key_len), e.val});
+    }
+
+    auto cmp = [](const KVEntry& x, const KVEntry& y) { return x.key < y.key; };
+    std::sort(avec.begin(), avec.end(), cmp);
+    std::sort(bvec.begin(), bvec.end(), cmp);
+
+    for (size_t i = 0; i < n; ++i) {
+        if (avec[i].key != bvec[i].key) return false;
+        if (!deep_equal(avec[i].val, bvec[i].val)) return false;
     }
     return true;
 }
@@ -76,7 +99,7 @@ static bool deep_equal(JsonVal a, JsonVal b) {
         case JsonType::Bool: return a.get_bool() == b.get_bool();
         case JsonType::Int:  return a.get_int() == b.get_int();
         case JsonType::Real: return a.get_real() == b.get_real();
-        case JsonType::Str:  return string(a.get_str()) == string(b.get_str());
+        case JsonType::Str:  return std::strcmp(a.get_str(), b.get_str()) == 0;
         case JsonType::Obj:  return obj_equal(a, b);
         case JsonType::Arr:  return arr_equal(a, b);
     }
@@ -105,17 +128,6 @@ struct ObjKeys {
         return r;
     }
 };
-
-static bool has_duplicate_keys(JsonVal obj) {
-    unordered_map<string, int> counts;
-    auto it = obj.obj_iter();
-    JsonVal::ObjEntry e;
-    while (it.next(e)) {
-        string k(e.key, e.key_len);
-        if (++counts[k] > 1) return true;
-    }
-    return false;
-}
 
 // ── order 列表构建 ──
 
@@ -157,7 +169,7 @@ static JsonDoc wrap_scalar_as_array(JsonVal v);
 
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     MergeMode merge_mode,
     bool skip_deletion = false);
 
@@ -165,7 +177,7 @@ static DeltaNodePtr array_delta_from_matching(
     const vector<JsonVal>& base_elems,
     const vector<JsonVal>& mod_elems,
     const ArrayMatching& matching,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     bool is_duplist,
     MergeMode merge_mode)
 {
@@ -214,7 +226,7 @@ static DeltaNodePtr array_delta_from_matching(
 
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     MergeMode merge_mode,
     bool skip_deletion)
 {
@@ -223,14 +235,11 @@ static DeltaNodePtr recursive_delta(
         return nullptr;
 
     // dict vs dict
-    // TODO： 修改
     if (base.is_obj() && mod.is_obj()) {
-        bool base_dup = has_duplicate_keys(base);
-        bool mod_dup = has_duplicate_keys(mod);
+        auto base_keys = ObjKeys::collect(base);
+        auto mod_keys = ObjKeys::collect(mod);
 
-        if (base_dup || mod_dup) {
-            auto base_keys = ObjKeys::collect(base);
-            auto mod_keys = ObjKeys::collect(mod);
+        if (base_keys.has_dup || mod_keys.has_dup) {
 
             auto dict = make_unique<DeltaDict>();
             for (auto& key : mod_keys.key_order) {
@@ -279,14 +288,9 @@ static DeltaNodePtr recursive_delta(
                     if (!darr->diffs.empty())
                         dict->insert(key, std::move(darr));
                 } else {
-                    vector<string> cp;
-                    vector<string>* child_path = nullptr;
-                    if (field_path) {
-                        cp = *field_path;
-                        cp.push_back(key);
-                        child_path = &cp;
-                    }
-                    auto sub = recursive_delta(base_vals[0], mod_vals[0], child_path, merge_mode);
+                    if (field_path) field_path->push_back(key);
+                    auto sub = recursive_delta(base_vals[0], mod_vals[0], field_path, merge_mode);
+                    if (field_path) field_path->pop_back();
                     if (sub) dict->insert(key, std::move(sub));
                 }
             }
@@ -295,10 +299,10 @@ static DeltaNodePtr recursive_delta(
                 for (auto& key : base_keys.key_order) {
                     if (mod_keys.entries.count(key)) continue;
                     if (merge_mode == MergeMode::Smart) {
-                        vector<string> cp;
-                        if (field_path) cp = *field_path;
-                        cp.push_back(key);
-                        if (!smart_allow_deletion(cp, false)) continue;
+                        if (field_path) field_path->push_back(key);
+                        bool allow = !field_path || smart_allow_deletion(*field_path, false);
+                        if (field_path) field_path->pop_back();
+                        if (!allow) continue;
                     }
                     auto& bvals = base_keys.entries[key].vals;
                     if (bvals.size() == 1)
@@ -321,14 +325,9 @@ static DeltaNodePtr recursive_delta(
             if (!base_val.valid()) {
                 dict->insert(key, make_added_element(e.val));
             } else {
-                vector<string> cp;
-                vector<string>* child_path = nullptr;
-                if (field_path) {
-                    cp = *field_path;
-                    cp.push_back(key);
-                    child_path = &cp;
-                }
-                auto sub = recursive_delta(base_val, e.val, child_path, merge_mode);
+                if (field_path) field_path->push_back(key);
+                auto sub = recursive_delta(base_val, e.val, field_path, merge_mode);
+                if (field_path) field_path->pop_back();
                 if (sub) dict->insert(key, std::move(sub));
             }
         }
@@ -341,10 +340,10 @@ static DeltaNodePtr recursive_delta(
                 if (mod_val.valid()) continue;
 
                 if (merge_mode == MergeMode::Smart) {
-                    vector<string> cp;
-                    if (field_path) cp = *field_path;
-                    cp.push_back(key);
-                    if (!smart_allow_deletion(cp, false)) continue;
+                    if (field_path) field_path->push_back(key);
+                    bool allow = !field_path || smart_allow_deletion(*field_path, false);
+                    if (field_path) field_path->pop_back();
+                    if (!allow) continue;
                 }
                 dict->insert(key, make_deleted_element(e.val));
             }

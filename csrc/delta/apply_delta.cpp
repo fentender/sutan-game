@@ -146,7 +146,7 @@ static vector<int> rebuild_array_order(
 static StateNodePtr apply_delta_entry(
     const DeltaBase& diff,
     StateBase* existing,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     int version,
     bool is_override);
 
@@ -155,7 +155,7 @@ static StateNodePtr apply_delta_entry(
 void apply_array_delta(
     JsonArrayState& base,
     const DeltaArray& delta,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     int version,
     bool is_override)
 {
@@ -191,20 +191,14 @@ void apply_array_delta(
 void apply_dict_delta(
     JsonDictState& base,
     const DeltaDict& delta,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     int version,
     bool is_override)
 {
     base.kind_ = delta.kind_;
 
     for (auto& [key, diff] : delta.items) {
-        vector<string> cp;
-        vector<string>* child_path = nullptr;
-        if (field_path) {
-            cp = *field_path;
-            cp.push_back(key);
-            child_path = &cp;
-        }
+        if (field_path) field_path->push_back(key);
 
         StateBase* existing = base.find(key);
 
@@ -230,9 +224,10 @@ void apply_dict_delta(
             existing = base.find(key);
         }
 
-        auto applied = apply_delta_entry(*diff, existing, child_path, version, is_override);
-        if (!applied) continue;
-        base.insert(key, std::move(applied));
+        auto applied = apply_delta_entry(*diff, existing, field_path, version, is_override);
+        if (applied)
+            base.insert(key, std::move(applied));
+        if (field_path) field_path->pop_back();
     }
 }
 
@@ -241,7 +236,7 @@ void apply_dict_delta(
 static StateNodePtr apply_delta_entry(
     const DeltaBase& diff,
     StateBase* existing,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     int version,
     bool is_override)
 {
@@ -364,7 +359,7 @@ static StateNodePtr apply_delta_entry(
 void apply_delta_to_state(
     JsonState& state,
     const DeltaDict& delta,
-    const vector<string>* field_path,
+    vector<string>* field_path,
     int version,
     bool is_override)
 {

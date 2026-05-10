@@ -76,6 +76,9 @@ class MainWindow(QMainWindow):
         self._analyze_bridge = _TaskBridge(self)
         self._analyze_bridge.task_event.connect(self._on_analyze_event)
         self._analyze_gen: int = 0
+        self._prep_handle: AsyncTaskHandle | None = None
+        self._prep_bridge = _TaskBridge(self)
+        self._prep_bridge.task_event.connect(self._on_prep_event)
         self._update_handle: AsyncTaskHandle | None = None
         self._update_bridge = _TaskBridge(self)
         self._update_bridge.task_event.connect(self._on_update_event)
@@ -426,12 +429,16 @@ class MainWindow(QMainWindow):
         ]
 
     def _is_analyzing(self) -> bool:
+        if self._prep_handle is not None and not self._prep_handle.is_done:
+            return True
         return self._analyze_handle is not None and not self._analyze_handle.is_done
 
     def _analyze_conflicts(self) -> None:
         if self._merge_handle and not self._merge_handle.is_done:
             return
 
+        if self._prep_handle and not self._prep_handle.is_done:
+            self._prep_handle.cancel()
         if self._analyze_handle and not self._analyze_handle.is_done:
             self._analyze_handle.cancel()
 
@@ -444,27 +451,53 @@ class MainWindow(QMainWindow):
 
         self._cleanup_remap()
         diag.snapshot("remap")
-        _remap_msgs, remap_tables = self.service.remap_mod_configs(mod_configs)
-        self._remap_tables = remap_tables
 
-        remap_messages = diag.snapshot("remap")
+        self.statusBar().showMessage("正在准备分析...")
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)
+
+        self._analyze_gen += 1
+        gen = self._analyze_gen
+
+        def _cb(ev: TaskEvent) -> None:
+            if self._analyze_gen == gen:
+                self._prep_bridge.task_event.emit(ev)
+
+        self._prep_handle = self.service.prep_analyze_async(
+            mod_configs,
+            self._get_merge_mode(),
+            self._get_mod_merge_modes(),
+            cb=_cb,
+        )
+
+    def _on_prep_event(self, event: TaskEvent) -> None:
+        match event:
+            case TaskStage(message=message):
+                self.statusBar().showMessage(message)
+            case TaskProgress(completed=completed, total=total):
+                self.progress_bar.setRange(0, total)
+                self.progress_bar.setValue(completed)
+            case TaskDone(result=(remap_tables, remap_messages)):
+                self._on_prep_finished(remap_tables, remap_messages)
+            case TaskError(message=message):
+                self._on_prep_error(message)
+
+    def _on_prep_finished(
+        self,
+        remap_tables: dict[str, RemapTable],
+        remap_messages: list[tuple[str, str]],
+    ) -> None:
+        self._remap_tables = remap_tables if remap_tables else None
+
         if remap_messages:
             self._show_messages([
                 (level, prefix_mod_title(msg, self._mod_name_map))
                 for level, msg in remap_messages
             ])
 
-        enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
-        self.service.invalidate_delta()
-        self.service.init_delta(enabled_ids,
-                                merge_mode=self._get_merge_mode(),
-                                mod_merge_modes=self._get_mod_merge_modes())
-
         self.statusBar().showMessage("正在分析覆盖情况...")
-        self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
-        self._analyze_gen += 1
         gen = self._analyze_gen
 
         def _cb(ev: TaskEvent) -> None:
@@ -474,6 +507,10 @@ class MainWindow(QMainWindow):
         self._analyze_handle = self.service.analyze_async(
             self._get_mod_configs(), self.service.schema_dir, cb=_cb,
         )
+
+    def _on_prep_error(self, message: str) -> None:
+        self.progress_bar.setVisible(False)
+        self.statusBar().showMessage(f"准备分析失败: {message}")
 
     def _on_analyze_event(self, event: TaskEvent) -> None:
         match event:
@@ -821,6 +858,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         self._analyze_timer.stop()
         self._init_timer.stop()
+        if self._prep_handle and not self._prep_handle.is_done:
+            self._prep_handle.cancel()
+            self._prep_handle.wait(5.0)
         if self._analyze_handle and not self._analyze_handle.is_done:
             self._analyze_handle.cancel()
             self._analyze_handle.wait(5.0)

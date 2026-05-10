@@ -553,6 +553,46 @@ class AppService:
                 cb(TaskError(str(e)))
 
     @async_task
+    def prep_analyze_async(
+        self,
+        mod_configs: list[tuple[str, str, Path]],
+        merge_mode: MergeMode,
+        mod_merge_modes: dict[str, MergeMode] | None,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            cb(TaskStage("正在检测 ID 冲突..."))
+            _remap_msgs, remap_tables = self.remap_mod_configs(
+                mod_configs, cancel_check=handle.check_cancel,
+            )
+            handle.check_cancel()
+
+            remap_messages = diag.snapshot("remap")
+
+            cb(TaskStage("正在预计算差异..."))
+            enabled_ids = [mod_id for mod_id, _, _ in mod_configs]
+            self.invalidate_delta()
+
+            def _progress(cur: int, total: int) -> None:
+                handle.check_cancel()
+                cb(TaskProgress(cur, total))
+
+            self.init_delta(
+                enabled_ids, merge_mode, mod_merge_modes,
+                progress_cb=_progress,
+                cancel_check=handle.check_cancel,
+            )
+            handle.check_cancel()
+            cb(TaskDone(result=(remap_tables, remap_messages)))
+        except _Cancelled:
+            pass
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
+
+    @async_task
     def merge_async(
         self,
         mod_configs: list[tuple[str, str, Path]],
@@ -717,8 +757,9 @@ class AppService:
 
     def remap_mod_configs(
         self, mod_configs: list[tuple[str, str, Path]],
+        cancel_check: CancelCheck | None = None,
     ) -> tuple[list[str], dict[str, RemapTable]]:
-        return _remap_mod_configs(mod_configs)
+        return _remap_mod_configs(mod_configs, cancel_check=cancel_check)
 
     def cleanup_remap(self, remap_tables: dict[str, RemapTable]) -> None:
         self._mod_manager.cleanup_remap(remap_tables)

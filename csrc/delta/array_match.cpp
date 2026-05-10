@@ -242,6 +242,16 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
     for (auto& [bi, mi] : pairs) pair_map[bi] = mi;
 
     for (const auto& field : CONTENT_FIELDS) {
+        // 预缓存 mod 元素的该字段序列化结果
+        unordered_map<int, string> mod_field_cache;
+        for (int mi : remaining_mod_set) {
+            if (!mod[mi].is_obj()) continue;
+            JsonVal mfield = mod[mi].obj_get(field.c_str());
+            if (!mfield.valid()) continue;
+            string s = field_val_to_string(mfield);
+            if (!s.empty()) mod_field_cache[mi] = std::move(s);
+        }
+
         bool changed = true;
         while (changed) {
             changed = false;
@@ -261,11 +271,9 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
 
                 for (int mi : remaining_mod_set) {
                     if (mi < lo || mi >= hi) continue;
-                    if (!mod[mi].is_obj()) continue;
-                    JsonVal mfield = mod[mi].obj_get(field.c_str());
-                    if (!mfield.valid()) continue;
-                    string mod_str = field_val_to_string(mfield);
-                    if (mod_str.empty()) continue;
+                    auto cache_it = mod_field_cache.find(mi);
+                    if (cache_it == mod_field_cache.end()) continue;
+                    const string& mod_str = cache_it->second;
 
                     size_t max_len = std::max(base_str.size(), mod_str.size());
                     size_t cutoff = static_cast<size_t>(max_len * 0.33);
