@@ -1,5 +1,6 @@
 #include "array_match.h"
 #include "json_doc.h"
+#include "perf.h"
 #include "similarity.h"
 #include "state_node.h"
 #include <algorithm>
@@ -156,6 +157,7 @@ static pair<int, int> get_mod_range(
 // ── 四阶段匹配 ──
 
 ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
+    SULTAN_PERF_SCOPE("match_heuristic");
     auto base = collect_array(base_arr);
     auto mod = collect_array(mod_arr);
     int base_len = static_cast<int>(base.size());
@@ -179,7 +181,13 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
     unordered_set<int> matched_base;
     bool has_fallback = false;
 
+    vector<int> remaining_base;
+    unordered_set<int> remaining_mod_set;
+    unordered_map<int, int> pair_map;
+
     // ── 阶段 1：COMMON_MATCH_KEYS 精确匹配 ──
+    {
+    SULTAN_PERF_SCOPE("match_phase1_keys");
     int s_start = 0;
 
     for (int bi = 0; bi < base_len; ++bi) {
@@ -220,26 +228,25 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
         }
         (void)matched_in_step1;
     }
+    }
 
     // ── 阶段 2：内容字段模糊匹配 ──
-    vector<int> remaining_base;
+    {
+    SULTAN_PERF_SCOPE("match_phase2_levenshtein");
     for (int bi = 0; bi < base_len; ++bi) {
         if (matched_base.count(bi) == 0) remaining_base.push_back(bi);
     }
-    unordered_set<int> remaining_mod_set;
     for (int mi = 0; mi < mod_len; ++mi) {
         if (matched_mod.count(mi) == 0) remaining_mod_set.insert(mi);
     }
-
-    unordered_map<int, int> pair_map;
     for (auto& [bi, mi] : pairs) pair_map[bi] = mi;
 
     for (const auto& field : CONTENT_FIELDS) {
         bool changed = true;
         while (changed) {
             changed = false;
-            unordered_map<int, vector<pair<int, int>>> fwd; // bi → [(mi, dist)]
-            unordered_map<int, vector<pair<int, int>>> rev; // mi → [(bi, dist)]
+            unordered_map<int, vector<pair<int, int>>> fwd;
+            unordered_map<int, vector<pair<int, int>>> rev;
 
             for (int bi : remaining_base) {
                 if (matched_base.count(bi)) continue;
@@ -327,8 +334,11 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
     for (int bi = 0; bi < base_len; ++bi) {
         if (matched_base.count(bi) == 0) remaining_base.push_back(bi);
     }
+    }
 
     // ── 阶段 3：兜底相似度匹配 ──
+    {
+    SULTAN_PERF_SCOPE("match_phase3_similarity");
     if (!remaining_base.empty() && !remaining_mod_set.empty()) {
         bool changed = true;
         while (changed) {
@@ -431,6 +441,7 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
             remaining_mod_set.erase(best_mi_scalar);
             has_fallback = true;
         }
+    }
     }
 
     // 收集未匹配

@@ -16,6 +16,9 @@ cmake.version = ">=3.17"
 cmake.build-type = "Release"
 build-dir = "build/{wheel_tag}"
 
+[tool.scikit-build.cmake.define]
+SULTAN_PERF = "ON"
+
 [tool.scikit-build.editable]
 rebuild = true
 verbose = true

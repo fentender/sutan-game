@@ -6,6 +6,7 @@
 #include "json_state.h"
 #include "mut_doc.h"
 #include "mut_val.h"
+#include "perf.h"
 #include "state_node.h"
 #include <algorithm>
 #include <optional>
@@ -217,6 +218,7 @@ static DeltaNodePtr recursive_delta(
     MergeMode merge_mode,
     bool skip_deletion)
 {
+    SULTAN_PERF_SCOPE("recursive_delta");
     if (deep_equal(base, mod))
         return nullptr;
 
@@ -393,6 +395,7 @@ DeltaNodePtr compute_delta(
     MergeMode merge_mode,
     bool skip_root_deletion)
 {
+    SULTAN_PERF_SCOPE("compute_delta");
     if (!base.valid() || !mod.valid())
         return nullptr;
     vector<string> root_path;
@@ -702,6 +705,7 @@ DeltaNodePtr remap_delta_to_current(
     const JsonDoc& hist_base,
     const JsonDoc& current_base)
 {
+    SULTAN_PERF_SCOPE("remap_delta");
     if (!hist_base.valid() || !current_base.valid())
         return nullptr;
     JsonVal hist = hist_base.root();

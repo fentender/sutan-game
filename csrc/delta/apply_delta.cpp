@@ -1,5 +1,6 @@
 #include "apply_delta.h"
 #include "json_state.h"
+#include "perf.h"
 #include <algorithm>
 #include <stdexcept>
 #include <unordered_map>
@@ -367,6 +368,7 @@ void apply_delta_to_state(
     int version,
     bool is_override)
 {
+    SULTAN_PERF_SCOPE("apply_delta");
     if (!state.valid())
         throw std::runtime_error("apply_delta_to_state: invalid state");
     if (!state.root().is_dict())

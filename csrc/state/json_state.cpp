@@ -3,6 +3,7 @@
 #include "json_val.h"
 #include "mut_doc.h"
 #include "mut_val.h"
+#include "perf.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -178,6 +179,7 @@ static MutVal state_to_val(const StateBase& node, MutVal ctx) {
 JsonState::JsonState(StateNodePtr root) : root_(std::move(root)) {}
 
 JsonState JsonState::from_doc(const JsonDoc& doc) {
+    SULTAN_PERF_SCOPE("state_from_doc");
     if (!doc.valid())
         throw std::runtime_error("JsonState::from_doc: invalid JsonDoc");
     return JsonState(build_node(doc.root()));

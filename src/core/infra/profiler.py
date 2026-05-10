@@ -133,6 +133,17 @@ def get_report(top_n: int = 20) -> str:
     lines.append("-" * 90)
     total = sum(s.total_time for _, s in items)
     lines.append(f"{'总计':<50} {'':>6} {total:>8.3f}s")
+
+    try:
+        from sultan_core import perf as cpp_perf
+        if cpp_perf.available:
+            cpp_report = cpp_perf.report(top_n)
+            if cpp_report:
+                lines.append("")
+                lines.append(cpp_report)
+    except ImportError:
+        pass
+
     return "\n".join(lines)
 
 

@@ -11,6 +11,7 @@
 #include "compute_delta.h"
 #include "apply_delta.h"
 #include "array_match.h"
+#include "perf.h"
 
 NB_MAKE_OPAQUE(std::unordered_map<std::string, sultan::DeltaNodePtr>)
 NB_MAKE_OPAQUE(std::vector<sultan::DeltaNodePtr>)
@@ -18,6 +19,7 @@ NB_MAKE_OPAQUE(std::vector<sultan::DeltaNodePtr>)
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/tuple.h>
 #include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
@@ -243,6 +245,63 @@ static void bind_delta(nb::module_& parent) {
         nb::arg("doc"));
 }
 
+static void bind_perf(nb::module_& parent) {
+    auto m = parent.def_submodule("perf", "C++ 性能分析");
+#ifdef SULTAN_PERF
+    m.attr("available") = true;
+    m.def("enable", []() {
+        sultan::perf::Registry::instance().set_enabled(true);
+    });
+    m.def("disable", []() {
+        sultan::perf::Registry::instance().set_enabled(false);
+    });
+    m.def("reset", []() {
+        sultan::perf::Registry::instance().reset();
+    });
+    m.def("snapshot", []() {
+        auto data = sultan::perf::Registry::instance().snapshot();
+        std::vector<std::tuple<std::string, int64_t, double, double, double, double>> result;
+        result.reserve(data.size());
+        for (auto& e : data)
+            result.emplace_back(e.name, e.call_count, e.total_us, e.avg_us, e.max_us, e.min_us);
+        return result;
+    });
+    m.def("report", [](int top_n) {
+        auto data = sultan::perf::Registry::instance().snapshot();
+        std::string out;
+        out += "C++ Performance Report\n";
+        out += std::string(90, '=') + "\n";
+        char buf[256];
+        snprintf(buf, sizeof(buf), "%-32s %8s %12s %10s %10s %10s\n",
+                 "Function", "Calls", "Total(ms)", "Avg(us)", "Max(us)", "Min(us)");
+        out += buf;
+        out += std::string(90, '-') + "\n";
+        int count = 0;
+        for (auto& e : data) {
+            if (count >= top_n) break;
+            snprintf(buf, sizeof(buf), "%-32s %8lld %12.1f %10.1f %10.1f %10.1f\n",
+                     e.name.c_str(),
+                     static_cast<long long>(e.call_count),
+                     e.total_us / 1000.0,
+                     e.avg_us, e.max_us, e.min_us);
+            out += buf;
+            ++count;
+        }
+        return out;
+    }, nb::arg("top_n") = 20);
+#else
+    m.attr("available") = false;
+    m.def("enable", []() {});
+    m.def("disable", []() {});
+    m.def("reset", []() {});
+    m.def("snapshot", []() {
+        return std::vector<std::tuple<std::string, int64_t, double, double, double, double>>{};
+    });
+    m.def("report", [](int) { return std::string("(perf not compiled)"); },
+        nb::arg("top_n") = 20);
+#endif
+}
+
 NB_MODULE(sultan_core, m) {
     m.doc() = "苏丹的游戏 Mod 合并器 - C++ 加速层";
     m.attr("__version__") = "0.1.0";
@@ -251,4 +310,5 @@ NB_MODULE(sultan_core, m) {
     bind_json_ops(m);
     bind_state(m);
     bind_delta(m);
+    bind_perf(m);
 }

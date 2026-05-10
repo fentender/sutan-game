@@ -27,6 +27,12 @@ target_include_directories(sultan_core_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/delta
 )
 target_link_libraries(sultan_core_lib PUBLIC yyjson rapidfuzz::rapidfuzz)
+
+option(SULTAN_PERF "Enable C++ performance instrumentation" OFF)
+if(SULTAN_PERF)
+    target_compile_definitions(sultan_core_lib PUBLIC SULTAN_PERF)
+endif()
+
 set_target_properties(sultan_core_lib PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
