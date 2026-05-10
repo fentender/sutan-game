@@ -155,7 +155,7 @@ def copy_failed_files(
     output_path: Path,
 ) -> list[str]:
     """将解析失败但用户选择忽略的 JSON 文件原样复制到输出目录。"""
-    from ..json import classify_json
+    from sultan_core.json_ops import classify_json
 
     store = DataManager.instance()
     ignored = store.get_ignored_failures()

@@ -44,8 +44,7 @@ from .infra.types import (
     ParseFailure,
     ProgressCallback,
 )
-from .json import classify_json as _classify_json
-from .json.parser import reset_dir_cache as _reset_dir_cache
+from sultan_core.json_ops import classify_json as _classify_json
 from .merge.cache import FileMergeState
 from .merge.delta import ModDelta, _to_cpp_mode
 from .merge.merger import (
@@ -758,9 +757,6 @@ class AppService:
     ) -> None:
         _copy_resources(mod_paths, output_path,
                         cancel_check=cancel_check, remap_tables=remap_tables)
-
-    def reset_dir_cache(self) -> None:
-        _reset_dir_cache()
 
     # ══════════════════════════════════════════════════════════════
     # ID Remap

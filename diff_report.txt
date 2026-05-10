@@ -1,0 +1,235 @@
+A: C:\Users\Lenovo\Documents\DoubleCross\SultansGame\Mod\0000000001
+B: C:\Users\Lenovo\Documents\DoubleCross\SultansGame\Mod\0000000002
+
+=== 仅在A中存在的文件 (1) ===
+  config/event/5390030.json
+
+
+=== 有差异的JSON文件 (882个，按差异数排序) ===
+  config/rite/5008204.json: 166处差异
+  config/over_music_config.json: 156处差异
+  config/gallery_cards.json: 140处差异
+  config/rite/5000302.json: 121处差异
+  config/rite/5090000.json: 74处差异
+  config/rite/5000633.json: 60处差异
+  config/rite/5001001.json: 51处差异
+  config/rite/5000009.json: 48处差异
+  config/rite/5090011.json: 45处差异
+  config/rite/5000801.json: 43处差异
+  config/rite/5010023.json: 41处差异
+  config/sfx_config.json: 41处差异
+  config/rite/5000800.json: 38处差异
+  config/rite/5006646.json: 38处差异
+  config/rite/5090001.json: 37处差异
+  config/rite/5000803.json: 33处差异
+  config/rite/5000101.json: 30处差异
+  config/rite/5004825.json: 25处差异
+  config/rite/5004832.json: 24处差异
+  config/rite/5027826.json: 22处差异
+  config/rite/5004824.json: 21处差异
+  config/rite/5004826.json: 21处差异
+  config/rite/5008161.json: 21处差异
+  config/rite/5004827.json: 20处差异
+  config/rite/5008121.json: 20处差异
+  config/rite/5090015.json: 20处差异
+  config/event/5390014.json: 19处差异
+  config/rite/5000100.json: 19处差异
+  config/rite/5090014.json: 19处差异
+  config/rite/5000798.json: 18处差异
+  ... 还有852个文件
+
+=== JSON解析错误 (89个文件) ===
+  config/after_story/2200001.json
+  config/cards.json
+  config/event/5320022.json
+  config/event/5321112.json
+  config/event/8864275.json
+  config/event/8864311.json
+  config/event/8900501.json
+  config/loot/6000085.json
+  config/rite/4000667.json
+  config/rite/4000680.json
+  config/rite/4006557.json
+  config/rite/4008006.json
+  config/rite/4008007.json
+  config/rite/4008008.json
+  config/rite/4008009.json
+  config/rite/4008010.json
+  config/rite/4008011.json
+  config/rite/4008012.json
+  config/rite/5000002.json
+  config/rite/5000521.json
+  ... 还有69个文件
+
+=== 类型差异分布 ===
+  DupList vs int: 1225
+  DupList vs dict: 314
+  int vs float: 290
+  DupList vs str: 124
+  DupList vs list: 115
+  dict vs DupList: 8
+  list vs str: 1
+  str vs list: 1
+  NoneType vs str: 1
+  int vs list: 1
+  int vs DupList: 1
+
+=== 字段存在性差异 ===
+  仅在A: 505处
+  仅在B: 310处
+    [A] config/after_story/2000001.json :: $.extra[1].condition.counter.7000438
+    [A] config/after_story/2000001.json :: $.extra[2].condition.counter.7000438
+    [A] config/after_story/2000006.json :: $.extra[0].condition.counter.7000438
+    [A] config/after_story/2000006.json :: $.extra[1].condition.counter.7000438
+    [A] config/after_story/2000006.json :: $.extra[2].condition.counter.7000438
+    [A] config/after_story/2000013.json :: $.extra[10].condition.counter.7000438
+    [A] config/after_story/2000019.json :: $.extra[227].condition.counter.7000438
+    [A] config/after_story/2000021.json :: $.extra[192].condition.counter.7000438
+    [A] config/after_story/2000022.json :: $.extra[188].condition.counter.7000438
+    [A] config/after_story/2000055.json :: $.extra[17].condition.counter.7000438
+    [A] config/after_story/2000055.json :: $.extra[18].condition.counter.7000438
+    [A] config/after_story/2000061.json :: $.extra[10].condition.counter.7000438
+    [A] config/after_story/2000062.json :: $.extra[16].condition.counter.7000438
+    [A] config/after_story/2000062.json :: $.extra[17].condition.counter.7000438
+    [A] config/after_story/2000062.json :: $.extra[18].condition.counter.7000438
+    [A] config/after_story/2000064.json :: $.extra[6].condition.counter.7000438
+    [A] config/after_story/2000113.json :: $.extra[7].condition.counter.7000438
+    [A] config/after_story/2000123.json :: $.extra[0].condition.counter.7000438
+    [A] config/after_story/2000123.json :: $.extra[1].condition.counter.7000438
+    [A] config/after_story/2000123.json :: $.extra[2].condition.counter.7000438
+    ... 还有485处
+    [B] config/after_story/2000129.json :: $.extra[151].condition.have.2000129.支持者
+    [B] config/event/5300012.json :: $.condition.any.all.table_have.2000397
+    [B] config/event/5300012.json :: $.condition.any.all.table_have.2000397.妓女>=
+    [B] config/event/5300113.json :: $.settlement[0].action.rite
+    [B] config/event/5300113.json :: $.settlement[0].action.success
+    [B] config/event/5300340.json :: $.settlement[0].action.hand_pop.5300340_01.金币
+    [B] config/event/5300616.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5300617.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310008.json :: $.settlement[0].action.think_pop.5310008_02
+    [B] config/event/5310127.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310128.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310129.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310130.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310132.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310134.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310135.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310136.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310137.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310138.json :: $.settlement[0].action.begin_guide.ring_rect
+    [B] config/event/5310139.json :: $.settlement[0].action.begin_guide.ring_rect
+    ... 还有290处
+
+=== 实际值差异 (921处) ===
+  Info.json :: $.version
+    位置10: ...'20260510.154257'... vs ...'20260510.160107'...
+  config/after_story/2000010.json :: $.extra[3].result_text
+    位置126: ...'您果然是天生的苏丹。”……在你解释清楚之前，她就已经高高兴兴'... vs ...'您果然是天生的苏丹。”……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[7].result_text
+    位置126: ...'您果然是天生的苏丹。”……在你解释清楚之前，她就已经高高兴兴'... vs ...'您果然是天生的苏丹。”……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[13].result_text
+    位置130: ...'然是天生的苏丹。”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'然是天生的苏丹。”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[25].result_text
+    位置130: ...'然是天生的苏丹。”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'然是天生的苏丹。”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[30].result_text
+    位置144: ...'比上一个还适合做苏丹，您到底为什么不做呢？难不成是摄政王比苏'... vs ...'比上一个还适合做苏丹，您到底为啥那么不做呢？难不成是摄政王比'...
+  config/after_story/2000010.json :: $.extra[31].result_text
+    位置26: ...'她，而选的是那个萨达尔尼！\n\n但是，随着她越来越理解你的游戏'... vs ...'她，而选的是那个萨达尔尼！\n\n是，随着她越来越理解你的游戏之'...
+  config/after_story/2000010.json :: $.extra[34].result_text
+    位置188: ...'真坏，真有您的！”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'真坏，真有您的！”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[47].result_text
+    位置140: ...'不，天生的国王！”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'不，天生的国王！”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[53].result_text
+    位置140: ...'不，天生的国王！”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'不，天生的国王！”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[66].result_text
+    位置159: ...'么来着？大领主！”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'么来着？大领主！”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000010.json :: $.extra[78].result_text
+    位置140: ...'不，天生的国王！”\n\n……在你解释清楚之前，她就已经高高兴兴'... vs ...'不，天生的国王！”\n\n……在你来得及解释清楚之前，她就已经高'...
+  config/after_story/2000011.json :: $.extra[65].result_text
+    位置189: ...'重的大书兴奋地跑来王宫，望见的却是正在升起的白色旗帜，那象征'... vs ...'重的大书兴奋地跑来王宫，望见的确实正在升起的白色旗帜，那象征'...
+  config/after_story/2000011.json :: $.extra[98].result_text
+    位置609: ...'苏丹万岁！\n\n在你苏醒之后，所有参与过救治的医生都获得了一枚'... vs ...'苏丹万岁！\n\n在你苏醒之后，所以参与过救治的医生都获得了一枚'...
+  config/after_story/2000011.json :: $.extra[187].result_text
+    位置3: ...'萨米尔被你留任，依旧是宫廷中的御医。'... vs ...'萨米尔依旧是你的御医，在你登基之后不'...
+  config/after_story/2000021.json :: $.extra[181].result_text
+    位置253: ...'圣殿中搬了出来，他带着自己那少得可怜的几件行李，搬入了青金石'... vs ...'圣殿中搬了出来，他带着自己那少的可怜的几件行李，搬入了青金石'...
+  config/after_story/2000054.json :: $.extra[226].result_text
+    位置42: ...'寻找更大的猎物了。\n\n而在叛乱发生时，他们俩并没急着回来；倒'... vs ...'寻找更大的猎物了。\n\n而在叛乱给发生时，他们俩并没急着回来；'...
+  config/after_story/2000056.json :: $.extra[135].result_text
+    位置52: ...'贵族都在拼命抓凶手、整顿王都的秩序，而其他贵族要么是想着逃跑'... vs ...'贵族都在拼命抓凶手、整顿王都的持续，而其他贵族要么是想着逃跑'...
+  config/after_story/2000062.json :: $.extra[50].result_text
+    位置123: ...'离他不远的地方静静矗立着，浑身披满了温柔的白色大花。\n\n如果'... vs ...'离他不远的地方静静矗立着，浑身批满了温柔的白色大花。\n\n如果'...
+  config/after_story/2000113.json :: $.extra[26].result_text
+    位置77: ...'地收集着这些线索，而后把它们都传递到憎恨着王太后、拥护着你的'... vs ...'地收集着这些线索，而后把它们都被传递到憎恨着王太后、拥护着你'...
+  config/after_story/2000113.json :: $.extra[29].result_text
+    位置77: ...'地收集着这些线索，而后把它们都传递到憎恨着王太后、拥护着你的'... vs ...'地收集着这些线索，而后把它们都被传递到憎恨着王太后、拥护着你'...
+  config/after_story/2000123.json :: $.extra[104].result_text
+    位置18: ...'克和鲁梅拉从自己的领地赶来参加登基典礼，在高台上，当你和奈费'... vs ...'克和鲁梅拉从自己的领地赶来参加你的登基典礼，在高台上，当你和'...
+  config/after_story/2000195.json :: $.extra[180].result_text
+    位置325: ...'不知感恩、多么的不讲道理，你听得频频点头——而后，奈费勒话锋'... vs ...'不知感恩、多么的不讲道理，你听的频频点头——而后，奈费勒话锋'...
+  config/after_story/2000199.json :: $.extra[37].result_text
+    位置236: ...'脸上见到。那时你还没明白这意味着什么——\n\n后来，阿萨尔突然'... vs ...'脸上见到。那时你还没明白这意味这什么——\n\n后来，阿萨尔突然'...
+  config/after_story/2000199.json :: $.extra[45].result_text
+    位置236: ...'脸上见到。那时你还没明白这意味着什么——\n\n后来，阿萨尔突然'... vs ...'脸上见到。那时你还没明白这意味这什么——\n\n后来，阿萨尔突然'...
+  config/after_story/2000312.json :: $.extra[31].result_text
+    位置292: ...'了他的请求。\n\n回到自己领地的奈费勒筑起了高墙，屯集了军队，'... vs ...'了他的请求。\n\n回到自己领地的的奈费勒筑起了高墙，屯集了军队'...
+  config/after_story/2000352.json :: $.extra[113].result_text
+    位置22: ...'之后曾来找过你一次，她的面色出奇的严肃，而且专门选了一个梅姬'... vs ...'之后曾来找过你一次，她的面色出气的严肃，而且专门选了一个梅姬'...
+  config/after_story/2000352.json :: $.extra[160].result_text
+    位置57: ...'略有耳闻，但她并不觉得这有什么值得同情、值得体谅的。\n\n想要'... vs ...'略有耳闻，但她并不觉得这有什么只得同情、值得体谅的。\n\n想要'...
+  config/after_story/2000370.json :: $.extra[77].result_text
+    位置36: ...'你的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'你的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000370.json :: $.extra[85].result_text
+    位置36: ...'你的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'你的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000370.json :: $.extra[93].result_text
+    位置36: ...'你的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'你的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000370.json :: $.extra[97].result_text
+    位置36: ...'你的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'你的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000370.json :: $.extra[99].result_text
+    位置36: ...'你的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'你的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000370.json :: $.extra[103].result_text
+    位置37: ...'丹的传令人总管。快脚训练了一批脚程够快、嗓门够大、也足够忠心'... vs ...'丹的传令人总管。快脚训练了一批教程够快、嗓门够大、也足够忠心'...
+  config/after_story/2000459.json :: $.extra[38].result_text
+    位置60: ...'……\n\n接着，她窥见了你是如何推行乐行券的，又看到了你如何把'... vs ...'……\n\n接着，她窥见了你是如何乐行券的，又看到了你如何把国家'...
+  config/after_story/2000459.json :: $.extra[46].result_text
+    位置60: ...'……\n\n接着，她窥见了你是如何推行乐行券的，又看到了你如何把'... vs ...'……\n\n接着，她窥见了你是如何乐行券的，又看到了你如何把国家'...
+  config/after_story/2000459.json :: $.extra[71].result_text
+    位置202: ...'着战妆。不过，那之后她偶尔会把身形相近的战士化妆成希尔希纳的'... vs ...'着战妆。不过，那之后她偶尔会把与身形相近的战士化妆成希尔希纳'...
+  config/after_story/2000460.json :: $.extra[64].result_text
+    位置221: ...'为你写了许多最有名的颂歌。无论莎姬多么希望人们忘记你，但只要'... vs ...'为你写了许多最有名的颂歌。无论当莎姬多么希望人们忘记你，但只'...
+  config/after_story/2000771.json :: $.extra[49].result_text
+    位置286: ...'妹们。这些强壮而野蛮的战士披挂着王城守卫的铠甲，沉默地盯着来'... vs ...'妹们。这些强壮而野蛮的战士披挂这王城守卫的铠甲，沉默地盯着来'...
+  config/after_story/2000771.json :: $.extra[55].result_text
+    位置286: ...'妹们。这些强壮而野蛮的战士披挂着王城守卫的铠甲，沉默地盯着来'... vs ...'妹们。这些强壮而野蛮的战士披挂这王城守卫的铠甲，沉默地盯着来'...
+  config/after_story/2000794.json :: $.extra[81].result_text
+    位置140: ...'木剌·图斯大人，也就是阿鲁米娜小姐的丈夫，更是你曾经的仆从。'... vs ...'木剌·图斯大人，也就是阿鲁米娜的小姐的丈夫，更是你曾经的仆从'...
+  config/after_story/2000867.json :: $.extra[55].result_text
+    位置176: ...'一群人所接替。新来的是一些贵族家的仆从和私兵，这些人支持你，'... vs ...'一群人所接替。新来的是一些贵族的家的仆从和私兵，这些人支持你'...
+  config/after_story/2000867.json :: $.extra[110].result_text
+    位置214: ...'之后的许多年里，他们中有不少都成为了探险家，成为了刺入未知之'... vs ...'之后的许多年里，他们中有不少都加入了你的征伐队，与你和你的将'...
+  config/after_story/2000867.json :: $.extra[114].result_text
+    位置214: ...'之后的许多年里，他们中有不少都成为了探险家，成为了刺入未知之'... vs ...'之后的许多年里，他们中有不少都加入了你的征伐队，与你和你的将'...
+  config/event/5300102.json :: $.settlement[0].action.case:op1.prompt.icon
+    位置6: ...'cards/12000001'... vs ...'cards/2000001'...
+  config/event/5300102.json :: $.settlement[0].action.case:op2.prompt.icon
+    位置6: ...'cards/12000001'... vs ...'cards/2000001'...
+  config/event/5300102.json :: $.settlement[0].action.option.icon
+    位置6: ...'cards/12000001'... vs ...'cards/2000001'...
+  config/event/5300113.json :: $.settlement
+    长度不同 3 vs 1
+  config/event/5300273.json :: $.settlement[0].action.option.text
+    位置115: ...'“今天我们要拯救一位不幸的淑女，”他冲你眨眨眼，“这是我最喜'... vs ...'“今天我们要拯救一位不幸的淑女”，他冲你眨眨眼，“这是我最喜'...
+  config/event/5300348.json :: $.settlement[0].action.case:op2.prompt.text
+    位置11: ...'你连忙背过身去，命令她将斗篷裹好。你严厉地告诉她，自'... vs ...'你连忙背过身去，命令她她将斗篷裹好。你严厉地告诉她，'...
+  ... 还有871处
+
+=== 汇总 ===
+仅在A的文件:     1
+仅在B的文件:     0
+JSON一致:        3062
+JSON有差异:      882
+JSON解析错误:    89
+二进制一致:      471
+二进制差异:      0
+
+✗ 发现 883 个文件有差异

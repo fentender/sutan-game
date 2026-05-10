@@ -23,7 +23,7 @@ from ..infra.types import (
     MergeMode,
     ProgressCallback,
 )
-from ..json import classify_json
+from sultan_core.json_ops import classify_json
 
 # ==================== MergeMode 映射 ====================
 

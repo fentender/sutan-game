@@ -9,7 +9,7 @@ from ..infra.profiler import profile
 from typing import cast
 
 from ..infra.types import DupList, JsonObject
-from ..json.classify import get_type_str
+from .classify import get_type_str
 from .dsl import classify_dsl_key
 
 # 缓存的 schemas：{pattern: schema_dict}

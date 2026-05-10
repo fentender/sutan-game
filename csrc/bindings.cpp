@@ -138,6 +138,14 @@ static void bind_json_ops(nb::module_& parent) {
         nb::arg("doc"), nb::arg("field_name"), nb::arg("mapping"));
     m.def("replace_root_keys", &replace_root_keys,
         nb::arg("doc"), nb::arg("mapping"));
+    m.def("remap_all_ints", &remap_all_ints,
+        nb::arg("doc"), nb::arg("mapping"));
+    m.def("remap_all_str_ids", &remap_all_str_ids,
+        nb::arg("doc"), nb::arg("mapping"));
+    m.def("extract_root_field_ints", &extract_root_field_ints,
+        nb::arg("doc"), nb::arg("field_name"));
+    m.def("extract_root_field_strs", &extract_root_field_strs,
+        nb::arg("doc"), nb::arg("field_name"));
     m.def("classify_json", &classify_json,
         nb::arg("doc"));
 }

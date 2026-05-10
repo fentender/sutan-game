@@ -598,8 +598,6 @@ class MainWindow(QMainWindow):
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_paths = [(m.name, m.path) for m in enabled]
 
-        self.service.reset_dir_cache()
-
         self.btn_merge.setText("取消合并")
         self.btn_merge.clicked.disconnect()
         self.btn_merge.clicked.connect(self._cancel_merge)
