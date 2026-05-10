@@ -26,7 +26,7 @@ target_include_directories(sultan_core_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/state
     ${CMAKE_CURRENT_SOURCE_DIR}/delta
 )
-target_link_libraries(sultan_core_lib PUBLIC yyjson)
+target_link_libraries(sultan_core_lib PUBLIC yyjson rapidfuzz::rapidfuzz)
 set_target_properties(sultan_core_lib PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON

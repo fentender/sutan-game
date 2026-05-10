@@ -3,6 +3,7 @@
 #include "similarity.h"
 #include "state_node.h"
 #include <algorithm>
+#include <rapidfuzz/distance/Levenshtein.hpp>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -86,6 +87,7 @@ static string val_to_string(JsonVal v) {
 
 static string field_val_to_string(JsonVal v) {
     if (!v.valid()) return "";
+    if (v.is_str()) return string(v.get_str());
     string result;
     val_to_json(v, result);
     return result;
@@ -247,6 +249,7 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
                 string base_str = field_val_to_string(bfield);
                 if (base_str.size() < 2) continue;
 
+                rapidfuzz::CachedLevenshtein<char> scorer(base_str);
                 auto [lo, hi] = get_mod_range(bi, base_len, mod_len, pair_map);
 
                 for (int mi : remaining_mod_set) {
@@ -257,12 +260,12 @@ ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
                     string mod_str = field_val_to_string(mfield);
                     if (mod_str.empty()) continue;
 
-                    int dist = levenshtein_distance(base_str, mod_str);
-                    int max_len = static_cast<int>(
-                        std::max(base_str.size(), mod_str.size()));
-                    if (dist < static_cast<int>(max_len * 0.33)) {
-                        fwd[bi].push_back({mi, dist});
-                        rev[mi].push_back({bi, dist});
+                    size_t max_len = std::max(base_str.size(), mod_str.size());
+                    size_t cutoff = static_cast<size_t>(max_len * 0.33);
+                    size_t dist = scorer.distance(mod_str, cutoff);
+                    if (dist <= cutoff) {
+                        fwd[bi].push_back({mi, static_cast<int>(dist)});
+                        rev[mi].push_back({bi, static_cast<int>(dist)});
                     }
                 }
             }

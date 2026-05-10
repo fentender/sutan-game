@@ -18,6 +18,9 @@ set(YYJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(YYJSON_BUILD_MISC OFF CACHE BOOL "" FORCE)
 add_subdirectory(extern/yyjson EXCLUDE_FROM_ALL)
 
+# rapidfuzz-cpp（header-only）
+add_subdirectory(extern/rapidfuzz-cpp EXCLUDE_FROM_ALL)
+
 # C++ 加速层
 add_subdirectory(csrc)
 
