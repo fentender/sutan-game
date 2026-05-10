@@ -26,6 +26,15 @@ from ..config import (
     infer_workshop_path_from_game,
 )
 from .data_manager import DataManager
+from .infra.async_task import (
+    AsyncTaskHandle,
+    TaskCallback,
+    TaskDone,
+    TaskError,
+    TaskProgress,
+    _Cancelled,
+    async_task,
+)
 from .infra.diagnostics import diag
 from .infra.types import (
     CancelCheck,
@@ -508,11 +517,39 @@ class AppService:
     def init_delta(self, mod_ids: list[str],
                    merge_mode: MergeMode = MergeMode.SMART,
                    mod_merge_modes: dict[str, MergeMode] | None = None,
-                   progress_cb: Callable[[int, int], None] | None = None) -> None:
+                   progress_cb: Callable[[int, int], None] | None = None,
+                   cancel_check: CancelCheck | None = None) -> None:
         self._mod_manager.init_delta(
             mod_ids, merge_mode=merge_mode,
             mod_merge_modes=mod_merge_modes, progress_cb=progress_cb,
+            cancel_check=cancel_check,
         )
+
+    @async_task
+    def refresh_delta_async(
+        self,
+        mod_ids: list[str],
+        merge_mode: MergeMode,
+        mod_merge_modes: dict[str, MergeMode] | None,
+        cb: TaskCallback,
+        *,
+        handle: AsyncTaskHandle,
+    ) -> None:
+        try:
+            def _progress(cur: int, total: int) -> None:
+                handle.check_cancel()
+                cb(TaskProgress(cur, total))
+            self.init_delta(
+                mod_ids, merge_mode, mod_merge_modes,
+                progress_cb=_progress,
+                cancel_check=handle.check_cancel,
+            )
+            cb(TaskDone())
+        except _Cancelled:
+            pass
+        except Exception as e:
+            if not handle.is_cancelled:
+                cb(TaskError(str(e)))
 
     def invalidate_delta(self) -> None:
         self._mod_manager.invalidate_delta()

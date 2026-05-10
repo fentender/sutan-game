@@ -8,11 +8,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from sultan_core.state import JsonState
 from sultan_core.delta import (
     DeltaDict,
     apply_delta,
 )
+from sultan_core.state import JsonState
 
 from ..config import ConfigChangeEvent, UserConfig
 from .data_manager import DataManager
@@ -31,7 +31,6 @@ from .platform.steam import (
     get_game_update_time as _get_game_update_time,
     get_steamapps_from_workshop as _get_steamapps_from_workshop,
 )
-
 
 # ==================== 缓存数据结构 ====================
 
@@ -88,13 +87,15 @@ class ModManager:
     def init_delta(self, mod_ids: list[str],
                    merge_mode: MergeMode = MergeMode.SMART,
                    mod_merge_modes: dict[str, MergeMode] | None = None,
-                   progress_cb: Callable[[int, int], None] | None = None) -> None:
+                   progress_cb: Callable[[int, int], None] | None = None,
+                   cancel_check: CancelCheck | None = None) -> None:
         """预计算所有 mod 的 delta（委托 ModDelta），并记录 version 快照。"""
         ModDelta.init(
             mod_ids,
             merge_mode=merge_mode,
             mod_merge_modes=mod_merge_modes,
             progress_cb=progress_cb,
+            cancel_check=cancel_check,
         )
         dm = self._data
         with self._lock:

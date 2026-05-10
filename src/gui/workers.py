@@ -6,7 +6,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from src.core.api import AppService, MergeMode, RemapTable, diag
+from src.core.api import AppService, RemapTable, diag
 
 
 class _MergeCancelled(Exception):
@@ -38,30 +38,6 @@ class BaseWorker(QThread):
 
     def _run(self) -> None:
         raise NotImplementedError
-
-
-class DeltaInitWorker(BaseWorker):
-    """后台预计算所有 mod 的 delta"""
-    progress = Signal(int, int)
-
-    def __init__(self, mod_ids: list[str],
-                 merge_mode: MergeMode = MergeMode.SMART,
-                 mod_merge_modes: dict[str, MergeMode] | None = None,
-                 service: AppService | None = None) -> None:
-        super().__init__()
-        self.mod_ids = mod_ids
-        self.merge_mode = merge_mode
-        self.mod_merge_modes = mod_merge_modes
-        self._service = service
-
-    def _run(self) -> None:
-        assert self._service is not None
-        self._service.init_delta(
-            self.mod_ids,
-            progress_cb=self.progress.emit,
-            merge_mode=self.merge_mode,
-            mod_merge_modes=self.mod_merge_modes,
-        )
 
 
 class MergeWorker(BaseWorker):

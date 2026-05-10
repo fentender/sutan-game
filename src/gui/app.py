@@ -6,7 +6,7 @@ import shutil
 from collections.abc import Callable
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
@@ -32,10 +32,15 @@ from src.core.api import (
     ERROR,
     WARNING,
     AppService,
+    AsyncTaskHandle,
     FileOverrideInfo,
     InitState,
     MergeMode,
     RemapTable,
+    TaskDone,
+    TaskError,
+    TaskEvent,
+    TaskProgress,
     diag,
 )
 
@@ -43,7 +48,11 @@ from .panels.log import LogPanel, prefix_mod_title
 from .panels.mod_detail import ModDetailPanel
 from .panels.mod_list import ModListPanel
 from .panels.override import OverridePanel
-from .workers import AnalyzeWorker, DeltaInitWorker, MergeWorker, UpdateCheckWorker
+from .workers import AnalyzeWorker, MergeWorker, UpdateCheckWorker
+
+
+class _TaskBridge(QObject):
+    task_event = Signal(object)
 
 
 class MainWindow(QMainWindow):
@@ -57,8 +66,10 @@ class MainWindow(QMainWindow):
         self.service = service
         self._worker: MergeWorker | None = None
         self._analyze_worker: AnalyzeWorker | None = None
-        self._delta_worker: DeltaInitWorker | None = None
+        self._delta_handle: AsyncTaskHandle | None = None
         self._delta_progress: QProgressDialog | None = None
+        self._delta_bridge = _TaskBridge(self)
+        self._delta_bridge.task_event.connect(self._on_delta_event)
         self._merge_progress: QProgressDialog | None = None
         self._update_worker: UpdateCheckWorker | None = None
         self._pending_action: Callable[[], None] | None = None
@@ -306,26 +317,15 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         self.statusBar().addPermanentWidget(self.progress_bar)
 
-    def _refresh_delta(self) -> None:
-        """模式变更后重新计算 delta"""
+    def _request_delta_refresh(self) -> None:
+        if self._delta_handle:
+            self._delta_handle.cancel()
         enabled_ids = [
             mid for mid in self.service.mod_order
             if mid in set(self.service.enabled_mods)
         ]
         if not enabled_ids:
             return
-        self._start_delta_init(enabled_ids)
-
-    def _start_delta_init(self, mod_ids: list[str]) -> None:
-        if self._delta_worker and self._delta_worker.isRunning():
-            self._delta_worker.wait()
-        self._delta_worker = DeltaInitWorker(
-            mod_ids,
-            merge_mode=self._get_merge_mode(),
-            mod_merge_modes=self._get_mod_merge_modes(),
-            service=self.service,
-        )
-
         self._delta_progress = QProgressDialog(
             "正在预计算差异数据...", "", 0, 0, self,
         )
@@ -334,36 +334,37 @@ class MainWindow(QMainWindow):
         self._delta_progress.setCancelButton(None)
         self._delta_progress.setWindowModality(Qt.WindowModality.WindowModal)
         self._delta_progress.show()
+        self._delta_handle = self.service.refresh_delta_async(
+            enabled_ids,
+            self._get_merge_mode(),
+            self._get_mod_merge_modes(),
+            cb=self._delta_bridge.task_event.emit,
+        )
 
-        self._delta_worker.progress.connect(self._on_delta_progress)
-        self._delta_worker.finished.connect(self._on_delta_ready)
-        self._delta_worker.error.connect(self._on_delta_error)
-        self._delta_worker.start()
-
-    def _on_delta_progress(self, completed: int, total: int) -> None:
-        if hasattr(self, '_delta_progress') and self._delta_progress is not None:
-            self._delta_progress.setMaximum(total)
-            self._delta_progress.setValue(completed)
-
-    def _on_delta_ready(self) -> None:
-        if hasattr(self, '_delta_progress') and self._delta_progress is not None:
-            self._delta_progress.close()
-            self._delta_progress = None
-        self.statusBar().showMessage("初始化完成")
-        self._schedule_analyze()
-
-    def _on_delta_error(self, error: str) -> None:
-        if hasattr(self, '_delta_progress') and self._delta_progress is not None:
-            self._delta_progress.close()
-            self._delta_progress = None
-        self.statusBar().showMessage(f"差异预计算失败: {error}")
-        self._log_message(ERROR, f"差异预计算失败: {error}")
+    def _on_delta_event(self, event: TaskEvent) -> None:
+        match event:
+            case TaskProgress(completed, total):
+                if self._delta_progress:
+                    self._delta_progress.setMaximum(total)
+                    self._delta_progress.setValue(completed)
+            case TaskDone():
+                if self._delta_progress:
+                    self._delta_progress.close()
+                    self._delta_progress = None
+                self.statusBar().showMessage("初始化完成")
+                self._schedule_analyze()
+            case TaskError(message=message):
+                if self._delta_progress:
+                    self._delta_progress.close()
+                    self._delta_progress = None
+                self.statusBar().showMessage(f"差异预计算失败: {message}")
+                self._log_message(ERROR, f"差异预计算失败: {message}")
 
     def _on_merge_mode_changed(self, index: int) -> None:
         mode_value = self.cmb_merge_mode.itemData(index)
         if mode_value:
             self.service.update_merge_mode(mode_value)
-            self._refresh_delta()
+            self._request_delta_refresh()
 
     def _get_merge_mode(self) -> MergeMode:
         try:
@@ -388,7 +389,7 @@ class MainWindow(QMainWindow):
         self.service.update_mod_merge_mode(
             mod_id, mode_value if mode_value else None,
         )
-        self._refresh_delta()
+        self._request_delta_refresh()
 
     def _show_deletion_report(self) -> None:
         from .dialogs.deletion import DeletionReportDialog

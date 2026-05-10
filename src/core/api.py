@@ -8,6 +8,14 @@ from sultan_core.json import JsonDoc, ParseError
 
 from ..config import infer_workshop_path_from_game
 from .app_service import AppService, InitState
+from .infra.async_task import (
+    AsyncTaskHandle,
+    TaskCallback,
+    TaskDone,
+    TaskError,
+    TaskEvent,
+    TaskProgress,
+)
 from .infra.diagnostics import ERROR, INFO, WARNING, diag
 from .infra.types import FIELD_SEP, ChangeKind, MergeMode, ParseFailure
 from .merge.cache import FileMergeState, StepState
@@ -18,6 +26,7 @@ from .mod.scanner import ModInfo
 
 __all__ = [
     "AppService",
+    "AsyncTaskHandle",
     "ChangeKind",
     "DeletionRecord",
     "DeltaDict",
@@ -26,14 +35,19 @@ __all__ = [
     "FileOverrideInfo",
     "FileMergeState",
     "INFO",
+    "InitState",
     "JsonDoc",
     "MergeMode",
     "ModInfo",
     "ParseError",
     "ParseFailure",
     "RemapTable",
-    "InitState",
     "StepState",
+    "TaskCallback",
+    "TaskDone",
+    "TaskError",
+    "TaskEvent",
+    "TaskProgress",
     "WARNING",
     "build_padded_texts",
     "diag",

@@ -10,22 +10,22 @@ import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from sultan_core.state import JsonState, MergeMode as CppMergeMode
 from sultan_core.delta import (
     DeltaDict,
-    compute_delta,
     apply_delta,
+    compute_delta,
     remap_delta,
 )
+from sultan_core.state import JsonState, MergeMode as CppMergeMode
 
 from ..data_manager import DataManager
 from ..infra.profiler import profile
 from ..infra.types import (
+    CancelCheck,
     MergeMode,
     ProgressCallback,
 )
 from ..json import classify_json
-
 
 # ==================== MergeMode 映射 ====================
 
@@ -131,6 +131,7 @@ class ModDelta:
         progress_cb: ProgressCallback | None = None,
         merge_mode: MergeMode = MergeMode.SMART,
         mod_merge_modes: dict[str, MergeMode] | None = None,
+        cancel_check: CancelCheck | None = None,
     ) -> None:
         dm = DataManager.instance()
 
@@ -158,6 +159,8 @@ class ModDelta:
                 for rel_path, file_mod_ids in file_groups
             }
             for future in as_completed(futures):
+                if cancel_check:
+                    cancel_check()
                 for mod_id, rel_path, delta in future.result():
                     with cls._lock:
                         cls._cache[(mod_id, rel_path)] = delta

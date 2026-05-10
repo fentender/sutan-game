@@ -1,5 +1,15 @@
 """基础设施层 — 类型定义、诊断信息、性能监测"""
 
+from .async_task import (
+    AsyncTaskHandle as AsyncTaskHandle,
+    TaskCallback as TaskCallback,
+    TaskDone as TaskDone,
+    TaskError as TaskError,
+    TaskEvent as TaskEvent,
+    TaskProgress as TaskProgress,
+    _Cancelled as _Cancelled,
+    async_task as async_task,
+)
 from .diagnostics import (
     ERROR as ERROR,
     INFO as INFO,

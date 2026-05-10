@@ -15,7 +15,8 @@ endif()
 
 # yyjson（git submodule）
 set(YYJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-add_subdirectory(extern/yyjson)
+set(YYJSON_BUILD_MISC OFF CACHE BOOL "" FORCE)
+add_subdirectory(extern/yyjson EXCLUDE_FROM_ALL)
 
 # C++ 加速层
 add_subdirectory(csrc)
