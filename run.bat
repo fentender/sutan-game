@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-python -m src.main
+python scripts\check_rebuild.py
 pause
