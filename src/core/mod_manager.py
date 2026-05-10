@@ -115,6 +115,15 @@ class ModManager:
             self._delta_versions.clear()
             self._merge_cache.clear()
 
+    def clear(self) -> None:
+        ModDelta.clear()
+        with self._lock:
+            self._delta_versions.clear()
+            self._merge_cache.clear()
+
+    def __del__(self) -> None:
+        self.clear()
+
     def get_delta(self, mod_id: str, rel_path: str) -> DeltaDict | None:
         """获取 delta，带 version 惰性失效检测。"""
         key = (mod_id, rel_path)

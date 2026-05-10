@@ -1,4 +1,5 @@
 """DataManager — 全局数据所有者单例"""
+import atexit
 import shutil
 import time
 from collections.abc import Callable
@@ -40,7 +41,17 @@ class DataManager:
     def instance(cls) -> "DataManager":
         if cls._instance is None:
             cls._instance = cls()
+            atexit.register(cls._atexit_cleanup)
         return cls._instance
+
+    @classmethod
+    def _atexit_cleanup(cls) -> None:
+        from ..merge.delta import ModDelta
+        ModDelta.clear()
+        if cls._instance is not None:
+            cls._instance.clear()
+            cls._instance = None
+        cls._EMPTY_DOC = None  # type: ignore[assignment]
 
     # ── 初始化 ──
 
@@ -496,13 +507,20 @@ class DataManager:
     # ── 生命周期 ──
 
     def clear(self) -> None:
-        self._base = GameData(data_id="", data_type=GameDataType.BASE)
+        self._base.clear()
+        for gd in self._mods.values():
+            gd.clear()
+        for gd in self._history_bases.values():
+            gd.clear()
         self._mods.clear()
         self._history_bases.clear()
         self._mod_history_map.clear()
         self._failures.clear()
         self._ignored_failures.clear()
         self._overrides_dir = None
+
+    def __del__(self) -> None:
+        self.clear()
 
     @staticmethod
     def _is_under(path: Path, parent: Path) -> bool:

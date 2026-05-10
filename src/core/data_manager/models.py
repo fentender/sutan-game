@@ -142,3 +142,7 @@ class GameData:
     bgm: BGMData = field(default_factory=BGMData)
     other: OtherData = field(default_factory=OtherData)
     override: OverrideData = field(default_factory=OverrideData)
+
+    def clear(self) -> None:
+        self.config.clear()
+        self.override.clear()
