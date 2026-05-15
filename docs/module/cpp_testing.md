@@ -508,8 +508,6 @@ TEST_CASE("module: thread safety") {
 |------|---------|
 | `delta: make_delta_element basic` | 工厂函数基础创建 |
 | `delta: make_delta_element with old_value` | 带旧值和 version |
-| `delta: make_delta_dict insert and find` | 字典插入/查找/大小 |
-| `delta: make_delta_array basic` | 数组初始状态 |
 | `delta: delta_array wrap with value` | wrap 有值 |
 | `delta: delta_array wrap nullptr` | wrap 空值 |
 | `delta: clone element` | 元素深拷贝 |

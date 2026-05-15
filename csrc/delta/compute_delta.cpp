@@ -20,27 +20,6 @@ using std::vector;
 using std::unordered_map;
 using std::make_unique;
 
-// ── 创建 ADDED/DELETED DeltaElement ──
-
-static DeltaNodePtr make_added_element(JsonVal v) {
-    auto p = make_unique<DeltaElement>();
-    p->kind_ = ChangeKind::Added;
-    if (v.is_obj() || v.is_arr()) {
-        p->value = std::make_shared<const JsonDoc>(copy_val_to_doc(v));
-    } else {
-        p->value = nv_from_scalar(val_to_scalar(v));
-    }
-    return p;
-}
-
-static DeltaNodePtr make_deleted_element(JsonVal v) {
-    auto p = make_unique<DeltaElement>();
-    p->kind_ = ChangeKind::Deleted;
-    if (!v.is_obj() && !v.is_arr()) {
-        p->value = nv_from_scalar(val_to_scalar(v));
-    }
-    return p;
-}
 
 // ── 深度相等 ──
 
@@ -164,7 +143,7 @@ static vector<int> build_order(
 
 static JsonDoc wrap_scalar_as_array(JsonVal v);
 
-// ── 递归 delta 计算 ──
+// ── delta 计算（前向声明） ──
 
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
@@ -172,14 +151,27 @@ static DeltaNodePtr recursive_delta(
     MergeMode merge_mode,
     bool skip_deletion = false);
 
-static DeltaNodePtr array_delta_from_matching(
+static DeltaNodePtr dict_delta(
+    JsonVal base_obj, JsonVal mod_obj,
+    vector<string>* field_path,
+    MergeMode merge_mode,
+    bool skip_deletion);
+
+static DeltaNodePtr array_delta(
     const vector<JsonVal>& base_elems,
     const vector<JsonVal>& mod_elems,
-    const ArrayMatching& matching,
+    vector<string>* field_path,
+    bool is_duplist,
+    MergeMode merge_mode);
+
+static DeltaNodePtr array_delta(
+    const vector<JsonVal>& base_elems,
+    const vector<JsonVal>& mod_elems,
     vector<string>* field_path,
     bool is_duplist,
     MergeMode merge_mode)
 {
+    auto matching = match_by_heuristic(base_elems, mod_elems);
     int base_count = static_cast<int>(base_elems.size());
 
     vector<DeltaNodePtr> diffs;
@@ -197,7 +189,7 @@ static DeltaNodePtr array_delta_from_matching(
 
     unordered_map<int, int> added_id_map;
     for (int mod_idx : matching.unmatched_mod) {
-        diffs.push_back(make_added_element(mod_elems[mod_idx]));
+        diffs.push_back(make_delta_element(ChangeKind::Added, mod_elems[mod_idx]));
         indices.push_back(next_added_id);
         added_id_map[mod_idx] = next_added_id;
         next_added_id++;
@@ -205,7 +197,7 @@ static DeltaNodePtr array_delta_from_matching(
 
     if (merge_mode != MergeMode::Smart) {
         for (int base_idx : matching.unmatched_base) {
-            diffs.push_back(make_deleted_element(base_elems[base_idx]));
+            diffs.push_back(make_delta_element(ChangeKind::Deleted, base_elems[base_idx]));
             indices.push_back(base_idx + 1);
         }
     }
@@ -223,6 +215,66 @@ static DeltaNodePtr array_delta_from_matching(
     return arr;
 }
 
+// ── dict_delta：对象级 delta ──
+
+static DeltaNodePtr dict_delta(
+    JsonVal base_obj, JsonVal mod_obj,
+    vector<string>* field_path,
+    MergeMode merge_mode,
+    bool skip_deletion)
+{
+    auto base_keys = ObjKeys::collect(base_obj);
+    auto mod_keys = ObjKeys::collect(mod_obj);
+
+    // 构建去重 key 集合（保序：mod key_order 在前，base 独有的在后）
+    vector<string> all_keys = mod_keys.key_order;
+    for (auto& key : base_keys.key_order) {
+        if (!mod_keys.entries.count(key))
+            all_keys.push_back(key);
+    }
+
+    static const vector<JsonVal> empty_vals;
+    auto dict = make_unique<DeltaDict>();
+
+    for (auto& key : all_keys) {
+        auto bit = base_keys.entries.find(key);
+        auto mit = mod_keys.entries.find(key);
+        const auto& base_vals = (bit != base_keys.entries.end()) ? bit->second.vals : empty_vals;
+        const auto& mod_vals = (mit != mod_keys.entries.end()) ? mit->second.vals : empty_vals;
+        bool in_base = !base_vals.empty();
+        bool in_mod = !mod_vals.empty();
+
+        if (!in_mod) {
+            if (skip_deletion) continue;
+            if (merge_mode == MergeMode::Smart) {
+                if (field_path) field_path->push_back(key);
+                bool allow = !field_path || smart_allow_deletion(*field_path, false);
+                if (field_path) field_path->pop_back();
+                if (!allow) continue;
+            }
+        }
+
+        if (base_vals.size() > 1 || mod_vals.size() > 1) {
+            auto sub = array_delta(base_vals, mod_vals, field_path, true, merge_mode);
+            if (sub) dict->insert(key, std::move(sub));
+        } else if (!in_base) {
+            dict->insert(key, make_delta_element(ChangeKind::Added, mod_vals[0]));
+        } else if (!in_mod) {
+            dict->insert(key, make_delta_element(ChangeKind::Deleted, base_vals[0]));
+        } else {
+            if (field_path) field_path->push_back(key);
+            auto sub = recursive_delta(base_vals[0], mod_vals[0], field_path, merge_mode);
+            if (field_path) field_path->pop_back();
+            if (sub) dict->insert(key, std::move(sub));
+        }
+    }
+
+    if (dict->empty()) return nullptr;
+    return dict;
+}
+
+// ── recursive_delta：类型分发 ──
+
 static DeltaNodePtr recursive_delta(
     JsonVal base, JsonVal mod,
     vector<string>* field_path,
@@ -233,156 +285,22 @@ static DeltaNodePtr recursive_delta(
     if (deep_equal(base, mod))
         return nullptr;
 
-    // dict vs dict
-    if (base.is_obj() && mod.is_obj()) {
-        auto base_keys = ObjKeys::collect(base);
-        auto mod_keys = ObjKeys::collect(mod);
-
-        if (base_keys.has_dup || mod_keys.has_dup) {
-
-            auto dict = make_unique<DeltaDict>();
-            for (auto& key : mod_keys.key_order) {
-                auto& mod_vals = mod_keys.entries[key].vals;
-                auto base_it = base_keys.entries.find(key);
-
-                if (base_it == base_keys.entries.end()) {
-                    if (mod_vals.size() == 1) {
-                        dict->insert(key, make_added_element(mod_vals[0]));
-                    }
-                    continue;
-                }
-
-                auto& base_vals = base_it->second.vals;
-                if (base_vals.size() > 1 || mod_vals.size() > 1) {
-                    // DupList：按数组匹配处理
-                    auto base_arr_v = base_vals;
-                    auto mod_arr_v = mod_vals;
-                    // 简化处理：逐位置比较
-                    int bc = static_cast<int>(base_arr_v.size());
-                    int mc = static_cast<int>(mod_arr_v.size());
-                    auto darr = make_unique<DeltaArray>();
-                    darr->is_duplist = true;
-                    darr->base_count = bc;
-                    darr->order.push_back(0);
-                    int next_id = bc + 1;
-                    for (int i = 0; i < std::max(bc, mc); ++i) {
-                        if (i < bc && i < mc) {
-                            auto sub = recursive_delta(base_arr_v[i], mod_arr_v[i], field_path, merge_mode);
-                            if (sub) {
-                                darr->diffs.push_back(std::move(sub));
-                                darr->indices.push_back(i + 1);
-                            }
-                            darr->order.push_back(i + 1);
-                        } else if (i >= bc) {
-                            darr->diffs.push_back(make_added_element(mod_arr_v[i]));
-                            darr->indices.push_back(next_id);
-                            darr->order.push_back(next_id);
-                            next_id++;
-                        } else {
-                            darr->diffs.push_back(make_deleted_element(base_arr_v[i]));
-                            darr->indices.push_back(i + 1);
-                        }
-                    }
-                    darr->order.push_back(-1);
-                    if (!darr->diffs.empty())
-                        dict->insert(key, std::move(darr));
-                } else {
-                    if (field_path) field_path->push_back(key);
-                    auto sub = recursive_delta(base_vals[0], mod_vals[0], field_path, merge_mode);
-                    if (field_path) field_path->pop_back();
-                    if (sub) dict->insert(key, std::move(sub));
-                }
-            }
-
-            if (!skip_deletion) {
-                for (auto& key : base_keys.key_order) {
-                    if (mod_keys.entries.count(key)) continue;
-                    if (merge_mode == MergeMode::Smart) {
-                        if (field_path) field_path->push_back(key);
-                        bool allow = !field_path || smart_allow_deletion(*field_path, false);
-                        if (field_path) field_path->pop_back();
-                        if (!allow) continue;
-                    }
-                    auto& bvals = base_keys.entries[key].vals;
-                    if (bvals.size() == 1)
-                        dict->insert(key, make_deleted_element(bvals[0]));
-                }
-            }
-            if (dict->empty()) return nullptr;
-            return dict;
-        }
-
-        // 普通 dict（无重复键）
-        auto dict = make_unique<DeltaDict>();
-
-        auto mod_it = mod.obj_iter();
-        JsonVal::ObjEntry e;
-        while (mod_it.next(e)) {
-            string key(e.key, e.key_len);
-            JsonVal base_val = base.obj_get(e.key);
-
-            if (!base_val.valid()) {
-                dict->insert(key, make_added_element(e.val));
-            } else {
-                if (field_path) field_path->push_back(key);
-                auto sub = recursive_delta(base_val, e.val, field_path, merge_mode);
-                if (field_path) field_path->pop_back();
-                if (sub) dict->insert(key, std::move(sub));
-            }
-        }
-
-        if (!skip_deletion) {
-            auto base_it = base.obj_iter();
-            while (base_it.next(e)) {
-                string key(e.key, e.key_len);
-                JsonVal mod_val = mod.obj_get(e.key);
-                if (mod_val.valid()) continue;
-
-                if (merge_mode == MergeMode::Smart) {
-                    if (field_path) field_path->push_back(key);
-                    bool allow = !field_path || smart_allow_deletion(*field_path, false);
-                    if (field_path) field_path->pop_back();
-                    if (!allow) continue;
-                }
-                dict->insert(key, make_deleted_element(e.val));
-            }
-        }
-
-        if (dict->empty()) return nullptr;
-        return dict;
-    }
+    if (base.is_obj() && mod.is_obj())
+        return dict_delta(base, mod, field_path, merge_mode, skip_deletion);
 
     // array vs array（含标量↔数组归一化）
-    JsonVal base_arr = base, mod_arr = mod;
-    std::optional<JsonDoc> base_wrap, mod_wrap;
-    if (!base.is_arr() && !base.is_obj() && mod.is_arr()) {
-        base_wrap.emplace(wrap_scalar_as_array(base));
-        base_arr = base_wrap->root();
-    }
-    if (base.is_arr() && !mod.is_arr() && !mod.is_obj()) {
-        mod_wrap.emplace(wrap_scalar_as_array(mod));
-        mod_arr = mod_wrap->root();
-    }
-    if (base_arr.is_arr() && mod_arr.is_arr()) {
-        vector<JsonVal> base_elems, mod_elems;
-        {
-            auto it = base_arr.arr_iter();
-            JsonVal elem;
-            while (it.next(elem)) base_elems.push_back(elem);
-        }
-        {
-            auto it = mod_arr.arr_iter();
-            JsonVal elem;
-            while (it.next(elem)) mod_elems.push_back(elem);
-        }
-        auto matching = match_by_heuristic(base_arr, mod_arr);
-        return array_delta_from_matching(
-            base_elems, mod_elems, matching, field_path, false, merge_mode);
+    bool go_array = (base.is_arr() && mod.is_arr())
+        || (!base.is_obj() && !base.is_arr() && mod.is_arr())
+        || (base.is_arr() && !mod.is_obj() && !mod.is_arr());
+
+    if (go_array) {
+        auto base_elems = base.is_arr() ? collect_arr(base) : vector<JsonVal>{base};
+        auto mod_elems = mod.is_arr() ? collect_arr(mod) : vector<JsonVal>{mod};
+        return array_delta(base_elems, mod_elems, field_path, false, merge_mode);
     }
 
     // 标量变化
-    auto mod_val = val_to_scalar(mod);
-    return make_delta_element(ChangeKind::Changed, nv_from_scalar(std::move(mod_val)));
+    return make_delta_element(ChangeKind::Changed, mod);
 }
 
 // ── 公开 API ──
@@ -436,33 +354,25 @@ static DeltaNodePtr remap_field_diff(
 
     if (bk == ChangeKind::Deleted) {
         if (!cur_has) return nullptr;
-        return make_deleted_element(cur_val);
+        return make_delta_element(ChangeKind::Deleted,cur_val);
     }
 
     if (bk == ChangeKind::Added) {
         if (!cur_has) return entry.clone();
 
-        if (nv_is_complex(entry.value)) {
-            auto& doc = nv_to_doc(entry.value);
-            if (deep_equal(cur_val, doc->root())) return nullptr;
-            auto result = recursive_delta(cur_val, doc->root(), nullptr, MergeMode::Normal);
-            return result;
+        if (entry.value.is_obj() || entry.value.is_arr()) {
+            if (deep_equal(cur_val, entry.value)) return nullptr;
+            return recursive_delta(cur_val, entry.value, nullptr, MergeMode::Normal);
         }
-        ScalarValue cur_sv = val_to_scalar(cur_val);
-        ScalarValue entry_sv = nv_to_scalar(entry.value);
-        if (scalar_equal(cur_sv, entry_sv)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, nv_from_scalar(entry_sv));
+        if (deep_equal(cur_val, entry.value)) return nullptr;
+        return make_delta_element(ChangeKind::Changed, entry.value);
     }
 
     if (bk == ChangeKind::Changed) {
-        if (!cur_has) {
-            // cur 不存在 → 变为 Added
+        if (!cur_has)
             return make_delta_element(ChangeKind::Added, entry.value);
-        }
-        ScalarValue cur_sv = val_to_scalar(cur_val);
-        ScalarValue entry_sv = nv_to_scalar(entry.value);
-        if (scalar_equal(cur_sv, entry_sv)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, nv_from_scalar(entry_sv));
+        if (deep_equal(cur_val, entry.value)) return nullptr;
+        return make_delta_element(ChangeKind::Changed, entry.value);
     }
 
     return entry.clone();
@@ -483,17 +393,8 @@ static DeltaNodePtr remap_array_diff(
     for (auto& [hi, ci] : matching.pairs)
         hist_to_cur[hi] = ci;
 
-    vector<JsonVal> hist_elems, cur_elems;
-    {
-        auto it = hist_arr.arr_iter();
-        JsonVal elem;
-        while (it.next(elem)) hist_elems.push_back(elem);
-    }
-    {
-        auto it = cur_arr.arr_iter();
-        JsonVal elem;
-        while (it.next(elem)) cur_elems.push_back(elem);
-    }
+    auto hist_elems = collect_arr(hist_arr);
+    auto cur_elems = collect_arr(cur_arr);
 
     vector<DeltaNodePtr> new_diffs;
     vector<int> new_indices;

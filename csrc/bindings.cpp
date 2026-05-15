@@ -185,10 +185,6 @@ static void bind_state(nb::module_& parent) {
 
     nb::class_<JsonState>(m, "JsonState")
         .def_static("from_doc", &JsonState::from_doc)
-        .def_static("from_text", &JsonState::from_text,
-            nb::arg("text"), nb::arg("clean") = true)
-        .def_static("from_file", &JsonState::from_file,
-            nb::arg("path"), nb::arg("clean") = true)
         .def("to_doc", &JsonState::to_doc)
         .def("format", &JsonState::format, nb::arg("highlight_version"))
         .def("clone", &JsonState::clone)

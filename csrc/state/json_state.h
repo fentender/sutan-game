@@ -20,9 +20,8 @@ public:
     JsonState(const JsonState&) = delete;
     JsonState& operator=(const JsonState&) = delete;
 
+    // JsonVal 引用 JsonDoc 数据，调用方需保证 doc 生命周期覆盖返回的 JsonState 使用期
     static JsonState from_doc(const JsonDoc& doc);
-    static JsonState from_text(const string& text, bool clean = true);
-    static JsonState from_file(const string& path, bool clean = true);
     static JsonState from_node(StateNodePtr root);
 
     JsonDoc to_doc() const;

@@ -16,7 +16,11 @@ static constexpr int INDENT = 4;
 static string serialize_node(const StateBase& node, int indent, int level);
 
 static string json_encode_key(const string& key) {
-    return serialize_scalar(ScalarValue{key});
+    return json_quote_str(key);
+}
+
+static string serialize_element(const JsonElementState& elem, int indent, int level) {
+    return serialize_val(elem.value);
 }
 
 static string serialize_dict(const JsonDictState& dict, int indent, int level) {
@@ -99,7 +103,7 @@ static string serialize_array(const JsonArrayState& arr, int indent, int level) 
 
 static string serialize_node(const StateBase& node, int indent, int level) {
     if (node.is_element())
-        return serialize_scalar(node.as_element().value);
+        return serialize_element(node.as_element(), indent, level);
     if (node.is_dict())
         return serialize_dict(node.as_dict(), indent, level);
     return serialize_array(node.as_array(), indent, level);
@@ -278,35 +282,35 @@ static void format_entry(
         ChangeKind dk = is_current ? entry.as_element().kind_ : ChangeKind::Origin;
 
         if (is_origin(dk)) {
-            string val_str = serialize_node(entry, INDENT, level);
+            string val_str = serialize_element(entry.as_element(), INDENT, level);
             emit(prefix + val_str + comma, r);
         } else {
             auto& elem = entry.as_element();
-            bool has_old = !std::holds_alternative<std::nullptr_t>(elem.old_value);
-            bool has_new = !std::holds_alternative<std::nullptr_t>(elem.value);
+            bool has_old = elem.old_value.valid();
+            bool has_new = elem.value.valid();
 
-            // DELETED 类型: value 为 nullptr，old_value 有值
+            // DELETED 类型: value 为 invalid，old_value 有值
             if (is_deleted(dk)) {
                 has_old = true;
                 has_new = false;
             }
 
-            if (has_old && has_new && !scalar_equal(elem.old_value, elem.value)) {
+            if (has_old && has_new && !val_equal(elem.old_value, elem.value)) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Changed | change_flags(kind));
-                string old_str = serialize_scalar(elem.old_value);
-                string new_str = serialize_scalar(elem.value);
+                string old_str = serialize_val(elem.old_value);
+                string new_str = serialize_val(elem.value);
                 emit_changed(prefix + old_str + comma, prefix + new_str + comma, r, hl);
             } else if (has_new && !has_old) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Added | change_flags(kind));
-                string val_str = serialize_scalar(elem.value);
+                string val_str = serialize_val(elem.value);
                 emit(prefix + val_str + comma, r, hl, Side::Right);
             } else if (has_old && !has_new) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Deleted | change_flags(kind));
-                string old_str = serialize_scalar(elem.old_value);
+                string old_str = serialize_val(elem.old_value);
                 emit(prefix + old_str + comma, r, hl, Side::Left);
             } else {
                 auto& v = has_new ? elem.value : elem.old_value;
-                string val_str = serialize_scalar(v);
+                string val_str = serialize_val(v);
                 emit(prefix + val_str + comma, r);
             }
         }
@@ -425,7 +429,7 @@ FormatResult format_state(const StateBase& root, int highlight_version) {
     } else if (root.is_array()) {
         format_array(root.as_array(), highlight_version, 0, r);
     } else {
-        string val = serialize_scalar(root.as_element().value);
+        string val = serialize_element(root.as_element(), INDENT, 0);
         emit(val, r);
     }
     return r;

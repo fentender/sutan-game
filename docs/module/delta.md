@@ -229,8 +229,6 @@ for entry in flat:
 | 测试 | 验证内容 |
 |------|---------|
 | `make_delta_element basic / with old_value` | 工厂函数 |
-| `make_delta_dict insert and find` | 字典操作 |
-| `make_delta_array basic` | 数组初始状态 |
 | `delta_array wrap with value / nullptr` | wrap 逻辑 |
 | `clone element / dict / array` | 深拷贝独立性 |
 | `as_* throws on wrong type` | 类型转换异常 |

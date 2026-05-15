@@ -94,17 +94,6 @@ static string field_val_to_string(JsonVal v) {
     return result;
 }
 
-// ── 数组元素索引访问辅助 ──
-
-static vector<JsonVal> collect_array(JsonVal arr) {
-    vector<JsonVal> result;
-    auto it = arr.arr_iter();
-    JsonVal elem;
-    while (it.next(elem))
-        result.push_back(elem);
-    return result;
-}
-
 // ── element_similarity ──
 
 double element_similarity(JsonVal a, JsonVal b) {
@@ -157,9 +146,11 @@ static pair<int, int> get_mod_range(
 // ── 四阶段匹配 ──
 
 ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr) {
+    return match_by_heuristic(collect_arr(base_arr), collect_arr(mod_arr));
+}
+
+ArrayMatching match_by_heuristic(const vector<JsonVal>& base, const vector<JsonVal>& mod) {
     SULTAN_PERF_SCOPE("match_heuristic");
-    auto base = collect_array(base_arr);
-    auto mod = collect_array(mod_arr);
     int base_len = static_cast<int>(base.size());
     int mod_len = static_cast<int>(mod.size());
 

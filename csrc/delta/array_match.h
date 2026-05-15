@@ -14,6 +14,7 @@ struct ArrayMatching {
 };
 
 ArrayMatching match_by_heuristic(JsonVal base_arr, JsonVal mod_arr);
+ArrayMatching match_by_heuristic(const std::vector<JsonVal>& base, const std::vector<JsonVal>& mod);
 
 double element_similarity(JsonVal a, JsonVal b);
 

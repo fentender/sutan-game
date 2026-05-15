@@ -1,58 +1,7 @@
 #include "state_node.h"
-#include <cmath>
-#include <iomanip>
-#include <sstream>
 #include <stdexcept>
 
 namespace sultan {
-
-// ── ScalarValue 辅助 ──
-
-string serialize_scalar(const ScalarValue& val) {
-    struct Visitor {
-        string operator()(std::nullptr_t) const { return "null"; }
-        string operator()(bool v) const { return v ? "true" : "false"; }
-        string operator()(int64_t v) const { return std::to_string(v); }
-        string operator()(double v) const {
-            if (std::isinf(v) || std::isnan(v)) return "null";
-            std::ostringstream oss;
-            oss << std::setprecision(17) << v;
-            string s = oss.str();
-            if (s.find('.') == string::npos && s.find('e') == string::npos)
-                s += ".0";
-            return s;
-        }
-        string operator()(const string& v) const {
-            std::ostringstream oss;
-            oss << '"';
-            for (char c : v) {
-                switch (c) {
-                    case '"':  oss << "\\\""; break;
-                    case '\\': oss << "\\\\"; break;
-                    case '\b': oss << "\\b"; break;
-                    case '\f': oss << "\\f"; break;
-                    case '\n': oss << "\\n"; break;
-                    case '\r': oss << "\\r"; break;
-                    case '\t': oss << "\\t"; break;
-                    default:
-                        if (static_cast<unsigned char>(c) < 0x20) {
-                            oss << "\\u" << std::hex << std::setfill('0')
-                                << std::setw(4) << static_cast<int>(c);
-                        } else {
-                            oss << c;
-                        }
-                }
-            }
-            oss << '"';
-            return oss.str();
-        }
-    };
-    return std::visit(Visitor{}, val);
-}
-
-bool scalar_equal(const ScalarValue& a, const ScalarValue& b) {
-    return a == b;
-}
 
 // ── StateBase ──
 
@@ -148,7 +97,6 @@ StateNodePtr JsonArrayState::clone() const {
     node->indices = indices;
     node->order = order;
     node->is_duplist = is_duplist;
-    node->old_order = old_order;
     for (auto& child : diffs) {
         node->diffs.push_back(child ? child->clone() : nullptr);
     }
@@ -157,11 +105,10 @@ StateNodePtr JsonArrayState::clone() const {
 
 // ── 工厂 ──
 
-StateNodePtr make_element(ScalarValue value, ChangeKind kind) {
+StateNodePtr make_element(JsonVal v, ChangeKind kind) {
     auto node = std::make_unique<JsonElementState>();
     node->kind_ = kind;
-    node->value = std::move(value);
-    node->old_value = nullptr;
+    node->value = v;
     return node;
 }
 

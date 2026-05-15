@@ -5,10 +5,6 @@
 #include "mut_val.h"
 #include <stdexcept>
 
-extern "C" {
-#include <yyjson.h>
-}
-
 namespace sultan {
 
 using std::make_unique;
@@ -88,7 +84,6 @@ DeltaNodePtr DeltaArray::clone() const {
     p->indices = indices;
     p->order = order;
     p->is_duplist = is_duplist;
-    p->old_order = old_order;
     for (const auto& d : diffs)
         p->diffs.push_back(d->clone());
     return p;
@@ -111,38 +106,14 @@ DeltaNodePtr DeltaArray::wrap(DeltaNodePtr value, bool is_dup) {
 
 // ── 工厂 ──
 
-DeltaNodePtr make_delta_element(ChangeKind kind, NodeValue value) {
+DeltaNodePtr make_delta_element(ChangeKind kind, JsonVal value) {
     auto p = make_unique<DeltaElement>();
     p->kind_ = kind;
-    p->value = std::move(value);
-    return p;
-}
-
-DeltaNodePtr make_delta_dict(ChangeKind kind) {
-    auto p = make_unique<DeltaDict>();
-    p->kind_ = kind;
-    return p;
-}
-
-DeltaNodePtr make_delta_array(ChangeKind kind) {
-    auto p = make_unique<DeltaArray>();
-    p->kind_ = kind;
+    p->value = value;
     return p;
 }
 
 // ── 序列化：DeltaBase → JsonDoc ──
-
-static MutVal scalar_to_mut(const ScalarValue& sv, MutVal ctx) {
-    struct V {
-        MutVal ctx;
-        MutVal operator()(std::nullptr_t) const { return ctx.new_null(); }
-        MutVal operator()(bool v) const          { return ctx.new_bool(v); }
-        MutVal operator()(int64_t v) const       { return ctx.new_int(v); }
-        MutVal operator()(double v) const        { return ctx.new_real(v); }
-        MutVal operator()(const string& v) const { return ctx.new_str(v); }
-    };
-    return std::visit(V{ctx}, sv);
-}
 
 static MutVal serialize_node(const DeltaBase& node, MutVal ctx);
 
@@ -150,13 +121,8 @@ static MutVal serialize_element(const DeltaElement& e, MutVal ctx) {
     auto obj = ctx.new_obj();
     obj.obj_add("__type", ctx.new_str("field"));
     obj.obj_add("kind", ctx.new_int(static_cast<int64_t>(static_cast<uint8_t>(e.kind_))));
-    if (nv_is_complex(e.value)) {
-        auto& doc = nv_to_doc(e.value);
-        auto* copied = yyjson_val_mut_copy(ctx.raw_doc(), doc->root().raw());
-        obj.obj_add("value", MutVal(ctx.raw_doc(), copied));
-    } else {
-        obj.obj_add("value", scalar_to_mut(nv_to_scalar(e.value), ctx));
-    }
+    if (e.value.valid())
+        obj.obj_add("value", val_to_mut(e.value, ctx));
     return obj;
 }
 
@@ -219,16 +185,7 @@ static DeltaNodePtr deserialize_node(JsonVal v);
 static DeltaNodePtr deserialize_element(JsonVal v) {
     auto p = make_unique<DeltaElement>();
     p->kind_ = static_cast<ChangeKind>(static_cast<uint8_t>(v.obj_get("kind").get_int()));
-
-    JsonVal val = v.obj_get("value");
-    if (val.valid()) {
-        if (val.is_obj() || val.is_arr()) {
-            p->value = std::make_shared<const JsonDoc>(copy_val_to_doc(val));
-        } else {
-            p->value = nv_from_scalar(val_to_scalar(val));
-        }
-    }
-
+    p->value = v.obj_get("value");
     return p;
 }
 
@@ -309,10 +266,7 @@ static void flatten_node(const DeltaBase& node, vector<string>& path,
     switch (node.type()) {
         case DeltaType::Element: {
             auto& e = node.as_element();
-            string val_str = nv_is_complex(e.value)
-                ? nv_to_doc(e.value)->to_string(true)
-                : serialize_scalar(nv_to_scalar(e.value));
-            out.push_back({vector<string>(path), base_kind(e.kind_), std::move(val_str)});
+            out.push_back({vector<string>(path), base_kind(e.kind_), serialize_val(e.value)});
             break;
         }
         case DeltaType::Dict: {

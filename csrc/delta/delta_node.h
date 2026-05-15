@@ -1,6 +1,6 @@
 #pragma once
 #include "change_kind.h"
-#include "node_value.h"
+#include "json_val.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -46,7 +46,7 @@ using DeltaNodePtr = unique_ptr<DeltaBase>;
 
 struct DeltaElement : DeltaBase {
     ChangeKind kind_ = ChangeKind::Origin;
-    NodeValue value;
+    JsonVal value;
 
     DeltaType type() const override { return DeltaType::Element; }
     ChangeKind kind() const override { return kind_; }
@@ -74,7 +74,6 @@ struct DeltaArray : DeltaBase {
     vector<int> indices;
     vector<int> order;
     bool is_duplist = false;
-    vector<int> old_order;
 
     DeltaType type() const override { return DeltaType::Array; }
     ChangeKind kind() const override { return kind_; }
@@ -85,9 +84,8 @@ struct DeltaArray : DeltaBase {
 
 // ── 工厂 ──
 
-DeltaNodePtr make_delta_element(ChangeKind kind, NodeValue value);
-DeltaNodePtr make_delta_dict(ChangeKind kind = ChangeKind::Origin);
-DeltaNodePtr make_delta_array(ChangeKind kind = ChangeKind::Origin);
+// JsonVal 引用源 JsonDoc 数据，调用方需保证 JsonDoc 生命周期覆盖返回值使用期
+DeltaNodePtr make_delta_element(ChangeKind kind, JsonVal value);
 
 // ── 序列化 ──
 

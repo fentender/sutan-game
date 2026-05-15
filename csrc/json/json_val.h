@@ -1,10 +1,16 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 struct yyjson_val;
+struct yyjson_mut_doc;
+struct yyjson_mut_val;
 
 namespace sultan {
+
+class MutVal;
 
 enum class JsonType : uint8_t {
     Null, Bool, Int, Real, Str, Obj, Arr
@@ -69,5 +75,13 @@ public:
     explicit ArrIter(yyjson_val* arr);
     bool next(JsonVal& out);
 };
+
+// ── JsonVal 工具函数 ──
+
+std::string serialize_val(JsonVal v);
+std::string json_quote_str(const std::string& s);
+bool val_equal(JsonVal a, JsonVal b);
+MutVal val_to_mut(JsonVal v, MutVal ctx);
+std::vector<JsonVal> collect_arr(JsonVal arr);
 
 }  // namespace sultan

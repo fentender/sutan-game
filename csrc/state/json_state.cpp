@@ -13,21 +13,7 @@ using std::make_unique;
 
 // ── JsonVal → StateNodePtr 递归 ──
 
-ScalarValue val_to_scalar(JsonVal v) {
-    switch (v.type()) {
-        case JsonType::Null: return nullptr;
-        case JsonType::Bool: return v.get_bool();
-        case JsonType::Int:
-            return v.get_int();
-        case JsonType::Real: return v.get_real();
-        case JsonType::Str:  return string(v.get_str());
-        default:             return nullptr;
-    }
-}
-
-static StateNodePtr make_node(JsonVal v);
-
-static StateNodePtr make_dict(JsonVal obj) {
+StateNodePtr make_dict(JsonVal obj) {
     auto dict = make_unique<JsonDictState>();
 
     struct KeyValues { vector<JsonVal> vals; };
@@ -65,7 +51,7 @@ static StateNodePtr make_dict(JsonVal obj) {
     return dict;
 }
 
-static StateNodePtr make_array(JsonVal arr) {
+StateNodePtr make_array(JsonVal arr) {
     auto node = make_unique<JsonArrayState>();
     int n = static_cast<int>(arr.arr_size());
     node->base_count = n;
@@ -84,28 +70,18 @@ static StateNodePtr make_array(JsonVal arr) {
     return node;
 }
 
-static StateNodePtr make_node(JsonVal v) {
+StateNodePtr make_node(JsonVal v) {
     switch (v.type()) {
         case JsonType::Obj: return make_dict(v);
         case JsonType::Arr: return make_array(v);
-        default:            return make_element(val_to_scalar(v));
+        default:            return make_element(v);
     }
 }
 
-StateNodePtr make_state_node(JsonVal v) { return make_node(v); }
-
 // ── StateNodePtr → MutVal 递归 ──
 
-static MutVal scalar_to_val(const ScalarValue& sv, MutVal ctx) {
-    struct Visitor {
-        MutVal ctx;
-        MutVal operator()(std::nullptr_t) const { return ctx.new_null(); }
-        MutVal operator()(bool v) const          { return ctx.new_bool(v); }
-        MutVal operator()(int64_t v) const       { return ctx.new_int(v); }
-        MutVal operator()(double v) const        { return ctx.new_real(v); }
-        MutVal operator()(const string& v) const { return ctx.new_str(v); }
-    };
-    return std::visit(Visitor{ctx}, sv);
+static MutVal element_to_val(const JsonElementState& elem, MutVal ctx) {
+    return val_to_mut(elem.value, ctx);
 }
 
 static MutVal state_to_val(const StateBase& node, MutVal ctx);
@@ -164,7 +140,7 @@ static MutVal array_to_val(const JsonArrayState& arr, MutVal ctx) {
 
 static MutVal state_to_val(const StateBase& node, MutVal ctx) {
     if (node.is_element())
-        return scalar_to_val(node.as_element().value, ctx);
+        return element_to_val(node.as_element(), ctx);
     if (node.is_dict())
         return dict_to_val(node.as_dict(), ctx);
     return array_to_val(node.as_array(), ctx);
@@ -179,16 +155,6 @@ JsonState JsonState::from_doc(const JsonDoc& doc) {
     if (!doc.valid())
         throw std::runtime_error("JsonState::from_doc: invalid JsonDoc");
     return JsonState(make_node(doc.root()));
-}
-
-JsonState JsonState::from_text(const string& text, bool clean) {
-    auto doc = JsonDoc::parse(text, clean);
-    return from_doc(doc);
-}
-
-JsonState JsonState::from_file(const string& path, bool clean) {
-    auto doc = JsonDoc::parse_file(path, clean);
-    return from_doc(doc);
 }
 
 JsonState JsonState::from_node(StateNodePtr root) {

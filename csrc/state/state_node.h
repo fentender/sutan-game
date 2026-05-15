@@ -1,6 +1,6 @@
 #pragma once
 #include "change_kind.h"
-#include "node_value.h"
+#include "json_val.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -12,7 +12,6 @@ namespace sultan {
 using std::string;
 using std::unique_ptr;
 using std::unordered_map;
-using std::variant;
 using std::vector;
 
 struct JsonElementState;
@@ -51,8 +50,8 @@ using StateNodePtr = unique_ptr<StateBase>;
 struct JsonElementState : StateBase {
     JsonElementState() : StateBase(StateType::Element) {}
     ChangeKind kind_ = ChangeKind::Origin;
-    ScalarValue value;
-    ScalarValue old_value;  // 无旧值时为 nullptr
+    JsonVal value;
+    JsonVal old_value;  // 无旧值时为 invalid (JsonVal{})
     int version = 0;
 
     ChangeKind kind() const override { return kind_; }
@@ -89,15 +88,16 @@ struct JsonArrayState : StateBase {
     vector<int> indices;
     vector<int> order;
     bool is_duplist = false;
-    vector<int> old_order;
 
     ChangeKind kind() const override { return kind_; }
     bool is_modified() const override;
     StateNodePtr clone() const override;
 };
 
-StateNodePtr make_element(ScalarValue value, ChangeKind kind = ChangeKind::Origin);
-
-StateNodePtr make_state_node(JsonVal v);
+// JsonVal 引用源 JsonDoc 数据，调用方需保证 JsonDoc 生命周期覆盖返回值使用期
+StateNodePtr make_element(JsonVal v, ChangeKind kind = ChangeKind::Origin);
+StateNodePtr make_dict(JsonVal obj);
+StateNodePtr make_array(JsonVal arr);
+StateNodePtr make_node(JsonVal v);
 
 }  // namespace sultan

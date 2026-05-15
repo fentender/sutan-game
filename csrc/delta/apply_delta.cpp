@@ -28,7 +28,7 @@ StateNodePtr apply_field_delta(
     if (is_override)
         modifier |= ChangeKind::Override;
 
-    ScalarValue old_val = nullptr;
+    JsonVal old_val;
     if (existing) {
         old_val = existing->value;
         if (existing->is_modified() && existing->version != version)
@@ -40,8 +40,8 @@ StateNodePtr apply_field_delta(
 
     auto result = make_unique<JsonElementState>();
     result->kind_ = kind;
-    result->value = nv_to_scalar(diff.value);
-    result->old_value = std::move(old_val);
+    result->value = diff.value;
+    result->old_value = old_val;
     result->version = version;
     return result;
 }
@@ -182,7 +182,6 @@ void apply_array_delta(
         }
     }
 
-    base.old_order = base.order;
     base.order = rebuild_array_order(base, prepared.order);
 }
 
@@ -250,7 +249,7 @@ static StateNodePtr apply_delta_entry(
             for (auto& [k, v] : dict.entries) {
                 auto elem = make_unique<JsonElementState>();
                 elem->kind_ = ChangeKind::Deleted;
-                elem->old_value = (v->is_element()) ? v->as_element().value : ScalarValue{nullptr};
+                elem->old_value = (v->is_element()) ? v->as_element().value : JsonVal{};
                 elem->version = version;
                 dict.entries[k] = std::move(elem);
             }
@@ -314,9 +313,8 @@ static StateNodePtr apply_delta_entry(
 
         // ADDED 且 existing 为空：创建新 state 节点
         if (!existing && sultan::base_kind(elem.kind_) == ChangeKind::Added) {
-            if (nv_is_complex(elem.value)) {
-                auto& doc = nv_to_doc(elem.value);
-                auto node = make_state_node(doc->root());
+            if (elem.value.is_obj() || elem.value.is_arr()) {
+                auto node = make_node(elem.value);
                 if (node->is_dict()) {
                     node->as_dict().kind_ = ChangeKind::Added;
                     node->as_dict().version = version;

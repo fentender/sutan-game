@@ -1,8 +1,14 @@
 #include "json_val.h"
+#include "mut_val.h"
 #include "yyjson.h"
+#include <cmath>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
 
 namespace sultan {
+
+using std::string;
 
 static_assert(sizeof(yyjson_obj_iter) <= 32, "ObjIter buf_ too small");
 static_assert(sizeof(yyjson_arr_iter) <= 32, "ArrIter buf_ too small");
@@ -95,6 +101,100 @@ bool JsonVal::ArrIter::next(JsonVal& out) {
 
 JsonVal::ArrIter JsonVal::arr_iter() const {
     return ArrIter(val_);
+}
+
+// ── serialize_val ──
+
+static string quote_str(const char* s) {
+    std::ostringstream oss;
+    oss << '"';
+    for (const char* p = s; *p; ++p) {
+        switch (*p) {
+            case '"':  oss << "\\\""; break;
+            case '\\': oss << "\\\\"; break;
+            case '\b': oss << "\\b"; break;
+            case '\f': oss << "\\f"; break;
+            case '\n': oss << "\\n"; break;
+            case '\r': oss << "\\r"; break;
+            case '\t': oss << "\\t"; break;
+            default:
+                if (static_cast<unsigned char>(*p) < 0x20) {
+                    oss << "\\u" << std::hex << std::setfill('0')
+                        << std::setw(4) << static_cast<int>(*p);
+                } else {
+                    oss << *p;
+                }
+        }
+    }
+    oss << '"';
+    return oss.str();
+}
+
+string serialize_val(JsonVal v) {
+    if (!v.valid()) return "null";
+    switch (v.type()) {
+        case JsonType::Null: return "null";
+        case JsonType::Bool: return v.get_bool() ? "true" : "false";
+        case JsonType::Int:  return std::to_string(v.get_int());
+        case JsonType::Real: {
+            double d = v.get_real();
+            if (std::isinf(d) || std::isnan(d)) return "null";
+            std::ostringstream oss;
+            oss << std::setprecision(17) << d;
+            string s = oss.str();
+            if (s.find('.') == string::npos && s.find('e') == string::npos)
+                s += ".0";
+            return s;
+        }
+        case JsonType::Str:  return quote_str(v.get_str());
+        case JsonType::Obj:
+        case JsonType::Arr: {
+            size_t len = 0;
+            char* buf = yyjson_val_write(v.raw(), YYJSON_WRITE_PRETTY, &len);
+            if (!buf) return "null";
+            string result(buf, len);
+            free(buf);
+            return result;
+        }
+    }
+    return "null";
+}
+
+string json_quote_str(const string& s) {
+    return quote_str(s.c_str());
+}
+
+// ── val_equal ──
+
+bool val_equal(JsonVal a, JsonVal b) {
+    if (!a.valid() && !b.valid()) return true;
+    if (!a.valid() || !b.valid()) return false;
+    if (a.type() != b.type()) return false;
+    switch (a.type()) {
+        case JsonType::Null: return true;
+        case JsonType::Bool: return a.get_bool() == b.get_bool();
+        case JsonType::Int:  return a.get_int() == b.get_int();
+        case JsonType::Real: return a.get_real() == b.get_real();
+        case JsonType::Str:  return std::strcmp(a.get_str(), b.get_str()) == 0;
+        default:             return false;
+    }
+}
+
+// ── val_to_mut ──
+
+MutVal val_to_mut(JsonVal v, MutVal ctx) {
+    if (!v.valid()) return ctx.new_null();
+    auto* copied = yyjson_val_mut_copy(ctx.raw_doc(), v.raw());
+    return MutVal(ctx.raw_doc(), copied);
+}
+
+std::vector<JsonVal> collect_arr(JsonVal arr) {
+    std::vector<JsonVal> result;
+    auto it = arr.arr_iter();
+    JsonVal elem;
+    while (it.next(elem))
+        result.push_back(elem);
+    return result;
 }
 
 }  // namespace sultan
