@@ -3,7 +3,6 @@
 #include "delta_rules.h"
 #include "json_doc.h"
 #include "json_val.h"
-#include "json_state.h"
 #include "mut_doc.h"
 #include "mut_val.h"
 #include "perf.h"
@@ -21,15 +20,15 @@ using std::vector;
 using std::unordered_map;
 using std::make_unique;
 
-// ── 创建 ADDED/DELETED DeltaElement，复杂值存入 value_node ──
+// ── 创建 ADDED/DELETED DeltaElement ──
 
 static DeltaNodePtr make_added_element(JsonVal v) {
     auto p = make_unique<DeltaElement>();
     p->kind_ = ChangeKind::Added;
     if (v.is_obj() || v.is_arr()) {
-        p->value_node = build_state_node(v);
+        p->value = std::make_shared<const JsonDoc>(copy_val_to_doc(v));
     } else {
-        p->value = val_to_scalar(v);
+        p->value = nv_from_scalar(val_to_scalar(v));
     }
     return p;
 }
@@ -38,7 +37,7 @@ static DeltaNodePtr make_deleted_element(JsonVal v) {
     auto p = make_unique<DeltaElement>();
     p->kind_ = ChangeKind::Deleted;
     if (!v.is_obj() && !v.is_arr()) {
-        p->old_value = val_to_scalar(v);
+        p->value = nv_from_scalar(val_to_scalar(v));
     }
     return p;
 }
@@ -383,7 +382,7 @@ static DeltaNodePtr recursive_delta(
 
     // 标量变化
     auto mod_val = val_to_scalar(mod);
-    return make_delta_element(ChangeKind::Changed, std::move(mod_val));
+    return make_delta_element(ChangeKind::Changed, nv_from_scalar(std::move(mod_val)));
 }
 
 // ── 公开 API ──
@@ -400,31 +399,6 @@ DeltaNodePtr compute_delta(
     vector<string> root_path;
     vector<string>* fp = (merge_mode == MergeMode::Smart) ? &root_path : nullptr;
     return recursive_delta(base.root(), mod.root(), fp, merge_mode, skip_root_deletion);
-}
-
-// ── remap: StateNodePtr → JsonDoc 转换 ──
-
-static JsonDoc state_node_to_doc(const StateBase& node) {
-    auto state = JsonState::from_node(node.clone());
-    return state.to_doc();
-}
-
-// ── remap: 递归设置 delta 树的 version ──
-
-static void set_delta_version(DeltaBase& node, int version) {
-    switch (node.type()) {
-        case DeltaType::Element:
-            node.as_element().version = version;
-            break;
-        case DeltaType::Dict:
-            for (auto& [k, v] : node.as_dict().items)
-                set_delta_version(*v, version);
-            break;
-        case DeltaType::Array:
-            for (auto& d : node.as_array().diffs)
-                set_delta_version(*d, version);
-            break;
-    }
 }
 
 // ── remap: 标量 JsonVal 包装为单元素数组 JsonDoc（DupList 归一化用） ──
@@ -462,44 +436,33 @@ static DeltaNodePtr remap_field_diff(
 
     if (bk == ChangeKind::Deleted) {
         if (!cur_has) return nullptr;
-        auto p = make_unique<DeltaElement>();
-        p->kind_ = ChangeKind::Deleted;
-        p->version = entry.version;
-        if (!cur_val.is_obj() && !cur_val.is_arr())
-            p->old_value = val_to_scalar(cur_val);
-        return p;
+        return make_deleted_element(cur_val);
     }
 
     if (bk == ChangeKind::Added) {
         if (!cur_has) return entry.clone();
 
-        if (entry.value_node) {
-            auto target_doc = state_node_to_doc(*entry.value_node);
-            if (deep_equal(cur_val, target_doc.root())) return nullptr;
-            auto result = recursive_delta(cur_val, target_doc.root(), nullptr, MergeMode::Normal);
-            if (!result) return nullptr;
-            set_delta_version(*result, entry.version);
+        if (nv_is_complex(entry.value)) {
+            auto& doc = nv_to_doc(entry.value);
+            if (deep_equal(cur_val, doc->root())) return nullptr;
+            auto result = recursive_delta(cur_val, doc->root(), nullptr, MergeMode::Normal);
             return result;
         }
         ScalarValue cur_sv = val_to_scalar(cur_val);
-        if (scalar_equal(cur_sv, entry.value)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, ScalarValue{entry.value},
-                                  std::move(cur_sv), entry.version);
+        ScalarValue entry_sv = nv_to_scalar(entry.value);
+        if (scalar_equal(cur_sv, entry_sv)) return nullptr;
+        return make_delta_element(ChangeKind::Changed, nv_from_scalar(entry_sv));
     }
 
     if (bk == ChangeKind::Changed) {
         if (!cur_has) {
-            auto p = make_unique<DeltaElement>();
-            p->kind_ = ChangeKind::Added;
-            p->value = entry.value;
-            p->version = entry.version;
-            if (entry.value_node) p->value_node = entry.value_node->clone();
-            return p;
+            // cur 不存在 → 变为 Added
+            return make_delta_element(ChangeKind::Added, entry.value);
         }
         ScalarValue cur_sv = val_to_scalar(cur_val);
-        if (scalar_equal(cur_sv, entry.value)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, ScalarValue{entry.value},
-                                  std::move(cur_sv), entry.version);
+        ScalarValue entry_sv = nv_to_scalar(entry.value);
+        if (scalar_equal(cur_sv, entry_sv)) return nullptr;
+        return make_delta_element(ChangeKind::Changed, nv_from_scalar(entry_sv));
     }
 
     return entry.clone();

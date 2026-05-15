@@ -22,6 +22,7 @@ public:
     MutVal root();
     void set_root(MutVal root);
     JsonDoc freeze();
+    yyjson_mut_doc* raw() const { return doc_; }
 };
 
 }  // namespace sultan

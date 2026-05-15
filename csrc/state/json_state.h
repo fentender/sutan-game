@@ -14,10 +14,11 @@ class JsonDoc;
 class JsonState {
 public:
     JsonState() = default;
-    JsonState(const JsonState&) = delete;
-    JsonState& operator=(const JsonState&) = delete;
     JsonState(JsonState&&) noexcept = default;
     JsonState& operator=(JsonState&&) noexcept = default;
+    
+    JsonState(const JsonState&) = delete;
+    JsonState& operator=(const JsonState&) = delete;
 
     static JsonState from_doc(const JsonDoc& doc);
     static JsonState from_text(const string& text, bool clean = true);

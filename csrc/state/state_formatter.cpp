@@ -208,6 +208,14 @@ static vector<pair<string, const StateBase*>> collect_dict_entries(
             auto& elem = entry->as_element();
             if (is_deleted(elem.kind_) && elem.version != highlight_version)
                 continue;
+        } else if (entry->is_dict()) {
+            auto& dict = entry->as_dict();
+            if (is_deleted(dict.kind_) && dict.version != highlight_version)
+                continue;
+        } else if (entry->is_array()) {
+            auto& arr = entry->as_array();
+            if (is_deleted(arr.kind_) && arr.version != highlight_version)
+                continue;
         }
         result.emplace_back(key, entry.get());
     }
@@ -231,6 +239,14 @@ static vector<pair<int, const StateBase*>> collect_array_elements(
         if (diff->is_element()) {
             auto& elem = diff->as_element();
             if (is_deleted(elem.kind_) && elem.version != highlight_version)
+                continue;
+        } else if (diff->is_dict()) {
+            auto& dict = diff->as_dict();
+            if (is_deleted(dict.kind_) && dict.version != highlight_version)
+                continue;
+        } else if (diff->is_array()) {
+            auto& arr = diff->as_array();
+            if (is_deleted(arr.kind_) && arr.version != highlight_version)
                 continue;
         }
         result.emplace_back(eid, diff.get());
@@ -295,24 +311,37 @@ static void format_entry(
             }
         }
     } else {
-        FormatResult sub;
-        if (entry.is_dict()) {
-            format_dict(entry.as_dict(), highlight_version, level, sub, false);
+        ChangeKind ck = entry.kind();
+        int ver = entry.is_dict() ? entry.as_dict().version : entry.as_array().version;
+
+        if (ver == highlight_version && is_added(ck)) {
+            int8_t hl = static_cast<int8_t>(ChangeKind::Added | change_flags(ck));
+            string val_str = serialize_node(entry, INDENT, level);
+            emit(prefix + val_str + comma, r, hl, Side::Right);
+        } else if (ver == highlight_version && is_deleted(ck)) {
+            int8_t hl = static_cast<int8_t>(ChangeKind::Deleted | change_flags(ck));
+            string val_str = serialize_node(entry, INDENT, level);
+            emit(prefix + val_str + comma, r, hl, Side::Left);
         } else {
-            format_array(entry.as_array(), highlight_version, level, sub);
+            FormatResult sub;
+            if (entry.is_dict()) {
+                format_dict(entry.as_dict(), highlight_version, level, sub, false);
+            } else {
+                format_array(entry.as_array(), highlight_version, level, sub);
+            }
+            if (!sub.left_lines.empty()) {
+                sub.left_lines[0] = prefix + sub.left_lines[0];
+                sub.right_lines[0] = prefix + sub.right_lines[0];
+            }
+            if (!sub.left_lines.empty() && !comma.empty()) {
+                sub.left_lines.back() += comma;
+                sub.right_lines.back() += comma;
+            }
+            r.left_lines.insert(r.left_lines.end(), sub.left_lines.begin(), sub.left_lines.end());
+            r.right_lines.insert(r.right_lines.end(), sub.right_lines.begin(), sub.right_lines.end());
+            r.left_kinds.insert(r.left_kinds.end(), sub.left_kinds.begin(), sub.left_kinds.end());
+            r.right_kinds.insert(r.right_kinds.end(), sub.right_kinds.begin(), sub.right_kinds.end());
         }
-        if (!sub.left_lines.empty()) {
-            sub.left_lines[0] = prefix + sub.left_lines[0];
-            sub.right_lines[0] = prefix + sub.right_lines[0];
-        }
-        if (!sub.left_lines.empty() && !comma.empty()) {
-            sub.left_lines.back() += comma;
-            sub.right_lines.back() += comma;
-        }
-        r.left_lines.insert(r.left_lines.end(), sub.left_lines.begin(), sub.left_lines.end());
-        r.right_lines.insert(r.right_lines.end(), sub.right_lines.begin(), sub.right_lines.end());
-        r.left_kinds.insert(r.left_kinds.end(), sub.left_kinds.begin(), sub.left_kinds.end());
-        r.right_kinds.insert(r.right_kinds.end(), sub.right_kinds.begin(), sub.right_kinds.end());
     }
 }
 

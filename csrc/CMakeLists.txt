@@ -8,6 +8,7 @@ add_library(sultan_core_lib STATIC
     json/json_val.cpp
     json/mut_val.cpp
     json/mut_doc.cpp
+    json/node_value.cpp
     json_ops/json_ops.cpp
     state/state_node.cpp
     state/json_state.cpp

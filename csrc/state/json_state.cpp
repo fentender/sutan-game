@@ -25,9 +25,9 @@ ScalarValue val_to_scalar(JsonVal v) {
     }
 }
 
-static StateNodePtr build_node(JsonVal v);
+static StateNodePtr make_node(JsonVal v);
 
-static StateNodePtr build_dict(JsonVal obj) {
+static StateNodePtr make_dict(JsonVal obj) {
     auto dict = make_unique<JsonDictState>();
 
     struct KeyValues { vector<JsonVal> vals; };
@@ -51,7 +51,7 @@ static StateNodePtr build_dict(JsonVal obj) {
             int n = static_cast<int>(kv.vals.size());
             arr->base_count = n;
             for (int i = 0; i < n; ++i) {
-                arr->diffs.push_back(build_node(kv.vals[i]));
+                arr->diffs.push_back(make_node(kv.vals[i]));
                 arr->indices.push_back(i + 1);
             }
             arr->order.push_back(0);
@@ -59,13 +59,13 @@ static StateNodePtr build_dict(JsonVal obj) {
             arr->order.push_back(-1);
             dict->insert(std::move(k), std::move(arr));
         } else {
-            dict->insert(std::move(k), build_node(kv.vals[0]));
+            dict->insert(std::move(k), make_node(kv.vals[0]));
         }
     }
     return dict;
 }
 
-static StateNodePtr build_array(JsonVal arr) {
+static StateNodePtr make_array(JsonVal arr) {
     auto node = make_unique<JsonArrayState>();
     int n = static_cast<int>(arr.arr_size());
     node->base_count = n;
@@ -74,7 +74,7 @@ static StateNodePtr build_array(JsonVal arr) {
     JsonVal elem;
     int idx = 1;
     while (it.next(elem)) {
-        node->diffs.push_back(build_node(elem));
+        node->diffs.push_back(make_node(elem));
         node->indices.push_back(idx++);
     }
 
@@ -84,15 +84,15 @@ static StateNodePtr build_array(JsonVal arr) {
     return node;
 }
 
-static StateNodePtr build_node(JsonVal v) {
+static StateNodePtr make_node(JsonVal v) {
     switch (v.type()) {
-        case JsonType::Obj: return build_dict(v);
-        case JsonType::Arr: return build_array(v);
+        case JsonType::Obj: return make_dict(v);
+        case JsonType::Arr: return make_array(v);
         default:            return make_element(val_to_scalar(v));
     }
 }
 
-StateNodePtr build_state_node(JsonVal v) { return build_node(v); }
+StateNodePtr make_state_node(JsonVal v) { return make_node(v); }
 
 // ── StateNodePtr → MutVal 递归 ──
 
@@ -178,7 +178,7 @@ JsonState JsonState::from_doc(const JsonDoc& doc) {
     SULTAN_PERF_SCOPE("state_from_doc");
     if (!doc.valid())
         throw std::runtime_error("JsonState::from_doc: invalid JsonDoc");
-    return JsonState(build_node(doc.root()));
+    return JsonState(make_node(doc.root()));
 }
 
 JsonState JsonState::from_text(const string& text, bool clean) {

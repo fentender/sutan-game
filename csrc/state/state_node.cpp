@@ -114,6 +114,7 @@ bool JsonDictState::is_modified() const {
 StateNodePtr JsonDictState::clone() const {
     auto node = std::make_unique<JsonDictState>();
     node->kind_ = kind_;
+    node->version = version;
     for (auto& [key, child] : entries) {
         node->entries.emplace(key, child ? child->clone() : nullptr);
     }
@@ -142,6 +143,7 @@ bool JsonArrayState::is_modified() const {
 StateNodePtr JsonArrayState::clone() const {
     auto node = std::make_unique<JsonArrayState>();
     node->kind_ = kind_;
+    node->version = version;
     node->base_count = base_count;
     node->indices = indices;
     node->order = order;
@@ -160,18 +162,6 @@ StateNodePtr make_element(ScalarValue value, ChangeKind kind) {
     node->kind_ = kind;
     node->value = std::move(value);
     node->old_value = nullptr;
-    return node;
-}
-
-StateNodePtr make_dict(ChangeKind kind) {
-    auto node = std::make_unique<JsonDictState>();
-    node->kind_ = kind;
-    return node;
-}
-
-StateNodePtr make_array(ChangeKind kind) {
-    auto node = std::make_unique<JsonArrayState>();
-    node->kind_ = kind;
     return node;
 }
 

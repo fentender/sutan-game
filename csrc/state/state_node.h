@@ -1,10 +1,10 @@
 #pragma once
 #include "change_kind.h"
+#include "node_value.h"
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 namespace sultan {
@@ -14,14 +14,6 @@ using std::unique_ptr;
 using std::unordered_map;
 using std::variant;
 using std::vector;
-
-using ScalarValue = variant<std::nullptr_t, bool, int64_t, double, string>;
-
-string serialize_scalar(const ScalarValue& val);
-bool scalar_equal(const ScalarValue& a, const ScalarValue& b);
-
-class JsonVal;
-ScalarValue val_to_scalar(JsonVal v);
 
 struct JsonElementState;
 struct JsonDictState;
@@ -71,9 +63,11 @@ struct JsonElementState : StateBase {
 // ── 字典 ──
 
 struct JsonDictState : StateBase {
-    JsonDictState() : StateBase(StateType::Dict) {}
     ChangeKind kind_ = ChangeKind::Origin;
+    int version = 0;
     unordered_map<string, StateNodePtr> entries;
+
+    JsonDictState() : StateBase(StateType::Dict) {}
 
     ChangeKind kind() const override { return kind_; }
     bool is_modified() const override;
@@ -89,6 +83,7 @@ struct JsonDictState : StateBase {
 struct JsonArrayState : StateBase {
     JsonArrayState() : StateBase(StateType::Array) {}
     ChangeKind kind_ = ChangeKind::Origin;
+    int version = 0;
     vector<StateNodePtr> diffs;
     int base_count = 0;
     vector<int> indices;
@@ -102,9 +97,7 @@ struct JsonArrayState : StateBase {
 };
 
 StateNodePtr make_element(ScalarValue value, ChangeKind kind = ChangeKind::Origin);
-StateNodePtr make_dict(ChangeKind kind = ChangeKind::Origin);
-StateNodePtr make_array(ChangeKind kind = ChangeKind::Origin);
 
-StateNodePtr build_state_node(JsonVal v);
+StateNodePtr make_state_node(JsonVal v);
 
 }  // namespace sultan

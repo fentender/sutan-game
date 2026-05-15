@@ -1,6 +1,6 @@
 #pragma once
 #include "change_kind.h"
-#include "state_node.h"
+#include "node_value.h"
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -46,10 +46,7 @@ using DeltaNodePtr = unique_ptr<DeltaBase>;
 
 struct DeltaElement : DeltaBase {
     ChangeKind kind_ = ChangeKind::Origin;
-    ScalarValue value;
-    ScalarValue old_value;
-    StateNodePtr value_node;  // ADDED 的复杂值（obj/arr），apply 时 clone 插入 state 树
-    int version = 0;
+    NodeValue value;
 
     DeltaType type() const override { return DeltaType::Element; }
     ChangeKind kind() const override { return kind_; }
@@ -88,8 +85,7 @@ struct DeltaArray : DeltaBase {
 
 // ── 工厂 ──
 
-DeltaNodePtr make_delta_element(ChangeKind kind, ScalarValue value,
-                                 ScalarValue old_value = nullptr, int version = 0);
+DeltaNodePtr make_delta_element(ChangeKind kind, NodeValue value);
 DeltaNodePtr make_delta_dict(ChangeKind kind = ChangeKind::Origin);
 DeltaNodePtr make_delta_array(ChangeKind kind = ChangeKind::Origin);
 

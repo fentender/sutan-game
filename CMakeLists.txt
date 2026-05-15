@@ -5,7 +5,11 @@ project(sultan_core LANGUAGES C CXX)
 find_package(Python 3.10
     REQUIRED COMPONENTS Interpreter Development.Module)
 
-# nanobind（通过 pip 安装，scikit-build-core 设置 prefix path）
+# nanobind（通过 pip 安装，自动定位 cmake 目录）
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+    OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE NB_DIR)
+list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 
 # MSVC: 源码和执行字符集均为 UTF-8

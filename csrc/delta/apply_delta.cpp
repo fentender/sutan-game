@@ -40,7 +40,7 @@ StateNodePtr apply_field_delta(
 
     auto result = make_unique<JsonElementState>();
     result->kind_ = kind;
-    result->value = diff.value;
+    result->value = nv_to_scalar(diff.value);
     result->old_value = std::move(old_val);
     result->version = version;
     return result;
@@ -255,6 +255,7 @@ static StateNodePtr apply_delta_entry(
                 dict.entries[k] = std::move(elem);
             }
             dict.kind_ = ChangeKind::Deleted;
+            dict.version = version;
             return existing->clone();
         }
         if (existing->is_array()) {
@@ -267,6 +268,7 @@ static StateNodePtr apply_delta_entry(
                 }
             }
             arr.kind_ = ChangeKind::Deleted;
+            arr.version = version;
             return existing->clone();
         }
     }
@@ -312,22 +314,19 @@ static StateNodePtr apply_delta_entry(
 
         // ADDED 且 existing 为空：创建新 state 节点
         if (!existing && sultan::base_kind(elem.kind_) == ChangeKind::Added) {
-            if (elem.value_node) {
-                auto node = elem.value_node->clone();
-                // 标记为 ADDED
-                if (node->is_element()) {
-                    node->as_element().kind_ = ChangeKind::Added;
-                    node->as_element().version = version;
-                } else if (node->is_dict()) {
+            if (nv_is_complex(elem.value)) {
+                auto& doc = nv_to_doc(elem.value);
+                auto node = make_state_node(doc->root());
+                if (node->is_dict()) {
                     node->as_dict().kind_ = ChangeKind::Added;
+                    node->as_dict().version = version;
                 } else if (node->is_array()) {
                     node->as_array().kind_ = ChangeKind::Added;
+                    node->as_array().version = version;
                 }
                 return node;
             }
-            return apply_field_delta(elem,
-                existing ? &existing->as_element() : nullptr,
-                version, is_override);
+            return apply_field_delta(elem, nullptr, version, is_override);
         }
 
         JsonElementState* exist_elem = (existing && existing->is_element())
