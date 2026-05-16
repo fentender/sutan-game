@@ -25,6 +25,8 @@ build_test/
 dist/
 _skbuild/
 *.spec
+!sudan.spec
+!sudan_macos.spec
 .agent
 .claude
 
