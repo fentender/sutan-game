@@ -3,14 +3,11 @@
 #include "delta_rules.h"
 #include "json_doc.h"
 #include "json_val.h"
-#include "mut_doc.h"
-#include "mut_val.h"
 #include "perf.h"
 #include "state_node.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <optional>
 #include <string_view>
 #include <unordered_map>
 
@@ -139,10 +136,6 @@ static vector<int> build_order(
     order.push_back(-1);
     return order;
 }
-
-// ── 标量包装为单元素数组（类型归一化用） ──
-
-static JsonDoc wrap_scalar_as_array(JsonVal v);
 
 // ── delta 计算（前向声明） ──
 
@@ -320,28 +313,12 @@ DeltaNodePtr compute_delta(
     return recursive_delta(base.root(), mod.root(), fp, merge_mode, skip_root_deletion);
 }
 
-// ── remap: 标量 JsonVal 包装为单元素数组 JsonDoc（DupList 归一化用） ──
-
-static JsonDoc wrap_scalar_as_array(JsonVal v) {
-    MutDoc md;
-    auto ctx = md.root();
-    auto arr = ctx.new_arr();
-    switch (v.type()) {
-        case JsonType::Null: arr.arr_append(ctx.new_null()); break;
-        case JsonType::Bool: arr.arr_append(ctx.new_bool(v.get_bool())); break;
-        case JsonType::Int:  arr.arr_append(ctx.new_int(v.get_int())); break;
-        case JsonType::Real: arr.arr_append(ctx.new_real(v.get_real())); break;
-        case JsonType::Str:  arr.arr_append(ctx.new_str(string(v.get_str()))); break;
-        default: arr.arr_append(ctx.new_null()); break;
-    }
-    md.set_root(arr);
-    return md.freeze();
-}
-
 // ── remap 前置声明 ──
 
 static bool remap_dict_diff(
     DeltaDict& delta, JsonVal hist_obj, JsonVal cur_obj);
+static bool remap_array_diff(
+    DeltaArray& delta, const vector<JsonVal>& hist_elems, const vector<JsonVal>& cur_elems);
 static bool remap_array_diff(
     DeltaArray& delta, JsonVal hist_arr, JsonVal cur_arr);
 
@@ -382,27 +359,69 @@ static bool remap_field_diff(
     return true;
 }
 
-// ── remap: 数组 delta 重映射（索引体系 hist→current） ──
+// ── remap: 数组 delta 重映射（核心 vector 重载） ──
+
+static bool remap_array_diff(
+    DeltaArray& delta,
+    const vector<JsonVal>& hist_elems,
+    const vector<JsonVal>& cur_elems);
+
+// ── remap: 统一递归分发 ──
+
+static bool remap_node(DeltaNodePtr& d, JsonVal hv, JsonVal cv) {
+    switch (d->type()) {
+        case DeltaType::Element:
+            return remap_field_diff(d, cv.valid(), cv);
+        case DeltaType::Dict:
+            if (!hv.is_obj() || !cv.is_obj()) return false;
+            return remap_dict_diff(d->as_dict(), hv, cv)
+                && !d->as_dict().empty();
+        case DeltaType::Array: {
+            if (!hv.valid() || !cv.valid()) return false;
+            auto to_elems = [](JsonVal v) -> vector<JsonVal> {
+                if (v.is_arr()) return collect_arr(v);
+                return {v};
+            };
+            return remap_array_diff(d->as_array(), to_elems(hv), to_elems(cv));
+        }
+    }
+    return false;
+}
+
+// ── remap: 数组 delta 重映射（JsonVal 委托） ──
 
 static bool remap_array_diff(
     DeltaArray& delta, JsonVal hist_arr, JsonVal cur_arr)
 {
-    int hist_base_count = delta.base_count;
-    int cur_base_count = static_cast<int>(cur_arr.arr_size());
+    return remap_array_diff(delta, collect_arr(hist_arr), collect_arr(cur_arr));
+}
 
-    auto matching = match_by_heuristic(hist_arr, cur_arr);
+// ── remap: 数组 delta 重映射（索引体系 hist→current） ──
+
+static bool remap_array_diff(
+    DeltaArray& delta,
+    const vector<JsonVal>& hist_elems,
+    const vector<JsonVal>& cur_elems)
+{
+    int hist_base_count = delta.base_count;
+    int cur_base_count = static_cast<int>(cur_elems.size());
+
+    auto matching = match_by_heuristic(hist_elems, cur_elems);
 
     unordered_map<int, int> hist_to_cur;
     for (auto& [hi, ci] : matching.pairs)
         hist_to_cur[hi] = ci;
 
-    auto hist_elems = collect_arr(hist_arr);
-    auto cur_elems = collect_arr(cur_arr);
-
     vector<DeltaNodePtr> new_diffs;
     vector<int> new_indices;
     unordered_map<int, int> id_remap;
     int added_counter = 0;
+
+    auto accept = [&](DeltaNodePtr& d, int eid, int new_id) {
+        new_diffs.push_back(std::move(d));
+        new_indices.push_back(new_id);
+        id_remap[eid] = new_id;
+    };
 
     for (size_t i = 0; i < delta.diffs.size(); ++i) {
         int eid = delta.indices[i];
@@ -410,10 +429,7 @@ static bool remap_array_diff(
 
         if (eid > hist_base_count) {
             added_counter++;
-            int new_id = cur_base_count + added_counter;
-            new_diffs.push_back(std::move(d));
-            new_indices.push_back(new_id);
-            id_remap[eid] = new_id;
+            accept(d, eid, cur_base_count + added_counter);
             continue;
         }
 
@@ -424,49 +440,11 @@ static bool remap_array_diff(
         int cur_idx = hit->second;
         int new_id = cur_idx + 1;
 
-        switch (d->type()) {
-            case DeltaType::Dict: {
-                if (hist_idx < static_cast<int>(hist_elems.size()) &&
-                    cur_idx < static_cast<int>(cur_elems.size()) &&
-                    hist_elems[hist_idx].is_obj() && cur_elems[cur_idx].is_obj()) {
-                    if (remap_dict_diff(d->as_dict(),
-                            hist_elems[hist_idx], cur_elems[cur_idx])
-                        && !d->as_dict().empty()) {
-                        new_diffs.push_back(std::move(d));
-                        new_indices.push_back(new_id);
-                        id_remap[eid] = new_id;
-                    }
-                }
-                break;
-            }
-            case DeltaType::Array: {
-                if (hist_idx < static_cast<int>(hist_elems.size()) &&
-                    cur_idx < static_cast<int>(cur_elems.size()) &&
-                    hist_elems[hist_idx].is_arr() && cur_elems[cur_idx].is_arr()) {
-                    if (remap_array_diff(d->as_array(),
-                            hist_elems[hist_idx], cur_elems[cur_idx])) {
-                        new_diffs.push_back(std::move(d));
-                        new_indices.push_back(new_id);
-                        id_remap[eid] = new_id;
-                    }
-                } else {
-                    new_diffs.push_back(std::move(d));
-                    new_indices.push_back(new_id);
-                    id_remap[eid] = new_id;
-                }
-                break;
-            }
-            case DeltaType::Element: {
-                bool has = cur_idx < static_cast<int>(cur_elems.size());
-                JsonVal cv = has ? cur_elems[cur_idx] : JsonVal{};
-                if (remap_field_diff(d, has, cv)) {
-                    new_diffs.push_back(std::move(d));
-                    new_indices.push_back(new_id);
-                    id_remap[eid] = new_id;
-                }
-                break;
-            }
-        }
+        JsonVal hv = hist_idx < (int)hist_elems.size() ? hist_elems[hist_idx] : JsonVal{};
+        JsonVal cv = cur_idx  < (int)cur_elems.size()  ? cur_elems[cur_idx]  : JsonVal{};
+
+        if (remap_node(d, hv, cv))
+            accept(d, eid, new_id);
     }
 
     if (new_diffs.empty()) {
@@ -510,62 +488,30 @@ static bool remap_array_diff(
 static bool remap_dict_diff(
     DeltaDict& delta, JsonVal hist_obj, JsonVal cur_obj)
 {
+    auto hist_keys = ObjKeys::collect(hist_obj);
+    auto cur_keys = ObjKeys::collect(cur_obj);
+
+    static const vector<JsonVal> empty_vals;
     vector<string> to_erase;
 
     for (auto& [key, diff] : delta.items) {
-        JsonVal hist_val = hist_obj.obj_get(key.c_str());
-        bool hist_has = hist_val.valid();
-        JsonVal cur_val = cur_obj.obj_get(key.c_str());
-        bool cur_has = cur_val.valid();
+        auto hit = hist_keys.entries.find(key);
+        auto cit = cur_keys.entries.find(key);
+        const auto& hvals = (hit != hist_keys.entries.end()) ? hit->second.vals : empty_vals;
+        const auto& cvals = (cit != cur_keys.entries.end()) ? cit->second.vals : empty_vals;
 
-        switch (diff->type()) {
-            case DeltaType::Element: {
-                if (!remap_field_diff(diff, cur_has, cur_val))
-                    to_erase.push_back(key);
-                break;
-            }
-            case DeltaType::Dict: {
-                if (cur_has && cur_val.is_obj() && hist_has && hist_val.is_obj()) {
-                    if (!remap_dict_diff(diff->as_dict(), hist_val, cur_val)
-                        || diff->as_dict().empty())
-                        to_erase.push_back(key);
-                } else {
-                    to_erase.push_back(key);
-                }
-                break;
-            }
-            case DeltaType::Array: {
-                if (!cur_has || !hist_has) {
-                    to_erase.push_back(key);
-                    break;
-                }
-
-                JsonVal h = hist_val, c = cur_val;
-                std::optional<JsonDoc> hist_wrap, cur_wrap;
-
-                if (!hist_val.is_arr() && !hist_val.is_obj()) {
-                    hist_wrap.emplace(wrap_scalar_as_array(hist_val));
-                    h = hist_wrap->root();
-                }
-                if (!cur_val.is_arr() && !cur_val.is_obj()) {
-                    cur_wrap.emplace(wrap_scalar_as_array(cur_val));
-                    c = cur_wrap->root();
-                }
-
-                if (h.is_arr() && c.is_arr()) {
-                    if (!remap_array_diff(diff->as_array(), h, c))
-                        to_erase.push_back(key);
-                } else {
-                    to_erase.push_back(key);
-                }
-                break;
-            }
+        bool keep;
+        if (hvals.size() > 1 || cvals.size() > 1) {
+            keep = remap_array_diff(diff->as_array(), hvals, cvals);
+        } else {
+            JsonVal hv = hvals.empty() ? JsonVal{} : hvals[0];
+            JsonVal cv = cvals.empty() ? JsonVal{} : cvals[0];
+            keep = remap_node(diff, hv, cv);
         }
+        if (!keep) to_erase.push_back(key);
     }
-
     for (auto& k : to_erase)
         delta.items.erase(k);
-
     return !delta.empty();
 }
 
