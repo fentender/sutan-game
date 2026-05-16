@@ -5,7 +5,11 @@
 import hashlib
 import json
 import shutil
+import sys
 from pathlib import Path
+
+if sys.stdout.encoding and sys.stdout.encoding.lower().startswith("cp"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "history_config"
