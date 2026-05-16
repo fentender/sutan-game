@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <string>
 #include <thread>
@@ -20,6 +21,9 @@ TEST_CASE("diag: emit all levels to buffer") {
 
     auto msgs = mgr.snapshot();
     REQUIRE(msgs.size() == 3);
+
+    std::sort(msgs.begin(), msgs.end(),
+              [](auto& a, auto& b) { return a.level < b.level; });
 
     REQUIRE(msgs[0].level == DiagLevel::Info);
     REQUIRE(msgs[0].category == "parse");

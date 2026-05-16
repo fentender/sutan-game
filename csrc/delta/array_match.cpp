@@ -4,6 +4,7 @@
 #include "similarity.h"
 #include "state_node.h"
 #include <algorithm>
+#include <cstdlib>
 #include <rapidfuzz/distance/Levenshtein.hpp>
 #include <unordered_map>
 #include <unordered_set>
@@ -107,13 +108,13 @@ double element_similarity(JsonVal a, JsonVal b) {
         case JsonType::Real: return a.get_real() == b.get_real() ? 1.0 : 0.0;
         case JsonType::Str:
             return (string(a.get_str()) == string(b.get_str())) ? 1.0 : 0.0;
-        case JsonType::Obj: {
+        case JsonType::Obj:
+        case JsonType::Arr: {
             string sa, sb;
             val_to_json(a, sa);
             val_to_json(b, sb);
             return string_ratio(sa, sb);
         }
-        case JsonType::Arr: return 0.0;
     }
     return 0.0;
 }
@@ -427,7 +428,9 @@ ArrayMatching match_by_heuristic(const vector<JsonVal>& base, const vector<JsonV
         for (int mi : remaining_mod_set) {
             if (mi < lo || mi >= hi) continue;
             double sim = element_similarity(base[bi], mod[mi]);
-            if (sim > best_sim_scalar) {
+            if (sim > best_sim_scalar ||
+                (sim == best_sim_scalar && best_mi_scalar >= 0 &&
+                 abs(mi - bi) < abs(best_mi_scalar - bi))) {
                 best_sim_scalar = sim;
                 best_mi_scalar = mi;
             }
