@@ -198,6 +198,7 @@ class AppService:
             self._init_state = InitState.ERROR
 
     def _ensure_schemas(self) -> None:
+        return
         schema_dir = SCHEMA_DIR
         config_dir = self._config.game_config_path
         if not config_dir.exists():

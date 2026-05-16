@@ -212,8 +212,6 @@ class ModManager:
 
         steps: list[StepState] = []
         for version, (mod_id, mod_name, delta) in enumerate(mod_data_list, 1):
-            if "3492698232" in mod_id and "5000003" in rel_path:
-                print("Debug")
             apply_delta(delta, state, version=version)
 
             override_node = dm.get_override_node(mod_id, rel_path)
