@@ -71,7 +71,7 @@ jobs:
       - name: Extract version
         id: version
         run: |
-          ver=$(python -c "import re; print(re.search(r'APP_VERSION\s*=\s*\"([^\"]+)\"', open('src/config.py').read()).group(1))")
+          ver=$(python -c "import re; print(re.search(r'APP_VERSION\s*=\s*\"([^\"]+)\"', open('src/config.py', encoding='utf-8').read()).group(1))")
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
       - name: Generate macOS icon
