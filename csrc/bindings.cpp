@@ -226,10 +226,9 @@ static void bind_delta(nb::module_& parent) {
         nb::arg("version") = 0, nb::arg("is_override") = false);
 
     m.def("remap_delta",
-        [](const DeltaDict& delta, const JsonDoc& hist_base,
-           const JsonDoc& current_base) {
-            return to_delta_dict(
-                remap_delta_to_current(delta, hist_base, current_base));
+        [](DeltaDict& delta, const JsonDoc& hist_base,
+           const JsonDoc& current_base) -> bool {
+            return remap_delta_to_current(delta, hist_base, current_base);
         },
         nb::arg("delta"), nb::arg("hist_base"), nb::arg("current_base"));
 

@@ -12,8 +12,8 @@ DeltaNodePtr compute_delta(
     MergeMode merge_mode = MergeMode::Normal,
     bool skip_root_deletion = false);
 
-DeltaNodePtr remap_delta_to_current(
-    const DeltaDict& delta,
+bool remap_delta_to_current(
+    DeltaDict& delta,
     const JsonDoc& hist_base,
     const JsonDoc& current_base);
 

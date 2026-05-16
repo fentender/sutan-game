@@ -8,6 +8,7 @@
 #include "perf.h"
 #include "state_node.h"
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 #include <optional>
 #include <string_view>
@@ -339,50 +340,52 @@ static JsonDoc wrap_scalar_as_array(JsonVal v) {
 
 // ── remap 前置声明 ──
 
-static DeltaNodePtr remap_dict_delta(
-    const DeltaDict& delta, JsonVal hist_obj, JsonVal cur_obj);
-static DeltaNodePtr remap_array_diff(
-    const DeltaArray& delta, JsonVal hist_arr, JsonVal cur_arr);
+static bool remap_dict_diff(
+    DeltaDict& delta, JsonVal hist_obj, JsonVal cur_obj);
+static bool remap_array_diff(
+    DeltaArray& delta, JsonVal hist_arr, JsonVal cur_arr);
 
 // ── remap: 标量/叶子节点重映射 ──
+// 返回 true=保留, false=删除; node 可能被替换
 
-static DeltaNodePtr remap_field_diff(
-    const DeltaElement& entry,
-    bool cur_has, JsonVal cur_val)
+static bool remap_field_diff(
+    DeltaNodePtr& node, bool cur_has, JsonVal cur_val)
 {
+    auto& entry = node->as_element();
     ChangeKind bk = sultan::base_kind(entry.kind_);
 
     if (bk == ChangeKind::Deleted) {
-        if (!cur_has) return nullptr;
-        return make_delta_element(ChangeKind::Deleted,cur_val);
+        if (!cur_has) return false;
+        entry.value = cur_val;
+        return true;
     }
 
     if (bk == ChangeKind::Added) {
-        if (!cur_has) return entry.clone();
+        if (!cur_has) return true;
 
         if (entry.value.is_obj() || entry.value.is_arr()) {
-            if (deep_equal(cur_val, entry.value)) return nullptr;
-            return recursive_delta(cur_val, entry.value, nullptr, MergeMode::Normal);
+            if (deep_equal(cur_val, entry.value)) return false;
+            node = recursive_delta(cur_val, entry.value, nullptr, MergeMode::Normal);
+            return node != nullptr;
         }
-        if (deep_equal(cur_val, entry.value)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, entry.value);
+        if (deep_equal(cur_val, entry.value)) return false;
+        entry.kind_ = ChangeKind::Changed;
+        return true;
     }
 
     if (bk == ChangeKind::Changed) {
-        if (!cur_has)
-            return make_delta_element(ChangeKind::Added, entry.value);
-        if (deep_equal(cur_val, entry.value)) return nullptr;
-        return make_delta_element(ChangeKind::Changed, entry.value);
+        if (!cur_has) { entry.kind_ = ChangeKind::Added; return true; }
+        if (deep_equal(cur_val, entry.value)) return false;
+        return true;
     }
 
-    return entry.clone();
+    return true;
 }
 
 // ── remap: 数组 delta 重映射（索引体系 hist→current） ──
 
-static DeltaNodePtr remap_array_diff(
-    const DeltaArray& delta,
-    JsonVal hist_arr, JsonVal cur_arr)
+static bool remap_array_diff(
+    DeltaArray& delta, JsonVal hist_arr, JsonVal cur_arr)
 {
     int hist_base_count = delta.base_count;
     int cur_base_count = static_cast<int>(cur_arr.arr_size());
@@ -408,7 +411,7 @@ static DeltaNodePtr remap_array_diff(
         if (eid > hist_base_count) {
             added_counter++;
             int new_id = cur_base_count + added_counter;
-            new_diffs.push_back(d->clone());
+            new_diffs.push_back(std::move(d));
             new_indices.push_back(new_id);
             id_remap[eid] = new_id;
             continue;
@@ -426,10 +429,10 @@ static DeltaNodePtr remap_array_diff(
                 if (hist_idx < static_cast<int>(hist_elems.size()) &&
                     cur_idx < static_cast<int>(cur_elems.size()) &&
                     hist_elems[hist_idx].is_obj() && cur_elems[cur_idx].is_obj()) {
-                    auto sub = remap_dict_delta(d->as_dict(),
-                        hist_elems[hist_idx], cur_elems[cur_idx]);
-                    if (sub && !sub->as_dict().empty()) {
-                        new_diffs.push_back(std::move(sub));
+                    if (remap_dict_diff(d->as_dict(),
+                            hist_elems[hist_idx], cur_elems[cur_idx])
+                        && !d->as_dict().empty()) {
+                        new_diffs.push_back(std::move(d));
                         new_indices.push_back(new_id);
                         id_remap[eid] = new_id;
                     }
@@ -440,15 +443,14 @@ static DeltaNodePtr remap_array_diff(
                 if (hist_idx < static_cast<int>(hist_elems.size()) &&
                     cur_idx < static_cast<int>(cur_elems.size()) &&
                     hist_elems[hist_idx].is_arr() && cur_elems[cur_idx].is_arr()) {
-                    auto sub = remap_array_diff(d->as_array(),
-                        hist_elems[hist_idx], cur_elems[cur_idx]);
-                    if (sub) {
-                        new_diffs.push_back(std::move(sub));
+                    if (remap_array_diff(d->as_array(),
+                            hist_elems[hist_idx], cur_elems[cur_idx])) {
+                        new_diffs.push_back(std::move(d));
                         new_indices.push_back(new_id);
                         id_remap[eid] = new_id;
                     }
                 } else {
-                    new_diffs.push_back(d->clone());
+                    new_diffs.push_back(std::move(d));
                     new_indices.push_back(new_id);
                     id_remap[eid] = new_id;
                 }
@@ -457,9 +459,8 @@ static DeltaNodePtr remap_array_diff(
             case DeltaType::Element: {
                 bool has = cur_idx < static_cast<int>(cur_elems.size());
                 JsonVal cv = has ? cur_elems[cur_idx] : JsonVal{};
-                auto remapped = remap_field_diff(d->as_element(), has, cv);
-                if (remapped) {
-                    new_diffs.push_back(std::move(remapped));
+                if (remap_field_diff(d, has, cv)) {
+                    new_diffs.push_back(std::move(d));
                     new_indices.push_back(new_id);
                     id_remap[eid] = new_id;
                 }
@@ -468,9 +469,14 @@ static DeltaNodePtr remap_array_diff(
         }
     }
 
-    if (new_diffs.empty()) return nullptr;
+    if (new_diffs.empty()) {
+        delta.diffs.clear();
+        delta.indices.clear();
+        delta.order.clear();
+        delta.base_count = cur_base_count;
+        return false;
+    }
 
-    // 重建 order：1-based ID 从 hist 映射到 current
     unordered_map<int, int> hist_id_to_cur_id;
     for (auto& [hi, ci] : matching.pairs)
         hist_id_to_cur_id[hi + 1] = ci + 1;
@@ -492,24 +498,19 @@ static DeltaNodePtr remap_array_diff(
         }
     }
 
-    auto result = make_unique<DeltaArray>();
-    result->kind_ = delta.kind_;
-    result->diffs = std::move(new_diffs);
-    result->base_count = cur_base_count;
-    result->indices = std::move(new_indices);
-    result->order = std::move(new_order);
-    result->is_duplist = delta.is_duplist;
-    return result;
+    delta.diffs = std::move(new_diffs);
+    delta.base_count = cur_base_count;
+    delta.indices = std::move(new_indices);
+    delta.order = std::move(new_order);
+    return true;
 }
 
 // ── remap: 字典 delta 重映射 ──
 
-static DeltaNodePtr remap_dict_delta(
-    const DeltaDict& delta,
-    JsonVal hist_obj, JsonVal cur_obj)
+static bool remap_dict_diff(
+    DeltaDict& delta, JsonVal hist_obj, JsonVal cur_obj)
 {
-    auto new_dict = make_unique<DeltaDict>();
-    new_dict->kind_ = delta.kind_;
+    vector<string> to_erase;
 
     for (auto& [key, diff] : delta.items) {
         JsonVal hist_val = hist_obj.obj_get(key.c_str());
@@ -519,21 +520,25 @@ static DeltaNodePtr remap_dict_delta(
 
         switch (diff->type()) {
             case DeltaType::Element: {
-                auto remapped = remap_field_diff(diff->as_element(), cur_has, cur_val);
-                if (remapped)
-                    new_dict->insert(key, std::move(remapped));
+                if (!remap_field_diff(diff, cur_has, cur_val))
+                    to_erase.push_back(key);
                 break;
             }
             case DeltaType::Dict: {
                 if (cur_has && cur_val.is_obj() && hist_has && hist_val.is_obj()) {
-                    auto sub = remap_dict_delta(diff->as_dict(), hist_val, cur_val);
-                    if (sub && !sub->as_dict().empty())
-                        new_dict->insert(key, std::move(sub));
+                    if (!remap_dict_diff(diff->as_dict(), hist_val, cur_val)
+                        || diff->as_dict().empty())
+                        to_erase.push_back(key);
+                } else {
+                    to_erase.push_back(key);
                 }
                 break;
             }
             case DeltaType::Array: {
-                if (!cur_has || !hist_has) break;
+                if (!cur_has || !hist_has) {
+                    to_erase.push_back(key);
+                    break;
+                }
 
                 JsonVal h = hist_val, c = cur_val;
                 std::optional<JsonDoc> hist_wrap, cur_wrap;
@@ -548,34 +553,36 @@ static DeltaNodePtr remap_dict_delta(
                 }
 
                 if (h.is_arr() && c.is_arr()) {
-                    auto remapped = remap_array_diff(diff->as_array(), h, c);
-                    if (remapped)
-                        new_dict->insert(key, std::move(remapped));
+                    if (!remap_array_diff(diff->as_array(), h, c))
+                        to_erase.push_back(key);
+                } else {
+                    to_erase.push_back(key);
                 }
                 break;
             }
         }
     }
 
-    if (new_dict->empty()) return nullptr;
-    return new_dict;
+    for (auto& k : to_erase)
+        delta.items.erase(k);
+
+    return !delta.empty();
 }
 
 // ── 公开 API: remap ──
 
-DeltaNodePtr remap_delta_to_current(
-    const DeltaDict& delta,
+bool remap_delta_to_current(
+    DeltaDict& delta,
     const JsonDoc& hist_base,
     const JsonDoc& current_base)
 {
     SULTAN_PERF_SCOPE("remap_delta");
     if (!hist_base.valid() || !current_base.valid())
-        return nullptr;
+        return false;
     JsonVal hist = hist_base.root();
     JsonVal cur = current_base.root();
-    if (!hist.is_obj() || !cur.is_obj())
-        return delta.clone();
-    return remap_dict_delta(delta, hist, cur);
+    assert(hist.is_obj() && cur.is_obj());
+    return remap_dict_diff(delta, hist, cur);
 }
 
 }  // namespace sultan

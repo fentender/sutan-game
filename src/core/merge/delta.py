@@ -84,9 +84,8 @@ def _process_file_group(
                 adaptive_doc, mod_doc, CppMergeMode.SMART, is_dict,
             )
             if hist_doc is not None and delta is not None:
-                remapped = remap_delta(delta, hist_doc, base_doc)
-                if remapped is not None:
-                    delta = remapped
+                if not remap_delta(delta, hist_doc, base_doc):
+                    delta = None
         else:
             delta = compute_delta(
                 base_doc, mod_doc, cpp_mode, is_dict,
