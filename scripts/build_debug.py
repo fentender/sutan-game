@@ -88,15 +88,6 @@ def main() -> None:
         except PermissionError:
             print(f"跳过（文件被占用）：{f.name}  请关闭占用进程后重试")
 
-    fj_dir = BUILD_DIR / "RelWithDebInfo"
-    for f in list(fj_dir.glob("_fast_json*.pyd")) + list(fj_dir.glob("_fast_json*.pdb")):
-        dst = site_pkg / f.name
-        try:
-            shutil.copy2(f, dst)
-            print(f"复制 {f.name} -> {dst}")
-        except PermissionError:
-            print(f"跳过（文件被占用）：{f.name}  请关闭占用进程后重试")
-
     print(f"\nDebug 构建完成（/Od 禁优化）。可直接用任意 Python 配置启动调试。")
     print(f"恢复 Release: python scripts/build_debug.py --restore")
 

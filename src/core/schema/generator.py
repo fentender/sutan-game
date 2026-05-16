@@ -17,12 +17,10 @@ from typing import cast
 from sultan_core.json import JsonDoc
 
 from ..infra.diagnostics import diag
-from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject, JsonValue
+from ..infra.types import FIELD_SEP, DupList, FieldInfo, GlobalFieldEntry, JsonObject, JsonValue, duplist_pairs_hook
 from sultan_core.json_ops import classify_json
 from .classify import get_type_str
 from .dsl import classify_dsl_key
-
-from src.accel._fast_json import pairs_hook as _pairs_hook
 
 
 def _parse_file_as_dict(filepath: str) -> JsonObject | None:
@@ -30,7 +28,7 @@ def _parse_file_as_dict(filepath: str) -> JsonObject | None:
         doc = JsonDoc.parse_file(filepath)
         if not doc.valid():
             return None
-        return cast(JsonObject, json.loads(doc.to_string(), object_pairs_hook=_pairs_hook))
+        return cast(JsonObject, json.loads(doc.to_string(), object_pairs_hook=duplist_pairs_hook))
     except RuntimeError:
         return None
 

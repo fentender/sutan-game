@@ -13,7 +13,6 @@ _SOURCE_PATTERNS: list[str] = [
     "csrc/**/*.cpp",
     "csrc/**/*.h",
     "csrc/**/*.cxx",
-    "src/accel/_fast_json.c",
 ]
 _CMAKE_FILES: list[str] = [
     "CMakeLists.txt",

@@ -106,6 +106,20 @@ class DupList(list):
     与普通 list 通过类型区分，合并逻辑按索引逐元素处理。
     """
 
+
+def duplist_pairs_hook(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            current = result[key]
+            if isinstance(current, DupList):
+                current.append(value)
+            else:
+                result[key] = DupList([current, value])
+        else:
+            result[key] = value
+    return result
+
 # ── schema_generator 字段信息 TypedDict ──
 
 

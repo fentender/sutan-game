@@ -89,7 +89,8 @@ def main():
         log.info("=" * 60)
         log.info("功能测试")
         log.info("=" * 60)
-        log.info("  (功能测试已迁移至 C++ 单元测试)")
+        from tests.python import test_macos
+        test_macos.run_all(result)
 
     if run_perf:
         log.info("=" * 60)

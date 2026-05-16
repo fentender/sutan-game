@@ -35,9 +35,3 @@ if(BUILD_TESTS)
     add_subdirectory(extern/Catch2)
     add_subdirectory(tests/cpp)
 endif()
-
-# 现有 _fast_json C 扩展
-python_add_library(_fast_json MODULE WITH_SOABI
-    src/accel/_fast_json.c
-)
-install(TARGETS _fast_json LIBRARY DESTINATION src/accel)
