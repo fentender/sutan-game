@@ -36,3 +36,5 @@ tmp
 .ruff_cache
 sudan.code-workspace
 skills-lock.json
+build_debug
+cmake-build-debug

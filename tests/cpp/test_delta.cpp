@@ -1017,3 +1017,107 @@ TEST_CASE("delta: format scalar to array change") {
     REQUIRE(found_added_text);
     REQUIRE(found_added_kind);
 }
+
+// ==================== deleted element skip ====================
+
+TEST_CASE("delta: deleted array element not resurrected by later mod") {
+    auto base = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"b"},{"id":3,"v":"c"}]})");
+    auto mod_a = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":3,"v":"c"}]})");
+    auto mod_b = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"changed"},{"id":3,"v":"c"}]})");
+
+    auto delta_a = compute_delta(base, mod_a);
+    auto delta_b = compute_delta(base, mod_b);
+    REQUIRE(delta_a != nullptr);
+    REQUIRE(delta_b != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta_a->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta_b->as_dict(), nullptr, 2, false);
+
+    // to_doc() 不应含 id=2（已被 ModA 删除，ModB 不能复活它）
+    auto result = state.to_doc();
+    auto arr_it = result.root().obj_get("arr").arr_iter();
+    JsonVal elem;
+    while (arr_it.next(elem)) {
+        auto id_val = elem.obj_get("id");
+        REQUIRE(id_val.get_int() != 2);
+    }
+}
+
+TEST_CASE("delta: deleted dict field not resurrected by later mod") {
+    auto base = JsonDoc::parse(R"({"a":{"x":1,"y":2},"b":3})");
+    auto mod_a = JsonDoc::parse(R"({"b":3})");
+    auto mod_b = JsonDoc::parse(R"({"a":{"x":99,"y":2},"b":3})");
+
+    auto delta_a = compute_delta(base, mod_a);
+    auto delta_b = compute_delta(base, mod_b);
+    REQUIRE(delta_a != nullptr);
+    REQUIRE(delta_b != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta_a->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta_b->as_dict(), nullptr, 2, false);
+
+    // to_doc() 不应含 "a"（已被 ModA 删除）
+    auto result = state.to_doc();
+    REQUIRE_FALSE(result.root().obj_get("a").valid());
+}
+
+TEST_CASE("delta: deleted scalar field not resurrected by later mod") {
+    auto base = JsonDoc::parse(R"({"x":10,"y":20})");
+    auto mod_a = JsonDoc::parse(R"({"y":20})");
+    auto mod_b = JsonDoc::parse(R"({"x":99,"y":20})");
+
+    auto delta_a = compute_delta(base, mod_a);
+    auto delta_b = compute_delta(base, mod_b);
+    REQUIRE(delta_a != nullptr);
+    REQUIRE(delta_b != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta_a->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta_b->as_dict(), nullptr, 2, false);
+
+    auto result = state.to_doc();
+    REQUIRE_FALSE(result.root().obj_get("x").valid());
+    REQUIRE(result.root().obj_get("y").get_int() == 20);
+}
+
+TEST_CASE("delta: deleted element value is null in state") {
+    auto base = JsonDoc::parse(R"({"x":10,"y":20})");
+    auto mod = JsonDoc::parse(R"({"y":20})");
+
+    auto delta = compute_delta(base, mod);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+
+    auto& elem = state.root().as_dict().find("x")->as_element();
+    REQUIRE(is_deleted(base_kind(elem.kind_)));
+    // value 应为无效（null），不应保留原值
+    REQUIRE_FALSE(elem.value.valid());
+}
+
+TEST_CASE("delta: format deleted then later mod no ghost highlight") {
+    auto base = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"b"}]})");
+    auto mod_a = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"}]})");
+    auto mod_b = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"changed"}]})");
+
+    auto delta_a = compute_delta(base, mod_a);
+    auto delta_b = compute_delta(base, mod_b);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta_a->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta_b->as_dict(), nullptr, 2, false);
+
+    // format(2) 不应出现 id=2 相关的高亮（因为被跳过了）
+    auto fmt = state.format(2);
+    for (size_t i = 0; i < fmt.size(); ++i) {
+        if (fmt.right_kinds[i] >= 0) {
+            auto ck = static_cast<ChangeKind>(fmt.right_kinds[i]);
+            if (is_added(ck) || is_changed(ck)) {
+                REQUIRE(fmt.right_lines[i].find("changed") == std::string::npos);
+            }
+        }
+    }
+}

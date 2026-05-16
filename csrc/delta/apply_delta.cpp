@@ -60,7 +60,7 @@ StateNodePtr apply_field_delta(
         target = &holder->as_element();
     }
     target->kind_ = kind;
-    target->value = diff.value;
+    target->value = is_deleted(bk) ? JsonVal{} : diff.value;
     target->old_value = old_val;
     target->version = version;
     return holder;
@@ -265,6 +265,10 @@ static StateNodePtr apply_delta_entry(
     int version,
     bool is_override)
 {
+    // 已被前一 mod 删除的节点，后续 mod 不再修改
+    if (existing && is_deleted(base_kind(existing->kind())))
+        return nullptr;
+
     // ── 阶段1：预处理 ──
 
     DeltaNodePtr diff_holder;

@@ -20,8 +20,9 @@ static string json_encode_key(const string& key) {
     return json_quote_str(key);
 }
 
-static string serialize_element(const JsonElementState& elem, int indent, int level) {
-    return serialize_val(elem.value);
+static string serialize_element(const JsonElementState& elem, int indent, int level,
+                                bool use_old = false) {
+    return serialize_val(use_old ? elem.old_value : elem.value);
 }
 
 static string serialize_dict(const JsonDictState& dict, int indent, int level,
@@ -107,7 +108,7 @@ static string serialize_array(const JsonArrayState& arr, int indent, int level,
 static string serialize_node(const StateBase& node, int indent, int level,
                              bool ignore_deleted) {
     if (node.is_element())
-        return serialize_element(node.as_element(), indent, level);
+        return serialize_element(node.as_element(), indent, level, ignore_deleted);
     if (node.is_dict())
         return serialize_dict(node.as_dict(), indent, level, ignore_deleted);
     return serialize_array(node.as_array(), indent, level, ignore_deleted);
@@ -292,12 +293,6 @@ static void format_entry(
             auto& elem = entry.as_element();
             bool has_old = elem.old_value.valid();
             bool has_new = elem.value.valid();
-
-            // DELETED 类型: value 为 invalid，old_value 有值
-            if (is_deleted(dk)) {
-                has_old = true;
-                has_new = false;
-            }
 
             if (has_old && has_new && !val_equal(elem.old_value, elem.value)) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Changed | change_flags(kind));
