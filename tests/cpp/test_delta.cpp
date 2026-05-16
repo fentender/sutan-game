@@ -233,8 +233,8 @@ TEST_CASE("delta: apply added complex value") {
 
     auto* b = state.root().as_dict().find("b");
     REQUIRE(b != nullptr);
-    REQUIRE(b->is_dict());
-    REQUIRE(b->as_dict().find("nested")->is_element());
+    REQUIRE(b->is_element());
+    REQUIRE(b->as_element().value.is_obj());
 }
 
 // ==================== e2e (compute + apply) ====================

@@ -1,0 +1,169 @@
+name: CI macOS
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    env:
+      CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: pip install . -v
+
+      - name: Verify sultan_core import
+        run: python -c "import sultan_core; print(f'sultan_core {sultan_core.__version__}')"
+
+      - name: C++ unit tests
+        run: |
+          pip install nanobind
+          nb_dir=$(python -c "import nanobind; print(nanobind.cmake_dir())")
+          cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$nb_dir"
+          cmake --build build_test --target sultan_tests --config Release
+          ctest --test-dir build_test -C Release --output-on-failure
+
+      - name: Python tests
+        run: python -m tests --func
+
+  build:
+    needs: test
+    runs-on: macos-14
+    env:
+      CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install package
+        run: pip install . -v
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build history config pack
+        run: python packaging/build_history_pack.py
+
+      - name: Extract version
+        id: version
+        run: |
+          ver=$(python -c "import re; print(re.search(r'APP_VERSION\s*=\s*\"([^\"]+)\"', open('src/config.py').read()).group(1))")
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Generate macOS icon
+        run: |
+          mkdir -p app.iconset
+          sips -s format png app.ico --out app_icon.png 2>/dev/null || cp app.ico app_icon.png
+          for size in 16 32 64 128 256 512; do
+            sips -z $size $size app_icon.png --out "app.iconset/icon_${size}x${size}.png"
+            double=$((size * 2))
+            if [ $double -le 1024 ]; then
+              sips -z $double $double app_icon.png --out "app.iconset/icon_${size}x${size}@2x.png"
+            fi
+          done
+          iconutil -c icns app.iconset -o app.icns
+
+      - name: PyInstaller build
+        run: pyinstaller sudan_macos.spec --noconfirm
+
+      - name: Create zip
+        run: |
+          cd dist
+          zip -r "../SuDanModMerger-macOS-V${{ steps.version.outputs.version }}.zip" SuDanModMerger.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-build
+          path: SuDanModMerger-macOS-V*.zip
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: macos-build
+          path: artifacts
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${VERSION}"
+          ZIP_NAME="SuDanModMerger-macOS-V${VERSION}.zip"
+
+          # 创建/更新 tag
+          git tag -f "$TAG"
+          git push origin "$TAG" --force
+
+          # 检查 release 是否存在
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG 已存在，替换 macOS 附件"
+            gh release delete-asset "$TAG" "$ZIP_NAME" --yes 2>/dev/null || true
+            gh release upload "$TAG" "artifacts/$ZIP_NAME"
+          else
+            echo "创建新 Release $TAG"
+            gh release create "$TAG" \
+              --title "[v${VERSION}] Mod 冲突合并工具" \
+              --generate-notes \
+              "artifacts/$ZIP_NAME"
+          fi
+
+      - name: Sync Gitee release
+        if: vars.GITEE_TOKEN != '' || secrets.GITEE_TOKEN != ''
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          TAG="v${VERSION}"
+          ZIP_NAME="SuDanModMerger-macOS-V${VERSION}.zip"
+          TITLE="[v${VERSION}] Mod 冲突合并工具"
+          API="https://gitee.com/api/v5/repos/fentende125/sutan-game/releases"
+
+          RELEASE_ID=$(curl -s "${API}?access_token=${GITEE_TOKEN}" | \
+            python3 -c "import sys,json; releases=json.load(sys.stdin); print(next((r['id'] for r in releases if r.get('tag_name')=='${TAG}'), ''))" 2>/dev/null || true)
+
+          if [ -z "$RELEASE_ID" ]; then
+            RESPONSE=$(curl -s -X POST "$API" \
+              -H "Content-Type: application/json" \
+              -d "{\"access_token\":\"${GITEE_TOKEN}\",\"tag_name\":\"${TAG}\",\"name\":\"${TITLE}\",\"body\":\"CI 自动发布 v${VERSION}\",\"target_commitish\":\"master\"}")
+            RELEASE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || true)
+          fi
+
+          if [ -n "$RELEASE_ID" ]; then
+            curl -s -X POST "${API}/${RELEASE_ID}/attach_files" \
+              -F "access_token=${GITEE_TOKEN}" \
+              -F "file=@artifacts/${ZIP_NAME}" || echo "Gitee 附件上传失败"
+          fi
