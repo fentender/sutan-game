@@ -40,6 +40,7 @@ jobs:
 
       - name: C++ unit tests
         run: |
+          pip install nanobind
           $nb_dir = python -c "import nanobind; print(nanobind.cmake_dir())"
           cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$nb_dir"
           cmake --build build_test --target sultan_tests --config Release
@@ -77,6 +78,7 @@ jobs:
 
       - name: C++ unit tests
         run: |
+          pip install nanobind
           nb_dir=$(python -c "import nanobind; print(nanobind.cmake_dir())")
           cmake -B build_test -DBUILD_TESTS=ON -Dnanobind_DIR="$nb_dir"
           cmake --build build_test --target sultan_tests --config Release
