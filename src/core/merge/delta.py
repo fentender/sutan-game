@@ -81,7 +81,7 @@ def _process_file_group(
             hist_doc = dm.get_history_base(mod_id, rel_path)
             adaptive_doc = hist_doc if hist_doc is not None else base_doc
             delta = compute_delta(
-                adaptive_doc, mod_doc, CppMergeMode.SMART, is_dict,
+                adaptive_doc, mod_doc, cpp_mode, is_dict,
             )
             if hist_doc is not None and delta is not None:
                 if not remap_delta(delta, hist_doc, base_doc):
