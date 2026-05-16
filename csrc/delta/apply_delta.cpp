@@ -180,6 +180,7 @@ void apply_array_delta(
     bool is_override)
 {
     base.kind_ = delta.kind_;
+    base.version = version;
     auto prepared = prepare_array_delta(base, delta, is_override);
 
     unordered_map<int, int> id_map;
@@ -215,6 +216,7 @@ void apply_dict_delta(
     bool is_override)
 {
     base.kind_ = delta.kind_;
+    base.version = version;
 
     for (auto& [key, diff] : delta.items) {
         if (field_path) field_path->push_back(key);

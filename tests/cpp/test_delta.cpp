@@ -906,6 +906,91 @@ TEST_CASE("delta: e2e nested array anchors mod changes") {
     REQUIRE(a1_it.next(v)); REQUIRE(v.get_real() == 0.0);
 }
 
+// ==================== array deletion in order ====================
+
+TEST_CASE("delta: array element deletion preserved in order") {
+    auto base = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"b"},{"id":3,"v":"c"}]})");
+    auto mod = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":3,"v":"c"}]})");
+
+    auto delta = compute_delta(base, mod);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+
+    auto& arr = state.root().as_dict().find("arr")->as_array();
+
+    // 被删除的元素（id=2）应该仍在 order 中
+    bool found_deleted_in_order = false;
+    for (int eid : arr.order) {
+        if (eid == 2) { found_deleted_in_order = true; break; }
+    }
+    REQUIRE(found_deleted_in_order);
+
+    // 被删除的元素应该标记为 Deleted，version=1
+    std::unordered_map<int, size_t> id_to_idx;
+    for (size_t i = 0; i < arr.indices.size(); ++i)
+        id_to_idx[arr.indices[i]] = i;
+    auto it = id_to_idx.find(2);
+    REQUIRE(it != id_to_idx.end());
+    REQUIRE(is_deleted(arr.diffs[it->second]->kind()));
+    REQUIRE(arr.diffs[it->second]->as_dict().version == 1);
+}
+
+TEST_CASE("delta: format shows deleted array element") {
+    auto base = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":2,"v":"b"},{"id":3,"v":"c"}]})");
+    auto mod = JsonDoc::parse(R"({"arr":[{"id":1,"v":"a"},{"id":3,"v":"c"}]})");
+
+    auto delta = compute_delta(base, mod);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+
+    auto fmt = state.format(1);
+
+    // 被删除的 {"id":2,"v":"b"} 应该出现在左侧（显示为删除）
+    bool found_deleted_content = false;
+    bool found_deleted_kind = false;
+    for (size_t i = 0; i < fmt.size(); ++i) {
+        if (fmt.left_lines[i].find("\"id\"") != std::string::npos &&
+            fmt.left_lines[i].find("2") != std::string::npos) {
+            found_deleted_content = true;
+        }
+        if (fmt.left_kinds[i] >= 0 && is_deleted(static_cast<ChangeKind>(fmt.left_kinds[i])))
+            found_deleted_kind = true;
+    }
+    REQUIRE(found_deleted_content);
+    REQUIRE(found_deleted_kind);
+}
+
+TEST_CASE("delta: format shows deleted settlement element (real file)") {
+    auto base_path = fixtures_path("rite_5008204_base.json");
+    auto mod_path = fixtures_path("rite_5008204_mod.json");
+    if (!std::filesystem::exists(base_path) || !std::filesystem::exists(mod_path)) {
+        SKIP("fixture files not found");
+    }
+
+    auto base = JsonDoc::parse_file(base_path);
+    auto mod = JsonDoc::parse_file(mod_path);
+
+    auto delta = compute_delta(base, mod, MergeMode::Adaptive);
+    REQUIRE(delta != nullptr);
+
+    auto state = JsonState::from_doc(base);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+
+    auto fmt = state.format(1);
+    bool found_deleted_guid = false;
+    for (size_t i = 0; i < fmt.size(); ++i) {
+        if (fmt.left_kinds[i] >= 0 && is_deleted(static_cast<ChangeKind>(fmt.left_kinds[i])) &&
+            fmt.left_lines[i].find("6b695d11") != std::string::npos) {
+            found_deleted_guid = true;
+        }
+    }
+    REQUIRE(found_deleted_guid);
+}
+
 // ==================== format (scalar to array) ====================
 
 TEST_CASE("delta: format scalar to array change") {

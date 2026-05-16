@@ -13,7 +13,8 @@ static constexpr int INDENT = 4;
 
 // ── 序列化 StateBase → 纯 JSON 文本（无 ChangeKind 追踪）──
 
-static string serialize_node(const StateBase& node, int indent, int level);
+static string serialize_node(const StateBase& node, int indent, int level,
+                             bool ignore_deleted = false);
 
 static string json_encode_key(const string& key) {
     return json_quote_str(key);
@@ -23,7 +24,8 @@ static string serialize_element(const JsonElementState& elem, int indent, int le
     return serialize_val(elem.value);
 }
 
-static string serialize_dict(const JsonDictState& dict, int indent, int level) {
+static string serialize_dict(const JsonDictState& dict, int indent, int level,
+                             bool ignore_deleted = false) {
     string ind(indent, ' ');
     string current_ind(indent * level, ' ');
     string next_ind(indent * (level + 1), ' ');
@@ -38,7 +40,7 @@ static string serialize_dict(const JsonDictState& dict, int indent, int level) {
         auto it = dict.entries.find(key);
         auto& entry = it->second;
         if (!entry) continue;
-        if (is_deleted(base_kind(entry->kind()))) continue;
+        if (!ignore_deleted && is_deleted(base_kind(entry->kind()))) continue;
         string key_str = json_encode_key(key);
 
         if (entry->is_array() && entry->as_array().is_duplist) {
@@ -51,13 +53,13 @@ static string serialize_dict(const JsonDictState& dict, int indent, int level) {
                 auto idx_it = id_to_idx.find(eid);
                 if (idx_it == id_to_idx.end()) continue;
                 auto& elem = arr.diffs[idx_it->second];
-                if (!elem || is_deleted(base_kind(elem->kind()))) continue;
+                if (!elem || (!ignore_deleted && is_deleted(base_kind(elem->kind())))) continue;
                 parts.push_back(next_ind + key_str + ": " +
-                                serialize_node(*elem, indent, level + 1));
+                                serialize_node(*elem, indent, level + 1, ignore_deleted));
             }
         } else {
             parts.push_back(next_ind + key_str + ": " +
-                            serialize_node(*entry, indent, level + 1));
+                            serialize_node(*entry, indent, level + 1, ignore_deleted));
         }
     }
 
@@ -72,7 +74,8 @@ static string serialize_dict(const JsonDictState& dict, int indent, int level) {
     return result;
 }
 
-static string serialize_array(const JsonArrayState& arr, int indent, int level) {
+static string serialize_array(const JsonArrayState& arr, int indent, int level,
+                              bool ignore_deleted = false) {
     string current_ind(indent * level, ' ');
     string next_ind(indent * (level + 1), ' ');
 
@@ -86,8 +89,8 @@ static string serialize_array(const JsonArrayState& arr, int indent, int level) 
         auto it = id_to_idx.find(eid);
         if (it == id_to_idx.end()) continue;
         auto& elem = arr.diffs[it->second];
-        if (!elem || is_deleted(base_kind(elem->kind()))) continue;
-        parts.push_back(next_ind + serialize_node(*elem, indent, level + 1));
+        if (!elem || (!ignore_deleted && is_deleted(base_kind(elem->kind())))) continue;
+        parts.push_back(next_ind + serialize_node(*elem, indent, level + 1, ignore_deleted));
     }
 
     if (parts.empty()) return "[]";
@@ -101,12 +104,13 @@ static string serialize_array(const JsonArrayState& arr, int indent, int level) 
     return result;
 }
 
-static string serialize_node(const StateBase& node, int indent, int level) {
+static string serialize_node(const StateBase& node, int indent, int level,
+                             bool ignore_deleted) {
     if (node.is_element())
         return serialize_element(node.as_element(), indent, level);
     if (node.is_dict())
-        return serialize_dict(node.as_dict(), indent, level);
-    return serialize_array(node.as_array(), indent, level);
+        return serialize_dict(node.as_dict(), indent, level, ignore_deleted);
+    return serialize_array(node.as_array(), indent, level, ignore_deleted);
 }
 
 // ── 格式化辅助函数 ──
@@ -324,7 +328,7 @@ static void format_entry(
             emit(prefix + val_str + comma, r, hl, Side::Right);
         } else if (ver == highlight_version && is_deleted(ck)) {
             int8_t hl = static_cast<int8_t>(ChangeKind::Deleted | change_flags(ck));
-            string val_str = serialize_node(entry, INDENT, level);
+            string val_str = serialize_node(entry, INDENT, level, true);
             emit(prefix + val_str + comma, r, hl, Side::Left);
         } else {
             FormatResult sub;
