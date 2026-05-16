@@ -109,6 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.build.outputs.version }}
+      GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
@@ -143,9 +144,7 @@ jobs:
           fi
 
       - name: Sync Gitee release
-        if: vars.GITEE_TOKEN != '' || secrets.GITEE_TOKEN != ''
-        env:
-          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        if: env.GITEE_TOKEN != ''
         run: |
           TAG="v${VERSION}"
           ZIP_NAME="SuDanModMerger-macOS-V${VERSION}.zip"
