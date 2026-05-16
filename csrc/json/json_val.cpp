@@ -1,12 +1,16 @@
 #include "json_val.h"
 #include "mut_val.h"
 #include "yyjson.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
 
 namespace sultan {
+
+using std::string;
+using std::vector;
 
 using std::string;
 
@@ -155,6 +159,70 @@ string serialize_val(JsonVal v) {
             string result(buf, len);
             free(buf);
             return result;
+        }
+    }
+    return "null";
+}
+
+string serialize_val_pretty(JsonVal v, int indent, int level) {
+    if (!v.valid()) return "null";
+    switch (v.type()) {
+        case JsonType::Null: return "null";
+        case JsonType::Bool: return v.get_bool() ? "true" : "false";
+        case JsonType::Int:  return std::to_string(v.get_int());
+        case JsonType::Real: {
+            double d = v.get_real();
+            if (std::isinf(d) || std::isnan(d)) return "null";
+            std::ostringstream oss;
+            oss << std::setprecision(17) << d;
+            string s = oss.str();
+            if (s.find('.') == string::npos && s.find('e') == string::npos)
+                s += ".0";
+            return s;
+        }
+        case JsonType::Str: return quote_str(v.get_str());
+        case JsonType::Obj: {
+            string cur_ind(indent * level, ' ');
+            string next_ind(indent * (level + 1), ' ');
+
+            struct KV { string key; JsonVal val; };
+            vector<KV> kvs;
+            auto it = v.obj_iter();
+            JsonVal::ObjEntry e;
+            while (it.next(e))
+                kvs.push_back({string(e.key, e.key_len), e.val});
+            std::sort(kvs.begin(), kvs.end(),
+                      [](const KV& a, const KV& b) { return a.key < b.key; });
+
+            if (kvs.empty()) return "{}";
+            string r = "{\n";
+            for (size_t i = 0; i < kvs.size(); ++i) {
+                r += next_ind + quote_str(kvs[i].key.c_str()) + ": "
+                   + serialize_val_pretty(kvs[i].val, indent, level + 1);
+                if (i + 1 < kvs.size()) r += ',';
+                r += '\n';
+            }
+            r += cur_ind + '}';
+            return r;
+        }
+        case JsonType::Arr: {
+            string cur_ind(indent * level, ' ');
+            string next_ind(indent * (level + 1), ' ');
+
+            vector<JsonVal> elems;
+            auto it = v.arr_iter();
+            JsonVal elem;
+            while (it.next(elem)) elems.push_back(elem);
+
+            if (elems.empty()) return "[]";
+            string r = "[\n";
+            for (size_t i = 0; i < elems.size(); ++i) {
+                r += next_ind + serialize_val_pretty(elems[i], indent, level + 1);
+                if (i + 1 < elems.size()) r += ',';
+                r += '\n';
+            }
+            r += cur_ind + ']';
+            return r;
         }
     }
     return "null";

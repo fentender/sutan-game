@@ -38,19 +38,6 @@ StateNodePtr apply_field_delta(
 
     ChangeKind kind = bk | modifier;
 
-    if (!existing && bk == ChangeKind::Added &&
-        (diff.value.is_obj() || diff.value.is_arr())) {
-        auto node = make_node(diff.value);
-        if (node->is_dict()) {
-            node->as_dict().kind_ = kind;
-            node->as_dict().version = version;
-        } else if (node->is_array()) {
-            node->as_array().kind_ = kind;
-            node->as_array().version = version;
-        }
-        return node;
-    }
-
     StateNodePtr holder;
     JsonElementState* target;
     if (existing) {

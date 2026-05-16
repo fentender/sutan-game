@@ -22,7 +22,7 @@ static string json_encode_key(const string& key) {
 
 static string serialize_element(const JsonElementState& elem, int indent, int level,
                                 bool use_old = false) {
-    return serialize_val(use_old ? elem.old_value : elem.value);
+    return serialize_val_pretty(use_old ? elem.old_value : elem.value, indent, level);
 }
 
 static string serialize_dict(const JsonDictState& dict, int indent, int level,
@@ -296,20 +296,20 @@ static void format_entry(
 
             if (has_old && has_new && !val_equal(elem.old_value, elem.value)) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Changed | change_flags(kind));
-                string old_str = serialize_val(elem.old_value);
-                string new_str = serialize_val(elem.value);
+                string old_str = serialize_val_pretty(elem.old_value, INDENT, level);
+                string new_str = serialize_val_pretty(elem.value, INDENT, level);
                 emit_changed(prefix + old_str + comma, prefix + new_str + comma, r, hl);
             } else if (has_new && !has_old) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Added | change_flags(kind));
-                string val_str = serialize_val(elem.value);
+                string val_str = serialize_val_pretty(elem.value, INDENT, level);
                 emit(prefix + val_str + comma, r, hl, Side::Right);
             } else if (has_old && !has_new) {
                 int8_t hl = static_cast<int8_t>(ChangeKind::Deleted | change_flags(kind));
-                string old_str = serialize_val(elem.old_value);
+                string old_str = serialize_val_pretty(elem.old_value, INDENT, level);
                 emit(prefix + old_str + comma, r, hl, Side::Left);
             } else {
                 auto& v = has_new ? elem.value : elem.old_value;
-                string val_str = serialize_val(v);
+                string val_str = serialize_val_pretty(v, INDENT, level);
                 emit(prefix + val_str + comma, r);
             }
         }

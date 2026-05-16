@@ -79,6 +79,7 @@ public:
 // ── JsonVal 工具函数 ──
 
 std::string serialize_val(JsonVal v);
+std::string serialize_val_pretty(JsonVal v, int indent, int level);
 std::string json_quote_str(const std::string& s);
 bool val_equal(JsonVal a, JsonVal b);
 MutVal val_to_mut(JsonVal v, MutVal ctx);
