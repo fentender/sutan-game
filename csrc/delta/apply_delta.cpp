@@ -1,5 +1,6 @@
 #include "apply_delta.h"
 #include "json_state.h"
+#include "diag.h"
 #include "perf.h"
 #include <algorithm>
 #include <stdexcept>
@@ -22,11 +23,10 @@ StateNodePtr apply_field_delta(
     int version,
     bool is_override)
 {
-    ChangeKind base_kind = sultan::base_kind(diff.kind_);
+    ChangeKind bk = sultan::base_kind(diff.kind_);
 
     ChangeKind modifier = ChangeKind::Origin;
-    if (is_override)
-        modifier |= ChangeKind::Override;
+    if (is_override) modifier |= ChangeKind::Override;
 
     JsonVal old_val;
     if (existing) {
@@ -36,14 +36,34 @@ StateNodePtr apply_field_delta(
         modifier |= change_flags(existing->kind_);
     }
 
-    ChangeKind kind = base_kind | modifier;
+    ChangeKind kind = bk | modifier;
 
-    auto result = make_unique<JsonElementState>();
-    result->kind_ = kind;
-    result->value = diff.value;
-    result->old_value = old_val;
-    result->version = version;
-    return result;
+    if (!existing && bk == ChangeKind::Added &&
+        (diff.value.is_obj() || diff.value.is_arr())) {
+        auto node = make_node(diff.value);
+        if (node->is_dict()) {
+            node->as_dict().kind_ = kind;
+            node->as_dict().version = version;
+        } else if (node->is_array()) {
+            node->as_array().kind_ = kind;
+            node->as_array().version = version;
+        }
+        return node;
+    }
+
+    StateNodePtr holder;
+    JsonElementState* target;
+    if (existing) {
+        target = existing;
+    } else {
+        holder = make_unique<JsonElementState>();
+        target = &holder->as_element();
+    }
+    target->kind_ = kind;
+    target->value = diff.value;
+    target->old_value = old_val;
+    target->version = version;
+    return holder;
 }
 
 // ── _prepare_array_delta ──
@@ -206,24 +226,18 @@ void apply_dict_delta(
                             existing->as_array().is_duplist;
         bool diff_dup = diff->type() == DeltaType::Array &&
                         diff->as_array().is_duplist;
+        DeltaNodePtr diff_wrapper;
         if (existing_dup && !diff_dup) {
-            // 将非 duplist diff 包装为 duplist DeltaArray
-            // （简化处理：直接应用）
+            diff_wrapper = DeltaArray::wrap(diff->clone(), true);
         }
         if (diff_dup && !existing_dup && existing) {
-            // 将 existing 包装为 duplist JsonArrayState
-            auto wrapper = make_unique<JsonArrayState>();
-            wrapper->is_duplist = true;
-            wrapper->base_count = 1;
-            auto existing_node = base.entries[key]->clone();
-            wrapper->diffs.push_back(std::move(existing_node));
-            wrapper->indices.push_back(1);
-            wrapper->order = {0, 1, -1};
-            base.insert(key, std::move(wrapper));
+            base.insert(key, JsonArrayState::wrap(std::move(base.entries[key]), true));
             existing = base.find(key);
         }
 
-        auto applied = apply_delta_entry(*diff, existing, field_path, version, is_override);
+        auto applied = apply_delta_entry(
+            diff_wrapper ? *diff_wrapper : *diff,
+            existing, field_path, version, is_override);
         if (applied)
             base.insert(key, std::move(applied));
         if (field_path) field_path->pop_back();
@@ -232,6 +246,16 @@ void apply_dict_delta(
 
 // ── _apply_delta_entry ──
 
+static string format_field_path(const vector<string>* field_path) {
+    if (!field_path || field_path->empty()) return "";
+    string s;
+    for (size_t i = 0; i < field_path->size(); ++i) {
+        if (i > 0) s += '.';
+        s += (*field_path)[i];
+    }
+    return s;
+}
+
 static StateNodePtr apply_delta_entry(
     const DeltaBase& diff,
     StateBase* existing,
@@ -239,116 +263,96 @@ static StateNodePtr apply_delta_entry(
     int version,
     bool is_override)
 {
-    // 类型归一化：DeltaElement(DELETED) + existing 是 dict/array → 展开
-    if (diff.type() == DeltaType::Element &&
-        sultan::base_kind(diff.kind()) == ChangeKind::Deleted &&
-        existing != nullptr)
+    // ── 阶段1：预处理 ──
+
+    DeltaNodePtr diff_holder;
+    StateNodePtr existing_holder;
+    const DeltaBase* dp = &diff;
+    StateBase* ep = existing;
+
+    // DeltaElement(DELETED) + existing=dict/array → 展开 diff
+    if (dp->type() == DeltaType::Element &&
+        sultan::base_kind(dp->kind()) == ChangeKind::Deleted && ep)
     {
-        if (existing->is_dict()) {
-            auto& dict = existing->as_dict();
-            for (auto& [k, v] : dict.entries) {
-                auto elem = make_unique<JsonElementState>();
-                elem->kind_ = ChangeKind::Deleted;
-                elem->old_value = (v->is_element()) ? v->as_element().value : JsonVal{};
-                elem->version = version;
-                dict.entries[k] = std::move(elem);
+        auto& elem = dp->as_element();
+        if (ep->is_dict() && elem.value.is_obj()) {
+            auto expanded = make_unique<DeltaDict>();
+            expanded->kind_ = ChangeKind::Deleted;
+            auto it = elem.value.obj_iter();
+            JsonVal::ObjEntry oe;
+            while (it.next(oe)) {
+                string key(oe.key, oe.key_len);
+                expanded->insert(std::move(key),
+                    make_delta_element(ChangeKind::Deleted, oe.val));
             }
-            dict.kind_ = ChangeKind::Deleted;
-            dict.version = version;
-            return existing->clone();
-        }
-        if (existing->is_array()) {
-            auto& arr = existing->as_array();
-            for (auto& d : arr.diffs) {
-                if (d->is_element()) {
-                    d->as_element().old_value = d->as_element().value;
-                    d->as_element().kind_ = ChangeKind::Deleted;
-                    d->as_element().version = version;
-                }
+            diff_holder = std::move(expanded);
+            dp = diff_holder.get();
+        } else if (ep->is_array() && elem.value.is_arr()) {
+            auto expanded = make_unique<DeltaArray>();
+            expanded->kind_ = ChangeKind::Deleted;
+            expanded->is_duplist = ep->as_array().is_duplist;
+            int n = 0;
+            auto arr_it = elem.value.arr_iter();
+            JsonVal v;
+            while (arr_it.next(v)) {
+                expanded->diffs.push_back(
+                    make_delta_element(ChangeKind::Deleted, v));
+                expanded->indices.push_back(++n);
             }
-            arr.kind_ = ChangeKind::Deleted;
-            arr.version = version;
-            return existing->clone();
+            expanded->base_count = n;
+            expanded->order.push_back(0);
+            for (int i = 1; i <= n; ++i) expanded->order.push_back(i);
+            expanded->order.push_back(-1);
+            diff_holder = std::move(expanded);
+            dp = diff_holder.get();
         }
     }
 
-    // DeltaArray + existing 是 element → wrap existing
-    if (diff.type() == DeltaType::Array && existing && existing->is_element()) {
-        auto wrapper = make_unique<JsonArrayState>();
-        wrapper->is_duplist = diff.as_array().is_duplist;
-        wrapper->base_count = 1;
-        wrapper->diffs.push_back(existing->clone());
-        wrapper->indices.push_back(1);
-        wrapper->order = {0, 1, -1};
-        apply_array_delta(*wrapper, diff.as_array(), field_path, version, is_override);
-        return wrapper;
+    // DeltaArray + existing=element → wrap existing
+    if (dp->type() == DeltaType::Array && ep && ep->is_element()) {
+        existing_holder = JsonArrayState::wrap(existing->clone(), dp->as_array().is_duplist);
+        ep = existing_holder.get();
+    }
+    // DeltaElement + existing=array → wrap diff
+    else if (dp->type() == DeltaType::Element && ep && ep->is_array()) {
+        diff_holder = DeltaArray::wrap(dp->clone(), ep->as_array().is_duplist);
+        dp = diff_holder.get();
     }
 
-    // DeltaElement + existing 是 array → wrap diff
-    if (diff.type() == DeltaType::Element && existing && existing->is_array()) {
-        auto darr = make_unique<DeltaArray>();
-        darr->is_duplist = existing->as_array().is_duplist;
-        darr->base_count = 1;
-        darr->diffs.push_back(diff.clone());
-        darr->indices.push_back(1);
-        darr->order = {0, 1, -1};
-        auto result = existing->clone();
-        apply_array_delta(result->as_array(), *darr, field_path, version, is_override);
-        return result;
-    }
+    // ── 阶段2：类型检查 ──
 
-    // 类型不匹配检查
-    if (existing != nullptr) {
+    if (ep) {
         bool type_match =
-            (diff.type() == DeltaType::Element && existing->is_element()) ||
-            (diff.type() == DeltaType::Dict && existing->is_dict()) ||
-            (diff.type() == DeltaType::Array && existing->is_array());
-        if (!type_match)
+            (dp->type() == DeltaType::Element && ep->is_element()) ||
+            (dp->type() == DeltaType::Dict && ep->is_dict()) ||
+            (dp->type() == DeltaType::Array && ep->is_array());
+        if (!type_match) {
+            diag_manager().error("merge",
+                format_field_path(field_path) +
+                ": \xe5\xad\x97\xe6\xae\xb5\xe7\xb1\xbb\xe5\x9e\x8b\xe4\xb8\x8d\xe5\x8c\xb9\xe9\x85\x8d\xef\xbc\x8c\xe8\xaf\xa5 Mod \xe5\x8f\xaf\xe8\x83\xbd\xe5\x9f\xba\xe4\xba\x8e\xe6\x97\xa7\xe7\x89\x88\xe6\x9c\xac\xe6\xb8\xb8\xe6\x88\x8f\xe5\x88\xb6\xe4\xbd\x9c");
             return nullptr;
-    }
-
-    // DeltaElement
-    if (diff.type() == DeltaType::Element) {
-        auto& elem = diff.as_element();
-
-        // ADDED 且 existing 为空：创建新 state 节点
-        if (!existing && sultan::base_kind(elem.kind_) == ChangeKind::Added) {
-            if (elem.value.is_obj() || elem.value.is_arr()) {
-                auto node = make_node(elem.value);
-                if (node->is_dict()) {
-                    node->as_dict().kind_ = ChangeKind::Added;
-                    node->as_dict().version = version;
-                } else if (node->is_array()) {
-                    node->as_array().kind_ = ChangeKind::Added;
-                    node->as_array().version = version;
-                }
-                return node;
-            }
-            return apply_field_delta(elem, nullptr, version, is_override);
         }
-
-        JsonElementState* exist_elem = (existing && existing->is_element())
-            ? &existing->as_element() : nullptr;
-        return apply_field_delta(elem, exist_elem, version, is_override);
+    }
+    if (!ep && dp->type() != DeltaType::Element) {
+        diag_manager().error("merge",
+            format_field_path(field_path) +
+            ": \xe5\xad\x97\xe6\xae\xb5\xe5\x9c\xa8\xe6\x9c\xac\xe4\xbd\x93\xe4\xb8\xad\xe4\xb8\x8d\xe5\xad\x98\xe5\x9c\xa8\xef\xbc\x8c\xe8\xaf\xa5 Mod \xe5\x8f\xaf\xe8\x83\xbd\xe5\x9f\xba\xe4\xba\x8e\xe6\x97\xa7\xe7\x89\x88\xe6\x9c\xac\xe6\xb8\xb8\xe6\x88\x8f\xe5\x88\xb6\xe4\xbd\x9c");
+        return nullptr;
     }
 
-    // DeltaDict
-    if (diff.type() == DeltaType::Dict) {
-        if (!existing) return nullptr;
-        auto result = existing->clone();
-        apply_dict_delta(result->as_dict(), diff.as_dict(), field_path, version, is_override);
-        return result;
+    // ── 阶段3：分派 ──
+
+    if (dp->type() == DeltaType::Element) {
+        JsonElementState* ee = (ep && ep->is_element()) ? &ep->as_element() : nullptr;
+        return apply_field_delta(dp->as_element(), ee, version, is_override);
     }
 
-    // DeltaArray
-    if (diff.type() == DeltaType::Array) {
-        if (!existing) return nullptr;
-        auto result = existing->clone();
-        apply_array_delta(result->as_array(), diff.as_array(), field_path, version, is_override);
-        return result;
-    }
+    if (dp->type() == DeltaType::Dict)
+        apply_dict_delta(ep->as_dict(), dp->as_dict(), field_path, version, is_override);
+    else
+        apply_array_delta(ep->as_array(), dp->as_array(), field_path, version, is_override);
 
-    return nullptr;
+    return std::move(existing_holder);
 }
 
 // ── apply_delta_to_state ──

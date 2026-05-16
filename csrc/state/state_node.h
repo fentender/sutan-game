@@ -92,6 +92,8 @@ struct JsonArrayState : StateBase {
     ChangeKind kind() const override { return kind_; }
     bool is_modified() const override;
     StateNodePtr clone() const override;
+
+    static StateNodePtr wrap(StateNodePtr value, bool is_dup);
 };
 
 // JsonVal 引用源 JsonDoc 数据，调用方需保证 JsonDoc 生命周期覆盖返回值使用期

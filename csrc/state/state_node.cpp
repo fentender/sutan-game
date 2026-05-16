@@ -103,6 +103,21 @@ StateNodePtr JsonArrayState::clone() const {
     return node;
 }
 
+StateNodePtr JsonArrayState::wrap(StateNodePtr value, bool is_dup) {
+    auto arr = std::make_unique<JsonArrayState>();
+    arr->is_duplist = is_dup;
+    if (value) {
+        arr->base_count = 1;
+        arr->diffs.push_back(std::move(value));
+        arr->indices.push_back(1);
+        arr->order = {0, 1, -1};
+    } else {
+        arr->base_count = 0;
+        arr->order = {0, -1};
+    }
+    return arr;
+}
+
 // ── 工厂 ──
 
 StateNodePtr make_element(JsonVal v, ChangeKind kind) {

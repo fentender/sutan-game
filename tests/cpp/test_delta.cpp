@@ -150,10 +150,9 @@ TEST_CASE("delta: apply_field_delta basic") {
     existing.value = tv("i10");
 
     auto result = apply_field_delta(diff, &existing, 1, false);
-    REQUIRE(result != nullptr);
-    auto& r = result->as_element();
-    REQUIRE(r.value.get_int() == 20);
-    REQUIRE(r.old_value.get_int() == 10);
+    REQUIRE(result == nullptr);
+    REQUIRE(existing.value.get_int() == 20);
+    REQUIRE(existing.old_value.get_int() == 10);
 }
 
 TEST_CASE("delta: apply changed scalar field") {
@@ -328,7 +327,7 @@ TEST_CASE("delta: remap deleted field not in current drops") {
 
     auto delta = compute_delta(hist, mod);
     REQUIRE(delta != nullptr);
-    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current) == nullptr);
+    REQUIRE_FALSE(remap_delta_to_current(delta->as_dict(), hist, current));
 }
 
 TEST_CASE("delta: remap deleted field in current updates old_value") {
@@ -337,9 +336,8 @@ TEST_CASE("delta: remap deleted field in current updates old_value") {
     auto current = JsonDoc::parse(R"({"a":1,"b":99})");
 
     auto delta = compute_delta(hist, mod);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
-    auto* b = remapped->as_dict().find("b");
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
+    auto* b = delta->as_dict().find("b");
     REQUIRE(base_kind(b->kind()) == ChangeKind::Deleted);
     REQUIRE(b->as_element().value.get_int() == 99);
 }
@@ -350,7 +348,7 @@ TEST_CASE("delta: remap added field same in current drops") {
     auto current = JsonDoc::parse(R"({"a":1,"b":2})");
 
     auto delta = compute_delta(hist, mod);
-    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current) == nullptr);
+    REQUIRE_FALSE(remap_delta_to_current(delta->as_dict(), hist, current));
 }
 
 TEST_CASE("delta: remap added field different in current recomputes") {
@@ -359,9 +357,8 @@ TEST_CASE("delta: remap added field different in current recomputes") {
     auto current = JsonDoc::parse(R"({"a":1,"b":5})");
 
     auto delta = compute_delta(hist, mod);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
-    auto* b = remapped->as_dict().find("b");
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
+    auto* b = delta->as_dict().find("b");
     REQUIRE(base_kind(b->kind()) == ChangeKind::Changed);
     REQUIRE(b->as_element().value.get_int() == 2);
 }
@@ -372,9 +369,8 @@ TEST_CASE("delta: remap changed field not in current converts to added") {
     auto current = JsonDoc::parse(R"({"a":1})");
 
     auto delta = compute_delta(hist, mod);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
-    auto* b = remapped->as_dict().find("b");
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
+    auto* b = delta->as_dict().find("b");
     REQUIRE(base_kind(b->kind()) == ChangeKind::Added);
     REQUIRE(b->as_element().value.get_int() == 10);
 }
@@ -385,7 +381,7 @@ TEST_CASE("delta: remap changed field same in current drops") {
     auto current = JsonDoc::parse(R"({"a":1,"b":10})");
 
     auto delta = compute_delta(hist, mod);
-    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current) == nullptr);
+    REQUIRE_FALSE(remap_delta_to_current(delta->as_dict(), hist, current));
 }
 
 TEST_CASE("delta: remap nested dict recursion") {
@@ -394,9 +390,8 @@ TEST_CASE("delta: remap nested dict recursion") {
     auto current = JsonDoc::parse(R"({"d":{"x":5,"y":2}})");
 
     auto delta = compute_delta(hist, mod);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
-    REQUIRE(remapped->as_dict().find("d")->as_dict().find("x")->as_element().value.get_int() == 10);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
+    REQUIRE(delta->as_dict().find("d")->as_dict().find("x")->as_element().value.get_int() == 10);
 }
 
 TEST_CASE("delta: remap e2e compute remap apply") {
@@ -405,11 +400,10 @@ TEST_CASE("delta: remap e2e compute remap apply") {
     auto current_base = JsonDoc::parse(R"({"a":10,"b":2,"c":3})");
 
     auto delta = compute_delta(hist_base, mod);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist_base, current_base);
-    REQUIRE(remapped != nullptr);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist_base, current_base));
 
     auto state = JsonState::from_doc(current_base);
-    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
     auto result = state.to_doc();
 
     REQUIRE(result.root().obj_get("a").get_int() == 10);
@@ -506,11 +500,10 @@ TEST_CASE("delta: remap array insert reindex") {
     })");
 
     auto delta = compute_delta(hist, mod, MergeMode::Smart);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
 
     auto state = JsonState::from_doc(current);
-    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
     auto result_doc = state.to_doc();
 
     auto it = result_doc.root().obj_get("settlement").arr_iter();
@@ -557,10 +550,9 @@ TEST_CASE("delta: remap array order preserves origin elements") {
     })");
 
     auto delta = compute_delta(hist, mod, MergeMode::Smart);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
 
-    auto& arr = remapped->as_dict().find("settlement")->as_array();
+    auto& arr = delta->as_dict().find("settlement")->as_array();
     std::vector<int> inner;
     for (int x : arr.order) {
         if (x != 0 && x != -1) inner.push_back(x);
@@ -593,10 +585,9 @@ TEST_CASE("delta: remap array large preserves all origin") {
     auto current = JsonDoc::parse(current_json);
 
     auto delta = compute_delta(hist, mod, MergeMode::Smart);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
 
-    auto& arr = remapped->as_dict().find("settlement")->as_array();
+    auto& arr = delta->as_dict().find("settlement")->as_array();
     std::vector<int> inner;
     for (int x : arr.order) {
         if (x != 0 && x != -1) inner.push_back(x);
@@ -636,9 +627,8 @@ TEST_CASE("delta: remap nested settlement condition real bug") {
     auto delta = compute_delta(hist, mod, MergeMode::Normal);
     REQUIRE(delta != nullptr);
 
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    if (remapped != nullptr) {
-        auto* settlement = remapped->as_dict().find("settlement");
+    if (remap_delta_to_current(delta->as_dict(), hist, current)) {
+        auto* settlement = delta->as_dict().find("settlement");
         if (settlement != nullptr && settlement->type() == DeltaType::Array) {
             auto& arr = settlement->as_array();
             if (!arr.diffs.empty() && arr.diffs[0] != nullptr &&
@@ -889,11 +879,10 @@ TEST_CASE("delta: e2e nested array anchors mod changes") {
     })");
 
     auto delta = compute_delta(hist, mod, MergeMode::Normal);
-    auto remapped = remap_delta_to_current(delta->as_dict(), hist, current);
-    REQUIRE(remapped != nullptr);
+    REQUIRE(remap_delta_to_current(delta->as_dict(), hist, current));
 
     auto state = JsonState::from_doc(current);
-    apply_delta_to_state(state, remapped->as_dict(), nullptr, 1, false);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
     auto result_doc = state.to_doc();
 
     auto pops = result_doc.root().obj_get("cards_slot").obj_get("s4").obj_get("pops");
