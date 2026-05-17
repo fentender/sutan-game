@@ -29,7 +29,8 @@ def _parse_file_as_dict(filepath: str) -> JsonObject | None:
         if not doc.valid():
             return None
         return cast(JsonObject, json.loads(doc.to_string(), object_pairs_hook=duplist_pairs_hook))
-    except RuntimeError:
+    except Exception as e:
+        diag.warn("schema", f"跳过文件 {filepath}: {e}")
         return None
 
 # 动态 key 阈值：同名字段聚合后子 key 数量超过此值判定为动态字典

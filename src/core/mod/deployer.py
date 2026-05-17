@@ -129,7 +129,7 @@ def scan_synthetic_mods(workshop_path: Path) -> list[tuple[str, str, Path]]:
             continue
         try:
             data = json.loads(info_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+        except Exception:
             continue
         if data.get("synthetic") is True:
             display_name = data.get("name", entry.name)

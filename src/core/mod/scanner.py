@@ -1,7 +1,6 @@
 """
 Mod 扫描器 - 扫描 workshop 目录，读取 mod 元数据
 """
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -88,7 +87,7 @@ def scan_single_mod(mod_path: Path) -> ModInfo | None:
             info.tags = [str(t) for t in tags] if isinstance(tags, list) else []
             version = data.get("version", "")
             info.version = str(version) if version is not None else ""
-        except json.JSONDecodeError as e:
+        except Exception as e:
             msg = f"Mod {mod_id}: Info.json 解析失败 - {e}"
             diag.warn("scan", msg)
             info.name = mod_id
