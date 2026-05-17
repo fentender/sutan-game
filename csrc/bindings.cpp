@@ -103,7 +103,8 @@ static void bind_json(nb::module_& parent) {
         .def("done", &BatchHandle::done)
         .def("wait", &BatchHandle::wait)
         .def("take_doc", &BatchHandle::take_doc, nb::arg("index"))
-        .def("error", &BatchHandle::error, nb::arg("index"));
+        .def("error", &BatchHandle::error, nb::arg("index"))
+        .def("error_line", &BatchHandle::error_line, nb::arg("index"));
 
     nb::class_<JsonDoc>(m, "JsonDoc")
         .def_static("parse", &JsonDoc::parse,

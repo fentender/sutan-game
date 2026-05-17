@@ -7,6 +7,7 @@ from pathlib import Path
 
 from sultan_core.json import JsonDoc
 from sultan_core.delta import DeltaDict, serialize_delta
+from sultan_core.diag import get_manager as _get_c_diag
 
 from ...config import ConfigChangeEvent, HISTORY_DIR, MOD_OVERRIDES_DIR, UserConfig
 from ..infra.diagnostics import diag
@@ -129,6 +130,9 @@ class DataManager:
             time.sleep(0.03)
         handle.wait()
 
+        for msg in _get_c_diag().snapshot(["json_repair"]):
+            diag.info("json", msg.message)
+
         if on_progress:
             on_progress(handle.total(), handle.total())
 
@@ -143,7 +147,7 @@ class DataManager:
                     diag.error("json", f"{file_path}: JSON 解析失败 ({err})")
                     self._failures.append(ParseFailure(
                         file_path=file_path, rel_path=rel_path,
-                        error_msg=err, error_line=0,
+                        error_msg=err, error_line=handle.error_line(i),
                         is_base=(category == "base"),
                         mod_id=owner_id, mod_name=mod_name,
                     ))

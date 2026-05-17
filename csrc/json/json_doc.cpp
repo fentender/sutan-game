@@ -1,5 +1,6 @@
 #include "json_doc.h"
 #include "json_cleaner.h"
+#include "diag.h"
 #include "resource_loader.h"
 #include "yyjson.h"
 
@@ -33,11 +34,9 @@ JsonDoc::~JsonDoc() {
     yyjson_doc_free(doc_);
 }
 
-// ── 工厂 ──
+// ── 内部解析 ──
 
-JsonDoc JsonDoc::parse(const std::string& text, bool clean) {
-    std::string input = clean ? clean_text(text) : text;
-
+static JsonDoc do_parse(const std::string& input) {
     yyjson_read_err err{};
     yyjson_doc* doc = yyjson_read_opts(
         const_cast<char*>(input.data()), input.size(),
@@ -54,12 +53,34 @@ JsonDoc JsonDoc::parse(const std::string& text, bool clean) {
             + ", pos: " + std::to_string(err.pos) + ")";
         throw JsonParseError(what, line, detail);
     }
-    return JsonDoc(doc);
+    return JsonDoc::from_raw(doc);
+}
+
+// ── 工厂 ──
+
+JsonDoc JsonDoc::parse(const std::string& text, bool clean) {
+    if (!clean) {
+        return do_parse(text);
+    }
+    auto result = clean_text(text);
+    return do_parse(result.text);
 }
 
 JsonDoc JsonDoc::parse_file(const std::string& path, bool clean) {
     auto content = resource_loader().read_text(path);
-    return parse(*content, clean);
+    if (!clean) {
+        return do_parse(*content);
+    }
+    auto result = clean_text(*content);
+    if (!result.repairs.empty()) {
+        std::string msg = path + ": 自动修复 " +
+            std::to_string(result.repairs.size()) + " 处";
+        for (auto& r : result.repairs) {
+            msg += "\n  行 " + std::to_string(r.line) + ": " + r.desc;
+        }
+        diag_manager().info("json_repair", msg);
+    }
+    return do_parse(result.text);
 }
 
 // ── 序列化 ──

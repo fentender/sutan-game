@@ -1,6 +1,6 @@
 #include "json_cleaner.h"
+#include "json_doc.h"
 
-#include <stdexcept>
 #include <string>
 
 namespace sultan {
@@ -56,12 +56,11 @@ static size_t matchQuote(const char* s, size_t i, size_t n) {
     return matchSingleQuoteLike(s, i, n);
 }
 
-// TS: isEndQuote 选择策略
 enum class EndQuoteMode {
-    AsciiDouble,     // 只有 ASCII " 能关闭
-    AsciiSingle,     // 只有 ASCII ' 能关闭
-    DoubleQuoteLike, // 任何 double-quote-like 能关闭
-    SingleQuoteLike  // 任何 single-quote-like 能关闭
+    AsciiDouble,
+    AsciiSingle,
+    DoubleQuoteLike,
+    SingleQuoteLike
 };
 
 static EndQuoteMode determineEndQuoteMode(const char* s, size_t i, size_t n) {
@@ -86,7 +85,7 @@ static size_t matchEndQuote(EndQuoteMode mode, const char* s, size_t i, size_t n
 }
 
 // ═══════════════════════════════════════════════════════════
-// 字符分类 — 严格对照 TS stringUtils.js
+// 字符分类
 // ═══════════════════════════════════════════════════════════
 
 static bool isWhitespace(char c) {
@@ -103,14 +102,14 @@ static size_t matchSpecialWhitespace(const char* s, size_t i, size_t n) {
         if (a == 0xE2 && b == 0x80 && c >= 0x80 && c <= 0x8B) return 3;
         if (a == 0xE2 && b == 0x80 && (c == 0xA8 || c == 0xA9)) return 3;
         if (a == 0xEF && b == 0xBB && c == 0xBF) return 3;
-        if (a == 0xE2 && b == 0x80 && c == 0xAF) return 3; // narrow no-break space
-        if (a == 0xE2 && b == 0x81 && c == 0x9F) return 3; // medium mathematical space
+        if (a == 0xE2 && b == 0x80 && c == 0xAF) return 3;
+        if (a == 0xE2 && b == 0x81 && c == 0x9F) return 3;
     }
     if (i + 1 < n) {
         auto a = static_cast<unsigned char>(s[i]);
         auto b = static_cast<unsigned char>(s[i + 1]);
         if (a == 0xC2 && b == 0xA0) return 2;
-        if (a == 0xC6 && b == 0x8E) return 2; // mongolian vowel separator
+        if (a == 0xC6 && b == 0x8E) return 2;
     }
     return 0;
 }
@@ -121,13 +120,11 @@ static bool isHex(char c) {
 
 static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 
-// TS: isDelimiter includes ',:[]/{}()\n+'
 static bool isDelimiter(char c) {
     return c == ',' || c == ':' || c == '[' || c == ']' || c == '/' ||
            c == '{' || c == '}' || c == '(' || c == ')' || c == '\n' || c == '+';
 }
 
-// TS: isUnquotedStringDelimiter includes ',[]/{}\n+'
 static bool isUnquotedStringDelimiter(char c) {
     return c == ',' || c == '[' || c == ']' || c == '/' || c == '{' ||
            c == '}' || c == '\n' || c == '+';
@@ -137,7 +134,6 @@ static bool isControlCharacter(char c) {
     return c == '\n' || c == '\r' || c == '\t' || c == '\b' || c == '\f';
 }
 
-// TS: isStartOfValue — alpha, number, minus, [, {, or any quote
 static bool isStartOfValue(const char* s, size_t i, size_t n) {
     if (i >= n) return false;
     char c = s[i];
@@ -149,21 +145,18 @@ static bool isStartOfValue(const char* s, size_t i, size_t n) {
     return false;
 }
 
-// TS: isFunctionNameCharStart
 static bool isFunctionNameCharStart(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$';
 }
 
-// TS: isFunctionNameChar
 static bool isFunctionNameChar(char c) {
     return isFunctionNameCharStart(c) || (c >= '0' && c <= '9');
 }
 
 // ═══════════════════════════════════════════════════════════
-// 字符串操作 — 严格对照 TS stringUtils.js
+// 字符串操作
 // ═══════════════════════════════════════════════════════════
 
-// TS: insertBeforeLastWhitespace
 static std::string insertBeforeLastWhitespace(const std::string& text, char ch) {
     size_t idx = text.size();
     if (idx == 0 || !isWhitespace(text[idx - 1])) {
@@ -186,7 +179,6 @@ static std::string insertBeforeLastWhitespace(const std::string& text, const cha
     return text.substr(0, idx) + s + text.substr(idx);
 }
 
-// TS: stripLastOccurrence — uses lastIndexOf (full string search)
 static std::string stripLastOccurrence(const std::string& text, char ch) {
     size_t pos = text.rfind(ch);
     if (pos == std::string::npos) return text;
@@ -214,14 +206,16 @@ static const char* controlCharEscape(char c) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// JsonRepairer — 严格翻译 jsonrepair.js
+// JsonRepairer
 // ═══════════════════════════════════════════════════════════
 
 class JsonRepairer {
     const char* s_;
     size_t n_;
     size_t i_ = 0;
+    size_t line_ = 1;
     std::string output_;
+    std::vector<RepairEntry> repairs_;
 
 public:
     explicit JsonRepairer(const char* data, size_t len)
@@ -229,37 +223,64 @@ public:
         output_.reserve(len + len / 8);
     }
 
-    std::string repair() {
+    CleanResult repair() {
         const bool processed = parseValue();
         if (!processed) {
             throwUnexpectedEnd();
         }
 
-        // TS: parseCharacter(',') at top level
         bool processedComma = parseCharacter(',');
         if (processedComma) {
             parseWhitespaceAndSkipComments();
         }
 
         if (processedComma) {
-            // repair: remove trailing comma
             output_ = stripLastOccurrence(output_, ',');
         }
 
-        // repair redundant end brackets
         while (i_ < n_ && (s_[i_] == '}' || s_[i_] == ']')) {
-            i_++;
+            repairs_.push_back({line_, s_[i_] == '}' ? "去除多余 }" : "去除多余 ]"});
+            advance();
             parseWhitespaceAndSkipComments();
         }
 
         if (i_ >= n_) {
-            return std::move(output_);
+            return {std::move(output_), std::move(repairs_)};
         }
         throwUnexpectedCharacter();
         return {}; // unreachable
     }
 
 private:
+    void advance(size_t count = 1) {
+        for (size_t k = 0; k < count && i_ < n_; ++k) {
+            if (s_[i_] == '\n') ++line_;
+            ++i_;
+        }
+    }
+
+    void skipTrailingQuoteBeforeNewline() {
+        if (i_ >= n_) return;
+        size_t ql = matchQuote(s_, i_, n_);
+        if (ql == 0) return;
+        size_t j = i_ + ql;
+        while (j < n_ && (s_[j] == ' ' || s_[j] == '\t')) ++j;
+        if (j >= n_ || s_[j] == '\n') {
+            advance(ql);
+            repairs_.push_back({line_, "去除多余引号"});
+        }
+    }
+
+    bool looksLikeObjectKeyColon(size_t pos) const {
+        if (pos >= n_ || s_[pos] != '"') return false;
+        size_t j = pos + 1;
+        while (j < n_ && s_[j] != '"' && s_[j] != '\n') ++j;
+        if (j >= n_ || s_[j] != '"') return false;
+        ++j;
+        while (j < n_ && (s_[j] == ' ' || s_[j] == '\t')) ++j;
+        return j < n_ && s_[j] == ':';
+    }
+
     // ── parseValue ──
     bool parseValue() {
         parseWhitespaceAndSkipComments();
@@ -287,12 +308,12 @@ private:
             char c = s_[i_];
             if (skipNewline ? isWhitespace(c) : (c == ' ' || c == '\t' || c == '\r')) {
                 ws += c;
-                i_++;
+                advance();
             } else {
                 size_t swl = matchSpecialWhitespace(s_, i_, n_);
                 if (swl > 0) {
                     ws += ' ';
-                    i_ += swl;
+                    advance(swl);
                 } else {
                     break;
                 }
@@ -306,18 +327,16 @@ private:
     }
 
     bool parseComment() {
-        // block comment /* ... */
         if (i_ + 1 < n_ && s_[i_] == '/' && s_[i_ + 1] == '*') {
             while (i_ < n_ && !(s_[i_] == '*' && i_ + 1 < n_ && s_[i_ + 1] == '/')) {
-                i_++;
+                advance();
             }
-            i_ += 2;
+            advance(2);
             return true;
         }
-        // line comment // ...
         if (i_ + 1 < n_ && s_[i_] == '/' && s_[i_ + 1] == '/') {
-            while (i_ < n_ && s_[i_] != '\n') {
-                i_++;
+            while (i_ < n_ && s_[i_] != '\n' && s_[i_] != '\r') {
+                advance();
             }
             return true;
         }
@@ -328,7 +347,7 @@ private:
     bool parseCharacter(char expected) {
         if (i_ < n_ && s_[i_] == expected) {
             output_ += s_[i_];
-            i_++;
+            advance();
             return true;
         }
         return false;
@@ -336,7 +355,7 @@ private:
 
     bool skipCharacter(char expected) {
         if (i_ < n_ && s_[i_] == expected) {
-            i_++;
+            advance();
             return true;
         }
         return false;
@@ -346,7 +365,7 @@ private:
     void skipEllipsis() {
         parseWhitespaceAndSkipComments();
         if (i_ + 2 < n_ && s_[i_] == '.' && s_[i_ + 1] == '.' && s_[i_ + 2] == '.') {
-            i_ += 3;
+            advance(3);
             parseWhitespaceAndSkipComments();
             skipCharacter(',');
         }
@@ -356,10 +375,9 @@ private:
     bool parseObject() {
         if (i_ >= n_ || s_[i_] != '{') return false;
         output_ += '{';
-        i_++;
+        advance();
         parseWhitespaceAndSkipComments();
 
-        // repair: skip leading comma
         if (skipCharacter(',')) {
             parseWhitespaceAndSkipComments();
         }
@@ -370,6 +388,7 @@ private:
             if (!initial) {
                 processedComma = parseCharacter(',');
                 if (!processedComma) {
+                    repairs_.push_back({line_, "补充缺失逗号"});
                     output_ = insertBeforeLastWhitespace(output_, ',');
                 }
                 parseWhitespaceAndSkipComments();
@@ -383,7 +402,6 @@ private:
             bool processedKey = parseString() || parseUnquotedString(true);
             if (!processedKey) {
                 if (i_ < n_ && s_[i_] == ',') {
-                    // repair: skip duplicate comma
                     output_ = stripLastOccurrence(output_, ',');
                     continue;
                 }
@@ -402,6 +420,7 @@ private:
             bool truncatedText = i_ >= n_;
             if (!processedColon) {
                 if (isStartOfValue(s_, i_, n_) || truncatedText) {
+                    repairs_.push_back({line_, "补充缺失冒号"});
                     output_ = insertBeforeLastWhitespace(output_, ':');
                 } else {
                     throwColonExpected();
@@ -411,6 +430,7 @@ private:
             bool processedValue = parseValue();
             if (!processedValue) {
                 if (processedColon || truncatedText) {
+                    repairs_.push_back({line_, "补充缺失值 null"});
                     output_ += "null";
                 } else {
                     throwColonExpected();
@@ -420,8 +440,9 @@ private:
 
         if (i_ < n_ && s_[i_] == '}') {
             output_ += '}';
-            i_++;
+            advance();
         } else {
+            repairs_.push_back({line_, "补充缺失 }"});
             output_ = insertBeforeLastWhitespace(output_, '}');
         }
         return true;
@@ -431,10 +452,9 @@ private:
     bool parseArray() {
         if (i_ >= n_ || s_[i_] != '[') return false;
         output_ += '[';
-        i_++;
+        advance();
         parseWhitespaceAndSkipComments();
 
-        // repair: skip leading comma
         if (skipCharacter(',')) {
             parseWhitespaceAndSkipComments();
         }
@@ -444,6 +464,7 @@ private:
             if (!initial) {
                 bool processedComma = parseCharacter(',');
                 if (!processedComma) {
+                    repairs_.push_back({line_, "补充缺失逗号"});
                     output_ = insertBeforeLastWhitespace(output_, ',');
                 }
             } else {
@@ -455,7 +476,6 @@ private:
             bool processedValue = parseValue();
             if (!processedValue) {
                 if (i_ < n_ && s_[i_] == ',') {
-                    // repair: skip duplicate comma in array
                     output_ = stripLastOccurrence(output_, ',');
                     continue;
                 }
@@ -466,44 +486,54 @@ private:
 
         if (i_ < n_ && s_[i_] == ']') {
             output_ += ']';
-            i_++;
+            advance();
         } else {
+            repairs_.push_back({line_, "补充缺失 ]"});
             output_ = insertBeforeLastWhitespace(output_, ']');
         }
         return true;
     }
 
     // ── parseString ──
-    // TS: parseString(stopAtDelimiter=false, stopAtIndex=-1)
     bool parseString(bool stopAtDelimiter = false, size_t stopAtIndex = SIZE_MAX) {
-        // TS: let skipEscapeChars = text[i] === '\\'
         bool skipEscapeChars = false;
         if (i_ < n_ && s_[i_] == '\\') {
-            i_++;
+            advance();
             skipEscapeChars = true;
         }
 
         size_t ql = matchQuote(s_, i_, n_);
         if (ql == 0) {
-            if (skipEscapeChars) i_--;
+            if (skipEscapeChars) { --i_; if (i_ < n_ && s_[i_] == '\n') --line_; }
             return false;
         }
 
-        // TS: determine isEndQuote function based on opening quote
+        bool isNonAsciiQuote = (ql > 1 || (ql == 1 && s_[i_] != '"' && s_[i_] != '\''));
+        if (!isNonAsciiQuote && (s_[i_] == '\'' || s_[i_] == '`')) {
+            isNonAsciiQuote = true;
+        }
+
         EndQuoteMode endQuoteMode = determineEndQuoteMode(s_, i_, n_);
 
+        if (endQuoteMode != EndQuoteMode::AsciiDouble && !stopAtDelimiter) {
+            repairs_.push_back({line_, "替换非标准引号"});
+        }
+
         size_t iBefore = i_;
+        size_t lineBefore = line_;
         size_t oBefore = output_.size();
+        size_t rBefore = repairs_.size();
         std::string str = "\"";
-        i_ += ql;
+        advance(ql);
 
         while (true) {
             if (i_ >= n_) {
-                // end of text, missing end quote
                 size_t iPrev = prevNonWhitespaceIndex(i_ - 1);
                 if (!stopAtDelimiter && iPrev < n_ && isDelimiter(s_[iPrev])) {
                     i_ = iBefore;
+                    line_ = lineBefore;
                     output_.resize(oBefore);
+                    repairs_.resize(rBefore);
                     return parseString(true);
                 }
                 str = insertBeforeLastWhitespace(str, '"');
@@ -517,53 +547,69 @@ private:
                 return true;
             }
 
-            // check end quote
             size_t eql = matchEndQuote(endQuoteMode, s_, i_, n_);
             if (eql > 0) {
                 size_t iQuote = i_;
+                size_t lineQuote = line_;
                 size_t oQuote = str.size();
                 str += '"';
-                i_ += eql;
+                advance(eql);
                 output_ += str;
                 parseWhitespaceAndSkipComments(false);
 
                 if (stopAtDelimiter || i_ >= n_ || isDelimiter(s_[i_]) ||
                     matchQuote(s_, i_, n_) > 0 || isDigit(s_[i_])) {
-                    // valid end quote
+                    skipTrailingQuoteBeforeNewline();
                     return true;
                 }
 
-                // TS: prevChar === ',' case
                 size_t iPrevChar = prevNonWhitespaceIndex(iQuote - 1);
                 char prevChar = (iPrevChar < n_) ? s_[iPrevChar] : '\0';
                 if (prevChar == ',') {
                     i_ = iBefore;
+                    line_ = lineBefore;
                     output_.resize(oBefore);
+                    repairs_.resize(rBefore);
                     return parseString(false, iPrevChar);
                 }
 
                 if (isDelimiter(prevChar)) {
                     i_ = iBefore;
+                    line_ = lineBefore;
                     output_.resize(oBefore);
+                    repairs_.resize(rBefore);
                     return parseString(true);
                 }
 
-                // revert to right after the quote, repair unescaped quote
+                if (looksLikeObjectKeyColon(iQuote)) {
+                    size_t nlPos = SIZE_MAX;
+                    for (size_t k = iQuote; k > iBefore + ql; --k) {
+                        if (s_[k] == '\n') { nlPos = k; break; }
+                    }
+                    if (nlPos != SIZE_MAX) {
+                        i_ = iBefore;
+                        line_ = lineBefore;
+                        output_.resize(oBefore);
+                        repairs_.resize(rBefore);
+                        return parseString(false, nlPos);
+                    }
+                }
+
                 output_.resize(oBefore);
-                i_ = iQuote + eql;
+                i_ = iQuote;
+                line_ = lineQuote;
+                advance(eql);
                 str = str.substr(0, oQuote) + "\\" + str.substr(oQuote);
             } else if (stopAtDelimiter && i_ < n_ && isUnquotedStringDelimiter(s_[i_])) {
-                // stop at delimiter (missing end quote)
                 str = insertBeforeLastWhitespace(str, '"');
                 output_ += str;
                 return true;
             } else if (i_ < n_ && s_[i_] == '\\') {
-                // handle escaped content
                 char nextCh = (i_ + 1 < n_) ? s_[i_ + 1] : '\0';
                 if (isEscapeChar(nextCh)) {
                     str += s_[i_];
                     str += s_[i_ + 1];
-                    i_ += 2;
+                    advance(2);
                 } else if (nextCh == 'u') {
                     size_t j = 2;
                     while (j < 6 && i_ + j < n_ && isHex(s_[i_ + j])) {
@@ -571,42 +617,38 @@ private:
                     }
                     if (j == 6) {
                         str.append(s_ + i_, 6);
-                        i_ += 6;
+                        advance(6);
                     } else if (i_ + j >= n_) {
-                        i_ = n_;
+                        advance(n_ - i_);
                     } else {
                         throwInvalidUnicodeCharacter();
                     }
                 } else if (nextCh == '\n') {
                     str += "\\n";
-                    i_ += 2;
+                    advance(2);
                 } else {
-                    // invalid escape: remove backslash
                     str += nextCh;
-                    i_ += 2;
+                    advance(2);
                 }
             } else if (i_ < n_) {
-                // handle regular characters
                 char c = s_[i_];
 
-                // TS: if char === '"' && text[i-1] !== '\\' → repair unescaped double quote
                 if (c == '"' && (i_ == 0 || s_[i_ - 1] != '\\')) {
                     str += "\\\"";
-                    i_++;
+                    advance();
                 } else if (isControlCharacter(c)) {
                     const char* esc = controlCharEscape(c);
                     if (esc) str += esc;
-                    i_++;
+                    advance();
                 } else {
                     str += c;
-                    i_++;
+                    advance();
                 }
             }
 
             if (skipEscapeChars) {
-                // skip escape character if present
                 if (i_ < n_ && s_[i_] == '\\') {
-                    i_++;
+                    advance();
                 }
             }
         }
@@ -616,47 +658,51 @@ private:
     // ── parseNumber ──
     bool parseNumber() {
         size_t start = i_;
+        size_t startLine = line_;
 
         if (i_ < n_ && s_[i_] == '-') {
-            i_++;
+            advance();
             if (atEndOfNumber()) {
                 repairNumberEndingWithNumericSymbol(start);
                 return true;
             }
             if (i_ >= n_ || !isDigit(s_[i_])) {
                 i_ = start;
+                line_ = startLine;
                 return false;
             }
         }
 
         if (i_ >= n_ || !isDigit(s_[i_])) {
             i_ = start;
+            line_ = startLine;
             return false;
         }
 
         while (i_ < n_ && isDigit(s_[i_])) {
-            i_++;
+            advance();
         }
 
         if (i_ < n_ && s_[i_] == '.') {
-            i_++;
+            advance();
             if (atEndOfNumber()) {
                 repairNumberEndingWithNumericSymbol(start);
                 return true;
             }
             if (i_ >= n_ || !isDigit(s_[i_])) {
                 i_ = start;
+                line_ = startLine;
                 return false;
             }
             while (i_ < n_ && isDigit(s_[i_])) {
-                i_++;
+                advance();
             }
         }
 
         if (i_ < n_ && (s_[i_] == 'e' || s_[i_] == 'E')) {
-            i_++;
+            advance();
             if (i_ < n_ && (s_[i_] == '-' || s_[i_] == '+')) {
-                i_++;
+                advance();
             }
             if (atEndOfNumber()) {
                 repairNumberEndingWithNumericSymbol(start);
@@ -664,20 +710,21 @@ private:
             }
             if (i_ >= n_ || !isDigit(s_[i_])) {
                 i_ = start;
+                line_ = startLine;
                 return false;
             }
             while (i_ < n_ && isDigit(s_[i_])) {
-                i_++;
+                advance();
             }
         }
 
         if (!atEndOfNumber()) {
             i_ = start;
+            line_ = startLine;
             return false;
         }
 
         if (i_ > start) {
-            // TS: repair leading zeros — we skip this for game JSON semantics
             output_.append(s_ + start, i_ - start);
             return true;
         }
@@ -689,42 +736,43 @@ private:
         return parseKeyword("true", "true") ||
                parseKeyword("false", "false") ||
                parseKeyword("null", "null") ||
-               parseKeyword("True", "true") ||
-               parseKeyword("False", "false") ||
-               parseKeyword("None", "null");
+               parseKeyword("True", "true", "True->true") ||
+               parseKeyword("False", "false", "False->false") ||
+               parseKeyword("None", "null", "None->null");
     }
 
-    bool parseKeyword(const char* name, const char* value) {
+    bool parseKeyword(const char* name, const char* value,
+                      const char* repairDesc = nullptr) {
         size_t len = 0;
         while (name[len]) len++;
         if (i_ + len > n_) return false;
         for (size_t k = 0; k < len; ++k) {
             if (s_[i_ + k] != name[k]) return false;
         }
-        // TS: no boundary check — keywords are greedy match by prefix
-        // but we need boundary check to avoid matching "trueValue" etc.
         if (i_ + len < n_ && isFunctionNameChar(s_[i_ + len])) return false;
+        if (repairDesc) {
+            repairs_.push_back({line_, repairDesc});
+        }
         output_ += value;
-        i_ += len;
+        advance(len);
         return true;
     }
 
     // ── parseUnquotedString ──
     bool parseUnquotedString(bool isKey) {
         size_t start = i_;
-
-        // TS: skip function name chars, check for '(' (MongoDB/JSONP) — we skip this
+        size_t startLine = line_;
 
         while (i_ < n_ && !isUnquotedStringDelimiter(s_[i_]) &&
                matchQuote(s_, i_, n_) == 0 &&
                (!isKey || s_[i_] != ':')) {
-            i_++;
+            advance();
         }
 
         if (i_ > start) {
-            // go back to prevent trailing whitespace in the string
             while (i_ > start && isWhitespace(s_[i_ - 1])) {
-                i_--;
+                --i_;
+                if (s_[i_] == '\n') --line_;
             }
 
             std::string symbol(s_ + start, i_ - start);
@@ -732,7 +780,6 @@ private:
             if (symbol == "undefined") {
                 output_ += "null";
             } else {
-                // JSON.stringify equivalent: wrap in quotes, escape special chars
                 output_ += '"';
                 for (char c : symbol) {
                     if (c == '"') { output_ += "\\\""; }
@@ -747,9 +794,8 @@ private:
                 output_ += '"';
             }
 
-            // TS: if text[i] === '"', skip it (missing start quote had end quote)
             if (i_ < n_ && s_[i_] == '"') {
-                i_++;
+                advance();
             }
 
             return true;
@@ -777,35 +823,46 @@ private:
     }
 
     [[noreturn]] void throwUnexpectedEnd() const {
-        throw std::runtime_error("json repair: unexpected end of json string");
+        throw JsonParseError(
+            "unexpected end of json string",
+            line_, "unexpected end of json string");
     }
 
     [[noreturn]] void throwUnexpectedCharacter() const {
-        throw std::runtime_error(
-            std::string("json repair: unexpected character '") + s_[i_] +
-            "' at position " + std::to_string(i_));
+        throw JsonParseError(
+            std::string("unexpected character '") + s_[i_] +
+            "' at position " + std::to_string(i_) +
+            " (line: " + std::to_string(line_) + ")",
+            line_,
+            std::string("unexpected character '") + s_[i_] + "'");
     }
 
     [[noreturn]] void throwObjectKeyExpected() const {
-        throw std::runtime_error(
-            "json repair: object key expected at position " + std::to_string(i_));
+        throw JsonParseError(
+            "object key expected at position " + std::to_string(i_) +
+            " (line: " + std::to_string(line_) + ")",
+            line_, "object key expected");
     }
 
     [[noreturn]] void throwColonExpected() const {
-        throw std::runtime_error(
-            "json repair: colon expected at position " + std::to_string(i_));
+        throw JsonParseError(
+            "colon expected at position " + std::to_string(i_) +
+            " (line: " + std::to_string(line_) + ")",
+            line_, "colon expected");
     }
 
     [[noreturn]] void throwInvalidUnicodeCharacter() const {
-        throw std::runtime_error(
-            "json repair: invalid unicode character at position " + std::to_string(i_));
+        throw JsonParseError(
+            "invalid unicode character at position " + std::to_string(i_) +
+            " (line: " + std::to_string(line_) + ")",
+            line_, "invalid unicode character");
     }
 };
 
 }  // anonymous namespace
 
-std::string clean_text(const std::string& text) {
-    if (text.empty()) return text;
+CleanResult clean_text(const std::string& text) {
+    if (text.empty()) return {text, {}};
     return JsonRepairer(text.data(), text.size()).repair();
 }
 

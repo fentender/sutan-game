@@ -41,7 +41,13 @@ JsonDoc BatchHandle::take_doc(size_t index) {
 const std::string& BatchHandle::error(size_t index) const {
     if (index >= result_.errors.size())
         throw std::out_of_range("BatchHandle::error: index out of range");
-    return result_.errors[index];
+    return result_.errors[index].message;
+}
+
+size_t BatchHandle::error_line(size_t index) const {
+    if (index >= result_.errors.size())
+        throw std::out_of_range("BatchHandle::error_line: index out of range");
+    return result_.errors[index].line;
 }
 
 void BatchHandle::run() {
@@ -63,8 +69,10 @@ void BatchHandle::run() {
             if (idx >= total) break;
             try {
                 result_.docs[idx] = JsonDoc::parse_file(paths_[idx], true);
+            } catch (const JsonParseError& e) {
+                result_.errors[idx] = {e.detail, e.line};
             } catch (const std::exception& e) {
-                result_.errors[idx] = e.what();
+                result_.errors[idx] = {e.what(), 0};
             }
             completed_.fetch_add(1, std::memory_order_release);
         }

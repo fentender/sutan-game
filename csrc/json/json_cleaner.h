@@ -1,8 +1,19 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace sultan {
 
-std::string clean_text(const std::string& text);
+struct RepairEntry {
+    size_t line;
+    std::string desc;
+};
+
+struct CleanResult {
+    std::string text;
+    std::vector<RepairEntry> repairs;
+};
+
+CleanResult clean_text(const std::string& text);
 
 }  // namespace sultan

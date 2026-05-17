@@ -327,10 +327,15 @@ class CodeEditor(QPlainTextEdit):
 class JsonEditorDialog(QDialog):
     """JSON 文件编辑器弹窗，出错行标红"""
 
-    def __init__(self, file_path: Path, parent: QWidget | None = None, search_key: str = "") -> None:
+    def __init__(
+        self, file_path: Path, parent: QWidget | None = None,
+        search_key: str = "", highlight_lines: list[int] | None = None,
+    ) -> None:
         super().__init__(parent)
         self._file_path = file_path
         self._search_key = search_key
+        self._highlight_lines = highlight_lines or []
+        self._hl_idx = 0
         self._error_line: int | None = None
         self._error_msg: str = ""
 
@@ -353,6 +358,32 @@ class JsonEditorDialog(QDialog):
         self._error_bar.setFixedHeight(28)
         self._error_bar.setVisible(False)
         layout.addWidget(self._error_bar)
+
+        self._repair_nav = QWidget()
+        nav_layout = QHBoxLayout(self._repair_nav)
+        nav_layout.setContentsMargins(4, 2, 4, 2)
+        nav_layout.setSpacing(4)
+        nav_label = QLabel("自动修复位置")
+        nav_label.setStyleSheet("font-size: 11px; color: #8f8;")
+        nav_layout.addWidget(nav_label)
+        btn_prev = QPushButton("▲")
+        btn_prev.setFixedWidth(28)
+        btn_prev.setAutoDefault(False)
+        btn_prev.clicked.connect(lambda: self._goto_repair(-1))
+        nav_layout.addWidget(btn_prev)
+        self._repair_count_label = QLabel("0 / 0")
+        self._repair_count_label.setFixedWidth(50)
+        self._repair_count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._repair_count_label.setStyleSheet("font-size: 11px; color: #aaa;")
+        nav_layout.addWidget(self._repair_count_label)
+        btn_next = QPushButton("▼")
+        btn_next.setFixedWidth(28)
+        btn_next.setAutoDefault(False)
+        btn_next.clicked.connect(lambda: self._goto_repair(1))
+        nav_layout.addWidget(btn_next)
+        nav_layout.addStretch()
+        self._repair_nav.setVisible(False)
+        layout.addWidget(self._repair_nav)
 
         # 编辑区
         self._editor = CodeEditor()
@@ -380,13 +411,35 @@ class JsonEditorDialog(QDialog):
         self._editor.setPlainText(raw)
         self._detect_error()
         self._update_highlights()
-        # 语法错误优先；无论是否有语法错误，都按 search_key 定位字段
         if self._search_key:
             line = self._find_key_line(self._search_key)
             if line:
                 self._editor.highlight_line(line, scroll_to=True,
                                             color=QColor(80, 70, 20),
                                             append=True)
+        if self._highlight_lines:
+            for i, ln in enumerate(self._highlight_lines):
+                self._editor.highlight_line(
+                    ln, scroll_to=(i == 0),
+                    color=QColor(30, 80, 30), append=True,
+                )
+            self._repair_nav.setVisible(True)
+            self._hl_idx = 0
+            self._repair_count_label.setText(
+                f"1 / {len(self._highlight_lines)}")
+
+    def _goto_repair(self, direction: int) -> None:
+        if not self._highlight_lines:
+            return
+        total = len(self._highlight_lines)
+        self._hl_idx = (self._hl_idx + direction) % total
+        self._repair_count_label.setText(f"{self._hl_idx + 1} / {total}")
+        line_no = self._highlight_lines[self._hl_idx]
+        block = self._editor.document().findBlockByLineNumber(line_no - 1)
+        if block.isValid():
+            cursor = QTextCursor(block)
+            self._editor.setTextCursor(cursor)
+            self._editor.centerCursor()
 
     def _find_key_line(self, field_path: str) -> int | None:
         """根据字段路径定位行号，取路径最后一段在文件文本中搜索"""

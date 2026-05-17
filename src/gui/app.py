@@ -158,6 +158,7 @@ class MainWindow(QMainWindow):
         }
 
         all_messages = diag.snapshot("scan", "parse")
+        self.log_panel.clear()
         self._show_messages([
             (level, prefix_mod_title(msg, self._mod_name_map))
             for level, msg in all_messages
@@ -218,11 +219,8 @@ class MainWindow(QMainWindow):
 
     def _on_init_complete(self) -> None:
         json_msgs = diag.snapshot("json")
-        if json_msgs:
-            self._show_messages([
-                (level, prefix_mod_title(msg, self._mod_name_map))
-                for level, msg in json_msgs
-            ])
+        for level, msg in json_msgs:
+            self._log_message(level, prefix_mod_title(msg, self._mod_name_map))
 
         self.mod_list_panel.update_overlap(self.service.overlap_map)
 
@@ -781,13 +779,19 @@ class MainWindow(QMainWindow):
     def _log_message(self, level: str, msg: str) -> None:
         self.log_panel.log_message(level, msg)
 
-    def _open_json_editor(self, file_path: str, search_key: str = "") -> None:
+    def _open_json_editor(
+        self, file_path: str, search_key: str = "",
+        highlight_lines: list[int] | None = None,
+    ) -> None:
         path = Path(file_path)
         if not path.exists():
             QMessageBox.warning(self, "提示", f"文件不存在:\n{file_path}")
             return
         from .widgets.code_editor import JsonEditorDialog
-        dlg = JsonEditorDialog(path, parent=self, search_key=search_key)
+        dlg = JsonEditorDialog(
+            path, parent=self, search_key=search_key,
+            highlight_lines=highlight_lines or [],
+        )
         dlg.exec()
 
     def _cleanup_remap(self) -> None:

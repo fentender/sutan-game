@@ -8,9 +8,14 @@
 
 namespace sultan {
 
+struct BatchError {
+    std::string message;
+    size_t line = 0;
+};
+
 struct BatchResult {
     std::vector<JsonDoc> docs;
-    std::vector<std::string> errors;
+    std::vector<BatchError> errors;
 };
 
 class BatchHandle {
@@ -30,6 +35,7 @@ public:
     void wait();
     JsonDoc take_doc(size_t index);
     const std::string& error(size_t index) const;
+    size_t error_line(size_t index) const;
     BatchResult result();
 
 private:

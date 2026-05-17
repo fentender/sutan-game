@@ -19,8 +19,8 @@ from src.core.api import ERROR, INFO, WARNING
 
 # 日志项存储级别的自定义角色
 _LEVEL_ROLE = Qt.ItemDataRole.UserRole + 1
-# 日志项存储字段路径的自定义角色
 _FIELD_PATH_ROLE = Qt.ItemDataRole.UserRole + 2
+_REPAIR_LINES_ROLE = Qt.ItemDataRole.UserRole + 3
 
 
 def prefix_mod_title(msg: str, name_map: dict[str, str]) -> str:
@@ -54,7 +54,7 @@ class LogPanel(QWidget):
     """可筛选的日志面板，支持按级别着色和文件路径提取"""
 
     # 双击日志条目中包含文件路径时发出，携带 (文件路径, 字段路径)
-    file_open_requested = Signal(str, str)
+    file_open_requested = Signal(str, str, object)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -105,14 +105,9 @@ class LogPanel(QWidget):
         layout.addWidget(self._list)
 
     def show_messages(self, messages: list[tuple[str, str]]) -> None:
-        """重置并显示消息列表 [(level, msg), ...]"""
-        self._list.clear()
-        self._error_count = 0
-        if messages:
-            for level, msg in messages:
-                self.log_message(level, msg)
-        else:
-            self.setVisible(False)
+        """追加消息列表 [(level, msg), ...]"""
+        for level, msg in messages:
+            self.log_message(level, msg)
 
     def log_message(self, level: str, msg: str) -> None:
         """追加一条日志，按级别着色"""
@@ -133,6 +128,9 @@ class LogPanel(QWidget):
         fp_match = re.search(r'\.json\s*>\s*([a-zA-Z0-9_.]+):', msg)
         if fp_match:
             item.setData(_FIELD_PATH_ROLE, fp_match.group(1))
+        repair_lines = [int(x) for x in re.findall(r'行 (\d+):', msg)]
+        if repair_lines:
+            item.setData(_REPAIR_LINES_ROLE, repair_lines)
         self._list.addItem(item)
         self.setVisible(True)
         self._apply_filter_to_item(item)
@@ -163,4 +161,5 @@ class LogPanel(QWidget):
         file_path = item.data(Qt.ItemDataRole.UserRole)
         if file_path:
             field_path = item.data(_FIELD_PATH_ROLE) or ""
-            self.file_open_requested.emit(file_path, field_path)
+            repair_lines = item.data(_REPAIR_LINES_ROLE) or []
+            self.file_open_requested.emit(file_path, field_path, repair_lines)
