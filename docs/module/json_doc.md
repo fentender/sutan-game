@@ -22,8 +22,8 @@ C++ 层 JSON 解析与序列化模块，基于 **yyjson** 封装。将文本/文
 
 ```
 csrc/json/
-├── json_cleaner.h       # 文本清洗函数声明
-├── json_cleaner.cpp     # fix_missing_commas / strip_duplicate_commas / clean_text
+├── json_cleaner.h       # 文本清洗函数声明（仅暴露 clean_text）
+├── json_cleaner.cpp     # 基于 jsonrepair 的递归下降修复器
 ├── json_doc.h           # JsonDoc 类声明
 ├── json_doc.cpp         # 解析 / 序列化实现
 ├── json_val.h           # JsonVal / JsonType 声明
@@ -43,44 +43,14 @@ tests/cpp/
 
 ## 文本清洗
 
-### 清洗流水线
+详见 [json_cleaner 模块文档](json_cleaner.md)。
 
-yyjson 原生支持 `//` 注释和尾随逗号（通过 `YYJSON_READ_ALLOW_COMMENTS` / `YYJSON_READ_ALLOW_TRAILING_COMMAS` flag），C++ `clean_text` 只处理 yyjson 不覆盖的非标准语法：
-
-```
-输入文本 → fix_missing_commas → strip_duplicate_commas → 输出
-```
-
-对比 Python 版 `clean_json_text` 四步流程（strip_js_comments → strip_trailing_commas → fix_missing_commas → strip_duplicate_commas），C++ 版减少两次遍历。
-
-### C++ API
+`clean_text` 基于 jsonrepair v3.14.0 严格翻译的递归下降修复器，单遍扫描修复 22 类非标准语法（缺失逗号、中文引号、注释、尾随逗号、截断数字等）。唯一公共接口：
 
 ```cpp
 #include "json_cleaner.h"
-using namespace sultan;
-
-// 修复缺失逗号：{"a":1 "b":2} → {"a":1, "b":2}
-std::string fixed = fix_missing_commas(text);
-
-// 压缩连续逗号：{"a":1,,,"b":2} → {"a":1,"b":2}
-std::string stripped = strip_duplicate_commas(text);
-
-// 统一清洗入口
-std::string cleaned = clean_text(text);
+std::string cleaned = sultan::clean_text(text);
 ```
-
-### 实现细节
-
-**fix_missing_commas** — 状态机扫描，移植自 `_fast_json.c`：
-
-- 逐字符处理，识别值结束位置（字符串闭合 `"`、数字末尾、`true`/`false`/`null`、`}`/`]`）
-- 值结束后跳过空白，检查下一个非空白是否为 `"key":` 模式（`is_key_start`）
-- 是则在空白前插入 `,`，空白本身保留
-
-**strip_duplicate_commas** — 状态机扫描：
-
-- 字符串内原样复制
-- 字符串外遇到 `,` 时输出一个 `,`，跳过后续的多余逗号（保留中间空白）
 
 ## JsonDoc
 
@@ -403,25 +373,11 @@ auto doc_b = JsonDoc::parse_file(mod_path);
 
 ## 现有测试用例
 
-### test_json.cpp（34 case）
+### test_json.cpp（34 case → 82 case）
 
-**清洗测试（13 case）**
+清洗测试已大幅扩展，详见 [json_cleaner 模块文档](json_cleaner.md#测试用例test_jsoncpp)。
 
-| 测试 | 验证内容 |
-|------|---------|
-| `json: fix_missing_commas after string value` | 字符串值后插入逗号 |
-| `json: fix_missing_commas after number` | 数字后插入逗号 |
-| `json: fix_missing_commas after bool` | true/false 后插入逗号 |
-| `json: fix_missing_commas after null` | null 后插入逗号 |
-| `json: fix_missing_commas after close brace` | `}` 后插入逗号 |
-| `json: fix_missing_commas after close bracket` | `]` 后插入逗号 |
-| `json: fix_missing_commas after negative number` | 负数后插入逗号 |
-| `json: fix_missing_commas no false positive` | 正确 JSON 不变 |
-| `json: fix_missing_commas preserves strings` | 字符串内内容不修改 |
-| `json: strip_duplicate_commas basic` | 连续逗号压缩 |
-| `json: strip_duplicate_commas with whitespace` | 含空白的连续逗号 |
-| `json: strip_duplicate_commas preserves strings` | 字符串内逗号不动 |
-| `json: clean_text combined` | 缺失逗号+连续逗号同时修复 |
+**清洗测试（51 case）**：缺失逗号（对象/数组）、重复逗号、中文引号、单引号/反引号、无引号键名、缺少冒号、注释剥离、尾随/前导逗号、缺失/多余括号、缺失对象值、截断数字、Python 关键字、省略号、转义处理、特殊空白、换行自动关闭字符串、集成测试。
 
 **解析测试（9 case）**
 
