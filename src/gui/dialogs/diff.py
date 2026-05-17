@@ -82,12 +82,20 @@ def _apply_extra_selections(editor: CodeEditor,
         if prev is None or prio > prev[0]:
             best[block_no] = (prio, color)
 
+    if not best:
+        editor.setExtraSelections([])
+        return
+
     selections: list[QTextEdit.ExtraSelection] = []
-    for block_no in sorted(best):
-        block = editor.document().findBlockByNumber(block_no)
+    block = editor.document().begin()
+    current_no = 0
+    for target_no in sorted(best):
+        while current_no < target_no and block.isValid():
+            block = block.next()
+            current_no += 1
         if not block.isValid():
-            continue
-        _, color = best[block_no]
+            break
+        _, color = best[target_no]
         sel = QTextEdit.ExtraSelection()
         sel.format.setBackground(color)
         sel.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
