@@ -87,6 +87,11 @@ struct DeltaArray : DeltaBase {
 // JsonVal 引用源 JsonDoc 数据，调用方需保证 JsonDoc 生命周期覆盖返回值使用期
 DeltaNodePtr make_delta_element(ChangeKind kind, JsonVal value);
 
+inline std::unique_ptr<DeltaDict> to_delta_dict(DeltaNodePtr node) {
+    if (!node || node->type() != DeltaType::Dict) return nullptr;
+    return unique_ptr<DeltaDict>(static_cast<DeltaDict*>(node.release()));
+}
+
 // ── 序列化 ──
 
 JsonDoc serialize_delta(const DeltaBase& delta);

@@ -191,10 +191,25 @@ static void bind_state(nb::module_& parent) {
         .def("valid", &JsonState::valid);
 }
 
-static std::unique_ptr<DeltaDict> to_delta_dict(DeltaNodePtr node) {
-    if (!node || node->type() != DeltaType::Dict) return nullptr;
-    auto* raw = static_cast<DeltaDict*>(node.release());
-    return std::unique_ptr<DeltaDict>(raw);
+static std::vector<FileGroupInput> unpack_inputs(
+    const std::vector<MergeMode>& modes,
+    const std::vector<nb::object>& mod_docs,
+    const std::vector<nb::object>& hist_docs)
+{
+    std::vector<FileGroupInput> inputs;
+    inputs.reserve(modes.size());
+    for (size_t i = 0; i < modes.size(); ++i) {
+        inputs.push_back({
+            modes[i],
+            mod_docs[i].is_none()
+                ? nullptr
+                : &nb::cast<const JsonDoc&>(mod_docs[i]),
+            hist_docs[i].is_none()
+                ? nullptr
+                : &nb::cast<const JsonDoc&>(hist_docs[i]),
+        });
+    }
+    return inputs;
 }
 
 static void bind_delta(nb::module_& parent) {
@@ -210,7 +225,7 @@ static void bind_delta(nb::module_& parent) {
     m.def("compute_delta",
         [](const JsonDoc& base, const JsonDoc& mod,
            MergeMode merge_mode, bool skip_root_deletion) {
-            return to_delta_dict(
+            return sultan::to_delta_dict(
                 sultan::compute_delta(base, mod, merge_mode, skip_root_deletion));
         },
         nb::arg("base"), nb::arg("mod"),
@@ -243,9 +258,39 @@ static void bind_delta(nb::module_& parent) {
 
     m.def("deserialize_delta",
         [](const JsonDoc& doc) {
-            return to_delta_dict(sultan::deserialize_delta(doc));
+            return sultan::to_delta_dict(sultan::deserialize_delta(doc));
         },
         nb::arg("doc"));
+
+    m.def("process_file_group",
+        [](const JsonDoc& base_doc,
+           const std::vector<MergeMode>& modes,
+           const std::vector<nb::object>& mod_docs,
+           const std::vector<nb::object>& hist_docs)
+        {
+            return sultan::process_file_group(
+                base_doc, unpack_inputs(modes, mod_docs, hist_docs));
+        },
+        nb::arg("base_doc"), nb::arg("modes"),
+        nb::arg("mod_docs"), nb::arg("hist_docs"));
+
+    m.def("batch_process_all_groups",
+        [](const std::vector<nb::object>& base_docs,
+           const std::vector<size_t>& group_offsets,
+           const std::vector<MergeMode>& modes,
+           const std::vector<nb::object>& mod_docs,
+           const std::vector<nb::object>& hist_docs)
+        {
+            std::vector<const JsonDoc*> bases;
+            bases.reserve(base_docs.size());
+            for (auto& o : base_docs)
+                bases.push_back(&nb::cast<const JsonDoc&>(o));
+            return sultan::batch_process_all_groups(
+                bases, group_offsets,
+                unpack_inputs(modes, mod_docs, hist_docs));
+        },
+        nb::arg("base_docs"), nb::arg("group_offsets"),
+        nb::arg("modes"), nb::arg("mod_docs"), nb::arg("hist_docs"));
 }
 
 static void bind_perf(nb::module_& parent) {

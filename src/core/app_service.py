@@ -529,12 +529,10 @@ class AppService:
     def init_delta(self, mod_ids: list[str],
                    merge_mode: MergeMode = MergeMode.SMART,
                    mod_merge_modes: dict[str, MergeMode] | None = None,
-                   progress_cb: Callable[[int, int], None] | None = None,
-                   cancel_check: CancelCheck | None = None) -> None:
+                   progress_cb: Callable[[int, int], None] | None = None) -> None:
         self._mod_manager.init_delta(
             mod_ids, merge_mode=merge_mode,
             mod_merge_modes=mod_merge_modes, progress_cb=progress_cb,
-            cancel_check=cancel_check,
         )
 
     @async_task
@@ -554,7 +552,6 @@ class AppService:
             self.init_delta(
                 mod_ids, merge_mode, mod_merge_modes,
                 progress_cb=_progress,
-                cancel_check=handle.check_cancel,
             )
             cb(TaskDone())
         except _Cancelled:
@@ -593,7 +590,6 @@ class AppService:
             self.init_delta(
                 enabled_ids, merge_mode, mod_merge_modes,
                 progress_cb=_progress,
-                cancel_check=handle.check_cancel,
             )
             handle.check_cancel()
             cb(TaskDone(result=(remap_tables, remap_messages)))

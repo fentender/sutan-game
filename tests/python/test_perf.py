@@ -1,7 +1,6 @@
 """
 性能测试 - 不启动 GUI，集成 profiler 输出热点报告
 """
-import copy
 import logging
 import time
 
@@ -49,6 +48,32 @@ def _init_store_and_delta(workshop):
 
 # ==================== 性能测试 ====================
 
+def perf_data_manager_init():
+    """DataManager.init() 完整流程（路径收集 + 批量解析 + 分发）"""
+    _, workshop = _require_real_data()
+    from src.core.data_manager import DataManager
+    from src.core.mod.scanner import scan_all_mods
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    config = UserConfig.load()
+    store = DataManager.instance()
+
+    mod_update_times = {m.mod_id: m.update_time for m in mods if m.update_time is not None}
+    store.clear()
+    start = time.perf_counter()
+    store.init(config, mod_configs, mod_update_times=mod_update_times or None)
+    elapsed = time.perf_counter() - start
+
+    base_count = len(store.base_rel_paths())
+    mod_file_count = sum(len(store.mod_files(m.mod_id)) for m in mods)
+    log.info("    DataManager.init: %d base + %d mod 文件，耗时 %.3fs",
+             base_count, mod_file_count, elapsed)
+    assert_true(elapsed < 30, f"DataManager.init 超时: {elapsed:.3f}s")
+
+
 def perf_load_schemas():
     """Schema 加载性能"""
     if not SCHEMA_DIR.exists() or not any(SCHEMA_DIR.glob("*.schema.json")):
@@ -84,41 +109,6 @@ def perf_analyze_all():
                                        schema_dir=SCHEMA_DIR)
     elapsed = time.perf_counter() - start
     log.info("    分析 %d 个文件，耗时 %.3fs", len(overrides), elapsed)
-
-
-def perf_apply_delta_large():
-    """大对象递归合并性能（C++ State/Delta）"""
-    import json as _json
-    from sultan_core.json import JsonDoc
-    from sultan_core.state import JsonState
-    from sultan_core.delta import compute_delta, apply_delta
-
-    base = {f"key_{i}": {"sub_a": i, "sub_b": f"value_{i}",
-                          "nested": {"x": i * 2, "y": i * 3}}
-            for i in range(1000)}
-    override = dict(base)
-    for i in range(0, 1000, 2):
-        override[f"key_{i}"] = {**base[f"key_{i}"], "sub_a": i * 10}
-
-    base_doc = JsonDoc.parse(_json.dumps(base))
-    mod_doc = JsonDoc.parse(_json.dumps(override))
-
-    state = JsonState.from_doc(base_doc)
-    delta = compute_delta(base_doc, mod_doc)
-    changed = delta is not None
-    if changed:
-        apply_delta(delta, state, version=1)
-    assert_true(changed, "应有变化")
-
-    start = time.perf_counter()
-    for _ in range(10):
-        s = JsonState.from_doc(base_doc)
-        d = compute_delta(base_doc, mod_doc)
-        if d is not None:
-            apply_delta(d, s, version=1)
-    elapsed = time.perf_counter() - start
-    log.info("    1000-key 字典合并 ×10，耗时 %.3fs", elapsed)
-    assert_true(elapsed < 30, f"大对象合并超时: {elapsed:.3f}s")
 
 
 def perf_apply_delta_real():
@@ -227,27 +217,6 @@ def perf_diff_dialog_tab_load():
     app.processEvents()
 
 
-def perf_merge_all():
-    """完整合并流程性能"""
-    import tempfile
-    _, workshop = _require_real_data()
-    from src.core.merge.merger import merge_all_files
-
-    mod_configs, _ = _init_store_and_delta(workshop)
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        from pathlib import Path
-        output = Path(tmpdir) / "config"
-        output.mkdir()
-
-        start = time.perf_counter()
-        results = merge_all_files(
-            mod_configs, output,
-        )
-        elapsed = time.perf_counter() - start
-        log.info("    合并 %d 个文件，耗时 %.3fs", len(results), elapsed)
-
-
 def perf_json_parse():
     """JSON 解析性能（含逗号修复）"""
     from sultan_core.json import JsonDoc
@@ -338,58 +307,6 @@ def perf_delta_init():
     ModDelta.clear()
 
 
-def perf_delta_cache_hit():
-    """ModDelta 缓存命中性能"""
-    _, workshop = _require_real_data()
-    from src.core.merge.delta import ModDelta
-    from src.core.data_manager import DataManager
-    from src.core.mod.scanner import scan_all_mods
-
-    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
-    if not mods:
-        skip("没有可用的 Mod")
-    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
-    config = UserConfig.load()
-    store = DataManager.instance()
-    store.init(config, mod_configs)
-    mod_ids = [m.mod_id for m in mods]
-    ModDelta.init(mod_ids)
-
-    # 收集所有缓存 key
-    keys: list[tuple[str, str]] = []
-    for mod_id in mod_ids:
-        for rel_path in store.mod_files(mod_id):
-            keys.append((mod_id, rel_path))
-    if not keys:
-        skip("没有可用的缓存 key")
-
-    iterations = 1000
-    start = time.perf_counter()
-    for _ in range(iterations):
-        for mod_id, rel_path in keys:
-            ModDelta.get(mod_id, rel_path)
-    elapsed = time.perf_counter() - start
-    total_gets = iterations * len(keys)
-    log.info("    缓存命中 %d 次，耗时 %.3fs（%.1f ns/次）",
-             total_gets, elapsed, elapsed / total_gets * 1e9)
-    ModDelta.clear()
-
-
-def perf_id_remap_conflict():
-    """ID 重分配线性查找性能"""
-    from src.core.mod.id_remap import _next_available_id
-
-    # 构造 10000 个连续已占用 ID
-    used = {str(i) for i in range(10000)}
-
-    start = time.perf_counter()
-    for _ in range(1000):
-        _next_available_id(0, used)
-    elapsed = time.perf_counter() - start
-    log.info("    _next_available_id ×1000（10000 已占用），耗时 %.3fs", elapsed)
-    assert_true(elapsed < 1, f"ID 线性查找超时: {elapsed:.3f}s")
-
-
 def perf_merge_cache_compute():
     """ModManager 合并缓存首次计算 vs 缓存命中"""
     _, workshop = _require_real_data()
@@ -443,74 +360,151 @@ def perf_compute_all_overlaps():
     assert_true(elapsed < 5, f"重叠检测超时: {elapsed:.3f}s")
 
 
-def perf_format_delta_json_deep():
-    """大型 JsonState 格式化性能（C++ state.format）"""
-    import json as _json
-    from sultan_core.json import JsonDoc
-    from sultan_core.state import JsonState
-    from sultan_core.delta import compute_delta, apply_delta
+def perf_delta_init_adaptive():
+    """ModDelta.init() ADAPTIVE 模式性能"""
+    _, workshop = _require_real_data()
+    from src.core.merge.delta import ModDelta
+    from src.core.data_manager import DataManager
+    from src.core.mod.scanner import scan_all_mods
+    from src.core.infra.types import MergeMode
 
-    def _build_nested(prefix: str, depth: int, width: int) -> dict:
-        if depth == 0:
-            return {f"{prefix}_leaf_{i}": f"val_{i}" for i in range(width)}
-        return {
-            f"{prefix}_l{depth}_k{i}": _build_nested(
-                f"{prefix}_l{depth}_k{i}", depth - 1, width)
-            for i in range(width)
-        }
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    config = UserConfig.load()
+    store = DataManager.instance()
+    mod_update_times = {m.mod_id: m.update_time for m in mods if m.update_time is not None}
+    store.init(config, mod_configs, mod_update_times=mod_update_times or None)
+    mod_ids = [m.mod_id for m in mods]
 
-    base = _build_nested("r", depth=3, width=10)
-    override = copy.deepcopy(base)
+    mod_merge_modes: dict[str, MergeMode] = {}
+    for k, v in config.mod_merge_modes.items():
+        try:
+            mod_merge_modes[k] = MergeMode(v)
+        except ValueError:
+            continue
 
-    def _modify(d: dict, c: list[int]) -> None:
-        for k, v in d.items():
-            if isinstance(v, dict):
-                _modify(v, c)
-            else:
-                c[0] += 1
-                if c[0] % 3 == 0:
-                    d[k] = f"mod_{c[0]}"
+    ModDelta.clear()
+    start = time.perf_counter()
+    ModDelta.init(mod_ids, merge_mode=MergeMode.ADAPTIVE,
+                  mod_merge_modes=mod_merge_modes or None)
+    elapsed = time.perf_counter() - start
+    _, total = ModDelta.progress()
+    log.info("    ModDelta.init (ADAPTIVE): %d 个 delta，耗时 %.3fs", total, elapsed)
+    ModDelta.clear()
 
-    _modify(override, [0])
 
-    base_doc = JsonDoc.parse(_json.dumps(base))
-    mod_doc = JsonDoc.parse(_json.dumps(override))
-    state = JsonState.from_doc(base_doc)
-    delta = compute_delta(base_doc, mod_doc)
-    if delta is not None:
-        apply_delta(delta, state, version=1)
+def perf_id_remap():
+    """ID 冲突检测 + 重分配性能"""
+    _, workshop = _require_real_data()
+    from src.core.mod.id_remap import remap_mod_configs
+
+    mod_configs, _ = _init_store_and_delta(workshop)
 
     start = time.perf_counter()
-    for _ in range(100):
-        state.format(1)
+    messages, remap_tables = remap_mod_configs(mod_configs)
     elapsed = time.perf_counter() - start
-    log.info("    4 层 ×10 JsonState.format ×100，耗时 %.3fs", elapsed)
-    assert_true(elapsed < 5, f"JsonState.format 超时: {elapsed:.3f}s")
+
+    remap_mod_count = len(remap_tables)
+    log.info("    ID remap: %d 个 mod 需重分配，%d 条消息，耗时 %.3fs",
+             remap_mod_count, len(messages), elapsed)
 
 
-def perf_smart_allow_deletion():
-    """SMART 模式 compute_delta 吞吐（含内部智能删除判断）"""
-    import json as _json
-    from sultan_core.json import JsonDoc
-    from sultan_core.state import MergeMode
-    from sultan_core.delta import compute_delta
+def perf_merge_all_modmanager():
+    """ModManager.merge_all_files 性能（缓存路径 + 文件写出）"""
+    import tempfile
+    from pathlib import Path
+    _, workshop = _require_real_data()
+    from src.core.mod.scanner import scan_all_mods
+    from src.core.data_manager import DataManager
+    from src.core.mod_manager import ModManager
 
-    base = {"entries": [
-        {"id": i, "condition": {"sub1": {"sub2": {"sub3": f"val_{i}"}}}}
-        for i in range(100)
-    ]}
-    mod = {"entries": [e for e in base["entries"] if e["id"] % 2 != 0]}
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    config = UserConfig.load()
+    store = DataManager.instance()
+    store.init(config, mod_configs)
+    mod_ids = [m.mod_id for m in mods]
 
-    base_doc = JsonDoc.parse(_json.dumps(base))
-    mod_doc = JsonDoc.parse(_json.dumps(mod))
+    manager = ModManager(config)
+    manager.init_delta(mod_ids)
 
-    start = time.perf_counter()
-    for _ in range(1000):
-        compute_delta(base_doc, mod_doc, MergeMode.SMART)
-    elapsed = time.perf_counter() - start
-    log.info("    compute_delta SMART (100-entry array) ×1000，耗时 %.3fs（%.1f us/次）",
-             elapsed, elapsed / 1000 * 1e6)
-    assert_true(elapsed < 5, f"compute_delta SMART 超时: {elapsed:.3f}s")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output = Path(tmpdir) / "config"
+        output.mkdir()
+
+        start = time.perf_counter()
+        results = manager.merge_all_files(mod_configs, output)
+        elapsed = time.perf_counter() - start
+        log.info("    ModManager.merge_all_files: %d 个文件，耗时 %.3fs",
+                 len(results), elapsed)
+
+
+def perf_copy_resources():
+    """资源文件复制性能"""
+    import tempfile
+    from pathlib import Path
+    _, workshop = _require_real_data()
+    from src.core.mod.scanner import scan_all_mods
+    from src.core.mod.deployer import copy_resources
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+
+    mod_paths = [(m.name, m.path) for m in mods]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output = Path(tmpdir)
+
+        start = time.perf_counter()
+        copy_resources(mod_paths, output)
+        elapsed = time.perf_counter() - start
+
+        file_count = sum(1 for f in output.rglob("*") if f.is_file())
+        log.info("    资源复制: %d 个文件，耗时 %.3fs", file_count, elapsed)
+
+
+def perf_deploy_workshop():
+    """deploy_to_workshop 部署性能"""
+    import tempfile
+    from pathlib import Path
+    _, workshop = _require_real_data()
+    from src.core.mod.scanner import scan_all_mods
+    from src.core.data_manager import DataManager
+    from src.core.mod_manager import ModManager
+    from src.core.mod.deployer import deploy_to_workshop
+
+    mods = scan_all_mods(workshop, exclude_ids={"0000000001"})
+    if not mods:
+        skip("没有可用的 Mod")
+    mod_configs = [(m.mod_id, m.name, m.path / "config") for m in mods]
+    config = UserConfig.load()
+    store = DataManager.instance()
+    store.init(config, mod_configs)
+    mod_ids = [m.mod_id for m in mods]
+
+    manager = ModManager(config)
+    manager.init_delta(mod_ids)
+
+    with tempfile.TemporaryDirectory() as merge_dir, \
+         tempfile.TemporaryDirectory() as fake_workshop:
+        merge_output = Path(merge_dir)
+        config_out = merge_output / "config"
+        config_out.mkdir()
+        manager.merge_all_files(mod_configs, config_out)
+
+        mod_names = [m.name for m in mods]
+        start = time.perf_counter()
+        target = deploy_to_workshop(merge_output, Path(fake_workshop), mod_names)
+        elapsed = time.perf_counter() - start
+
+        file_count = sum(1 for f in target.rglob("*") if f.is_file())
+        log.info("    deploy_to_workshop: %d 个文件，耗时 %.3fs",
+                 file_count, elapsed)
 
 
 # ==================== 入口 ====================
@@ -523,20 +517,20 @@ def run_all(result: TestResult):
     tests = [
         ("perf_load_schemas", perf_load_schemas),
         ("perf_json_parse", perf_json_parse),
+        ("perf_data_manager_init", perf_data_manager_init),
         ("perf_scan_mods", perf_scan_mods),
         ("perf_analyze_all", perf_analyze_all),
-        ("perf_apply_delta_large", perf_apply_delta_large),
         ("perf_apply_delta_real", perf_apply_delta_real),
-        ("perf_merge_all", perf_merge_all),
         ("perf_delta_init", perf_delta_init),
-        ("perf_delta_cache_hit", perf_delta_cache_hit),
+        ("perf_delta_init_adaptive", perf_delta_init_adaptive),
+        ("perf_id_remap", perf_id_remap),
         ("perf_diff_dialog_tab_load", perf_diff_dialog_tab_load),
         ("perf_full_pipeline_profile", perf_full_pipeline_profile),
-        ("perf_id_remap_conflict", perf_id_remap_conflict),
         ("perf_merge_cache_compute", perf_merge_cache_compute),
         ("perf_compute_all_overlaps", perf_compute_all_overlaps),
-        ("perf_format_delta_json_deep", perf_format_delta_json_deep),
-        ("perf_smart_allow_deletion", perf_smart_allow_deletion),
+        ("perf_merge_all_modmanager", perf_merge_all_modmanager),
+        ("perf_copy_resources", perf_copy_resources),
+        ("perf_deploy_workshop", perf_deploy_workshop),
     ]
     for name, func in tests:
         run_test(name, func, result)

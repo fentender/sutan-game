@@ -10,20 +10,17 @@ from collections import defaultdict
 
 from sultan_core.delta import (
     DeltaDict,
-    apply_delta,
-    compute_delta,
-    remap_delta,
+    batch_process_all_groups as _cpp_batch,
 )
-from sultan_core.state import JsonState, MergeMode as CppMergeMode
+from sultan_core.json import JsonDoc
+from sultan_core.state import MergeMode as CppMergeMode
 
 from ..data_manager import DataManager
 from ..infra.profiler import profile
 from ..infra.types import (
-    CancelCheck,
     MergeMode,
     ProgressCallback,
 )
-from sultan_core.json_ops import classify_json
 
 # ==================== MergeMode 映射 ====================
 
@@ -52,56 +49,6 @@ def _effective_mode(
     return merge_mode
 
 
-@profile
-def _process_file_group(
-    rel_path: str,
-    file_mod_ids: list[str],
-    dm: DataManager,
-    merge_mode: MergeMode,
-    mod_merge_modes: dict[str, MergeMode] | None,
-) -> list[tuple[str, str, DeltaDict | None]]:
-    """处理单个文件的所有 mod delta 计算（C++ API）。"""
-    base_doc = dm.get_base(rel_path)
-    is_dict = classify_json(base_doc) == "dictionary"
-
-    state: JsonState | None = None
-    results: list[tuple[str, str, DeltaDict | None]] = []
-
-    for mod_id in file_mod_ids:
-        effective = _effective_mode(mod_id, merge_mode, mod_merge_modes)
-        mod_doc = dm.get_mod(mod_id, rel_path)
-        cpp_mode = _to_cpp_mode(effective)
-
-        if effective == MergeMode.REPLACE:
-            cumulative_doc = state.to_doc() if state is not None else base_doc
-            delta = compute_delta(
-                cumulative_doc, mod_doc, cpp_mode, is_dict,
-            )
-        elif effective == MergeMode.ADAPTIVE:
-            hist_doc = dm.get_history_base(mod_id, rel_path)
-            adaptive_doc = hist_doc if hist_doc is not None else base_doc
-            delta = compute_delta(
-                adaptive_doc, mod_doc, cpp_mode, is_dict,
-            )
-            if hist_doc is not None and delta is not None:
-                if not remap_delta(delta, hist_doc, base_doc):
-                    delta = None
-        else:
-            delta = compute_delta(
-                base_doc, mod_doc, cpp_mode, is_dict,
-            )
-
-        valid = delta is not None
-        results.append((mod_id, rel_path, delta if valid else None))
-
-        if valid:
-            if state is None:
-                state = JsonState.from_doc(base_doc)
-            apply_delta(delta, state, version=0)
-
-    return results
-
-
 # ==================== 全局 Delta 缓存 ====================
 
 
@@ -116,13 +63,13 @@ class ModDelta:
     _progress: tuple[int, int] = (0, 0)
 
     @classmethod
+    @profile
     def init(
         cls,
         mod_ids: list[str],
         progress_cb: ProgressCallback | None = None,
         merge_mode: MergeMode = MergeMode.SMART,
         mod_merge_modes: dict[str, MergeMode] | None = None,
-        cancel_check: CancelCheck | None = None,
     ) -> None:
         dm = DataManager.instance()
 
@@ -132,25 +79,42 @@ class ModDelta:
                 tasks_by_file[rel_path].append(mod_id)
 
         total = sum(len(mids) for mids in tasks_by_file.values())
-        completed = 0
         cls._cache.clear()
         cls._progress = (0, total)
         if progress_cb:
             progress_cb(0, total)
 
+        base_docs_list: list[JsonDoc] = []
+        group_offsets: list[int] = []
+        flat_modes: list[CppMergeMode] = []
+        flat_mod_docs: list[JsonDoc] = []
+        flat_hist_docs: list[JsonDoc | None] = []
+        flat_keys: list[tuple[str, str]] = []
+
         for rel_path, file_mod_ids in tasks_by_file.items():
-            if cancel_check:
-                cancel_check()
-            results = _process_file_group(
-                rel_path, file_mod_ids, dm,
-                merge_mode, mod_merge_modes,
-            )
-            for mod_id, rp, delta in results:
-                cls._cache[(mod_id, rp)] = delta
-                completed += 1
-                cls._progress = (completed, total)
-            if progress_cb:
-                progress_cb(completed, total)
+            base_docs_list.append(dm.get_base(rel_path))
+            group_offsets.append(len(flat_modes))
+            for mod_id in file_mod_ids:
+                effective = _effective_mode(mod_id, merge_mode, mod_merge_modes)
+                flat_modes.append(_to_cpp_mode(effective))
+                flat_mod_docs.append(dm.get_mod(mod_id, rel_path))
+                flat_hist_docs.append(
+                    dm.get_history_base(mod_id, rel_path)
+                    if effective == MergeMode.ADAPTIVE else None
+                )
+                flat_keys.append((mod_id, rel_path))
+
+        deltas = _cpp_batch(
+            base_docs_list, group_offsets,
+            flat_modes, flat_mod_docs, flat_hist_docs,
+        )
+
+        for (mod_id, rel_path), delta in zip(flat_keys, deltas):
+            cls._cache[(mod_id, rel_path)] = delta
+
+        cls._progress = (total, total)
+        if progress_cb:
+            progress_cb(total, total)
 
     @classmethod
     def get(cls, mod_id: str, rel_path: str) -> DeltaDict | None:

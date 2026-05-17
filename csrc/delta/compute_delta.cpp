@@ -1,7 +1,10 @@
 #include "compute_delta.h"
+#include "apply_delta.h"
 #include "array_match.h"
 #include "delta_rules.h"
 #include "json_doc.h"
+#include "json_ops.h"
+#include "json_state.h"
 #include "json_val.h"
 #include "perf.h"
 #include "state_node.h"
@@ -529,6 +532,84 @@ bool remap_delta_to_current(
     JsonVal cur = current_base.root();
     assert(hist.is_obj() && cur.is_obj());
     return remap_dict_diff(delta, hist, cur);
+}
+
+// ── process_file_group ──
+
+std::vector<std::unique_ptr<DeltaDict>> process_file_group(
+    const JsonDoc& base_doc,
+    const std::vector<FileGroupInput>& inputs)
+{
+    SULTAN_PERF_SCOPE("process_file_group");
+    bool is_dict = (classify_json(base_doc) == "dictionary");
+    std::unique_ptr<JsonState> state;
+    std::vector<std::unique_ptr<DeltaDict>> results;
+    results.reserve(inputs.size());
+
+    for (auto& inp : inputs) {
+        DeltaNodePtr delta_node;
+
+        if (inp.mode == MergeMode::Replace) {
+            if (state) {
+                JsonDoc cumulative = state->to_doc();
+                delta_node = compute_delta(
+                    cumulative, *inp.mod_doc, inp.mode, is_dict);
+            } else {
+                delta_node = compute_delta(
+                    base_doc, *inp.mod_doc, inp.mode, is_dict);
+            }
+        } else if (inp.mode == MergeMode::Adaptive && inp.hist_doc) {
+            delta_node = compute_delta(
+                *inp.hist_doc, *inp.mod_doc, inp.mode, is_dict);
+            if (delta_node && delta_node->type() == DeltaType::Dict) {
+                if (!remap_delta_to_current(
+                        delta_node->as_dict(), *inp.hist_doc, base_doc))
+                    delta_node.reset();
+            }
+        } else {
+            delta_node = compute_delta(
+                base_doc, *inp.mod_doc, inp.mode, is_dict);
+        }
+
+        std::unique_ptr<DeltaDict> dd;
+        if (delta_node && delta_node->type() == DeltaType::Dict)
+            dd.reset(static_cast<DeltaDict*>(delta_node.release()));
+
+        if (dd) {
+            if (!state) {
+                auto s = JsonState::from_doc(base_doc);
+                state = make_unique<JsonState>(std::move(s));
+            }
+            apply_delta_to_state(*state, *dd, nullptr, 0, false);
+        }
+
+        results.push_back(std::move(dd));
+    }
+    return results;
+}
+
+std::vector<std::unique_ptr<DeltaDict>> batch_process_all_groups(
+    const std::vector<const JsonDoc*>& base_docs,
+    const std::vector<size_t>& group_offsets,
+    const std::vector<FileGroupInput>& flat_inputs)
+{
+    SULTAN_PERF_SCOPE("batch_process_all_groups");
+    std::vector<std::unique_ptr<DeltaDict>> all_results;
+    all_results.reserve(flat_inputs.size());
+
+    for (size_t g = 0; g < base_docs.size(); ++g) {
+        size_t begin = group_offsets[g];
+        size_t end = (g + 1 < group_offsets.size())
+                     ? group_offsets[g + 1]
+                     : flat_inputs.size();
+        std::vector<FileGroupInput> group_inputs(
+            flat_inputs.begin() + begin,
+            flat_inputs.begin() + end);
+        auto results = process_file_group(*base_docs[g], group_inputs);
+        for (auto& r : results)
+            all_results.push_back(std::move(r));
+    }
+    return all_results;
 }
 
 }  // namespace sultan
