@@ -41,78 +41,401 @@ static void write_raw(const std::string& path, const std::string& content) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// 清洗测试
+// 清洗测试 — 缺失逗号（对象）
+// 期望值对照 jsonrepair CLI 输出
 // ═══════════════════════════════════════════════════════════
 
-TEST_CASE("json: fix_missing_commas after string value") {
-    // 逗号插入在空白前，空白保留
-    auto result = fix_missing_commas(R"({"a":"x" "b":"y"})");
+TEST_CASE("json: clean missing comma after string value") {
+    auto result = clean_text(R"({"a":"x" "b":"y"})");
     REQUIRE(result == R"({"a":"x", "b":"y"})");
 }
 
-TEST_CASE("json: fix_missing_commas after number") {
-    auto result = fix_missing_commas(R"({"a":1 "b":2})");
+TEST_CASE("json: clean missing comma after number") {
+    auto result = clean_text(R"({"a":1 "b":2})");
     REQUIRE(result == R"({"a":1, "b":2})");
 }
 
-TEST_CASE("json: fix_missing_commas after bool") {
-    auto result = fix_missing_commas(R"({"a":true "b":false})");
+TEST_CASE("json: clean missing comma after bool") {
+    auto result = clean_text(R"({"a":true "b":false})");
     REQUIRE(result == R"({"a":true, "b":false})");
 }
 
-TEST_CASE("json: fix_missing_commas after null") {
-    auto result = fix_missing_commas(R"({"a":null "b":1})");
+TEST_CASE("json: clean missing comma after null") {
+    auto result = clean_text(R"({"a":null "b":1})");
     REQUIRE(result == R"({"a":null, "b":1})");
 }
 
-TEST_CASE("json: fix_missing_commas after close brace") {
-    auto result = fix_missing_commas(R"({"a":{} "b":1})");
+TEST_CASE("json: clean missing comma after close brace") {
+    auto result = clean_text(R"({"a":{} "b":1})");
     REQUIRE(result == R"({"a":{}, "b":1})");
 }
 
-TEST_CASE("json: fix_missing_commas after close bracket") {
-    auto result = fix_missing_commas(R"({"a":[] "b":1})");
+TEST_CASE("json: clean missing comma after close bracket") {
+    auto result = clean_text(R"({"a":[] "b":1})");
     REQUIRE(result == R"({"a":[], "b":1})");
 }
 
-TEST_CASE("json: fix_missing_commas after negative number") {
-    auto result = fix_missing_commas(R"({"a":-1 "b":2})");
+TEST_CASE("json: clean missing comma after negative number") {
+    auto result = clean_text(R"({"a":-1 "b":2})");
     REQUIRE(result == R"({"a":-1, "b":2})");
 }
 
-TEST_CASE("json: fix_missing_commas no false positive") {
+TEST_CASE("json: clean no false positive") {
     std::string input = R"({"a":1,"b":"hello","c":true})";
-    auto result = fix_missing_commas(input);
+    auto result = clean_text(input);
     REQUIRE(result == input);
 }
 
-TEST_CASE("json: fix_missing_commas preserves strings") {
-    auto result = fix_missing_commas(R"({"a":"hello world" "b":1})");
+TEST_CASE("json: clean preserves strings") {
+    auto result = clean_text(R"({"a":"hello world" "b":1})");
     REQUIRE(result == R"({"a":"hello world", "b":1})");
 }
 
-TEST_CASE("json: strip_duplicate_commas basic") {
-    auto result = strip_duplicate_commas(R"({"a":1,,,"b":2})");
+// ═══════════════════════════════════════════════════════════
+// 清洗测试 — 重复逗号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean duplicate commas basic") {
+    // jsonrepair: {"a":1,,,"b":2} → {"a":1,"b":2}
+    auto result = clean_text(R"({"a":1,,,"b":2})");
     REQUIRE(result == R"({"a":1,"b":2})");
 }
 
-TEST_CASE("json: strip_duplicate_commas with whitespace") {
-    auto result = strip_duplicate_commas("{\"a\":1, , \"b\":2}");
-    // 第一个逗号保留，后续空白保留，多余逗号跳过，空白保留
-    REQUIRE(result == "{\"a\":1,  \"b\":2}");
+TEST_CASE("json: clean duplicate commas with whitespace") {
+    // jsonrepair: {"a":1, , "b":2} → {"a":1 , "b":2}
+    auto result = clean_text("{\"a\":1, , \"b\":2}");
+    REQUIRE(result == "{\"a\":1 , \"b\":2}");
 }
 
-TEST_CASE("json: strip_duplicate_commas preserves strings") {
-    auto result = strip_duplicate_commas(R"({"a":",,","b":1})");
+TEST_CASE("json: clean duplicate commas preserves strings") {
+    auto result = clean_text(R"({"a":",,","b":1})");
     REQUIRE(result == R"({"a":",,","b":1})");
 }
 
-TEST_CASE("json: clean_text combined") {
-    // 同时有缺失逗号和连续逗号
+TEST_CASE("json: clean combined missing and duplicate commas") {
+    // jsonrepair: {"a":1 "b":2,,,"c":3} → {"a":1, "b":2,"c":3}
     auto result = clean_text(R"({"a":1 "b":2,,,"c":3})");
-    // fix_missing_commas: {"a":1, "b":2,,,"c":3}
-    // strip_duplicate_commas: {"a":1, "b":2,"c":3}
     REQUIRE(result == R"({"a":1, "b":2,"c":3})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 清洗测试 — 数组缺逗号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean array missing comma strings") {
+    auto result = clean_text(R"(["a" "b" "c"])");
+    REQUIRE(result == R"(["a", "b", "c"])");
+}
+
+TEST_CASE("json: clean array missing comma numbers") {
+    auto result = clean_text("[1 2 3]");
+    REQUIRE(result == "[1, 2, 3]");
+}
+
+TEST_CASE("json: clean array missing comma booleans") {
+    auto result = clean_text("[true false null]");
+    REQUIRE(result == "[true, false, null]");
+}
+
+TEST_CASE("json: clean array missing comma objects") {
+    auto result = clean_text(R"([{"a":1} {"b":2}])");
+    REQUIRE(result == R"([{"a":1}, {"b":2}])");
+}
+
+TEST_CASE("json: clean array missing comma arrays") {
+    auto result = clean_text("[[1] [2]]");
+    REQUIRE(result == "[[1], [2]]");
+}
+
+TEST_CASE("json: clean array missing comma mixed") {
+    auto result = clean_text(R"([1 "a" true null])");
+    REQUIRE(result == R"([1, "a", true, null])");
+}
+
+TEST_CASE("json: clean array missing comma negative") {
+    auto result = clean_text("[1 -2 3]");
+    REQUIRE(result == "[1, -2, 3]");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 中文引号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean chinese double quotes pair") {
+    auto result = clean_text("{" "\xE2\x80\x9C" "a" "\xE2\x80\x9D" ":1}");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean chinese double quotes left-ascii") {
+    auto result = clean_text("{" "\xE2\x80\x9C" "a\"" ":1}");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean chinese double quotes in value") {
+    auto result = clean_text("{" "\xE2\x80\x9C" "a" "\xE2\x80\x9D" ":" "\xE2\x80\x9C" "hello" "\xE2\x80\x9D" "}");
+    REQUIRE(result == R"({"a":"hello"})");
+}
+
+TEST_CASE("json: clean chinese quotes content preserved in ascii string") {
+    // ASCII " 开头 → 只有 ASCII " 能关闭 → 中文引号是内容
+    auto result = clean_text("{\"a\":\"" "\xE2\x80\x9C" "hi" "\xE2\x80\x9D" "\"}");
+    // jsonrepair: {"a":"<U+201C>hi<U+201D>"}
+    auto expected = "{\"a\":\"" "\xE2\x80\x9C" "hi" "\xE2\x80\x9D" "\"}";
+    REQUIRE(result == expected);
+}
+
+// ═══════════════════════════════════════════════════════════
+// 单引号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean single quotes") {
+    auto result = clean_text("{'a':1,'b':'hello'}");
+    REQUIRE(result == R"({"a":1,"b":"hello"})");
+}
+
+TEST_CASE("json: clean backtick quotes") {
+    auto result = clean_text("{`a`:1}");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean fancy single quotes") {
+    auto result = clean_text("{" "\xE2\x80\x98" "a" "\xE2\x80\x99" ":1}");
+    REQUIRE(result == R"({"a":1})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 键名无引号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean unquoted keys") {
+    auto result = clean_text("{name:\"test\",count:42}");
+    REQUIRE(result == R"({"name":"test","count":42})");
+}
+
+TEST_CASE("json: clean unquoted key with underscore") {
+    auto result = clean_text("{my_key:1}");
+    REQUIRE(result == R"({"my_key":1})");
+}
+
+TEST_CASE("json: clean unquoted key with digits") {
+    auto result = clean_text("{key123:1}");
+    REQUIRE(result == R"({"key123":1})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 缺少冒号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean missing colon") {
+    // jsonrepair: {"a" 1} → {"a": 1}
+    auto result = clean_text(R"({"a" 1})");
+    REQUIRE(result == R"({"a": 1})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 注释
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean line comment stripped") {
+    // jsonrepair: // comment\n{"a":1} → \n{"a":1}
+    auto result = clean_text("// comment\n{\"a\":1}");
+    REQUIRE(result == "\n{\"a\":1}");
+}
+
+TEST_CASE("json: clean block comment stripped") {
+    auto result = clean_text("/* comment */{\"a\":1}");
+    REQUIRE(result == "{\"a\":1}");
+}
+
+TEST_CASE("json: clean inline comment stripped") {
+    // jsonrepair: {"a":1 /* inline */ ,"b":2} → {"a":1  ,"b":2}
+    auto result = clean_text("{\"a\":1 /* inline */ ,\"b\":2}");
+    REQUIRE(result == "{\"a\":1  ,\"b\":2}");
+}
+
+TEST_CASE("json: clean comment between values") {
+    // jsonrepair: {"a":1,// comment\n"b":2} → {"a":1,\n"b":2}
+    auto result = clean_text("{\"a\":1,// comment\n\"b\":2}");
+    REQUIRE(result == "{\"a\":1,\n\"b\":2}");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 尾随逗号 / 开头多余逗号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean trailing comma object") {
+    auto result = clean_text(R"({"a":1,"b":2,})");
+    REQUIRE(result == R"({"a":1,"b":2})");
+}
+
+TEST_CASE("json: clean trailing comma array") {
+    auto result = clean_text("[1,2,3,]");
+    REQUIRE(result == "[1,2,3]");
+}
+
+TEST_CASE("json: clean leading comma object") {
+    auto result = clean_text(R"({,"a":1})");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean leading comma array") {
+    auto result = clean_text("[,1,2]");
+    REQUIRE(result == "[1,2]");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 缺失 / 多余括号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean missing closing brace") {
+    auto result = clean_text(R"({"a":1)");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean missing closing bracket") {
+    auto result = clean_text("[1,2,3");
+    REQUIRE(result == "[1,2,3]");
+}
+
+TEST_CASE("json: clean extra closing brace") {
+    auto result = clean_text(R"({"a":1}})");
+    REQUIRE(result == R"({"a":1})");
+}
+
+TEST_CASE("json: clean extra closing bracket") {
+    auto result = clean_text("[1,2]]");
+    REQUIRE(result == "[1,2]");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 缺少 Object 值
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean missing object value comma") {
+    auto result = clean_text(R"({"a":,"b":2})");
+    REQUIRE(result == R"({"a":null,"b":2})");
+}
+
+TEST_CASE("json: clean missing object value end") {
+    auto result = clean_text(R"({"a":})");
+    REQUIRE(result == R"({"a":null})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 数字截断
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean truncated decimal") {
+    auto result = clean_text("[2.]");
+    REQUIRE(result == "[2.0]");
+}
+
+TEST_CASE("json: clean truncated exponent") {
+    auto result = clean_text("[1e]");
+    REQUIRE(result == "[1e0]");
+}
+
+TEST_CASE("json: clean truncated exponent with sign") {
+    auto result = clean_text("[1e+]");
+    REQUIRE(result == "[1e+0]");
+}
+
+// ═══════════════════════════════════════════════════════════
+// Python 关键字
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean Python True") {
+    auto result = clean_text("[True]");
+    REQUIRE(result == "[true]");
+}
+
+TEST_CASE("json: clean Python False") {
+    auto result = clean_text("[False]");
+    REQUIRE(result == "[false]");
+}
+
+TEST_CASE("json: clean Python None") {
+    auto result = clean_text("[None]");
+    REQUIRE(result == "[null]");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 省略号
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean ellipsis in array") {
+    auto result = clean_text("[1,2,3,...]");
+    REQUIRE(result == "[1,2,3]");
+}
+
+TEST_CASE("json: clean ellipsis in object") {
+    auto result = clean_text(R"({"a":1,...})");
+    REQUIRE(result == R"({"a":1})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 转义处理
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean valid escapes preserved") {
+    auto result = clean_text(R"({"a":"hello\nworld"})");
+    REQUIRE(result == R"({"a":"hello\nworld"})");
+}
+
+TEST_CASE("json: clean invalid escape stripped") {
+    auto result = clean_text(R"({"a":"hello\xworld"})");
+    REQUIRE(result == R"({"a":"helloxworld"})");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 特殊空白
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean fullwidth space") {
+    std::string input = "{" "\xE3\x80\x80" "\"a\":1}";
+    auto result = clean_text(input);
+    REQUIRE(result == "{ \"a\":1}");
+}
+
+TEST_CASE("json: clean non-breaking space") {
+    std::string input = "{" "\xC2\xA0" "\"a\":1}";
+    auto result = clean_text(input);
+    REQUIRE(result == "{ \"a\":1}");
+}
+
+// ═══════════════════════════════════════════════════════════
+// 换行自动关闭字符串
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean unclosed string at newline") {
+    // jsonrepair: {"a":"hello\n} → {"a":"hello"\n}
+    auto result = clean_text("{\"a\":\"hello\n}");
+    auto doc = JsonDoc::parse(result, false);
+    REQUIRE(doc.valid());
+}
+
+// ═══════════════════════════════════════════════════════════
+// 集成测试
+// ═══════════════════════════════════════════════════════════
+
+TEST_CASE("json: clean multiple issues combined") {
+    std::string input =
+        "// header comment\n"
+        "{" "\xE2\x80\x9C" "a" "\xE2\x80\x9D" ":1 "
+        "\xE2\x80\x9C" "b" "\xE2\x80\x9D" ":2,}";
+    auto result = clean_text(input);
+    auto doc = JsonDoc::parse(result, false);
+    REQUIRE(doc.valid());
+}
+
+TEST_CASE("json: clean complex nested") {
+    auto result = clean_text(R"({"items":[{"id":1 "name":"a"} {"id":2 "name":"b"}] "count":2})");
+    REQUIRE(result == R"({"items":[{"id":1, "name":"a"}, {"id":2, "name":"b"}], "count":2})");
+}
+
+TEST_CASE("json: clean empty input") {
+    auto result = clean_text("");
+    REQUIRE(result == "");
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -136,7 +459,6 @@ TEST_CASE("json: parse with trailing commas") {
 }
 
 TEST_CASE("json: parse with missing commas") {
-    // clean=true（默认）时通过 clean_text 修复
     auto doc = JsonDoc::parse(R"({"a":1 "b":2})");
     REQUIRE(doc.valid());
 }
@@ -148,11 +470,11 @@ TEST_CASE("json: parse with BOM in text") {
 }
 
 TEST_CASE("json: parse invalid json throws") {
-    REQUIRE_THROWS_AS(JsonDoc::parse("{invalid"), std::runtime_error);
+    // {invalid} has key "invalid" but no colon → throwColonExpected
+    REQUIRE_THROWS_AS(JsonDoc::parse("{invalid}"), std::runtime_error);
 }
 
 TEST_CASE("json: parse clean=false skips cleaning") {
-    // clean=false 且 JSON 有缺失逗号 → 解析失败
     REQUIRE_THROWS_AS(
         JsonDoc::parse(R"({"a":1 "b":2})", false),
         std::runtime_error);
@@ -176,7 +498,6 @@ TEST_CASE("json: duplicate keys preserved in serialization") {
     auto doc = JsonDoc::parse(R"({"a":1,"a":2})");
     REQUIRE(doc.valid());
     auto output = doc.to_string(true);
-    // 输出应包含两个 "a"
     size_t first = output.find("\"a\"");
     REQUIRE(first != std::string::npos);
     size_t second = output.find("\"a\"", first + 1);
@@ -201,23 +522,19 @@ TEST_CASE("json: duplicate keys roundtrip") {
 TEST_CASE("json: to_string pretty") {
     auto doc = JsonDoc::parse(R"({"a":1,"b":2})");
     auto output = doc.to_string(false);
-    // pretty 输出应包含换行
     REQUIRE(output.find('\n') != std::string::npos);
-    // 应包含缩进空格
     REQUIRE(output.find("    ") != std::string::npos);
 }
 
 TEST_CASE("json: to_string compact") {
     auto doc = JsonDoc::parse(R"({"a":1,"b":2})");
     auto output = doc.to_string(true);
-    // compact 不应包含换行
     REQUIRE(output.find('\n') == std::string::npos);
 }
 
 TEST_CASE("json: to_string null doc throws") {
     auto doc = JsonDoc::parse("{}");
     auto moved = std::move(doc);
-    // doc 现在为空
     REQUIRE_THROWS_AS(doc.to_string(), std::runtime_error);
 }
 
