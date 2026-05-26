@@ -6,10 +6,12 @@
 #include "perf.h"
 #include <algorithm>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace sultan {
 
 using std::make_unique;
+using std::unordered_map;
 
 // ── JsonVal → StateNodePtr 递归 ──
 
@@ -88,14 +90,8 @@ static MutVal state_to_val(const StateBase& node, MutVal ctx);
 
 static MutVal dict_to_val(const JsonDictState& dict, MutVal ctx) {
     auto obj = ctx.new_obj();
-    vector<string> keys;
-    keys.reserve(dict.entries.size());
-    for (auto& [k, _] : dict.entries) keys.push_back(k);
-    std::sort(keys.begin(), keys.end());
 
-    for (auto& k : keys) {
-        auto it = dict.entries.find(k);
-        auto& child = it->second;
+    for (auto& [k, child] : dict.entries) {
         if (!child) continue;
         if (is_deleted(base_kind(child->kind()))) continue;
 

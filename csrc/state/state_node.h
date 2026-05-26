@@ -4,14 +4,13 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include "ordered_map/ordered_map.h"
 #include <vector>
 
 namespace sultan {
 
 using std::string;
 using std::unique_ptr;
-using std::unordered_map;
 using std::vector;
 
 struct JsonElementState;
@@ -64,7 +63,7 @@ struct JsonElementState : StateBase {
 struct JsonDictState : StateBase {
     ChangeKind kind_ = ChangeKind::Origin;
     int version = 0;
-    unordered_map<string, StateNodePtr> entries;
+    ordered_map<string, StateNodePtr> entries;
 
     JsonDictState() : StateBase(StateType::Dict) {}
 

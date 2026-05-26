@@ -31,15 +31,8 @@ static string serialize_dict(const JsonDictState& dict, int indent, int level,
     string current_ind(indent * level, ' ');
     string next_ind(indent * (level + 1), ' ');
 
-    vector<string> keys;
-    keys.reserve(dict.entries.size());
-    for (auto& [k, _] : dict.entries) keys.push_back(k);
-    std::sort(keys.begin(), keys.end());
-
     vector<string> parts;
-    for (auto& key : keys) {
-        auto it = dict.entries.find(key);
-        auto& entry = it->second;
+    for (auto& [key, entry] : dict.entries) {
         if (!entry) continue;
         if (!ignore_deleted && is_deleted(base_kind(entry->kind()))) continue;
         string key_str = json_encode_key(key);
@@ -203,15 +196,8 @@ static FieldKindResult get_field_kind(const StateBase& entry, int highlight_vers
 static vector<pair<string, const StateBase*>> collect_dict_entries(
     const JsonDictState& dd, int highlight_version
 ) {
-    vector<string> keys;
-    keys.reserve(dd.entries.size());
-    for (auto& [k, _] : dd.entries) keys.push_back(k);
-    std::sort(keys.begin(), keys.end());
-
     vector<pair<string, const StateBase*>> result;
-    for (auto& key : keys) {
-        auto it = dd.entries.find(key);
-        auto& entry = it->second;
+    for (auto& [key, entry] : dd.entries) {
         if (!entry) continue;
         if (entry->is_element()) {
             auto& elem = entry->as_element();
