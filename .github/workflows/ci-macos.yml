@@ -151,18 +151,20 @@ jobs:
           TITLE="[v${VERSION}] Mod 冲突合并工具"
           API="https://gitee.com/api/v5/repos/fentende125/sutan-game/releases"
 
-          RELEASE_ID=$(curl -s "${API}?access_token=${GITEE_TOKEN}" | \
+          CURL_OPTS="--connect-timeout 30 --retry 3 --retry-delay 5"
+
+          RELEASE_ID=$(curl -s $CURL_OPTS "${API}?access_token=${GITEE_TOKEN}" | \
             python3 -c "import sys,json; releases=json.load(sys.stdin); print(next((r['id'] for r in releases if r.get('tag_name')=='${TAG}'), ''))" 2>/dev/null || true)
 
           if [ -z "$RELEASE_ID" ]; then
-            RESPONSE=$(curl -s -X POST "$API" \
+            RESPONSE=$(curl -s $CURL_OPTS -X POST "$API" \
               -H "Content-Type: application/json" \
               -d "{\"access_token\":\"${GITEE_TOKEN}\",\"tag_name\":\"${TAG}\",\"name\":\"${TITLE}\",\"body\":\"CI 自动发布 v${VERSION}\",\"target_commitish\":\"master\"}")
             RELEASE_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || true)
           fi
 
           if [ -n "$RELEASE_ID" ]; then
-            curl -s -X POST "${API}/${RELEASE_ID}/attach_files" \
+            curl -s $CURL_OPTS -X POST "${API}/${RELEASE_ID}/attach_files" \
               -F "access_token=${GITEE_TOKEN}" \
               -F "file=@artifacts/${ZIP_NAME}" || echo "Gitee 附件上传失败"
           fi

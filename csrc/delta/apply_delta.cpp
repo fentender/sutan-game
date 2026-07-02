@@ -306,6 +306,12 @@ static StateNodePtr apply_delta_entry(
         existing_holder = JsonArrayState::wrap(existing->clone(), dp->as_array().is_duplist);
         ep = existing_holder.get();
     }
+    // DeltaArray + existing=nullptr → 创建空 ArrayState（DupList 新增场景）
+    else if (dp->type() == DeltaType::Array && !ep) {
+        existing_holder = make_unique<JsonArrayState>();
+        existing_holder->as_array().is_duplist = dp->as_array().is_duplist;
+        ep = existing_holder.get();
+    }
     // DeltaElement + existing=array → wrap diff
     else if (dp->type() == DeltaType::Element && ep && ep->is_array()) {
         diff_holder = DeltaArray::wrap(dp->clone(), ep->as_array().is_duplist);

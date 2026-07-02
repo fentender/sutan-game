@@ -380,8 +380,8 @@ static bool remap_node(DeltaNodePtr& d, JsonVal hv, JsonVal cv) {
             return remap_dict_diff(d->as_dict(), hv, cv)
                 && !d->as_dict().empty();
         case DeltaType::Array: {
-            if (!hv.valid() || !cv.valid()) return false;
             auto to_elems = [](JsonVal v) -> vector<JsonVal> {
+                if (!v.valid()) return {};
                 if (v.is_arr()) return collect_arr(v);
                 return {v};
             };

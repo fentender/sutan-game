@@ -1121,3 +1121,79 @@ TEST_CASE("delta: format deleted then later mod no ghost highlight") {
         }
     }
 }
+
+// ==================== remap duplist newly added ====================
+
+TEST_CASE("delta: remap preserves newly added duplist field") {
+    // hist: "any"中有"all"(object)但没有"is"
+    // mod:  "any"中有重复"is"(DupList), 没有"all"
+    // cur:  和hist相同
+    // 期望：remap后delta保留"is"的DeltaArray，apply后结果含"is"DupList
+    auto hist = JsonDoc::parse(R"({
+        "id": "test",
+        "condition": {
+            "any": {
+                "all": {"type": "char"}
+            }
+        }
+    })");
+    auto mod = JsonDoc::parse(R"({
+        "id": "test",
+        "condition": {
+            "any": {
+                "is": 2200006,
+                "is": 2200010
+            }
+        }
+    })");
+    auto current = JsonDoc::parse(R"({
+        "id": "test",
+        "condition": {
+            "any": {
+                "all": {"type": "char"}
+            }
+        }
+    })");
+
+    auto delta = compute_delta(hist, mod, MergeMode::Normal);
+    REQUIRE(delta != nullptr);
+
+    // delta的any子dict应该含有"is"字段（DeltaArray, is_duplist=true）
+    auto* cond = delta->as_dict().find("condition");
+    REQUIRE(cond != nullptr);
+    auto* any_d = cond->as_dict().find("any");
+    REQUIRE(any_d != nullptr);
+    auto* is_d = any_d->as_dict().find("is");
+    REQUIRE(is_d != nullptr);
+    REQUIRE(is_d->type() == DeltaType::Array);
+    REQUIRE(is_d->as_array().is_duplist);
+
+    // remap不应丢弃"is"
+    bool remapped = remap_delta_to_current(delta->as_dict(), hist, current);
+    REQUIRE(remapped);
+
+    // remap后"is"仍在
+    auto* cond2 = delta->as_dict().find("condition");
+    REQUIRE(cond2 != nullptr);
+    auto* any_d2 = cond2->as_dict().find("any");
+    REQUIRE(any_d2 != nullptr);
+    auto* is_d2 = any_d2->as_dict().find("is");
+    REQUIRE(is_d2 != nullptr);  // 当前bug：is被丢弃，这里会失败
+
+    // apply后结果应含重复"is"
+    auto state = JsonState::from_doc(current);
+    apply_delta_to_state(state, delta->as_dict(), nullptr, 1, false);
+    auto result = state.to_doc();
+
+    auto any_result = result.root().obj_get("condition").obj_get("any");
+    REQUIRE(any_result.valid());
+
+    // 验证"is"存在且有2个值
+    int is_count = 0;
+    auto obj_it = any_result.obj_iter();
+    JsonVal::ObjEntry oe;
+    while (obj_it.next(oe)) {
+        if (std::string(oe.key, oe.key_len) == "is") ++is_count;
+    }
+    REQUIRE(is_count == 2);
+}
