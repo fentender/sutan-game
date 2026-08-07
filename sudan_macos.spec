@@ -7,6 +7,15 @@ macOS PyInstaller 打包配置
 """
 import importlib.util
 import os
+import re
+from pathlib import Path
+
+
+_config_source = Path('src/config.py').read_text(encoding='utf-8')
+_version_match = re.search(r'APP_VERSION\s*=\s*"([^"]+)"', _config_source)
+if _version_match is None:
+    raise RuntimeError('Unable to determine APP_VERSION from src/config.py')
+APP_VERSION = _version_match.group(1)
 
 # 自动检测 sultan_core .so 路径
 _sultan_core_spec = importlib.util.find_spec('sultan_core')
@@ -72,22 +81,6 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data)
 
-# 过滤不需要的 Qt 框架
-_exclude_frameworks = {
-    'QtQuick',
-    'QtQml',
-    'QtPdf',
-    'QtOpenGL',
-    'QtNetwork',
-    'QtSvg',
-    'QtVirtualKeyboard',
-    'QtQmlModels',
-    'QtQmlMeta',
-    'QtQmlWorkerScript',
-}
-a.binaries = [b for b in a.binaries
-              if not any(fw in b[0] for fw in _exclude_frameworks)]
-
 exe = EXE(
     pyz,
     a.scripts,
@@ -119,4 +112,9 @@ app = BUNDLE(
     name='SuDanModMerger.app',
     icon='app.icns',
     bundle_identifier='com.sudan.modmerger',
+    version=APP_VERSION,
+    info_plist={
+        'CFBundleVersion': APP_VERSION,
+        'LSMinimumSystemVersion': '15.0',
+    },
 )
