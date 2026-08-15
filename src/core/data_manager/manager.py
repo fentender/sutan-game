@@ -5,11 +5,11 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
-from sultan_core.json import JsonDoc
 from sultan_core.delta import DeltaDict, serialize_delta
 from sultan_core.diag import get_manager as _get_c_diag
+from sultan_core.json import JsonDoc
 
-from ...config import ConfigChangeEvent, HISTORY_DIR, MOD_OVERRIDES_DIR, UserConfig
+from ...config import HISTORY_DIR, MOD_OVERRIDES_DIR, ConfigChangeEvent, UserConfig
 from ..infra.diagnostics import diag
 from ..infra.profiler import profile
 from ..infra.types import ParseFailure, normalize_rel_path
@@ -20,7 +20,6 @@ from ..platform.history import (
     resolve_path,
     set_resolver,
 )
-
 from .models import GameData, GameDataType
 
 
@@ -52,7 +51,6 @@ class DataManager:
         if cls._instance is not None:
             cls._instance.clear()
             cls._instance = None
-        cls._EMPTY_DOC = None  # type: ignore[assignment]
 
     # ── 初始化 ──
 

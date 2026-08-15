@@ -3,6 +3,7 @@
 from .async_task import (
     AsyncTaskHandle as AsyncTaskHandle,
     TaskCallback as TaskCallback,
+    TaskCancelled as TaskCancelled,
     TaskDone as TaskDone,
     TaskError as TaskError,
     TaskEvent as TaskEvent,

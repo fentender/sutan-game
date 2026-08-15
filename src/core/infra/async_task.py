@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from functools import wraps
 from typing import Any
 
+from .error_reporter import report_exception
+
 
 class _Cancelled(Exception):
     pass
@@ -26,6 +28,12 @@ class TaskDone:
 @dataclass
 class TaskError:
     message: str
+    details: str = ""
+
+
+@dataclass
+class TaskCancelled:
+    pass
 
 
 @dataclass
@@ -33,7 +41,7 @@ class TaskStage:
     message: str
 
 
-type TaskEvent = TaskProgress | TaskDone | TaskError | TaskStage
+type TaskEvent = TaskProgress | TaskDone | TaskError | TaskCancelled | TaskStage
 type TaskCallback = Callable[[TaskEvent], None]
 
 
@@ -77,6 +85,17 @@ def async_task(fn: Callable[..., None]) -> Callable[..., AsyncTaskHandle]:
         def _target() -> None:
             try:
                 fn(*args, **kwargs)
+            except _Cancelled:
+                callback = kwargs.get("cb")
+                if callable(callback):
+                    callback(TaskCancelled())
+            except Exception as exc:
+                callback = kwargs.get("cb")
+                if callable(callback):
+                    report = report_exception(exc)
+                    callback(TaskError(report.summary, report.details))
+                else:
+                    raise
             finally:
                 handle._done.set()
 

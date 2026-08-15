@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from .core.infra.diagnostics import diag
+from .runtime_paths import RUNTIME_PATHS, migrate_legacy_runtime_data
 
 # 应用版本号（发版时与 git tag 同步更新）
 APP_VERSION = "1.4.4"
@@ -30,13 +31,9 @@ UPDATE_SOURCES = [
 ]
 
 
-# 项目根目录
-if getattr(sys, 'frozen', False):
-    # PyInstaller 打包后：exe 所在目录
-    PROJECT_ROOT = Path(sys.executable).parent
-else:
-    # 源码运行：项目根目录
-    PROJECT_ROOT = Path(__file__).parent.parent
+# 项目根目录及打包资源目录
+PROJECT_ROOT = RUNTIME_PATHS.project_root
+RESOURCE_ROOT = RUNTIME_PATHS.resource_root
 
 # 游戏与 Workshop 常量
 GAME_DIR_NAME = "Sultan's Game"
@@ -160,26 +157,26 @@ DEFAULT_GAME_PATH = detect_game_path()
 DEFAULT_WORKSHOP_PATH = detect_workshop_path()
 
 # 用户配置文件
-USER_CONFIG_PATH = PROJECT_ROOT / "user_config.json"
+USER_CONFIG_PATH = RUNTIME_PATHS.user_config
+ERROR_LOG_PATH = RUNTIME_PATHS.error_log
 
 # 合并输出目录
-MERGED_OUTPUT_PATH = PROJECT_ROOT / "merged_output"
+MERGED_OUTPUT_PATH = RUNTIME_PATHS.merged_output
 
 # Schema 规则文件目录
-SCHEMA_DIR = PROJECT_ROOT / "schemas"
+SCHEMA_DIR = RESOURCE_ROOT / "schemas"
 
 # 历史 config 版本目录（自适应合并模式使用）
 # 打包后：CAS 包在 _MEIPASS（_internal/）中；源码运行：优先 CAS 包，否则原始目录
 if getattr(sys, 'frozen', False):
-    _MEIPASS = Path(sys._MEIPASS)  # type: ignore[attr-defined]
-    HISTORY_DIR = _MEIPASS / "history_config_pack"
+    HISTORY_DIR = RESOURCE_ROOT / "history_config_pack"
 else:
     _HISTORY_PACK = PROJECT_ROOT / "history_config_pack"
     _HISTORY_RAW = PROJECT_ROOT / "history_config"
     HISTORY_DIR = _HISTORY_PACK if _HISTORY_PACK.exists() else _HISTORY_RAW
 
 # Mod 覆盖文件目录（用户手动编辑的合并结果）
-MOD_OVERRIDES_DIR = PROJECT_ROOT / "mod_overrides"
+MOD_OVERRIDES_DIR = RUNTIME_PATHS.mod_overrides
 
 # 合成 Mod 的 ID（放在 workshop 目录下）
 SYNTHETIC_MOD_ID = "0000000001"
@@ -277,6 +274,7 @@ class UserConfig:
 
     @classmethod
     def load(cls) -> UserConfig:
+        migrate_legacy_runtime_data(RUNTIME_PATHS)
         if USER_CONFIG_PATH.exists():
             try:
                 data = json.loads(USER_CONFIG_PATH.read_text(encoding='utf-8'))

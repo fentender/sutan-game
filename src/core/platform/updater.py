@@ -18,9 +18,11 @@ def check_for_update(timeout: int = 8) -> dict | None:
     """检查是否有新版本可用
 
     依次尝试 UPDATE_SOURCES 中的各个源，第一个成功响应即决定结果。
-    返回更新信息字典（有新版本时），或 None（已最新/全部失败）。
+    返回更新信息字典（有新版本时），或 None（已是最新版本）。
+    所有更新源均失败时抛出 RuntimeError。
     """
     current = _parse_version(APP_VERSION)
+    errors: list[str] = []
 
     for source in UPDATE_SOURCES:
         try:
@@ -29,9 +31,10 @@ def check_for_update(timeout: int = 8) -> dict | None:
             return result
         except Exception as e:
             diag.info("update", f"检查更新失败 [{source['name']}]: {e}")
+            errors.append(f"{source['name']}: {e}")
             continue
 
-    return None
+    raise RuntimeError("所有更新源均不可用：" + "；".join(errors))
 
 
 def _check_source(source: dict, current: tuple[int, ...], timeout: int) -> dict | None:

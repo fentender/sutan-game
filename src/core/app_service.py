@@ -9,12 +9,15 @@ import threading
 from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
+from typing import cast
 
 from sultan_core.delta import DeltaDict, compute_delta
 from sultan_core.json import JsonDoc, ParseError
+from sultan_core.json_ops import classify_json as _classify_json
 
 from ..config import (
     APP_VERSION,
+    ERROR_LOG_PATH,
     HISTORY_DIR,
     MERGED_OUTPUT_PATH,
     MOD_OVERRIDES_DIR,
@@ -29,6 +32,7 @@ from .data_manager import DataManager
 from .infra.async_task import (
     AsyncTaskHandle,
     TaskCallback,
+    TaskCancelled,
     TaskDone,
     TaskError,
     TaskProgress,
@@ -37,6 +41,7 @@ from .infra.async_task import (
     async_task,
 )
 from .infra.diagnostics import diag
+from .infra.error_reporter import report_exception
 from .infra.types import (
     CancelCheck,
     JsonObject,
@@ -44,7 +49,6 @@ from .infra.types import (
     ParseFailure,
     ProgressCallback,
 )
-from sultan_core.json_ops import classify_json as _classify_json
 from .merge.cache import FileMergeState
 from .merge.delta import ModDelta, _to_cpp_mode
 from .merge.merger import (
@@ -102,6 +106,7 @@ class AppService:
         self._init_progress: tuple[int, int] = (0, 0)
         self._init_schema_progress: tuple[int, int, str] = (0, 0, "")
         self._init_error: str | None = None
+        self._init_error_details: str = ""
         self._mods: list[ModInfo] = []
         self._mod_configs: list[tuple[str, str, Path]] = []
         self._parse_failures: list[ParseFailure] = []
@@ -135,6 +140,10 @@ class AppService:
         return self._init_error
 
     @property
+    def init_error_details(self) -> str:
+        return self._init_error_details
+
+    @property
     def mods(self) -> list[ModInfo]:
         return self._mods
 
@@ -156,6 +165,7 @@ class AppService:
             return
         self._init_state = InitState.SCANNING
         self._init_error = None
+        self._init_error_details = ""
         self._do_scan()
         self._init_state = InitState.LOADING_JSON
         threading.Thread(target=self._async_init_chain, daemon=True).start()
@@ -194,7 +204,9 @@ class AppService:
                 return
             self._continue_after_load()
         except Exception as e:
-            self._init_error = f"{type(e).__name__}: {e}"
+            report = report_exception(e)
+            self._init_error = report.summary
+            self._init_error_details = report.details
             self._init_state = InitState.ERROR
 
     def _ensure_schemas(self) -> None:
@@ -253,7 +265,9 @@ class AppService:
 
             self._init_state = InitState.READY
         except Exception as e:
-            self._init_error = f"{type(e).__name__}: {e}"
+            report = report_exception(e)
+            self._init_error = report.summary
+            self._init_error_details = report.details
             self._init_state = InitState.ERROR
 
     def _do_scan(self) -> None:
@@ -326,6 +340,10 @@ class AppService:
     @property
     def app_version(self) -> str:
         return APP_VERSION
+
+    @property
+    def error_log_path(self) -> Path:
+        return ERROR_LOG_PATH
 
     # ══════════════════════════════════════════════════════════════
     # 配置读写
@@ -555,10 +573,11 @@ class AppService:
             )
             cb(TaskDone())
         except _Cancelled:
-            pass
+            cb(TaskCancelled())
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     @async_task
     def prep_analyze_async(
@@ -594,10 +613,11 @@ class AppService:
             handle.check_cancel()
             cb(TaskDone(result=(remap_tables, remap_messages)))
         except _Cancelled:
-            pass
+            cb(TaskCancelled())
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     @async_task
     def merge_async(
@@ -631,10 +651,11 @@ class AppService:
             )
             cb(TaskDone(result=(results, warnings_snapshot)))
         except _Cancelled:
-            pass
+            cb(TaskCancelled())
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     @async_task
     def analyze_async(
@@ -655,10 +676,11 @@ class AppService:
             parse_msgs = diag.snapshot("parse")
             cb(TaskDone(result=(overrides, parse_msgs)))
         except _Cancelled:
-            pass
+            cb(TaskCancelled())
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     @async_task
     def check_update_async(
@@ -672,7 +694,8 @@ class AppService:
             cb(TaskDone(result=result))
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     @async_task
     def generate_schemas_async(
@@ -691,10 +714,11 @@ class AppService:
             self.generate_schemas(config_dir, schema_dir, progress_cb=_progress)
             cb(TaskDone())
         except _Cancelled:
-            pass
+            cb(TaskCancelled())
         except Exception as e:
             if not handle.is_cancelled:
-                cb(TaskError(str(e)))
+                report = report_exception(e)
+                cb(TaskError(report.summary, report.details))
 
     def invalidate_delta(self) -> None:
         self._mod_manager.invalidate_delta()
@@ -799,7 +823,7 @@ class AppService:
     # ══════════════════════════════════════════════════════════════
 
     def classify_json(self, doc: JsonDoc) -> str:
-        return _classify_json(doc)
+        return cast(str, _classify_json(doc))
 
     def merge_file(
         self, base_doc: JsonDoc,

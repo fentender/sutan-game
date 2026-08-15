@@ -5,6 +5,7 @@ import re
 import shutil
 from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 
 from PySide6.QtCore import QObject, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QCloseEvent, QDesktopServices
@@ -37,12 +38,14 @@ from src.core.api import (
     InitState,
     MergeMode,
     RemapTable,
+    TaskCancelled,
     TaskDone,
     TaskError,
     TaskEvent,
     TaskProgress,
     TaskStage,
     diag,
+    report_exception,
 )
 
 from .panels.log import LogPanel, prefix_mod_title
@@ -70,6 +73,7 @@ class MainWindow(QMainWindow):
         self._delta_bridge.task_event.connect(self._on_delta_event)
         self._merge_handle: AsyncTaskHandle | None = None
         self._merge_progress: QProgressDialog | None = None
+        self._merge_output_path: Path | None = None
         self._merge_bridge = _TaskBridge(self)
         self._merge_bridge.task_event.connect(self._on_merge_event)
         self._analyze_handle: AsyncTaskHandle | None = None
@@ -202,6 +206,11 @@ class MainWindow(QMainWindow):
                 self._init_timer.stop()
                 self._log_message(ERROR, f"初始化失败: {self.service.init_error}")
                 self.statusBar().showMessage("初始化失败")
+                self._show_error(
+                    "初始化失败",
+                    self.service.init_error or "未知错误",
+                    self.service.init_error_details,
+                )
 
     def _handle_parse_failures(self) -> None:
         failures = self.service.parse_failures
@@ -363,12 +372,18 @@ class MainWindow(QMainWindow):
                     self._delta_progress = None
                 self.statusBar().showMessage("初始化完成")
                 self._schedule_analyze()
-            case TaskError(message=message):
+            case TaskError(message=message, details=details):
                 if self._delta_progress:
                     self._delta_progress.close()
                     self._delta_progress = None
                 self.statusBar().showMessage(f"差异预计算失败: {message}")
                 self._log_message(ERROR, f"差异预计算失败: {message}")
+                self._show_error("差异预计算失败", message, details)
+            case TaskCancelled():
+                if self._delta_progress:
+                    self._delta_progress.close()
+                    self._delta_progress = None
+                self.statusBar().showMessage("差异预计算已取消")
 
     def _on_merge_mode_changed(self, index: int) -> None:
         mode_value = self.cmb_merge_mode.itemData(index)
@@ -439,6 +454,8 @@ class MainWindow(QMainWindow):
         if self._merge_handle and not self._merge_handle.is_done:
             return
 
+        self._analyze_gen += 1
+        gen = self._analyze_gen
         if self._prep_handle and not self._prep_handle.is_done:
             self._prep_handle.cancel()
         if self._analyze_handle and not self._analyze_handle.is_done:
@@ -458,9 +475,6 @@ class MainWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)
 
-        self._analyze_gen += 1
-        gen = self._analyze_gen
-
         def _cb(ev: TaskEvent) -> None:
             if self._analyze_gen == gen:
                 self._prep_bridge.task_event.emit(ev)
@@ -479,10 +493,16 @@ class MainWindow(QMainWindow):
             case TaskProgress(completed=completed, total=total):
                 self.progress_bar.setRange(0, total)
                 self.progress_bar.setValue(completed)
-            case TaskDone(result=(remap_tables, remap_messages)):
+            case TaskDone(result=result):
+                remap_tables, remap_messages = cast(
+                    tuple[dict[str, RemapTable], list[tuple[str, str]]],
+                    result,
+                )
                 self._on_prep_finished(remap_tables, remap_messages)
-            case TaskError(message=message):
-                self._on_prep_error(message)
+            case TaskError(message=message, details=details):
+                self._on_prep_error(message, details)
+            case TaskCancelled():
+                self._on_analysis_cancelled()
 
     def _on_prep_finished(
         self,
@@ -510,16 +530,25 @@ class MainWindow(QMainWindow):
             self._get_mod_configs(), self.service.schema_dir, cb=_cb,
         )
 
-    def _on_prep_error(self, message: str) -> None:
+    def _on_prep_error(self, message: str, details: str = "") -> None:
         self.progress_bar.setVisible(False)
         self.statusBar().showMessage(f"准备分析失败: {message}")
+        self._pending_action = None
+        self._log_message(ERROR, f"准备分析失败: {message}")
+        self._show_error("准备分析失败", message, details)
 
     def _on_analyze_event(self, event: TaskEvent) -> None:
         match event:
-            case TaskDone(result=(overrides, parse_msgs)):
+            case TaskDone(result=result):
+                overrides, parse_msgs = cast(
+                    tuple[list[FileOverrideInfo], list[tuple[str, str]]],
+                    result,
+                )
                 self._on_analyze_finished(overrides, parse_msgs)
-            case TaskError(message=message):
-                self._on_analyze_error(message)
+            case TaskError(message=message, details=details):
+                self._on_analyze_error(message, details)
+            case TaskCancelled():
+                self._on_analysis_cancelled()
 
     def _on_analyze_finished(self, overrides: list[FileOverrideInfo],
                              parse_msgs: list[tuple[str, str]]) -> None:
@@ -551,10 +580,17 @@ class MainWindow(QMainWindow):
             self._pending_action = None
             action()
 
-    def _on_analyze_error(self, error: str) -> None:
+    def _on_analyze_error(self, error: str, details: str = "") -> None:
         self.progress_bar.setVisible(False)
         self.statusBar().showMessage(f"分析失败: {error}")
         self._log_message(ERROR, f"冲突分析失败: {error}")
+        self._pending_action = None
+        self._show_error("冲突分析失败", error, details)
+
+    def _on_analysis_cancelled(self) -> None:
+        self.progress_bar.setVisible(False)
+        self._pending_action = None
+        self.statusBar().showMessage("冲突分析已取消")
 
     def _open_diff(self, rel_path: str) -> None:
         if self._is_analyzing():
@@ -582,45 +618,55 @@ class MainWindow(QMainWindow):
             self._pending_action = self._execute_merge
             return
 
-        self._save_config()
-        mod_configs = self._get_mod_configs()
-        if not mod_configs:
-            QMessageBox.information(self, "提示", "没有启用的 Mod")
-            return
+        output_path: Path | None = None
+        output_created = False
+        try:
+            self._save_config()
+            mod_configs = self._get_mod_configs()
+            if not mod_configs:
+                QMessageBox.information(self, "提示", "没有启用的 Mod")
+                return
 
-        folder_name = self._ask_synthetic_mod_name()
-        if folder_name is None:
-            return
+            folder_name = self._ask_synthetic_mod_name()
+            if folder_name is None:
+                return
 
-        output_path = self.service.local_mod_dir / folder_name
-        if output_path.exists():
-            shutil.rmtree(output_path)
-        output_path.mkdir(parents=True)
+            output_path = self.service.local_mod_dir / folder_name
+            if output_path.exists():
+                shutil.rmtree(output_path)
+            output_path.mkdir(parents=True)
+            output_created = True
 
-        enabled = self.mod_list_panel.get_enabled_mods()
-        mod_paths = [(m.name, m.path) for m in enabled]
+            enabled = self.mod_list_panel.get_enabled_mods()
+            mod_paths = [(m.name, m.path) for m in enabled]
 
-        self.btn_merge.setText("取消合并")
-        self.btn_merge.clicked.disconnect()
-        self.btn_merge.clicked.connect(self._cancel_merge)
+            self.btn_merge.setText("取消合并")
+            self.btn_merge.clicked.disconnect()
+            self.btn_merge.clicked.connect(self._cancel_merge)
 
-        self._merge_progress = QProgressDialog(
-            "正在合并 JSON 文件...", "取消", 0, 0, self,
-        )
-        self._merge_progress.setWindowTitle("执行合并")
-        self._merge_progress.setMinimumDuration(0)
-        self._merge_progress.setWindowModality(Qt.WindowModality.WindowModal)
-        self._merge_progress.canceled.connect(self._cancel_merge)
-        self._merge_progress.show()
+            self._merge_progress = QProgressDialog(
+                "正在合并 JSON 文件...", "取消", 0, 0, self,
+            )
+            self._merge_progress.setWindowTitle("执行合并")
+            self._merge_progress.setMinimumDuration(0)
+            self._merge_progress.setWindowModality(Qt.WindowModality.WindowModal)
+            self._merge_progress.canceled.connect(self._cancel_merge)
+            self._merge_progress.show()
 
-        self._merge_output_path = output_path
-        self._merge_handle = self.service.merge_async(
-            mod_configs,
-            output_path,
-            mod_paths,
-            remap_tables=self._remap_tables,
-            cb=self._merge_bridge.task_event.emit,
-        )
+            self._merge_output_path = output_path
+            self._merge_handle = self.service.merge_async(
+                mod_configs,
+                output_path,
+                mod_paths,
+                remap_tables=self._remap_tables,
+                cb=self._merge_bridge.task_event.emit,
+            )
+        except Exception as exc:
+            if output_created and output_path is not None and output_path.exists():
+                shutil.rmtree(output_path, ignore_errors=True)
+            self._restore_merge_btn()
+            report = report_exception(exc)
+            self._show_error("无法开始合并", report.summary, report.details)
 
     _VALID_NAME_RE = re.compile(r'^[A-Za-z0-9_]+$')
 
@@ -663,10 +709,16 @@ class MainWindow(QMainWindow):
                 self._on_merge_stage(message)
             case TaskProgress(completed=completed, total=total):
                 self._on_merge_progress(completed, total)
-            case TaskDone(result=(results, warnings)):
+            case TaskDone(result=result):
+                results, warnings = cast(
+                    tuple[dict[str, object], list[str]],
+                    result,
+                )
                 self._on_merge_finished(results, warnings)
-            case TaskError(message=message):
-                self._on_merge_error(message)
+            case TaskError(message=message, details=details):
+                self._on_merge_error(message, details)
+            case TaskCancelled():
+                self._on_merge_cancelled()
 
     def _on_merge_progress(self, completed: int, total: int) -> None:
         if hasattr(self, '_merge_progress') and self._merge_progress is not None:
@@ -684,7 +736,14 @@ class MainWindow(QMainWindow):
         self._restore_merge_btn()
         enabled = self.mod_list_panel.get_enabled_mods()
         mod_names = [m.name for m in enabled]
-        self.service.generate_info_json(mod_names, self._merge_output_path)
+        if self._merge_output_path is None:
+            raise RuntimeError("合并完成时输出目录未设置")
+        try:
+            self.service.generate_info_json(mod_names, self._merge_output_path)
+        except Exception as exc:
+            report = report_exception(exc)
+            self._on_merge_error(report.summary, report.details)
+            return
 
         output = self._merge_output_path
         msg = f"合并完成: {len(results)} 个文件已合并到 {output}"
@@ -693,13 +752,19 @@ class MainWindow(QMainWindow):
             self._log_message(WARNING, prefix_mod_title(w, self._mod_name_map))
         QMessageBox.information(self, "合并完成", f"已合并 {len(results)} 个文件到:\n{output}")
 
-    def _on_merge_error(self, error: str) -> None:
+    def _on_merge_error(self, error: str, details: str = "") -> None:
         self._restore_merge_btn()
         if self._merge_output_path and self._merge_output_path.exists():
             shutil.rmtree(self._merge_output_path, ignore_errors=True)
         self.statusBar().showMessage(f"合并失败: {error}")
         self._log_message(ERROR, f"合并失败: {error}")
-        QMessageBox.critical(self, "合并失败", error)
+        self._show_error("合并失败", error, details)
+
+    def _on_merge_cancelled(self) -> None:
+        self._restore_merge_btn()
+        if self._merge_output_path and self._merge_output_path.exists():
+            shutil.rmtree(self._merge_output_path, ignore_errors=True)
+        self.statusBar().showMessage("合并已取消")
 
     def _clean(self) -> None:
         synthetic_mods = self.service.scan_synthetic_mods(self.service.local_mod_dir)
@@ -776,6 +841,16 @@ class MainWindow(QMainWindow):
     def _show_messages(self, messages: list[tuple[str, str]]) -> None:
         self.log_panel.show_messages(messages)
 
+    def _show_error(self, title: str, message: str, details: str = "") -> None:
+        dialog = QMessageBox(self)
+        dialog.setIcon(QMessageBox.Icon.Critical)
+        dialog.setWindowTitle(title)
+        dialog.setText(message)
+        dialog.setInformativeText(f"异常日志：{self.service.error_log_path}")
+        if details:
+            dialog.setDetailedText(details)
+        dialog.exec()
+
     def _log_message(self, level: str, msg: str) -> None:
         self.log_panel.log_message(level, msg)
 
@@ -824,10 +899,13 @@ class MainWindow(QMainWindow):
         match event:
             case TaskDone(result=result):
                 self._on_update_checked(
-                    result,  # type: ignore[arg-type]
+                    cast(dict[str, str] | None, result),
                     self._update_silent,
                 )
-            case TaskError():
+            case TaskError(message=message, details=details):
+                if not self._update_silent:
+                    self._show_error("检查更新失败", message, details)
+            case TaskCancelled():
                 pass
 
     def _on_update_checked(self, result: dict[str, str] | None, silent: bool) -> None:

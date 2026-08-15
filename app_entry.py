@@ -1,19 +1,21 @@
-"""PyInstaller 打包入口"""
+"""PyInstaller 打包入口。"""
+import json
 import sys
-import traceback
-from pathlib import Path
+
+from src.core.infra.error_reporter import install_exception_hooks
+from src.runtime_paths import runtime_check
+
+install_exception_hooks()
 
 
-def _excepthook(exc_type, exc_value, exc_tb):
-    """将未捕获异常写入 crash.log，避免 --windowed 模式下异常不可见"""
-    if getattr(sys, 'frozen', False):
-        log_path = Path(sys.executable).parent / "crash.log"
-        with open(log_path, 'a', encoding='utf-8') as f:
-            traceback.print_exception(exc_type, exc_value, exc_tb, file=f)
-    traceback.print_exception(exc_type, exc_value, exc_tb)
+def run() -> None:
+    if "--runtime-check" in sys.argv:
+        print(json.dumps(runtime_check(), ensure_ascii=False))
+        return
+
+    from src.main import main
+
+    main()
 
 
-sys.excepthook = _excepthook
-
-from src.main import main
-main()
+run()

@@ -89,8 +89,9 @@ def main():
         log.info("=" * 60)
         log.info("功能测试")
         log.info("=" * 60)
-        from tests.python import test_macos
+        from tests.python import test_macos, test_runtime
         test_macos.run_all(result)
+        test_runtime.run_all(result)
 
     if run_perf:
         log.info("=" * 60)

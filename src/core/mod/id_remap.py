@@ -283,9 +283,9 @@ def _detect_tag_conflicts(
         for code in info.tag_keys:
             if code in base_ids:
                 continue
-            name = info.tag_names.get(code)
-            if name:
-                name_to_entries.setdefault(name, []).append((mod_idx, code))
+            tag_name = info.tag_names.get(code)
+            if tag_name:
+                name_to_entries.setdefault(tag_name, []).append((mod_idx, code))
 
     name_conflicts: dict[str, list[tuple[int, str]]] = {}
     for name, entries in name_to_entries.items():

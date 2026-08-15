@@ -16,6 +16,7 @@ plans
 merged_output/
 mod_overrides/
 user_config.json
+error.log
 _remap_temp
 history_config_pack/
 

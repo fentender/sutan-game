@@ -11,6 +11,7 @@ from .app_service import AppService, InitState
 from .infra.async_task import (
     AsyncTaskHandle,
     TaskCallback,
+    TaskCancelled,
     TaskDone,
     TaskError,
     TaskEvent,
@@ -18,6 +19,7 @@ from .infra.async_task import (
     TaskStage,
 )
 from .infra.diagnostics import ERROR, INFO, WARNING, diag
+from .infra.error_reporter import ExceptionReport, report_exception
 from .infra.types import FIELD_SEP, ChangeKind, MergeMode, ParseFailure
 from .merge.cache import FileMergeState, StepState
 from .merge.formatter import build_padded_texts, diff_opcodes
@@ -32,6 +34,7 @@ __all__ = [
     "DeletionRecord",
     "DeltaDict",
     "ERROR",
+    "ExceptionReport",
     "FIELD_SEP",
     "FileOverrideInfo",
     "FileMergeState",
@@ -45,6 +48,7 @@ __all__ = [
     "RemapTable",
     "StepState",
     "TaskCallback",
+    "TaskCancelled",
     "TaskDone",
     "TaskError",
     "TaskEvent",
@@ -55,4 +59,5 @@ __all__ = [
     "diag",
     "diff_opcodes",
     "infer_workshop_path_from_game",
+    "report_exception",
 ]

@@ -144,6 +144,7 @@ jobs:
             exit 1
           fi
           file "$packaged_app/Contents/MacOS/SuDanModMerger"
+          "$packaged_app/Contents/MacOS/SuDanModMerger" --runtime-check
           echo "Verified $packaged_symlinks symbolic links in $archive"
 
       - name: Upload artifact
